@@ -1,18 +1,10 @@
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::USER_AGENT;
-
-pub fn get_user_agent() -> String {
-    let user_agent = USER_AGENT.lock().unwrap();
-    user_agent.clone()
-}
-
-pub async fn get_from_public_esi<T: DeserializeOwned>(url: &str) -> Result<T, reqwest::Error> {
-    let req = reqwest::Client::new()
-        .get(url)
-        .header(reqwest::header::USER_AGENT, get_user_agent())
-        .send()
-        .await?;
+pub async fn get_from_public_esi<T: DeserializeOwned>(
+    reqwest_client: &reqwest::Client,
+    url: &str,
+) -> Result<T, reqwest::Error> {
+    let req = reqwest_client.get(url).send().await?;
 
     req.error_for_status_ref()?;
 
@@ -22,15 +14,11 @@ pub async fn get_from_public_esi<T: DeserializeOwned>(url: &str) -> Result<T, re
 }
 
 pub async fn post_to_public_esi<T: DeserializeOwned, U: Serialize + ?Sized>(
+    reqwest_client: &reqwest::Client,
     url: &str,
     data: &U,
 ) -> Result<T, reqwest::Error> {
-    let req = reqwest::Client::new()
-        .post(url)
-        .header(reqwest::header::USER_AGENT, get_user_agent())
-        .json(data)
-        .send()
-        .await?;
+    let req = reqwest_client.post(url).json(data).send().await?;
 
     req.error_for_status_ref()?;
 

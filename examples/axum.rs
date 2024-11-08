@@ -5,7 +5,7 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use eve_esi::{character::get_character, corporation::get_corporation, initialize_eve_esi};
+use eve_esi::EsiClient;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -15,11 +15,6 @@ struct GetByIdParams {
 
 #[tokio::main]
 async fn main() {
-    let application_name = "Black Rose EVE ESI Example";
-    let application_email = "example@example.com";
-
-    initialize_eve_esi(application_name.to_string(), application_email.to_string());
-
     let app = Router::new()
         .route("/character", get(get_esi_character))
         .route("/corporation", get(get_esi_corporation));
@@ -29,15 +24,21 @@ async fn main() {
         .unwrap();
 
     println!("Test character API at http://localhost:8000/character?id=2114794365");
-    println!("Test corporation API at http://localhost:8000/corporation?id=98755360");
+    println!("Test corporation API at http://localhost:8000/corporation?id=98785281");
     axum::serve(listener, app).await.unwrap();
 }
 
 async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
-    match get_character(params.0.id).await {
+    let reqwest_client: reqwest::Client = reqwest::Client::new();
+    let esi_client: EsiClient<'_> = EsiClient::new(&reqwest_client);
+
+    let character_id: i32 = params.0.id;
+
+    match esi_client.get_character(character_id).await {
         Ok(character) => (StatusCode::OK, Json(character)).into_response(),
         Err(error) => {
-            let status_code = StatusCode::from_u16(error.status().unwrap().into()).unwrap();
+            let status_code: StatusCode =
+                StatusCode::from_u16(error.status().unwrap().into()).unwrap();
 
             (status_code, Json(error.to_string())).into_response()
         }
@@ -45,7 +46,12 @@ async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
 }
 
 async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
-    match get_corporation(params.0.id).await {
+    let reqwest_client: reqwest::Client = reqwest::Client::new();
+    let esi_client: EsiClient<'_> = EsiClient::new(&reqwest_client);
+
+    let corporation_id: i32 = params.0.id;
+
+    match esi_client.get_corporation(corporation_id).await {
         Ok(corporation) => (StatusCode::OK, Json(corporation)).into_response(),
         Err(error) => {
             let status_code = StatusCode::from_u16(error.status().unwrap().into()).unwrap();

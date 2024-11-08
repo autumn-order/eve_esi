@@ -1,21 +1,20 @@
 [package]
 name = "eve_esi"
-version = "0.1.0"
-authors = ["Hyziri"]
+version = "0.2.0"
+authors = ["Hyziri <hyziri@protonmail.com>"]
 edition = "2021"
-description = "Black Rose's API wrapper for interaction with EVE Online's ESI."
-keywords = ["esi", "black_rose", "eve_esi", "eve_online", "eve_api"]
-repository = "https://github.com/blackrose-eve/eve_esi"
+description = "Rust API wrapper for interaction with with EVE Online's ESI."
+keywords = ["esi", "eve_esi", "eve_online", "eve_api", "eve"]
+repository = "https://github.com/autumn-order/eve_esi"
 license = "MIT"
 readme = "README.md"
 include = ["/src", "LICENSE", "README.md"]
 
 [dependencies]
-chrono = { version = "0.4.37", features = ["serde"] }
-lazy_static = "1.4.0"
-reqwest = { version = "0.12.2", features = ["json"] }
-serde = { version = "1.0.197", features = ["derive"] }
+chrono = { version = "0.4.38", features = ["serde"] }
+reqwest = { version = "0.12.9", features = ["json"] }
+serde = { version = "1.0.214", features = ["derive"] }
 
 [dev-dependencies]
-axum = "0.7.5"
-tokio = { version = "1.37.0", features = ["rt-multi-thread"] }
+axum = "0.7.7"
+tokio = { version = "1.41.1", features = ["rt-multi-thread"] } 
