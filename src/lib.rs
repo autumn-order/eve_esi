@@ -12,10 +12,8 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(reqwest_client: &reqwest::Client) -> Self {
-        Self {
-            reqwest_client: reqwest_client.clone(),
-        }
+    pub fn new(reqwest_client: reqwest::Client) -> Self {
+        Self { reqwest_client }
     }
 
     async fn get_from_public_esi<T: DeserializeOwned>(
