@@ -6,7 +6,7 @@ Rust API wrapper for interaction with [EVE Online's ESI](https://esi.evetech.net
 
 ```rust
 let user_agent = format!("APPLICATION_NAME/1.0 (example@example.com)");
-let reqwest_client: reqwest::Client = reqwest::Client::builder().user_agent("APPLICATION_NAME/1.0 (example@example.com)").build().unwrap();
+let reqwest_client: reqwest::Client = reqwest::Client::builder().user_agent(user_agent).build().unwrap();
 let esi_client: eve_esi::EsiClient<'_> = eve_esi::EsiClient::new(&reqwest_client);
 
 let character_id: i32 = 2114794365;
