@@ -5,7 +5,6 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use eve_esi::EsiClient;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -30,7 +29,7 @@ async fn main() {
 
 async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
     let reqwest_client: reqwest::Client = reqwest::Client::new();
-    let esi_client: EsiClient<'_> = EsiClient::new(&reqwest_client);
+    let esi_client: eve_esi::Client = eve_esi::Client::new(&reqwest_client);
 
     let character_id: i32 = params.0.id;
 
@@ -47,7 +46,7 @@ async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
 
 async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
     let reqwest_client: reqwest::Client = reqwest::Client::new();
-    let esi_client: EsiClient<'_> = EsiClient::new(&reqwest_client);
+    let esi_client: eve_esi::Client = eve_esi::Client::new(&reqwest_client);
 
     let corporation_id: i32 = params.0.id;
 

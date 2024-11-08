@@ -1,6 +1,6 @@
-use crate::{model::alliance::Alliance, EsiClient};
+use crate::{model::alliance::Alliance, Client};
 
-impl<'a> EsiClient<'a> {
+impl Client {
     pub async fn get_alliance(&self, alliance_id: i32) -> Result<Alliance, reqwest::Error> {
         let url = format!(
             "https://esi.evetech.net/latest/alliances/{}/?datasource=tranquility",

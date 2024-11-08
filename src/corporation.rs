@@ -1,7 +1,7 @@
 use crate::model::corporation::Corporation;
-use crate::EsiClient;
+use crate::Client;
 
-impl<'a> EsiClient<'a> {
+impl Client {
     pub async fn get_corporation(
         &self,
         corporation_id: i32,

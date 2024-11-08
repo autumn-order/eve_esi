@@ -1,8 +1,8 @@
-use crate::EsiClient;
+use crate::Client;
 
 use crate::model::character::{Character, CharacterAffiliation};
 
-impl<'a> EsiClient<'a> {
+impl Client {
     pub async fn get_character(&self, character_id: i32) -> Result<Character, reqwest::Error> {
         let url = format!(
             "https://esi.evetech.net/latest/characters/{}/?datasource=tranquility",
