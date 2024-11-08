@@ -29,4 +29,4 @@ To test out the example:
 ## Notes
 
 - More ESI routes will be added as needed, feel free to submit pull requests to add any you may need.
-- Only public ESI routes are available, private routes will be added at a later date when required by Rust based appliations built by Autumn.
+- Only public ESI routes are available, private routes will be added at a later date when required by Rust based applications built by [Autumn](https://github.com/autumn-order).
