@@ -6,8 +6,7 @@ Rust API wrapper for interaction with [EVE Online's ESI](https://esi.evetech.net
 
 ```rust
 let user_agent = format!("APPLICATION_NAME/1.0 (example@example.com)");
-let reqwest_client: reqwest::Client = reqwest::Client::builder().user_agent(user_agent).build().unwrap();
-let esi_client: eve_esi::EsiClient<'_> = eve_esi::EsiClient::new(&reqwest_client);
+let esi_client = eve_esi::Client::new(&user_agent);
 
 let character_id: i32 = 2114794365;
 
@@ -31,3 +30,4 @@ To test out the example:
 
 - More ESI routes will be added as needed, feel free to submit pull requests to add any you may need.
 - Only public ESI routes are available, private routes will be added at a later date when required by Rust based applications built by [Autumn](https://github.com/autumn-order).
+- You can override the esi_url for the ESI Client by simply doing `esi_client.esi_url = "http://your_url.com" for use cases such as unit tests with crates like [mockito](https://docs.rs/mockito/latest/mockito/) to emulate endpoints, see this repository's unit tests for an example.

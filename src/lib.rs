@@ -9,11 +9,18 @@ use serde::{de::DeserializeOwned, Serialize};
 
 pub struct Client {
     reqwest_client: reqwest::Client,
+    pub esi_url: String,
 }
 
 impl Client {
-    pub fn new(reqwest_client: reqwest::Client) -> Self {
-        Self { reqwest_client }
+    pub fn new(user_agent: &str) -> Self {
+        Self {
+            reqwest_client: reqwest::Client::builder()
+                .user_agent(user_agent)
+                .build()
+                .unwrap(),
+            esi_url: "https://esi.evetech.net/latest".to_string(),
+        }
     }
 
     async fn get_from_public_esi<T: DeserializeOwned>(
