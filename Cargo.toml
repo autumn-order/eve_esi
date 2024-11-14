@@ -1,6 +1,6 @@
 [package]
 name = "eve_esi"
-version = "0.2.4"
+version = "0.2.5"
 authors = ["Hyziri <hyziri@protonmail.com>"]
 edition = "2021"
 description = "Rust API wrapper for interaction with with EVE Online's ESI."
@@ -17,4 +17,6 @@ serde = { version = "1.0.214", features = ["derive"] }
 
 [dev-dependencies]
 axum = "0.7.7"
-tokio = { version = "1.41.1", features = ["rt-multi-thread"] } 
+tokio = { version = "1.41.1", features = ["rt-multi-thread"] }
+mockito = "1.6.1"
+serde_json = "1.0.132"

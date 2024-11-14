@@ -12,6 +12,8 @@ struct GetByIdParams {
     id: i32,
 }
 
+static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
 #[tokio::main]
 async fn main() {
     let app = Router::new()
@@ -28,8 +30,9 @@ async fn main() {
 }
 
 async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
-    let reqwest_client: reqwest::Client = reqwest::Client::new();
-    let esi_client: eve_esi::Client = eve_esi::Client::new(reqwest_client);
+    let mut esi_client: eve_esi::Client = eve_esi::Client::new(USER_AGENT);
+
+    esi_client.esi_url = "https://esi.evetech.net/latest".to_string();
 
     let character_id: i32 = params.0.id;
 
@@ -45,8 +48,7 @@ async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
 }
 
 async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
-    let reqwest_client: reqwest::Client = reqwest::Client::new();
-    let esi_client: eve_esi::Client = eve_esi::Client::new(reqwest_client);
+    let esi_client: eve_esi::Client = eve_esi::Client::new(USER_AGENT);
 
     let corporation_id: i32 = params.0.id;
 

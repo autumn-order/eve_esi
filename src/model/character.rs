@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Character {
     pub alliance_id: Option<i32>,
     pub birthday: DateTime<Utc>,
@@ -16,7 +16,7 @@ pub struct Character {
     pub title: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterAffiliation {
     pub alliance_id: Option<i32>,
     pub character_id: i32,
