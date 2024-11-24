@@ -1,3 +1,5 @@
+![Autumn Banner](https://raw.githubusercontent.com/autumn-order/branding/refs/heads/main/autumn-github-banner.png)
+
 # EVE ESI
 
 Rust API wrapper for interaction with [EVE Online's ESI](https://esi.evetech.net/ui/).
