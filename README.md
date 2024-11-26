@@ -1,4 +1,5 @@
-![Autumn Banner](https://raw.githubusercontent.com/autumn-order/branding/refs/heads/main/autumn-github-banner.png)
+![Autumn Banner](https://raw.githubusercontent.com/autumn-order/branding/refs/heads/main/autumn-github-banner-dark.png#gh-light-mode-only)
+![Autumn Banner](https://raw.githubusercontent.com/autumn-order/branding/refs/heads/main/autumn-github-banner-light.png#gh-dark-mode-only)
 
 # EVE ESI
 
