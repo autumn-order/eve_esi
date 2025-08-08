@@ -3,13 +3,19 @@ pub mod model;
 mod alliance;
 mod character;
 mod corporation;
+mod error;
 mod esi;
+mod oauth2;
 
 use serde::{de::DeserializeOwned, Serialize};
 
 pub struct Client {
     reqwest_client: reqwest::Client,
+    client_id: Option<String>,
+    client_secret: Option<String>,
     pub esi_url: String,
+    pub eve_auth_url: String,
+    pub eve_auth_token_url: String,
 }
 
 impl Client {
@@ -19,8 +25,22 @@ impl Client {
                 .user_agent(user_agent)
                 .build()
                 .unwrap(),
+            client_id: None,
+            client_secret: None,
             esi_url: "https://esi.evetech.net/latest".to_string(),
+            eve_auth_url: "https://login.eveonline.com/v2/oauth/".to_string(),
+            eve_auth_token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
         }
+    }
+
+    pub fn set_client_id(mut self, client_id: String) -> Self {
+        self.client_id = Some(client_id);
+        self
+    }
+
+    pub fn set_client_secret(mut self, client_secret: String) -> Self {
+        self.client_secret = Some(client_secret);
+        self
     }
 
     async fn get_from_public_esi<T: DeserializeOwned>(
