@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum EveEsiError {
+pub enum EsiError {
     #[error(
         "Missing ESI client ID.\n\
         \n\

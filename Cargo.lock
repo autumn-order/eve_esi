@@ -300,7 +300,7 @@ dependencies = [
 
 [[package]]
 name = "eve_esi"
-version = "0.2.6"
+version = "0.3.0"
 dependencies = [
  "axum",
  "chrono",

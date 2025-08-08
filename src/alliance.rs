@@ -1,6 +1,6 @@
-use crate::{model::alliance::Alliance, Client};
+use crate::{model::alliance::Alliance, EsiClient};
 
-impl Client {
+impl EsiClient {
     pub async fn get_alliance(&self, alliance_id: i32) -> Result<Alliance, reqwest::Error> {
         let url = format!(
             "{}/alliances/{}/?datasource=tranquility",
@@ -39,7 +39,7 @@ mod tests {
             .with_body(r#"{"creator_corporation_id": 98784257, "creator_id": 2114794365, "date_founded": "2024-09-25T06:25:58Z", "executor_corporation_id": 98787881, "name": "Autumn.", "ticker": "AUTMN"}"#)
             .create();
 
-        let mut esi_client: crate::Client = crate::Client::new(USER_AGENT);
+        let mut esi_client: crate::EsiClient = crate::EsiClient::new(USER_AGENT);
 
         esi_client.esi_url = mock_server_url.to_string();
 
@@ -63,7 +63,7 @@ mod tests {
             .with_body(r#"{"error": "Alliance not found"}"#)
             .create();
 
-        let mut esi_client: crate::Client = crate::Client::new(USER_AGENT);
+        let mut esi_client: crate::EsiClient = crate::EsiClient::new(USER_AGENT);
 
         esi_client.esi_url = mock_server_url.to_string();
 

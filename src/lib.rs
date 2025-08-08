@@ -9,7 +9,7 @@ mod oauth2;
 
 use serde::{de::DeserializeOwned, Serialize};
 
-pub struct Client {
+pub struct EsiClient {
     reqwest_client: reqwest::Client,
     client_id: Option<String>,
     client_secret: Option<String>,
@@ -18,7 +18,7 @@ pub struct Client {
     pub eve_auth_token_url: String,
 }
 
-impl Client {
+impl EsiClient {
     pub fn new(user_agent: &str) -> Self {
         Self {
             reqwest_client: reqwest::Client::builder()
@@ -58,3 +58,6 @@ impl Client {
         esi::post_to_public_esi(&self.reqwest_client, url, data).await
     }
 }
+
+#[deprecated(since = "0.3.0", note = "Use EsiClient instead")]
+pub type Client = EsiClient;

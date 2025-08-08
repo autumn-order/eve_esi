@@ -1,12 +1,12 @@
-use crate::error::EveEsiError;
-use crate::Client;
+use crate::error::EsiError;
+use crate::EsiClient;
 
 use oauth2::basic::BasicClient;
 use oauth2::{AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope, TokenUrl};
 
 use crate::model::oauth2::AuthenticationData;
 
-impl Client {
+impl EsiClient {
     /// Generates a login URL and state string for initiating the EVE Online OAuth2 authentication process.
     ///
     /// This method constructs the URL that users should visit to begin authentication with EVE Online SSO.
@@ -50,35 +50,35 @@ impl Client {
         self,
         redirect_url: String,
         scopes: Vec<String>,
-    ) -> Result<AuthenticationData, EveEsiError> {
+    ) -> Result<AuthenticationData, EsiError> {
         fn convert_scopes(scopes: Vec<String>) -> Vec<Scope> {
             scopes.iter().map(|s| Scope::new(s.clone())).collect()
         }
 
         let client_id = match self.client_id {
             Some(id) => id.clone(),
-            None => return Err(EveEsiError::MissingClientId),
+            None => return Err(EsiError::MissingClientId),
         };
         let client_secret = match self.client_secret {
             Some(secret) => secret.clone(),
-            None => return Err(EveEsiError::MissingClientSecret),
+            None => return Err(EsiError::MissingClientSecret),
         };
 
         let auth_url = AuthUrl::new(self.eve_auth_url).map_err(|_| {
-            EveEsiError::ParseError(format!(
+            EsiError::ParseError(format!(
                 "Failed to parse the EVE Online AuthUrl.\n\
                 You can change the url by setting the `eve_auth_url` field in your `Client` configuration."
 
             ))
         })?;
         let token_url = TokenUrl::new(self.eve_auth_token_url).map_err(|_| {
-            EveEsiError::ParseError(format!(
+            EsiError::ParseError(format!(
                 "Failed to parse the EVE Online TokenUrl.\n\
                 You can change the url by setting the `eve_auth_token_url` field in your `Client` configuration."
             ))
         })?;
         let redirect_url = RedirectUrl::new(redirect_url).map_err(|_| {
-            EveEsiError::ParseError(format!(
+            EsiError::ParseError(format!(
                 "The provided redirect_url is invalid or improperly formatted. Please ensure it is a valid URL and matches the redirect URI registered in your EVE Online developer application (https://developers.eveonline.com/applications)."
             ))
         })?;
@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn test_successful_login_url() {
         static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
-        let esi_client = crate::Client::new(&USER_AGENT)
+        let esi_client = crate::EsiClient::new(&USER_AGENT)
             .set_client_id("example".to_string())
             .set_client_secret("example".to_string());
 
@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_missing_client_id() {
         static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
-        let mut esi_client = crate::Client::new(&USER_AGENT);
+        let mut esi_client = crate::EsiClient::new(&USER_AGENT);
 
         esi_client.client_id = None;
         esi_client.client_secret = Some("example".to_string());

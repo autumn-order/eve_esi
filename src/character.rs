@@ -1,8 +1,8 @@
-use crate::Client;
+use crate::EsiClient;
 
 use crate::model::character::{Character, CharacterAffiliation};
 
-impl Client {
+impl EsiClient {
     pub async fn get_character(&self, character_id: i32) -> Result<Character, reqwest::Error> {
         let url = format!(
             "{}/characters/{}/?datasource=tranquility",
@@ -72,7 +72,7 @@ mod tests {
             )
             .create();
 
-        let mut esi_client: crate::Client = crate::Client::new(USER_AGENT);
+        let mut esi_client: crate::EsiClient = crate::EsiClient::new(USER_AGENT);
 
         esi_client.esi_url = mock_server_url.to_string();
 
@@ -96,7 +96,7 @@ mod tests {
             .with_body(r#"{"error": "Character not found"}"#)
             .create();
 
-        let mut esi_client: crate::Client = crate::Client::new(USER_AGENT);
+        let mut esi_client: crate::EsiClient = crate::EsiClient::new(USER_AGENT);
 
         esi_client.esi_url = mock_server_url.to_string();
 
@@ -148,7 +148,7 @@ mod tests {
             )
             .create();
 
-        let mut esi_client: crate::Client = crate::Client::new(USER_AGENT);
+        let mut esi_client: crate::EsiClient = crate::EsiClient::new(USER_AGENT);
 
         esi_client.esi_url = mock_server_url.to_string();
 

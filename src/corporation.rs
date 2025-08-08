@@ -1,7 +1,7 @@
 use crate::model::corporation::Corporation;
-use crate::Client;
+use crate::EsiClient;
 
-impl Client {
+impl EsiClient {
     pub async fn get_corporation(
         &self,
         corporation_id: i32,
@@ -48,7 +48,7 @@ mod tests {
             .with_body(r#"{"alliance_id": 99013534, "ceo_id": 2114794365, "creator_id": 2114794365, "date_founded": "2024-10-07T21:43:09Z", "description": "", "home_station_id": 60003760, "member_count": 21, "name": "The Order of Autumn", "shares": 1000, "tax_rate": 0, "ticker": "F4LL.", "url": "https://autumn-order.com", "war_eligible": true}"#)
             .create();
 
-        let mut esi_client: crate::Client = crate::Client::new(USER_AGENT);
+        let mut esi_client: crate::EsiClient = crate::EsiClient::new(USER_AGENT);
 
         esi_client.esi_url = mock_server_url.to_string();
 
@@ -72,7 +72,7 @@ mod tests {
             .with_body(r#"{"error": "Corporation not found"}"#)
             .create();
 
-        let mut esi_client: crate::Client = crate::Client::new(USER_AGENT);
+        let mut esi_client: crate::EsiClient = crate::EsiClient::new(USER_AGENT);
 
         esi_client.esi_url = mock_server_url.to_string();
 

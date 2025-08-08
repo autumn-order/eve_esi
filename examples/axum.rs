@@ -30,7 +30,7 @@ async fn main() {
 }
 
 async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
-    let mut esi_client: eve_esi::Client = eve_esi::Client::new(USER_AGENT);
+    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
 
     esi_client.esi_url = "https://esi.evetech.net/latest".to_string();
 
@@ -48,7 +48,7 @@ async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
 }
 
 async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
-    let esi_client: eve_esi::Client = eve_esi::Client::new(USER_AGENT);
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
 
     let corporation_id: i32 = params.0.id;
 
