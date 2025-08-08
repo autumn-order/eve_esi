@@ -9,6 +9,11 @@ mod oauth2;
 
 use serde::{de::DeserializeOwned, Serialize};
 
+/// A client for interacting with EVE Online's ESI (EVE Swagger Interface) API.
+///
+/// This client provides methods for making authenticated and unauthenticated requests to the ESI API.
+/// It handles authentication with EVE Online's OAuth2 implementation and provides convenience methods
+/// for accessing various ESI endpoints.
 pub struct EsiClient {
     reqwest_client: reqwest::Client,
     client_id: Option<String>,
@@ -18,6 +23,21 @@ pub struct EsiClient {
     pub eve_auth_token_url: String,
 }
 
+/// Creates a new ESI client with default configuration.
+///
+/// # Arguments
+/// - `user_agent` - The User-Agent header to use for requests. CCP requires a descriptive user agent
+///                  that includes your application name, version, and contact information.
+///
+/// # Returns
+/// A new `EsiClient` instance with default ESI and authentication URLs.
+///
+/// # Example
+/// ```
+/// use eve_esi::EsiClient;
+///
+/// let esi_client = EsiClient::new("MyApp/1.0 (contact@example.com)");
+/// ```
 impl EsiClient {
     pub fn new(user_agent: &str) -> Self {
         Self {
@@ -33,16 +53,48 @@ impl EsiClient {
         }
     }
 
+    /// Sets the OAuth2 client ID for authentication with EVE Online SSO.
+    ///
+    /// This method configures the client ID required for OAuth2 authentication.
+    /// You must register your application with EVE Online developers to get a client ID.
+    /// https://developers.eveonline.com/applications
+    ///
+    /// # Arguments
+    /// - `client_id` - The OAuth2 client ID obtained from the EVE Online developer portal.
+    ///
+    /// # Returns
+    /// The `EsiClient` instance with updated client ID configuration.
     pub fn set_client_id(mut self, client_id: String) -> Self {
         self.client_id = Some(client_id);
         self
     }
 
+    /// Sets the OAuth2 client secret for authentication with EVE Online SSO.
+    ///
+    /// This method configures the client secret required for OAuth2 authentication.
+    /// You must register your application with EVE Online developers to get a client secret.
+    /// https://developers.eveonline.com/applications
+    ///
+    /// # Arguments
+    /// - `client_secret` - The OAuth2 client secret obtained from the EVE Online developer portal.
+    ///
+    /// # Returns
+    /// The `EsiClient` instance with updated client secret configuration.
     pub fn set_client_secret(mut self, client_secret: String) -> Self {
         self.client_secret = Some(client_secret);
         self
     }
 
+    /// Makes an unauthenticated GET request to the ESI API.
+    ///
+    /// # Arguments
+    /// - `url` - The ESI API endpoint URL to request.
+    ///
+    /// # Returns
+    /// A Result containing the deserialized response data or a reqwest error.
+    ///
+    /// # Type Parameters
+    /// - `T` - The expected return type that implements `DeserializeOwned`
     async fn get_from_public_esi<T: DeserializeOwned>(
         &self,
         url: &str,
@@ -50,6 +102,18 @@ impl EsiClient {
         esi::get_from_public_esi(&self.reqwest_client, url).await
     }
 
+    /// Makes an unauthenticated POST request to the ESI API.
+    ///
+    /// # Arguments
+    /// - `url` - The ESI API endpoint URL to request.
+    /// - `data` - The data to send in the request body.
+    ///
+    /// # Returns
+    /// A Result containing the deserialized response data or a reqwest error.
+    ///
+    /// # Type Parameters
+    /// - `T` - The expected return type that implements `DeserializeOwned`.
+    /// - `U` - The type of data to send, which must implement `Serialize`.
     async fn post_to_public_esi<T: DeserializeOwned, U: Serialize + ?Sized>(
         &self,
         url: &str,
