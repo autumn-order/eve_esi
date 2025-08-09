@@ -1,10 +1,10 @@
 use crate::{error::EsiError, model::alliance::Alliance, EsiClient};
 
-pub struct AllianceAPI<'a> {
+pub struct AllianceApi<'a> {
     client: &'a EsiClient,
 }
 
-impl<'a> AllianceAPI<'a> {
+impl<'a> AllianceApi<'a> {
     pub(crate) fn new(client: &'a EsiClient) -> Self {
         Self { client }
     }
@@ -23,7 +23,7 @@ impl<'a> AllianceAPI<'a> {
     /// - [`EsiError`] - An error if the request failed (e.g., alliance not found, network issues)
     ///
     /// # EVE ESI Reference
-    /// This endpoint wraps the [GET /alliances/{alliance_id}/](https://esi.evetech.net/ui/#/Alliance/get_alliances_alliance_id) ESI endpoint.
+    /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceId).
     ///
     /// # Example
     /// ```no_run

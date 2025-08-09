@@ -8,7 +8,11 @@ impl EsiClient {
     /// Access to Alliance ESI endpoints
     ///
     /// Returns an API client for interacting with alliance-related endpoints.
-    pub fn alliance(&self) -> self::alliance::AllianceAPI {
-        self::alliance::AllianceAPI::new(self)
+    pub fn alliance(&self) -> self::alliance::AllianceApi {
+        self::alliance::AllianceApi::new(self)
+    }
+
+    pub fn character(&self) -> self::character::CharacterApi {
+        self::character::CharacterApi::new(self)
     }
 }

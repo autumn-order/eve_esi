@@ -36,7 +36,7 @@ async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
 
     let character_id: i32 = params.0.id;
 
-    match esi_client.get_character(character_id).await {
+    match esi_client.character().get_character(character_id).await {
         Ok(character) => (StatusCode::OK, Json(character)).into_response(),
         Err(error) => {
             let status_code: StatusCode = match &error {
