@@ -1,24 +1,35 @@
 use axum::{
-    extract::Query,
+    extract::{Extension, Query},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize)]
 struct GetByIdParams {
     id: i32,
 }
 
-static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
-
 #[tokio::main]
 async fn main() {
+    // Always set a user agent for your ESI client
+    // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
+    // E.G. "MyApp/1.0 (contact@example.com)"
+    static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
+
+    // Arc is used to share the client between threads safely
+    // Sharing the esi_client as an Extension avoids having initialize it in every API route
+    // This allows you to configure it once here in main as opposed to configuring again in every API route
+    let shared_client = Arc::new(esi_client);
     let app = Router::new()
         .route("/character", get(get_esi_character))
-        .route("/corporation", get(get_esi_corporation));
+        .route("/corporation", get(get_esi_corporation))
+        .layer(Extension(shared_client));
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8000")
         .await
@@ -29,11 +40,10 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
-    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
-
-    esi_client.esi_url = "https://esi.evetech.net/latest".to_string();
-
+async fn get_esi_character(
+    Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>,
+    params: Query<GetByIdParams>,
+) -> Response {
     let character_id: i32 = params.0.id;
 
     match esi_client
@@ -55,9 +65,10 @@ async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
     }
 }
 
-async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
-    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
-
+async fn get_esi_corporation(
+    Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>,
+    params: Query<GetByIdParams>,
+) -> Response {
     let corporation_id: i32 = params.0.id;
 
     match esi_client
