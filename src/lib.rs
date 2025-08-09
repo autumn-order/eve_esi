@@ -1,7 +1,7 @@
 pub mod error;
 pub mod model;
+pub mod oauth2;
 
-mod auth;
 mod endpoints;
 mod esi;
 

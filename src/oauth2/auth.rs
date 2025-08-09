@@ -39,7 +39,9 @@ impl EsiClient {
     ///     .set_client_secret("example".to_string());
     ///
     /// let redirect_url = "http://localhost:8080/callback".to_string();
-    /// let scopes = vec!["publicData".to_string()];
+    /// let scopes = eve_esi::oauth2::ScopeBuilder::new()
+    ///     .public_data()
+    ///     .build();
     /// let auth_data = esi_client
     ///     .initiate_oauth_login(redirect_url, scopes)
     ///     .unwrap();
@@ -113,7 +115,7 @@ mod tests {
             .set_client_secret("example".to_string());
 
         let redirect_url = "http://localhost:8080/callback".to_string();
-        let scopes = vec!["publicData".to_string()];
+        let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
 
         let auth_data = esi_client
             .initiate_oauth_login(redirect_url, scopes)
@@ -131,7 +133,7 @@ mod tests {
         esi_client.client_secret = Some("example".to_string());
 
         let redirect_url = "http://localhost:8080/callback".to_string();
-        let scopes = vec!["publicData".to_string()];
+        let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
 
         let result = esi_client.initiate_oauth_login(redirect_url, scopes);
 
