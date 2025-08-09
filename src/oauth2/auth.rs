@@ -52,10 +52,6 @@ impl EsiClient {
         &self,
         scopes: Vec<String>,
     ) -> Result<AuthenticationData, EsiError> {
-        fn convert_scopes(scopes: Vec<String>) -> Vec<Scope> {
-            scopes.iter().map(|s| Scope::new(s.clone())).collect()
-        }
-
         let client_id = match self.client_id.clone() {
             Some(id) => id.clone(),
             None => return Err(EsiError::MissingClientId),
@@ -94,7 +90,7 @@ impl EsiClient {
             .set_token_uri(token_url)
             .set_redirect_uri(redirect_url);
 
-        let scopes = convert_scopes(scopes);
+        let scopes: Vec<Scope> = scopes.into_iter().map(Scope::new).collect();
 
         let (eve_oauth_url, csrf_token) = client
             .authorize_url(CsrfToken::new_random)
