@@ -28,4 +28,6 @@ pub enum EsiError {
 
     #[error("Parse error:\n  {0}")]
     ParseError(String),
+    #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
 }

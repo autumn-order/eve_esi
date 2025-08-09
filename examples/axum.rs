@@ -39,8 +39,12 @@ async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
     match esi_client.get_character(character_id).await {
         Ok(character) => (StatusCode::OK, Json(character)).into_response(),
         Err(error) => {
-            let status_code: StatusCode =
-                StatusCode::from_u16(error.status().unwrap().into()).unwrap();
+            let status_code: StatusCode = match &error {
+                eve_esi::error::EsiError::ReqwestError(ref err) => {
+                    StatusCode::from_u16(err.status().unwrap().into()).unwrap()
+                }
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            };
 
             (status_code, Json(error.to_string())).into_response()
         }
@@ -55,7 +59,12 @@ async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
     match esi_client.get_corporation(corporation_id).await {
         Ok(corporation) => (StatusCode::OK, Json(corporation)).into_response(),
         Err(error) => {
-            let status_code = StatusCode::from_u16(error.status().unwrap().into()).unwrap();
+            let status_code: StatusCode = match &error {
+                eve_esi::error::EsiError::ReqwestError(ref err) => {
+                    StatusCode::from_u16(err.status().unwrap().into()).unwrap()
+                }
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            };
 
             (status_code, Json(error.to_string())).into_response()
         }

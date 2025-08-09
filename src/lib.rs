@@ -1,8 +1,8 @@
+pub mod error;
 pub mod model;
 
 mod auth;
 mod endpoints;
-mod error;
 mod esi;
 
 /// A client for interacting with EVE Online's ESI (EVE Swagger Interface) API.
