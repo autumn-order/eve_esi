@@ -1,11 +1,9 @@
 pub mod model;
 
-mod alliance;
-mod character;
-mod corporation;
+mod auth;
+mod endpoints;
 mod error;
 mod esi;
-mod oauth2;
 
 use serde::{de::DeserializeOwned, Serialize};
 
