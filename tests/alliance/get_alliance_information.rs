@@ -1,5 +1,15 @@
 static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
+/// Tests the successful retrieval of alliance information from a mock EVE ESI server.
+///
+/// # Test Setup
+/// - Creates a mock server to simulate the ESI API
+/// - Configures a mock response with expected alliance data
+/// - Points the ESI client to the mock server URL
+///
+/// # Assertions
+/// - Verifies that a request has been made to the mock server
+/// - Verifies that the retrieved alliance information matches the expected data
 #[tokio::test]
 async fn get_alliance() {
     let mut mock_server = mockito::Server::new_async().await;
@@ -37,6 +47,16 @@ async fn get_alliance() {
     assert_eq!(alliance, expected_alliance);
 }
 
+/// Tests the successful retrieval of alliance information from a mock EVE ESI server.
+///
+/// # Test Setup
+/// - Creates a mock server to simulate the ESI API
+/// - Configures a mock response with a 404 not found response
+/// - Points the ESI client to the mock server URL
+///
+/// # Assertions
+/// - Verifies that a request has been made to the mock server
+/// - Verifies that the received result is a EsiError of the ReqwestError type with status code 404
 #[tokio::test]
 async fn get_alliance_not_found() {
     let mut mock_server = mockito::Server::new_async().await;
@@ -61,5 +81,15 @@ async fn get_alliance_not_found() {
 
     mock.assert();
 
-    assert!(result.is_err());
+    match result {
+        Ok(_) => panic!("Expected Err"),
+        Err(eve_esi::error::EsiError::ReqwestError(reqwest_error)) => {
+            assert!(reqwest_error.status().is_some());
+            assert_eq!(
+                reqwest_error.status().unwrap(),
+                reqwest::StatusCode::NOT_FOUND
+            );
+        }
+        Err(_) => panic!("Expected EsiError::ReqwestError with status code 404"),
+    }
 }
