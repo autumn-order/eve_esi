@@ -3,7 +3,7 @@ static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_V
 /// Tests the successful retrieval of alliance information from a mock EVE ESI server.
 ///
 /// # Test Setup
-/// - Creates a mock server to simulate the ESI API
+/// - Creates a mock server to simulate the ESI endpoint
 /// - Configures a mock response with expected alliance data
 /// - Points the ESI client to the mock server URL
 ///
@@ -47,10 +47,10 @@ async fn get_alliance() {
     assert_eq!(alliance, expected_alliance);
 }
 
-/// Tests the successful retrieval of alliance information from a mock EVE ESI server.
+/// Tests receiving a 404 error when attempting to retrieve alliance information from a mock EVE ESI server.
 ///
 /// # Test Setup
-/// - Creates a mock server to simulate the ESI API
+/// - Creates a mock server to simulate the ESI endpoint
 /// - Configures a mock response with a 404 not found response
 /// - Points the ESI client to the mock server URL
 ///
