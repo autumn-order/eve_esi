@@ -10,7 +10,7 @@ static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_V
 /// # Assertions
 /// - Verifies that the returned character information matches the expected character information.
 #[tokio::test]
-async fn get_character() {
+async fn get_character_public_information() {
     let mut mock_server = mockito::Server::new_async().await;
 
     let mock_server_url = mock_server.url();
@@ -75,7 +75,7 @@ async fn get_character() {
 /// - Verifies that a request has been made to the mock server
 /// - Verifies that the received result is a EsiError of the ReqwestError type with status code 404
 #[tokio::test]
-async fn get_character_not_found() {
+async fn get_character_public_information_not_found() {
     let mut mock_server = mockito::Server::new_async().await;
 
     let mock_server_url = mock_server.url();

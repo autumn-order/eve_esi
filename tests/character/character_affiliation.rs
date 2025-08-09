@@ -1,7 +1,17 @@
 static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
+/// Tests the successful retrieval of character affiliations from a mock EVE ESI server.
+///
+/// # Test Setup
+/// - Creates a mock server to simulate the ESI endpoint
+/// - Configures a mock response with expected character affiliation data for two characters
+/// - Points the ESI client to the mock server URL
+///
+/// # Assertions
+/// - Verifies that a request has been made to the mock server
+/// - Verifies that the retrieved character affiliation information matches the expected data
 #[tokio::test]
-async fn get_character_affiliations() {
+async fn character_affiliation() {
     let mut mock_server = mockito::Server::new_async().await;
 
     let mock_server_url = mock_server.url();
@@ -37,7 +47,7 @@ async fn get_character_affiliations() {
                     "corporation_id": 98785281,
                     "alliance_id": 99013534,
                     "faction_id": null
-                }]"#,
+            }]"#,
         )
         .create();
 
@@ -54,4 +64,52 @@ async fn get_character_affiliations() {
     mock.assert();
 
     assert_eq!(character_affiliations, expected_character_affiliations);
+}
+
+/// Tests the successful retrieval of character affiliations from a mock EVE ESI server.
+///
+/// # Test Setup
+/// - Creates a mock server to simulate the ESI endpoint
+/// - Configures a mock response with a 400 bad request error with body "Invalid character ID"
+/// - Points the ESI client to the mock server URL
+///
+/// # Assertions
+/// - Verifies that a request has been made to the mock server
+/// - Verifies that an error 400 Bad Request was received
+#[tokio::test]
+async fn character_affiliation_bad_request() {
+    let mut mock_server = mockito::Server::new_async().await;
+
+    let mock_server_url = mock_server.url();
+
+    let mock = mock_server
+        .mock("POST", "/characters/affiliation/?datasource=tranquility")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(
+            r#"{
+                "error": "Invalid character ID"
+            }"#,
+        )
+        .create();
+
+    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
+
+    esi_client.esi_url = mock_server_url.to_string();
+
+    let result = esi_client.characters().character_affiliation(vec![0]).await;
+
+    mock.assert();
+
+    match result {
+        Ok(_) => panic!("Expected Err"),
+        Err(eve_esi::error::EsiError::ReqwestError(reqwest_error)) => {
+            assert!(reqwest_error.status().is_some());
+            assert_eq!(
+                reqwest_error.status().unwrap(),
+                reqwest::StatusCode::BAD_REQUEST
+            );
+        }
+        Err(_) => panic!("Expected EsiError::ReqwestError with status code 404"),
+    }
 }

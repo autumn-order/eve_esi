@@ -11,7 +11,7 @@ static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_V
 /// - Verifies that a request has been made to the mock server
 /// - Verifies that the retrieved alliance information matches the expected data
 #[tokio::test]
-async fn get_alliance() {
+async fn get_alliance_information() {
     let mut mock_server = mockito::Server::new_async().await;
 
     let mock_server_url = mock_server.url();
@@ -58,7 +58,7 @@ async fn get_alliance() {
 /// - Verifies that a request has been made to the mock server
 /// - Verifies that the received result is a EsiError of the ReqwestError type with status code 404
 #[tokio::test]
-async fn get_alliance_not_found() {
+async fn get_alliance_information_not_found() {
     let mut mock_server = mockito::Server::new_async().await;
 
     let mock_server_url = mock_server.url();
