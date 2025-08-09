@@ -23,7 +23,7 @@ async fn get_corporation() {
         faction_id: None,
     };
 
-    let mock = mock_server.mock("GET", "/corporations/98785281/?datasource=tranquility")
+    let mock = mock_server.mock("GET", "/corporations/98785281/")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(r#"{"alliance_id": 99013534, "ceo_id": 2114794365, "creator_id": 2114794365, "date_founded": "2024-10-07T21:43:09Z", "description": "", "home_station_id": 60003760, "member_count": 21, "name": "The Order of Autumn", "shares": 1000, "tax_rate": 0, "ticker": "F4LL.", "url": "https://autumn-order.com", "war_eligible": true}"#)
@@ -51,7 +51,7 @@ async fn get_corporation_not_found() {
     let mock_server_url = mock_server.url();
 
     let mock = mock_server
-        .mock("GET", "/corporations/99999999/?datasource=tranquility")
+        .mock("GET", "/corporations/99999999/")
         .with_status(404)
         .with_header("content-type", "application/json")
         .with_body(r#"{"error": "Corporation not found"}"#)

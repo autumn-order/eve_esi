@@ -30,7 +30,7 @@ async fn get_character_public_information() {
     };
 
     let mock = mock_server
-        .mock("GET", "/characters/2114794365/?datasource=tranquility")
+        .mock("GET", "/characters/2114794365/")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(
@@ -81,7 +81,7 @@ async fn get_character_public_information_not_found() {
     let mock_server_url = mock_server.url();
 
     let mock = mock_server
-        .mock("GET", "/characters/2114794365/?datasource=tranquility")
+        .mock("GET", "/characters/2114794365/")
         .with_status(404)
         .with_header("content-type", "application/json")
         .with_body(r#"{"error": "Character not found"}"#)

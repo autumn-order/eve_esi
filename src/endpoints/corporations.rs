@@ -42,10 +42,7 @@ impl<'a> CorporationApi<'a> {
         &self,
         corporation_id: i32,
     ) -> Result<Corporation, EsiError> {
-        let url = format!(
-            "{}/corporations/{}/?datasource=tranquility",
-            self.client.esi_url, corporation_id
-        );
+        let url = format!("{}/corporations/{}/", self.client.esi_url, corporation_id);
 
         Ok(self.client.get_from_public_esi::<Corporation>(&url).await?)
     }

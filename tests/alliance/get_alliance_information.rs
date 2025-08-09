@@ -26,7 +26,7 @@ async fn get_alliance_information() {
         ticker: "AUTMN".to_string(),
     };
 
-    let mock = mock_server.mock("GET", "/alliances/99013534/?datasource=tranquility")
+    let mock = mock_server.mock("GET", "/alliances/99013534/")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(r#"{"creator_corporation_id": 98784257, "creator_id": 2114794365, "date_founded": "2024-09-25T06:25:58Z", "executor_corporation_id": 98787881, "name": "Autumn.", "ticker": "AUTMN"}"#)
@@ -64,7 +64,7 @@ async fn get_alliance_information_not_found() {
     let mock_server_url = mock_server.url();
 
     let mock = mock_server
-        .mock("GET", "/alliances/99999999/?datasource=tranquility")
+        .mock("GET", "/alliances/99999999/")
         .with_status(404)
         .with_header("content-type", "application/json")
         .with_body(r#"{"error": "Alliance not found"}"#)

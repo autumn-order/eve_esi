@@ -32,7 +32,7 @@ async fn character_affiliation() {
     ];
 
     let mock = mock_server
-        .mock("POST", "/characters/affiliation/?datasource=tranquility")
+        .mock("POST", "/characters/affiliation/")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(
@@ -83,7 +83,7 @@ async fn character_affiliation_bad_request() {
     let mock_server_url = mock_server.url();
 
     let mock = mock_server
-        .mock("POST", "/characters/affiliation/?datasource=tranquility")
+        .mock("POST", "/characters/affiliation/")
         .with_status(400)
         .with_header("content-type", "application/json")
         .with_body(
