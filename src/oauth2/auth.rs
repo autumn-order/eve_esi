@@ -34,52 +34,55 @@ impl EsiClient {
     /// # Example
     /// ```
     /// static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
-    /// let mut esi_client = eve_esi::Client::new(&USER_AGENT)
+    /// let esi_client = eve_esi::Client::new(&USER_AGENT)
     ///     .set_client_id("example".to_string())
-    ///     .set_client_secret("example".to_string());
+    ///     .set_client_secret("example".to_string())
+    ///     .set_callback_url("http://localhost:8080/callback".to_string());
     ///
-    /// let redirect_url = "http://localhost:8080/callback".to_string();
     /// let scopes = eve_esi::oauth2::ScopeBuilder::new()
     ///     .public_data()
     ///     .build();
     /// let auth_data = esi_client
-    ///     .initiate_oauth_login(redirect_url, scopes)
+    ///     .initiate_oauth_login(scopes)
     ///     .unwrap();
     ///
     /// println!("Login URL: {}", auth_data.login_url);
     /// ```
     pub fn initiate_oauth_login(
-        self,
-        redirect_url: String,
+        &self,
         scopes: Vec<String>,
     ) -> Result<AuthenticationData, EsiError> {
         fn convert_scopes(scopes: Vec<String>) -> Vec<Scope> {
             scopes.iter().map(|s| Scope::new(s.clone())).collect()
         }
 
-        let client_id = match self.client_id {
+        let client_id = match self.client_id.clone() {
             Some(id) => id.clone(),
             None => return Err(EsiError::MissingClientId),
         };
-        let client_secret = match self.client_secret {
+        let client_secret = match self.client_secret.clone() {
             Some(secret) => secret.clone(),
             None => return Err(EsiError::MissingClientSecret),
         };
+        let callback_url = match self.callback_url.clone() {
+            Some(url) => url.clone(),
+            None => return Err(EsiError::MissingCallbackUrl),
+        };
 
-        let auth_url = AuthUrl::new(self.eve_auth_url).map_err(|_| {
+        let auth_url = AuthUrl::new(self.eve_auth_url.clone()).map_err(|_| {
             EsiError::ParseError(format!(
                 "Failed to parse the EVE Online AuthUrl.\n\
                 You can change the url by setting the `eve_auth_url` field in your `Client` configuration."
 
             ))
         })?;
-        let token_url = TokenUrl::new(self.eve_auth_token_url).map_err(|_| {
+        let token_url = TokenUrl::new(self.eve_auth_token_url.clone()).map_err(|_| {
             EsiError::ParseError(format!(
                 "Failed to parse the EVE Online TokenUrl.\n\
                 You can change the url by setting the `eve_auth_token_url` field in your `Client` configuration."
             ))
         })?;
-        let redirect_url = RedirectUrl::new(redirect_url).map_err(|_| {
+        let redirect_url = RedirectUrl::new(callback_url).map_err(|_| {
             EsiError::ParseError(format!(
                 "The provided redirect_url is invalid or improperly formatted. Please ensure it is a valid URL and matches the redirect URI registered in your EVE Online developer application (https://developers.eveonline.com/applications)."
             ))
@@ -120,16 +123,17 @@ mod tests {
     #[test]
     fn test_successful_login_url() {
         static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
+
+        let callback_url = "http://localhost:8080/callback".to_string();
+
         let esi_client = crate::EsiClient::new(&USER_AGENT)
             .set_client_id("example".to_string())
-            .set_client_secret("example".to_string());
+            .set_client_secret("example".to_string())
+            .set_callback_url(callback_url);
 
-        let redirect_url = "http://localhost:8080/callback".to_string();
         let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
 
-        let auth_data = esi_client
-            .initiate_oauth_login(redirect_url, scopes)
-            .unwrap();
+        let auth_data = esi_client.initiate_oauth_login(scopes).unwrap();
 
         assert!(auth_data.state.len() > 0);
     }
@@ -146,15 +150,16 @@ mod tests {
     #[test]
     fn test_missing_client_id() {
         static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
-        let mut esi_client = crate::EsiClient::new(&USER_AGENT);
 
-        esi_client.client_id = None;
-        esi_client.client_secret = Some("example".to_string());
+        let callback_url = "http://localhost:8080/callback".to_string();
 
-        let redirect_url = "http://localhost:8080/callback".to_string();
+        let esi_client = crate::EsiClient::new(&USER_AGENT)
+            .set_client_secret("example".to_string())
+            .set_callback_url(callback_url);
+
         let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
 
-        let result = esi_client.initiate_oauth_login(redirect_url, scopes);
+        let result = esi_client.initiate_oauth_login(scopes);
 
         match result {
             Ok(_) => {

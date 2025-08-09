@@ -25,6 +25,17 @@ pub enum EsiError {
         This is required for accessing EVE Online OAuth2 and gated ESI routes."
     )]
     MissingClientSecret,
+    #[error(
+        "Missing ESI callback URL.\n\
+        \n\
+        To fix this:\n\
+          - Set `esi_client.set_callback_url(callback_url)`\n\
+          - Ensure it matches the callback URL set at:\n\
+              https://developers.eveonline.com/applications\n\
+        \n\
+        This is required for accessing EVE Online OAuth2 and gated ESI routes."
+    )]
+    MissingCallbackUrl,
 
     #[error("Parse error:\n  {0}")]
     ParseError(String),

@@ -14,6 +14,7 @@ pub struct EsiClient {
     reqwest_client: reqwest::Client,
     client_id: Option<String>,
     client_secret: Option<String>,
+    callback_url: Option<String>,
     pub esi_url: String,
     pub eve_auth_url: String,
     pub eve_auth_token_url: String,
@@ -43,8 +44,9 @@ impl EsiClient {
                 .unwrap(),
             client_id: None,
             client_secret: None,
+            callback_url: None,
             esi_url: "https://esi.evetech.net/latest".to_string(),
-            eve_auth_url: "https://login.eveonline.com/v2/oauth/".to_string(),
+            eve_auth_url: "https://login.eveonline.com/v2/oauth/authorize".to_string(),
             eve_auth_token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
         }
     }
@@ -78,6 +80,22 @@ impl EsiClient {
     /// The `EsiClient` instance with updated client secret configuration.
     pub fn set_client_secret(mut self, client_secret: String) -> Self {
         self.client_secret = Some(client_secret);
+        self
+    }
+
+    /// Sets the callback URL for authentication with EVE Online SSO.
+    ///
+    /// This method configures the callback URL required for OAuth2 authentication when the user is redirected back to your application.
+    /// Ensure that the callback URL matches the one set in your EVE Online developer portal application.
+    /// https://developers.eveonline.com/applications
+    ///
+    /// # Arguments
+    /// - `callback_url` - The callback URL which matches the one set in your EVE Online developer portal application.
+    ///
+    /// # Returns
+    /// The `EsiClient` instance with updated callback URL configuration.
+    pub fn set_callback_url(mut self, callback_url: String) -> Self {
+        self.callback_url = Some(callback_url);
         self
     }
 }
