@@ -1,1 +1,1 @@
-mod get_corporation;
+mod get_corporation_information;

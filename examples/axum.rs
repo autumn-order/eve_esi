@@ -60,7 +60,11 @@ async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
 
     let corporation_id: i32 = params.0.id;
 
-    match esi_client.get_corporation(corporation_id).await {
+    match esi_client
+        .corporations()
+        .get_corporation_information(corporation_id)
+        .await
+    {
         Ok(corporation) => (StatusCode::OK, Json(corporation)).into_response(),
         Err(error) => {
             let status_code: StatusCode = match &error {

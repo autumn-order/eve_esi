@@ -33,7 +33,11 @@ async fn get_corporation() {
 
     esi_client.esi_url = mock_server_url.to_string();
 
-    let corporation = esi_client.get_corporation(98785281).await.unwrap();
+    let corporation = esi_client
+        .corporations()
+        .get_corporation_information(98785281)
+        .await
+        .unwrap();
 
     mock.assert();
 
@@ -57,7 +61,10 @@ async fn get_corporation_not_found() {
 
     esi_client.esi_url = mock_server_url.to_string();
 
-    let result = esi_client.get_corporation(99999999).await;
+    let result = esi_client
+        .corporations()
+        .get_corporation_information(99999999)
+        .await;
 
     mock.assert();
 
