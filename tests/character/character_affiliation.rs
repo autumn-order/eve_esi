@@ -47,7 +47,7 @@ async fn get_character_affiliations() {
 
     let character_affiliations = esi_client
         .characters()
-        .get_character_affiliations(vec![2114794365, 2117053828])
+        .character_affiliation(vec![2114794365, 2117053828])
         .await
         .unwrap();
 

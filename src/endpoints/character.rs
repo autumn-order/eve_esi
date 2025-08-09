@@ -74,7 +74,7 @@ impl<'a> CharacterApi<'a> {
     ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
     ///
     ///     // Get affiliations for characters with IDs 2114794365 and 2117053828
-    ///     let affiliations = esi_client.characters().get_character_affiliations(vec![2114794365, 2117053828]).await.unwrap();
+    ///     let affiliations = esi_client.characters().character_affiliation(vec![2114794365, 2117053828]).await.unwrap();
     ///     for affiliation in affiliations {
     ///         let alliance_id = if let Some(alliance_id) = affiliation.alliance_id {
     ///             alliance_id.to_string()
@@ -85,7 +85,7 @@ impl<'a> CharacterApi<'a> {
     ///         println!("Character ID: {}, Alliance ID: {}, Corporation ID: {}", affiliation.character_id, alliance_id, affiliation.corporation_id);
     ///     }
     /// }
-    pub async fn get_character_affiliations(
+    pub async fn character_affiliation(
         &self,
         character_ids: Vec<i32>,
     ) -> Result<Vec<CharacterAffiliation>, EsiError> {
