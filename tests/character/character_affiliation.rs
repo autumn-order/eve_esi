@@ -110,6 +110,6 @@ async fn character_affiliation_bad_request() {
                 reqwest::StatusCode::BAD_REQUEST
             );
         }
-        Err(_) => panic!("Expected EsiError::ReqwestError with status code 404"),
+        Err(_) => panic!("Expected EsiError::ReqwestError with status code 400"),
     }
 }

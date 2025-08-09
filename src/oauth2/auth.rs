@@ -107,6 +107,16 @@ impl EsiClient {
 
 #[cfg(test)]
 mod tests {
+    /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
+    ///
+    /// # Test Setup
+    /// - Creates an ESI client with a mock client_id and client_secret
+    /// - Configures a redirect URL and requests public_data scope
+    /// - Calls the initiate_oauth_login method to generate authentication data
+    ///
+    /// # Assertions
+    /// - Verifies that the generated state token has a non-zero length,
+    ///   confirming that proper CSRF protection is in place
     #[test]
     fn test_successful_login_url() {
         static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
@@ -124,6 +134,15 @@ mod tests {
         assert!(auth_data.state.len() > 0);
     }
 
+    /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
+    ///
+    /// # Test Setup
+    /// - Creates an ESI client with a mock client_secret and the client_id set to None
+    /// - Configures a redirect URL and requests public_data scope
+    /// - Calls the initiate_oauth_login method to generate authentication data
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::MissingClientId
     #[test]
     fn test_missing_client_id() {
         static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
@@ -137,6 +156,14 @@ mod tests {
 
         let result = esi_client.initiate_oauth_login(redirect_url, scopes);
 
-        assert!(result.is_err());
+        match result {
+            Ok(_) => {
+                panic!("Expected Err");
+            }
+            Err(crate::error::EsiError::MissingClientId) => {
+                assert!(true);
+            }
+            Err(_) => panic!("Expected EsiError::MissingClientId"),
+        }
     }
 }
