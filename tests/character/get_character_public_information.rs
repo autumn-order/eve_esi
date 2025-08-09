@@ -45,8 +45,8 @@ async fn get_character() {
     esi_client.esi_url = mock_server_url.to_string();
 
     let character = esi_client
-        .character()
-        .get_character(2114794365)
+        .characters()
+        .get_character_public_information(2114794365)
         .await
         .unwrap();
 
@@ -72,7 +72,10 @@ async fn get_character_not_found() {
 
     esi_client.esi_url = mock_server_url.to_string();
 
-    let character = esi_client.character().get_character(2114794365).await;
+    let character = esi_client
+        .characters()
+        .get_character_public_information(2114794365)
+        .await;
 
     mock.assert();
 

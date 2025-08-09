@@ -46,7 +46,7 @@ async fn get_character_affiliations() {
     esi_client.esi_url = mock_server_url.to_string();
 
     let character_affiliations = esi_client
-        .character()
+        .characters()
         .get_character_affiliations(vec![2114794365, 2117053828])
         .await
         .unwrap();

@@ -1,2 +1,2 @@
-mod get_character;
-mod get_character_affiliation;
+mod character_affiliation;
+mod get_character_public_information;

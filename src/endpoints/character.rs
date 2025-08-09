@@ -36,10 +36,13 @@ impl<'a> CharacterApi<'a> {
     ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
     ///
     ///     // Get information about the character Hyziri (id: 2114794365)
-    ///     let character = esi_client.character().get_character(2114794365).await.unwrap();
+    ///     let character = esi_client.characters().get_character_public_information(2114794365).await.unwrap();
     ///     println!("Character name: {}", character.name);
     /// }
-    pub async fn get_character(&self, character_id: i32) -> Result<Character, EsiError> {
+    pub async fn get_character_public_information(
+        &self,
+        character_id: i32,
+    ) -> Result<Character, EsiError> {
         let url = format!(
             "{}/characters/{}/?datasource=tranquility",
             self.client.esi_url, character_id
@@ -71,7 +74,7 @@ impl<'a> CharacterApi<'a> {
     ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
     ///
     ///     // Get affiliations for characters with IDs 2114794365 and 2117053828
-    ///     let affiliations = esi_client.character().get_character_affiliations(vec![2114794365, 2117053828]).await.unwrap();
+    ///     let affiliations = esi_client.characters().get_character_affiliations(vec![2114794365, 2117053828]).await.unwrap();
     ///     for affiliation in affiliations {
     ///         let alliance_id = if let Some(alliance_id) = affiliation.alliance_id {
     ///             alliance_id.to_string()

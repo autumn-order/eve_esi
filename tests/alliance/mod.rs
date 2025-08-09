@@ -1,1 +1,1 @@
-mod get_alliance;
+mod get_alliance_information;

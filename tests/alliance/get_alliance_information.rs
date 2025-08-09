@@ -26,8 +26,11 @@ async fn get_alliance() {
 
     esi_client.esi_url = mock_server_url.to_string();
 
-    let alliance: eve_esi::model::alliance::Alliance =
-        esi_client.alliance().get_alliance(99013534).await.unwrap();
+    let alliance: eve_esi::model::alliance::Alliance = esi_client
+        .alliances()
+        .get_alliance_information(99013534)
+        .await
+        .unwrap();
 
     mock.assert();
 
@@ -51,7 +54,10 @@ async fn get_alliance_not_found() {
 
     esi_client.esi_url = mock_server_url.to_string();
 
-    let result = esi_client.alliance().get_alliance(99999999).await;
+    let result = esi_client
+        .alliances()
+        .get_alliance_information(99999999)
+        .await;
 
     mock.assert();
 

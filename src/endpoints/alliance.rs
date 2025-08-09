@@ -32,11 +32,11 @@ impl<'a> AllianceApi<'a> {
     ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
     ///
     ///     // Get information about The Autumn alliance (id: 99013534)
-    ///     let alliance = esi_client.alliance().get_alliance(99013534).await.unwrap();
+    ///     let alliance = esi_client.alliances().get_alliance_information(99013534).await.unwrap();
     ///     println!("Alliance name: {}", alliance.name);
     /// }
     /// ```
-    pub async fn get_alliance(&self, alliance_id: i32) -> Result<Alliance, EsiError> {
+    pub async fn get_alliance_information(&self, alliance_id: i32) -> Result<Alliance, EsiError> {
         let url = format!(
             "{}/alliances/{}/?datasource=tranquility",
             self.client.esi_url, alliance_id
