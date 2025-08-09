@@ -5,8 +5,6 @@ mod endpoints;
 mod error;
 mod esi;
 
-use serde::{de::DeserializeOwned, Serialize};
-
 /// A client for interacting with EVE Online's ESI (EVE Swagger Interface) API.
 ///
 /// This client provides methods for making authenticated and unauthenticated requests to the ESI API.
@@ -81,43 +79,6 @@ impl EsiClient {
     pub fn set_client_secret(mut self, client_secret: String) -> Self {
         self.client_secret = Some(client_secret);
         self
-    }
-
-    /// Makes an unauthenticated GET request to the ESI API.
-    ///
-    /// # Arguments
-    /// - `url` - The ESI API endpoint URL to request.
-    ///
-    /// # Returns
-    /// A Result containing the deserialized response data or a reqwest error.
-    ///
-    /// # Type Parameters
-    /// - `T` - The expected return type that implements `DeserializeOwned`
-    async fn get_from_public_esi<T: DeserializeOwned>(
-        &self,
-        url: &str,
-    ) -> Result<T, reqwest::Error> {
-        esi::get_from_public_esi(&self.reqwest_client, url).await
-    }
-
-    /// Makes an unauthenticated POST request to the ESI API.
-    ///
-    /// # Arguments
-    /// - `url` - The ESI API endpoint URL to request.
-    /// - `data` - The data to send in the request body.
-    ///
-    /// # Returns
-    /// A Result containing the deserialized response data or a reqwest error.
-    ///
-    /// # Type Parameters
-    /// - `T` - The expected return type that implements `DeserializeOwned`.
-    /// - `U` - The type of data to send, which must implement `Serialize`.
-    async fn post_to_public_esi<T: DeserializeOwned, U: Serialize + ?Sized>(
-        &self,
-        url: &str,
-        data: &U,
-    ) -> Result<T, reqwest::Error> {
-        esi::post_to_public_esi(&self.reqwest_client, url, data).await
     }
 }
 
