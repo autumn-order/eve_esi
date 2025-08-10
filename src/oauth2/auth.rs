@@ -1,4 +1,4 @@
-use crate::error::EsiError;
+use crate::error::OAuthError;
 use crate::EsiClient;
 
 use oauth2::basic::BasicClient;
@@ -51,35 +51,35 @@ impl EsiClient {
     pub fn initiate_oauth_login(
         &self,
         scopes: Vec<String>,
-    ) -> Result<AuthenticationData, EsiError> {
+    ) -> Result<AuthenticationData, OAuthError> {
         let client_id = match self.client_id.clone() {
             Some(id) => id.clone(),
-            None => return Err(EsiError::MissingClientId),
+            None => return Err(OAuthError::MissingClientId),
         };
         let client_secret = match self.client_secret.clone() {
             Some(secret) => secret.clone(),
-            None => return Err(EsiError::MissingClientSecret),
+            None => return Err(OAuthError::MissingClientSecret),
         };
         let callback_url = match self.callback_url.clone() {
             Some(url) => url.clone(),
-            None => return Err(EsiError::MissingCallbackUrl),
+            None => return Err(OAuthError::MissingCallbackUrl),
         };
 
         let auth_url = AuthUrl::new(self.eve_auth_url.clone()).map_err(|_| {
-            EsiError::ParseError(format!(
+            OAuthError::ParseError(format!(
                 "Failed to parse the EVE Online AuthUrl.\n\
                 You can change the url by setting the `eve_auth_url` field in your `Client` configuration."
 
             ))
         })?;
         let token_url = TokenUrl::new(self.eve_auth_token_url.clone()).map_err(|_| {
-            EsiError::ParseError(format!(
+            OAuthError::ParseError(format!(
                 "Failed to parse the EVE Online TokenUrl.\n\
                 You can change the url by setting the `eve_auth_token_url` field in your `Client` configuration."
             ))
         })?;
         let redirect_url = RedirectUrl::new(callback_url).map_err(|_| {
-            EsiError::ParseError(format!(
+            OAuthError::ParseError(format!(
                 "The provided redirect_url is invalid or improperly formatted. Please ensure it is a valid URL and matches the redirect URI registered in your EVE Online developer application (https://developers.eveonline.com/applications)."
             ))
         })?;
@@ -161,7 +161,7 @@ mod tests {
             Ok(_) => {
                 panic!("Expected Err");
             }
-            Err(crate::error::EsiError::MissingClientId) => {
+            Err(crate::error::OAuthError::MissingClientId) => {
                 assert!(true);
             }
             Err(_) => panic!("Expected EsiError::MissingClientId"),

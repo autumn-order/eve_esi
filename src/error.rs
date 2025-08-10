@@ -2,6 +2,14 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum EsiError {
+    #[error(transparent)]
+    OAuthError(OAuthError),
+    #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
+}
+
+#[derive(Error, Debug)]
+pub enum OAuthError {
     #[error(
         "Missing ESI client ID.\n\
         \n\
@@ -25,6 +33,7 @@ pub enum EsiError {
         This is required for accessing EVE Online OAuth2 and gated ESI routes."
     )]
     MissingClientSecret,
+
     #[error(
         "Missing ESI callback URL.\n\
         \n\
@@ -39,6 +48,4 @@ pub enum EsiError {
 
     #[error("Parse error:\n  {0}")]
     ParseError(String),
-    #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
 }
