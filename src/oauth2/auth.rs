@@ -65,24 +65,18 @@ impl EsiClient {
             None => return Err(OAuthError::MissingCallbackUrl),
         };
 
-        let auth_url = AuthUrl::new(self.eve_auth_url.clone()).map_err(|_| {
-            OAuthError::ParseError(format!(
-                "Failed to parse the EVE Online AuthUrl.\n\
-                You can change the url by setting the `eve_auth_url` field in your `Client` configuration."
-
-            ))
-        })?;
-        let token_url = TokenUrl::new(self.eve_auth_token_url.clone()).map_err(|_| {
-            OAuthError::ParseError(format!(
-                "Failed to parse the EVE Online TokenUrl.\n\
-                You can change the url by setting the `eve_auth_token_url` field in your `Client` configuration."
-            ))
-        })?;
-        let redirect_url = RedirectUrl::new(callback_url).map_err(|_| {
-            OAuthError::ParseError(format!(
-                "The provided redirect_url is invalid or improperly formatted. Please ensure it is a valid URL and matches the redirect URI registered in your EVE Online developer application (https://developers.eveonline.com/applications)."
-            ))
-        })?;
+        let auth_url = match AuthUrl::new(self.eve_auth_url.clone()) {
+            Ok(url) => url,
+            Err(_) => return Err(OAuthError::InvalidAuthUrl),
+        };
+        let token_url = match TokenUrl::new(self.eve_auth_token_url.clone()) {
+            Ok(url) => url,
+            Err(_) => return Err(OAuthError::InvalidTokenUrl),
+        };
+        let redirect_url = match RedirectUrl::new(callback_url) {
+            Ok(url) => url,
+            Err(_) => return Err(OAuthError::InvalidCallbackUrl),
+        };
 
         let client = BasicClient::new(ClientId::new(client_id))
             .set_client_secret(ClientSecret::new(client_secret))
