@@ -19,7 +19,7 @@ async fn main() {
     // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
     // E.G. "MyApp/1.0 (contact@example.com)"
     let user_agent: String = format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(&user_agent);
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new().user_agent(&user_agent);
 
     // Arc is used to share the client between threads safely
     // Sharing the esi_client as an Extension avoids having initialize it in every API route

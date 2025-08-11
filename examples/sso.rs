@@ -29,10 +29,11 @@ async fn main() {
         env!("CARGO_PKG_VERSION"),
         contact_email
     );
-    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(&user_agent)
-        .set_client_id(esi_client_id)
-        .set_client_secret(esi_secret_secret)
-        .set_callback_url(callback_url);
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new()
+        .user_agent(&user_agent)
+        .client_id(&esi_client_id)
+        .client_secret(&esi_secret_secret)
+        .callback_url(&callback_url);
 
     // Arc is used to share the client between threads safely
     // Sharing the esi_client as an Extension avoids having initialize it in every API route

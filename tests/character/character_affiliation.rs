@@ -1,5 +1,3 @@
-static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
-
 /// Tests the successful retrieval of character affiliations from a mock EVE ESI server.
 ///
 /// # Test Setup
@@ -51,7 +49,8 @@ async fn character_affiliation() {
         )
         .create();
 
-    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
+    let mut esi_client: eve_esi::EsiClient =
+        eve_esi::EsiClient::new().user_agent("MyApp/1.0 (contact@example.com)");
 
     esi_client.esi_url = mock_server_url.to_string();
 
@@ -93,7 +92,8 @@ async fn character_affiliation_bad_request() {
         )
         .create();
 
-    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
+    let mut esi_client: eve_esi::EsiClient =
+        eve_esi::EsiClient::new().user_agent("MyApp/1.0 (contact@example.com)");
 
     esi_client.esi_url = mock_server_url.to_string();
 

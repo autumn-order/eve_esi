@@ -1,5 +1,3 @@
-static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
-
 /// Tests the successful retrieval of alliance information from a mock EVE ESI server.
 ///
 /// # Test Setup
@@ -32,7 +30,8 @@ async fn get_alliance_information() {
         .with_body(r#"{"creator_corporation_id": 98784257, "creator_id": 2114794365, "date_founded": "2024-09-25T06:25:58Z", "executor_corporation_id": 98787881, "name": "Autumn.", "ticker": "AUTMN"}"#)
         .create();
 
-    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
+    let mut esi_client: eve_esi::EsiClient =
+        eve_esi::EsiClient::new().user_agent("MyApp/1.0 (contact@example.com)");
 
     esi_client.esi_url = mock_server_url.to_string();
 
@@ -70,7 +69,8 @@ async fn get_alliance_information_not_found() {
         .with_body(r#"{"error": "Alliance not found"}"#)
         .create();
 
-    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new(USER_AGENT);
+    let mut esi_client: eve_esi::EsiClient =
+        eve_esi::EsiClient::new().user_agent("MyApp/1.0 (contact@example.com)");
 
     esi_client.esi_url = mock_server_url.to_string();
 

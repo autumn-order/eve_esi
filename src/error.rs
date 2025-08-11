@@ -30,7 +30,8 @@ pub enum EsiError {
 ///
 /// # Example
 /// ```
-/// let esi_client = eve_esi::EsiClient::new("MyApp/1.0");
+/// let esi_client = eve_esi::EsiClient::new()
+///     .user_agent("MyApp/1.0 (contact@example.com)");
 ///
 /// // Missing client ID will cause an error
 /// let scopes = eve_esi::oauth2::ScopeBuilder::new()

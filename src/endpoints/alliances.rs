@@ -29,7 +29,8 @@ impl<'a> AllianceApi<'a> {
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() {
-    ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
+    ///     let esi_client = eve_esi::EsiClient::new()
+    ///         .user_agent("MyApp/1.0 (contact@example.com)");
     ///
     ///     // Get information about The Autumn alliance (id: 99013534)
     ///     let alliance = esi_client.alliances().get_alliance_information(99013534).await.unwrap();

@@ -31,7 +31,8 @@ impl<'a> CorporationApi<'a> {
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() {
-    ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
+    ///     let esi_client = eve_esi::EsiClient::new()
+    ///         .user_agent("MyApp/1.0 (contact@example.com)");
     ///
     ///     // Get information about the corporation The Order of Autumn (id: 98785281)
     ///     let corporation = esi_client.corporations().get_corporation_information(98785281).await.unwrap();

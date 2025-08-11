@@ -33,11 +33,11 @@ impl EsiClient {
     ///
     /// # Example
     /// ```
-    /// static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
-    /// let esi_client = eve_esi::Client::new(&USER_AGENT)
-    ///     .set_client_id("example".to_string())
-    ///     .set_client_secret("example".to_string())
-    ///     .set_callback_url("http://localhost:8080/callback".to_string());
+    /// let esi_client = eve_esi::Client::new()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)")
+    ///     .client_id("client_id")
+    ///     .client_secret("client_secret")
+    ///     .callback_url("http://localhost:8080/callback");
     ///
     /// let scopes = eve_esi::oauth2::ScopeBuilder::new()
     ///     .public_data()
@@ -114,12 +114,13 @@ mod tests {
     fn test_successful_login_url() {
         static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
 
-        let callback_url = "http://localhost:8080/callback".to_string();
+        let callback_url = "http://localhost:8080/callback";
 
-        let esi_client = crate::EsiClient::new(&USER_AGENT)
-            .set_client_id("example".to_string())
-            .set_client_secret("example".to_string())
-            .set_callback_url(callback_url);
+        let esi_client = crate::EsiClient::new()
+            .user_agent(USER_AGENT)
+            .client_id("example")
+            .client_secret("example")
+            .callback_url(callback_url);
 
         let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
 
@@ -139,13 +140,11 @@ mod tests {
     /// - Verifies that the error response is EsiError::MissingClientId
     #[test]
     fn test_missing_client_id() {
-        static USER_AGENT: &str = "APPLICATION_NAME/1.0 (example@example.com)";
+        let callback_url = "http://localhost:8080/callback";
 
-        let callback_url = "http://localhost:8080/callback".to_string();
-
-        let esi_client = crate::EsiClient::new(&USER_AGENT)
-            .set_client_secret("example".to_string())
-            .set_callback_url(callback_url);
+        let esi_client = crate::EsiClient::new()
+            .client_secret("example")
+            .callback_url(callback_url);
 
         let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
 

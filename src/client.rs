@@ -3,38 +3,50 @@
 /// This client provides methods for making authenticated and unauthenticated requests to the ESI API.
 /// It handles authentication with EVE Online's OAuth2 implementation and provides convenience methods
 /// for accessing various ESI endpoints.
-pub struct EsiClient {
-    pub reqwest_client: reqwest::Client,
-    pub client_id: Option<String>,
-    pub client_secret: Option<String>,
-    pub callback_url: Option<String>,
-    pub esi_url: String,
-    pub eve_auth_url: String,
-    pub eve_auth_token_url: String,
-}
-
-/// Creates a new ESI client with default configuration.
-///
-/// # Arguments
-/// - `user_agent` - The User-Agent header to use for requests. CCP requires a descriptive user agent
-///                  that includes your application name, version, and contact information.
-///
-/// # Returns
-/// A new `EsiClient` instance with default ESI and authentication URLs.
 ///
 /// # Example
 /// ```
 /// use eve_esi::EsiClient;
 ///
-/// let esi_client = EsiClient::new("MyApp/1.0 (contact@example.com)");
+/// let esi_client = EsiClient::new()
+///     .user_agent("MyApp/1.0 (contact@example.com)");
 /// ```
+///
+/// # Warning
+/// EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+///
+/// You can do so with `esi_client.user_agent("MyApp/1.0 (contact@example.com)");`
+pub struct EsiClient {
+    pub(crate) reqwest_client: reqwest::Client,
+    pub(crate) client_id: Option<String>,
+    pub(crate) client_secret: Option<String>,
+    pub(crate) callback_url: Option<String>,
+    pub esi_url: String,
+    pub eve_auth_url: String,
+    pub eve_auth_token_url: String,
+}
+
 impl EsiClient {
-    pub fn new(user_agent: &str) -> Self {
+    /// Creates a new ESI client with default configuration.
+    ///
+    /// # Returns
+    /// A new `EsiClient` instance with default ESI and authentication URLs.
+    ///
+    /// # Example
+    /// ```
+    /// use eve_esi::EsiClient;
+    ///
+    /// let esi_client = EsiClient::new()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)");
+    /// ```
+    ///
+    /// # Warning
+    /// EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+    ///
+    /// You can do so with `esi_client.user_agent("MyApp/1.0 (contact@example.com)");`
+    pub fn new() -> Self {
         Self {
-            reqwest_client: reqwest::Client::builder()
-                .user_agent(user_agent)
-                .build()
-                .unwrap(),
+            reqwest_client: reqwest::Client::new(),
             client_id: None,
             client_secret: None,
             callback_url: None,
@@ -42,6 +54,29 @@ impl EsiClient {
             eve_auth_url: "https://login.eveonline.com/v2/oauth/authorize".to_string(),
             eve_auth_token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
         }
+    }
+
+    /// Sets the user agent for the EsiClient.
+    ///
+    /// This method configures the user agent string used by the HTTP client.
+    /// The user agent string is used to identify the client making requests to the EVE Online API.
+    /// A proper user agent should include an app name, version, and contact information.
+    /// Example: "MyApp/1.0 (contact@example.com)"
+    ///
+    /// # Arguments
+    /// - `user_agent` - The user agent string to be used by the HTTP client.
+    ///
+    /// # Returns
+    /// The `EsiClient` instance with updated user agent configuration.
+    ///
+    /// # Warning
+    /// EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+    pub fn user_agent(mut self, user_agent: &str) -> Self {
+        self.reqwest_client = reqwest::Client::builder()
+            .user_agent(user_agent.to_string())
+            .build()
+            .unwrap();
+        self
     }
 
     /// Sets the OAuth2 client ID for authentication with EVE Online SSO.
@@ -55,8 +90,8 @@ impl EsiClient {
     ///
     /// # Returns
     /// The `EsiClient` instance with updated client ID configuration.
-    pub fn set_client_id(mut self, client_id: String) -> Self {
-        self.client_id = Some(client_id);
+    pub fn client_id(mut self, client_id: &str) -> Self {
+        self.client_id = Some(client_id.to_string());
         self
     }
 
@@ -71,8 +106,8 @@ impl EsiClient {
     ///
     /// # Returns
     /// The `EsiClient` instance with updated client secret configuration.
-    pub fn set_client_secret(mut self, client_secret: String) -> Self {
-        self.client_secret = Some(client_secret);
+    pub fn client_secret(mut self, client_secret: &str) -> Self {
+        self.client_secret = Some(client_secret.to_string());
         self
     }
 
@@ -87,8 +122,8 @@ impl EsiClient {
     ///
     /// # Returns
     /// The `EsiClient` instance with updated callback URL configuration.
-    pub fn set_callback_url(mut self, callback_url: String) -> Self {
-        self.callback_url = Some(callback_url);
+    pub fn callback_url(mut self, callback_url: &str) -> Self {
+        self.callback_url = Some(callback_url.to_string());
         self
     }
 }

@@ -33,7 +33,8 @@ impl<'a> CharacterApi<'a> {
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() {
-    ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
+    ///     let esi_client = eve_esi::EsiClient::new()
+    ///         .user_agent("MyApp/1.0 (contact@example.com)");
     ///
     ///     // Get information about the character Hyziri (id: 2114794365)
     ///     let character = esi_client.characters().get_character_public_information(2114794365).await.unwrap();
@@ -68,7 +69,8 @@ impl<'a> CharacterApi<'a> {
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() {
-    ///     let esi_client = eve_esi::EsiClient::new("MyApp/1.0 (user@example.com)");
+    ///     let esi_client = eve_esi::EsiClient::new()
+    ///         .user_agent("MyApp/1.0 (contact@example.com)");
     ///
     ///     // Get affiliations for characters with IDs 2114794365 and 2117053828
     ///     let affiliations = esi_client.characters().character_affiliation(vec![2114794365, 2117053828]).await.unwrap();
