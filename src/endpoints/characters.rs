@@ -39,7 +39,7 @@ impl<'a> CharacterApi<'a> {
     ///         .expect("Failed to build EsiClient");
     ///
     ///     // Get information about the character Hyziri (id: 2114794365)
-    ///     let character = esi_client.characters().get_character_public_information(2114794365).await.unwrap();
+    ///     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
     ///     println!("Character name: {}", character.name);
     /// }
     pub async fn get_character_public_information(

@@ -2,7 +2,7 @@
 //!
 //! See the [module-level documentation](super) for an overview and usage example.
 
-use crate::error::OAuthError;
+use crate::error::{EsiError, OAuthError};
 use crate::EsiClient;
 
 use oauth2::basic::BasicClient;
@@ -57,31 +57,31 @@ impl EsiClient {
     pub fn initiate_oauth_login(
         &self,
         scopes: Vec<String>,
-    ) -> Result<AuthenticationData, OAuthError> {
+    ) -> Result<AuthenticationData, EsiError> {
         let client_id = match self.client_id.clone() {
             Some(id) => id.clone(),
-            None => return Err(OAuthError::MissingClientId),
+            None => return Err(EsiError::OAuthError(OAuthError::MissingClientId)),
         };
         let client_secret = match self.client_secret.clone() {
             Some(secret) => secret.clone(),
-            None => return Err(OAuthError::MissingClientSecret),
+            None => return Err(EsiError::OAuthError(OAuthError::MissingClientSecret)),
         };
         let callback_url = match self.callback_url.clone() {
             Some(url) => url.clone(),
-            None => return Err(OAuthError::MissingCallbackUrl),
+            None => return Err(EsiError::OAuthError(OAuthError::MissingCallbackUrl)),
         };
 
         let auth_url = match AuthUrl::new(self.auth_url.clone()) {
             Ok(url) => url,
-            Err(_) => return Err(OAuthError::InvalidAuthUrl),
+            Err(_) => return Err(EsiError::OAuthError(OAuthError::InvalidAuthUrl)),
         };
         let token_url = match TokenUrl::new(self.token_url.clone()) {
             Ok(url) => url,
-            Err(_) => return Err(OAuthError::InvalidTokenUrl),
+            Err(_) => return Err(EsiError::OAuthError(OAuthError::InvalidTokenUrl)),
         };
         let redirect_url = match RedirectUrl::new(callback_url) {
             Ok(url) => url,
-            Err(_) => return Err(OAuthError::InvalidCallbackUrl),
+            Err(_) => return Err(EsiError::OAuthError(OAuthError::InvalidCallbackUrl)),
         };
 
         let client = BasicClient::new(ClientId::new(client_id))
@@ -106,6 +106,9 @@ impl EsiClient {
 
 #[cfg(test)]
 mod tests {
+    use crate::error::{EsiError, OAuthError};
+    use crate::oauth2::ScopeBuilder;
+
     /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
     ///
     /// # Test Setup
@@ -128,7 +131,7 @@ mod tests {
             .build()
             .expect("Failed to build EsiClient");
 
-        let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
+        let scopes = ScopeBuilder::new().public_data().build();
 
         let auth_data = esi_client.initiate_oauth_login(scopes).unwrap();
 
@@ -155,7 +158,7 @@ mod tests {
             .build()
             .expect("Failed to build EsiClient");
 
-        let scopes = crate::oauth2::ScopeBuilder::new().public_data().build();
+        let scopes = ScopeBuilder::new().public_data().build();
 
         let result = esi_client.initiate_oauth_login(scopes);
 
@@ -163,7 +166,7 @@ mod tests {
             Ok(_) => {
                 panic!("Expected Err");
             }
-            Err(crate::error::OAuthError::MissingClientId) => {
+            Err(EsiError::OAuthError(OAuthError::MissingClientId)) => {
                 assert!(true);
             }
             Err(_) => panic!("Expected EsiError::MissingClientId"),

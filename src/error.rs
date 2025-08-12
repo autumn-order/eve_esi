@@ -1,9 +1,55 @@
 use thiserror::Error;
 
+/// Errors that can occur when using the EVE ESI client.
+///
+/// This is the top-level error type returned by most methods in this crate. It encapsulates
+/// all possible error conditions, including OAuth2 authentication errors and HTTP request failures.
+///
+/// # Variants
+/// - `OAuthError` - Errors related to OAuth2 authentication. See [`OAuthError`] for details.
+/// - `ReqwestError` - Errors that occur during HTTP requests. See [`reqwest::Error`] for details.
+///
+/// # Usage
+/// You can match on `EsiError` to handle errors at a high level, or downcast to more specific
+/// error types for granular handling.
+///
+/// # Example
+/// ```rust
+/// use eve_esi::error::EsiError;
+/// use eve_esi::oauth2::ScopeBuilder;
+/// use eve_esi::EsiClient;
+///
+/// let esi_client = EsiClient::builder()
+///     .user_agent("MyApp/1.0 (contact@example.com)")
+///     .build()
+///     .expect("Failed to build EsiClient");
+///
+/// let scopes = ScopeBuilder::new()
+///     .public_data()
+///     .build();
+/// let result = esi_client.initiate_oauth_login(scopes);
+/// match result {
+///     Ok(_) => { /* ... */ }
+///     Err(EsiError::OAuthError(auth_err)) => {
+///         // Handle OAuth-specific errors
+///         println!("OAuth error: {auth_err}");
+///     }
+///     Err(EsiError::ReqwestError(http_err)) => {
+///         // Handle HTTP errors
+///         println!("HTTP error: {http_err}");
+///     }
+/// }
+/// ```
 #[derive(Error, Debug)]
 pub enum EsiError {
+    /// Errors that occur in relation to the EVE Online OAuth2 authentication process.
+    ///
+    /// For a more detailed description, see `OAuthError`.
     #[error(transparent)]
     OAuthError(OAuthError),
+    /// Errors that occur during HTTP requests.
+    ///
+    /// For a more detailed description, see `ReqwestError`.
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
 }
@@ -30,18 +76,21 @@ pub enum EsiError {
 ///
 /// # Example
 /// ```
+/// use eve_esi::error::{EsiError, OAuthError};
+/// use eve_esi::oauth2::ScopeBuilder;
+///
 /// let esi_client = eve_esi::EsiClient::builder()
 ///     .user_agent("MyApp/1.0 (contact@example.com)")
 ///     .build()
 ///     .expect("Failed to build EsiClient");
 ///
 /// // Missing client ID will cause an error
-/// let scopes = eve_esi::oauth2::ScopeBuilder::new()
+/// let scopes = ScopeBuilder::new()
 ///     .public_data()
 ///     .build();
 /// let result = esi_client.initiate_oauth_login(scopes);
 ///
-/// assert!(matches!(result, Err(eve_esi::error::OAuthError::MissingClientId)));
+/// assert!(matches!(result, Err(EsiError::OAuthError(OAuthError::MissingClientId))));
 /// ```
 #[derive(Error, Debug)]
 pub enum OAuthError {
