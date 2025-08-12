@@ -1,3 +1,48 @@
+//! Error types for the EVE ESI client library.
+//!
+//! This module defines the top-level error types used throughout the crate, providing
+//! structured and descriptive error handling for both OAuth2 authentication and HTTP requests.
+//!
+//! # Overview
+//!
+//! The primary error type is [`EsiError`], which encapsulates all possible error conditions
+//! that may arise when interacting with the EVE ESI API. This includes errors related to
+//! OAuth2 authentication (see [`OAuthError`]) as well as HTTP request failures (see [`reqwest::Error`]).
+//!
+//! By using these error types, consumers of the library can match on specific error variants
+//! to implement granular error handling or simply handle errors at a higher level.
+//!
+//! # Example
+//!
+//! ```rust
+//! use eve_esi::error::EsiError;
+//! use eve_esi::oauth2::ScopeBuilder;
+//! use eve_esi::EsiClient;
+//!
+//! let esi_client = EsiClient::builder()
+//!     .user_agent("MyApp/1.0 (contact@example.com)")
+//!     .build()
+//!     .expect("Failed to build EsiClient");
+//!
+//! let scopes = ScopeBuilder::new()
+//!     .public_data()
+//!     .build();
+//! let result = esi_client.initiate_oauth_login(scopes);
+//! match result {
+//!     Ok(_) => { /* ... */ }
+//!     Err(EsiError::OAuthError(auth_err)) => {
+//!         // Handle OAuth-specific errors
+//!         println!("OAuth error: {auth_err}");
+//!     }
+//!     Err(EsiError::ReqwestError(http_err)) => {
+//!         // Handle HTTP errors
+//!         println!("HTTP error: {http_err}");
+//!     }
+//! }
+//! ```
+//!
+//! See the documentation for [`EsiError`] and [`OAuthError`] for more details on each error variant.
+
 use thiserror::Error;
 
 /// Errors that can occur when using the EVE ESI client.
@@ -13,33 +58,7 @@ use thiserror::Error;
 /// You can match on `EsiError` to handle errors at a high level, or downcast to more specific
 /// error types for granular handling.
 ///
-/// # Example
-/// ```rust
-/// use eve_esi::error::EsiError;
-/// use eve_esi::oauth2::ScopeBuilder;
-/// use eve_esi::EsiClient;
-///
-/// let esi_client = EsiClient::builder()
-///     .user_agent("MyApp/1.0 (contact@example.com)")
-///     .build()
-///     .expect("Failed to build EsiClient");
-///
-/// let scopes = ScopeBuilder::new()
-///     .public_data()
-///     .build();
-/// let result = esi_client.initiate_oauth_login(scopes);
-/// match result {
-///     Ok(_) => { /* ... */ }
-///     Err(EsiError::OAuthError(auth_err)) => {
-///         // Handle OAuth-specific errors
-///         println!("OAuth error: {auth_err}");
-///     }
-///     Err(EsiError::ReqwestError(http_err)) => {
-///         // Handle HTTP errors
-///         println!("HTTP error: {http_err}");
-///     }
-/// }
-/// ```
+/// See the [module-level documentation](super) for an overview and usage example.
 #[derive(Error, Debug)]
 pub enum EsiError {
     /// Errors that occur in relation to the EVE Online OAuth2 authentication process.
