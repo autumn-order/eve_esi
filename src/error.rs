@@ -58,7 +58,7 @@ use thiserror::Error;
 /// You can match on `EsiError` to handle errors at a high level, or downcast to more specific
 /// error types for granular handling.
 ///
-/// See the [module-level documentation](super) for an overview and usage example.
+/// See the [module-level documentation](self) for an overview and usage example.
 #[derive(Error, Debug)]
 pub enum EsiError {
     /// Errors that occur in relation to the EVE Online OAuth2 authentication process.

@@ -1,5 +1,24 @@
 use crate::{error::EsiError, model::alliance::Alliance, EsiClient};
 
+/// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
+///
+/// The `AllianceApi` struct acts as an interface for retrieving information about EVE Online alliances
+/// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
+///
+/// # Example
+/// ```no_run
+/// #[tokio::main]
+/// async fn main() {
+///     let esi_client = eve_esi::EsiClient::builder()
+///         .user_agent("MyApp/1.0 (contact@example.com)")
+///         .build()
+///         .expect("Failed to build EsiClient");
+///
+///     // Get information about The Autumn alliance (id: 99013534)
+///     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();
+///     println!("Alliance name: {}", alliance.name);
+/// }
+/// ```
 pub struct AllianceApi<'a> {
     client: &'a EsiClient,
 }

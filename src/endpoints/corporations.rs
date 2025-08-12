@@ -2,6 +2,25 @@ use crate::error::EsiError;
 use crate::model::corporation::Corporation;
 use crate::EsiClient;
 
+/// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
+///
+/// The `CorporationApi` struct acts as an interface for retrieving information about EVE Online corporations
+/// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
+///
+/// # Example
+/// ```no_run
+/// #[tokio::main]
+/// async fn main() {
+///     let esi_client = eve_esi::EsiClient::builder()
+///         .user_agent("MyApp/1.0 (contact@example.com)")
+///         .build()
+///         .expect("Failed to build EsiClient");
+///
+///     // Get information about the corporation The Order of Autumn (id: 98785281)
+///     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
+///     println!("Corporation name: {}", corporation.name);
+/// }
+/// ```
 pub struct CorporationApi<'a> {
     client: &'a EsiClient,
 }

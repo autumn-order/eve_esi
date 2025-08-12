@@ -3,6 +3,25 @@ use crate::EsiClient;
 
 use crate::model::character::{Character, CharacterAffiliation};
 
+/// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
+///
+/// The `CharacterApi` struct acts as an interface for retrieving information about EVE Online characters
+/// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
+///
+/// # Example
+/// ```no_run
+/// #[tokio::main]
+/// async fn main() {
+///     let esi_client = eve_esi::EsiClient::builder()
+///         .user_agent("MyApp/1.0 (contact@example.com)")
+///         .build()
+///         .expect("Failed to build EsiClient");
+///
+///     // Get information about the character Hyziri (id: 2114794365)
+///     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
+///     println!("Character name: {}", character.name);
+/// }
+/// ```
 pub struct CharacterApi<'a> {
     client: &'a EsiClient,
 }
@@ -42,6 +61,7 @@ impl<'a> CharacterApi<'a> {
     ///     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
     ///     println!("Character name: {}", character.name);
     /// }
+    /// ```
     pub async fn get_character_public_information(
         &self,
         character_id: i32,

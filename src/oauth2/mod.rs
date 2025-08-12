@@ -6,6 +6,11 @@
 //! # References
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 //!
+//! # Modules
+//!
+//! - [`auth`](crate::endpoints::auth)
+//! - [`scope`](crate::endpoints::scope)
+//!
 //! # Example
 //! ```
 //! let esi_client = eve_esi::EsiClient::builder()
@@ -21,7 +26,7 @@
 //!     .build();
 //! let auth_data = esi_client
 //!     .initiate_oauth_login(scopes)
-//!     .unwrap();
+//!     .expect("Failed to initiate OAuth login");
 //!
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```

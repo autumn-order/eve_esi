@@ -1,6 +1,6 @@
 [package]
 name = "eve_esi"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Hyziri <hyziri@protonmail.com>"]
 edition = "2021"
 description = "Rust API wrapper for EVE Online's ESI & OAuth2."
