@@ -1,3 +1,9 @@
+//! Data structures and types for representing alliances in EVE Online.
+//!
+//! This module defines the `Alliance` struct, which models the core properties of an alliance in EVE Online.
+//!
+//! See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdGet)
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -5,6 +11,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// Alliances are player-run organizations made up of multiple corporations.
 /// This struct contains the basic information about an alliance as returned by the EVE ESI API.
+///
+/// # Documentation
+/// See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdGet)
+/// for the details related to the alliance Schema defined by ESI.
 ///
 /// # Fields
 /// The struct contains identifying information about the alliance, including:

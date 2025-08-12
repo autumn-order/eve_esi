@@ -1,9 +1,20 @@
+//! Data structures and types for representing characters in EVE Online.
+//!
+//! This module defines the `Character` & `CharacterAffiliation` structs,
+//! which model the core properties of a character & character affiliation in EVE Online.
+//!
+//! See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdGet)
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Represents a character in EVE Online.
 ///
 /// This struct contains the basic information about a character as returned by the EVE ESI API.
+///
+/// # Documentation
+/// See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdGet)
+/// for the details related to the character Schema defined by ESI.
 ///
 /// # Fields
 /// The struct contains identifying information about the character, including:
@@ -42,6 +53,10 @@ pub struct Character {
 ///
 /// This struct contains information about a character's membership in corporations,
 /// alliances, and factions within the EVE universe, as returned by the EVE ESI API.
+///
+/// # Documentation
+/// See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/CharactersAffiliationPost)
+/// for the details related to the character affiliation Schema defined by ESI.
 ///
 /// # Fields
 /// The struct identifies all organizational entities the character belongs to:

@@ -1,3 +1,9 @@
+//! Data structures and types for representing corporations in EVE Online.
+//!
+//! This module defines the `Corporation` struct, which models the core properties of a corporation in EVE Online.
+//!
+//! See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdGet)
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -5,6 +11,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// Corporations are player-run organizations within EVE Online.
 /// This struct contains information about a corporation in EVE Online, including its ID, name, ticker, and other details.
+///
+/// # Documentation
+/// See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdGet)
+/// for the details related to the corporation Schema defined by ESI.
 ///
 /// # Fields
 /// The struct contains information about a corporation in EVE Online, including:
