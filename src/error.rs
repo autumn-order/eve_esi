@@ -43,6 +43,8 @@
 //!
 //! See the documentation for [`EsiError`] and [`OAuthError`] for more details on each error variant.
 
+use oauth2::basic::BasicErrorResponseType;
+use oauth2::{HttpClientError, RequestTokenError, StandardErrorResponse};
 use thiserror::Error;
 
 /// Errors that can occur when using the EVE ESI client.
@@ -281,4 +283,15 @@ pub enum OAuthError {
         This is required for accessing EVE Online OAuth2."
     )]
     InvalidCallbackUrl,
+
+    /// Errors types returned when an OAuth2 token request fails.
+    ///
+    /// For a more detailed explanation of the error, see the `RequestTokenError` enum.
+    #[error("OAuth2 token error: {0:?}")]
+    TokenError(
+        RequestTokenError<
+            HttpClientError<reqwest::Error>,
+            StandardErrorResponse<BasicErrorResponseType>,
+        >,
+    ),
 }

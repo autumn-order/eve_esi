@@ -34,5 +34,6 @@
 pub(crate) mod client;
 pub mod login;
 pub mod scope;
+pub mod token;
 
 pub use scope::ScopeBuilder;

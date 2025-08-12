@@ -1,4 +1,4 @@
-//! OAuth2 authentication methods for EVE Online SSO.
+//! OAuth2 authentication methods for EVE Online's OAuth2 API.
 //!
 //! See the [module-level documentation](super) for an overview and usage example.
 
