@@ -3,12 +3,7 @@
 //! This module provides a type-safe way to define and manage EVE Online ESI OAuth2 scopes.
 //! It uses a builder pattern to create a list of scopes.
 //!
-//! # Example
-//! ```
-//! let scopes = eve_esi::oauth2::ScopeBuilder::new()
-//!     .public_data()
-//!     .build();
-//! ```
+//! See [`ScopeBuilder`] for usage examples.
 
 /// ESI OAuth2 scope string constants organized in a nested module structure.
 pub mod scope {

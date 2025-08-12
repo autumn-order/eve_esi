@@ -1,30 +1,53 @@
-/// A client for interacting with EVE Online's ESI (EVE Swagger Interface) API.
+//! # EVE Online ESI API Client
+//!
+//! This module provides the [`EsiClient`] struct for interacting with the EVE Online ESI (EVE Stable Infrastructure) API.
+//!
+//! ## Features
+//! - Set up user agent, client ID, client secret, and callback URL
+//! - Make authenticated and unauthenticated requests to ESI endpoints
+//! - Handles OAuth2 authentication with EVE Online SSO
+//!
+//! ## Key Methods
+//! | Method         | Purpose                                 |
+//! | -------------- | --------------------------------------- |
+//! | `user_agent`   | Set the HTTP user agent                 |
+//! | `client_id`    | Set OAuth2 client ID                    |
+//! | `client_secret`| Set OAuth2 client secret                |
+//! | `callback_url` | Set OAuth2 callback URL                 |
+//!
+//! ## References
+//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
+//!
+//! ## Example
+//! ```
+//! use eve_esi::EsiClient;
+//!
+//! let esi_client = EsiClient::new()
+//!     .user_agent("MyApp/1.0 (contact@example.com)");
+//! ```
+//!
+//! ## Warning
+//! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+//! Include application name, version, and contact information in your user agent string.
+//!
+//! ## Deprecated
+//! The `Client` type alias is deprecated. Use [`EsiClient`] directly.
+
+/// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
-/// This client provides methods for making authenticated and unauthenticated requests to the ESI API.
-/// It handles authentication with EVE Online's OAuth2 implementation and provides convenience methods
-/// for accessing various ESI endpoints.
-///
-/// # Example
-/// ```
-/// use eve_esi::EsiClient;
-///
-/// let esi_client = EsiClient::new()
-///     .user_agent("MyApp/1.0 (contact@example.com)");
-/// ```
-///
-/// # Warning
-/// EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
-///
-/// Include application name, version, and contact information.
-///
-/// You can do so with `esi_client.user_agent("MyApp/1.0 (contact@example.com)");`
+/// Use this struct to configure authentication and make requests to ESI endpoints.
+/// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
     pub(crate) reqwest_client: reqwest::Client,
     pub(crate) client_id: Option<String>,
     pub(crate) client_secret: Option<String>,
     pub(crate) callback_url: Option<String>,
+    /// The base URL for the EVE Online ESI API.
     pub esi_url: String,
+    /// The URL for EVE Online oauth2 authorization.
     pub eve_auth_url: String,
+    /// The URL for the EVE Online oauth2 token.
     pub eve_auth_token_url: String,
 }
 
@@ -174,4 +197,9 @@ impl EsiClient {
     }
 }
 
+/// Deprecated: Use [`EsiClient`] instead.
+///
+/// This type alias is retained for backward compatibility and will be removed in a future release.
+/// Please update your code to use [`EsiClient`] directly.
+#[deprecated(note = "Use `EsiClient` instead")]
 pub type Client = EsiClient;
