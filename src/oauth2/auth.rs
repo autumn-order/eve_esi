@@ -71,11 +71,11 @@ impl EsiClient {
             None => return Err(OAuthError::MissingCallbackUrl),
         };
 
-        let auth_url = match AuthUrl::new(self.eve_auth_url.clone()) {
+        let auth_url = match AuthUrl::new(self.auth_url.clone()) {
             Ok(url) => url,
             Err(_) => return Err(OAuthError::InvalidAuthUrl),
         };
-        let token_url = match TokenUrl::new(self.eve_auth_token_url.clone()) {
+        let token_url = match TokenUrl::new(self.token_url.clone()) {
             Ok(url) => url,
             Err(_) => return Err(OAuthError::InvalidTokenUrl),
         };

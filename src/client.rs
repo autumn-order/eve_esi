@@ -7,13 +7,18 @@
 //! - Make authenticated and unauthenticated requests to ESI endpoints
 //! - Handles OAuth2 authentication with EVE Online SSO
 //!
-//! ## Key Methods
+//! ## Builder Methods
 //! | Method         | Purpose                                 |
 //! | -------------- | --------------------------------------- |
+//! | `builder`      | Create a builder for the EsiClient      |
+//! | `build`        | Build the EsiClient                     |
 //! | `user_agent`   | Set the HTTP user agent                 |
 //! | `client_id`    | Set OAuth2 client ID                    |
 //! | `client_secret`| Set OAuth2 client secret                |
 //! | `callback_url` | Set OAuth2 callback URL                 |
+//! | `esi_url`      | Set a custom URL for ESI API            |
+//! | `auth_url`     | Set a custom URL for EVE oauth2         |
+//! | `token_url`    | Set a custom URL for EVE oauth2 token   |
 //!
 //! ## References
 //! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
@@ -32,9 +37,6 @@
 //! ## Warning
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
-//!
-//! ## Deprecated
-//! The `Client` type alias is deprecated. Use [`EsiClient`] directly.
 
 use crate::error::EsiError;
 
@@ -48,8 +50,8 @@ pub struct EsiClient {
     pub(crate) client_secret: Option<String>,
     pub(crate) callback_url: Option<String>,
     pub(crate) esi_url: String,
-    pub(crate) eve_auth_url: String,
-    pub(crate) eve_auth_token_url: String,
+    pub(crate) auth_url: String,
+    pub(crate) token_url: String,
 }
 
 /// Builder for configuring and constructing an `EsiClient`.
@@ -61,17 +63,23 @@ pub struct EsiClientBuilder {
     client_secret: Option<String>,
     callback_url: Option<String>,
     esi_url: String,
-    eve_auth_url: String,
-    eve_auth_token_url: String,
+    auth_url: String,
+    token_url: String,
 }
 
 impl EsiClient {
+    /// Creates a new EsiClientBuilder
+    ///
+    /// For a full overview, features, and usage examples, see the [module-level documentation](self).
     pub fn builder() -> EsiClientBuilder {
         EsiClientBuilder::new()
     }
 }
 
 impl EsiClientBuilder {
+    /// Creates a new EsiClientBuilder
+    ///
+    /// For a full overview, features, and usage examples, see the [module-level documentation](self).
     pub fn new() -> Self {
         Self {
             user_agent: None,
@@ -79,8 +87,8 @@ impl EsiClientBuilder {
             client_secret: None,
             callback_url: None,
             esi_url: "https://esi.evetech.net/latest".to_string(),
-            eve_auth_url: "https://login.eveonline.com/v2/oauth/authorize".to_string(),
-            eve_auth_token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
+            auth_url: "https://login.eveonline.com/v2/oauth/authorize".to_string(),
+            token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
         }
     }
 
@@ -100,8 +108,8 @@ impl EsiClientBuilder {
             client_secret: self.client_secret,
             callback_url: self.callback_url,
             esi_url: self.esi_url,
-            eve_auth_url: self.eve_auth_url,
-            eve_auth_token_url: self.eve_auth_token_url,
+            auth_url: self.auth_url,
+            token_url: self.token_url,
         })
     }
 
@@ -273,7 +281,7 @@ impl EsiClientBuilder {
     ///     .expect("Failed to build EsiClient");
     /// ```
     pub fn auth_url(mut self, auth_url: &str) -> Self {
-        self.eve_auth_url = auth_url.to_string();
+        self.auth_url = auth_url.to_string();
         self
     }
 
@@ -300,7 +308,7 @@ impl EsiClientBuilder {
     ///     .expect("Failed to build EsiClient");
     /// ```
     pub fn auth_token_url(mut self, token_url: &str) -> Self {
-        self.eve_auth_token_url = token_url.to_string();
+        self.token_url = token_url.to_string();
         self
     }
 }
