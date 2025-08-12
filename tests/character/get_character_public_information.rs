@@ -47,9 +47,11 @@ async fn get_character_public_information() {
         )
         .create();
 
-    let mut esi_client: eve_esi::EsiClient = eve_esi::EsiClient::new();
-
-    esi_client.esi_url = mock_server_url.to_string();
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
+        .user_agent("MyApp/1.0 (contact@example.com)")
+        .esi_url(&mock_server_url)
+        .build()
+        .expect("Failed to build EsiClient");
 
     let character = esi_client
         .characters()
@@ -85,10 +87,11 @@ async fn get_character_public_information_not_found() {
         .with_body(r#"{"error": "Character not found"}"#)
         .create();
 
-    let mut esi_client: eve_esi::EsiClient =
-        eve_esi::EsiClient::new().user_agent("MyApp/1.0 (contact@example.com)");
-
-    esi_client.esi_url = mock_server_url.to_string();
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
+        .user_agent("MyApp/1.0 (contact@example.com)")
+        .esi_url(&mock_server_url)
+        .build()
+        .expect("Failed to build EsiClient");
 
     let result = esi_client
         .characters()

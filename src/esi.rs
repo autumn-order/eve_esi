@@ -70,7 +70,10 @@ mod tests {
             .with_body(r#"{"message": "Hello, world!"}"#)
             .create();
 
-        let esi_client = crate::EsiClient::new();
+        let esi_client = crate::EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
         let url = &format!("{}/test", mock_server_url);
 
         let result: TestResponse = esi_client.get_from_public_esi(url).await.unwrap();
@@ -98,7 +101,10 @@ mod tests {
             .with_body(r#"{"message": "Hello, world!"}"#)
             .create();
 
-        let esi_client = crate::EsiClient::new();
+        let esi_client = crate::EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
         let url = &format!("{}/test", mock_server_url);
         let data = json!({ "key": "value" });
 

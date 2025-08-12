@@ -43,13 +43,13 @@ use crate::error::EsiError;
 /// Use this struct to configure authentication and make requests to ESI endpoints.
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
-    reqwest_client: reqwest::Client,
-    client_id: Option<String>,
-    client_secret: Option<String>,
-    callback_url: Option<String>,
-    esi_url: String,
-    eve_auth_url: String,
-    eve_auth_token_url: String,
+    pub(crate) reqwest_client: reqwest::Client,
+    pub(crate) client_id: Option<String>,
+    pub(crate) client_secret: Option<String>,
+    pub(crate) callback_url: Option<String>,
+    pub(crate) esi_url: String,
+    pub(crate) eve_auth_url: String,
+    pub(crate) eve_auth_token_url: String,
 }
 
 /// Builder for configuring and constructing an `EsiClient`.

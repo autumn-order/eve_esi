@@ -49,10 +49,11 @@ async fn character_affiliation() {
         )
         .create();
 
-    let mut esi_client: eve_esi::EsiClient =
-        eve_esi::EsiClient::new().user_agent("MyApp/1.0 (contact@example.com)");
-
-    esi_client.esi_url = mock_server_url.to_string();
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
+        .user_agent("MyApp/1.0 (contact@example.com)")
+        .esi_url(&mock_server_url)
+        .build()
+        .expect("Failed to build EsiClient");
 
     let character_affiliations = esi_client
         .characters()
@@ -92,10 +93,11 @@ async fn character_affiliation_bad_request() {
         )
         .create();
 
-    let mut esi_client: eve_esi::EsiClient =
-        eve_esi::EsiClient::new().user_agent("MyApp/1.0 (contact@example.com)");
-
-    esi_client.esi_url = mock_server_url.to_string();
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
+        .user_agent("MyApp/1.0 (contact@example.com)")
+        .esi_url(&mock_server_url)
+        .build()
+        .expect("Failed to build EsiClient");
 
     let result = esi_client.characters().character_affiliation(vec![0]).await;
 

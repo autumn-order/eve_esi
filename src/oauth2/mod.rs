@@ -8,11 +8,13 @@
 //!
 //! # Example
 //! ```
-//! let esi_client = eve_esi::Client::new()
+//! let esi_client = eve_esi::EsiClient::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
 //!     .client_id("client_id")
 //!     .client_secret("client_secret")
-//!     .callback_url("http://localhost:8080/callback");
+//!     .callback_url("http://localhost:8080/callback")
+//!     .build()
+//!     .expect("Failed to build EsiClient");
 //!
 //! let scopes = eve_esi::oauth2::ScopeBuilder::new()
 //!     .public_data()
