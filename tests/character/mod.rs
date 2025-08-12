@@ -1,0 +1,2 @@
+mod character_affiliation;
+mod get_character_public_information;

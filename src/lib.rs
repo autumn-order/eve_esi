@@ -1,40 +1,39 @@
+#![warn(missing_docs)]
+
+//! # EVE ESI
+//! Rust API wrapper for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer).
+//! See the [README](https://github.com/hyziri/eve_esi/blob/main/README.md) for more examples and details.
+//!
+//! # References
+//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
+//!
+//! # Usage
+//!
+//! Create a new EsiClient instance and request public information about a character from ESI.
+//!
+//! ```no_run
+//! #[tokio::main]
+//! async fn main() {
+//!     let esi_client = eve_esi::EsiClient::builder()
+//!         .user_agent("MyApp/1.0 (contact@example.com)")
+//!         .build()
+//!         .expect("Failed to build EsiClient");
+//!
+//!     // Get information about the corporation The Order of Autumn (id: 98785281)
+//!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
+//!     println!("Corporation name: {}", corporation.name);
+//! }
+//! ```
+//!
+//! Make certain you set the user agent as demonstrated above, ensure it includes contact email in case there are any issues with your ESI requests.
+
+pub mod error;
 pub mod model;
+pub mod oauth2;
 
-mod alliance;
-mod character;
-mod corporation;
+pub use crate::client::EsiClient;
+
+mod client;
+mod endpoints;
 mod esi;
-
-use serde::{de::DeserializeOwned, Serialize};
-
-pub struct Client {
-    reqwest_client: reqwest::Client,
-    pub esi_url: String,
-}
-
-impl Client {
-    pub fn new(user_agent: &str) -> Self {
-        Self {
-            reqwest_client: reqwest::Client::builder()
-                .user_agent(user_agent)
-                .build()
-                .unwrap(),
-            esi_url: "https://esi.evetech.net/latest".to_string(),
-        }
-    }
-
-    async fn get_from_public_esi<T: DeserializeOwned>(
-        &self,
-        url: &str,
-    ) -> Result<T, reqwest::Error> {
-        esi::get_from_public_esi(&self.reqwest_client, url).await
-    }
-
-    async fn post_to_public_esi<T: DeserializeOwned, U: Serialize + ?Sized>(
-        &self,
-        url: &str,
-        data: &U,
-    ) -> Result<T, reqwest::Error> {
-        esi::post_to_public_esi(&self.reqwest_client, url, data).await
-    }
-}

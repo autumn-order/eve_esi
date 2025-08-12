@@ -1,61 +1,96 @@
 use axum::{
-    extract::Query,
+    extract::{Extension, Query},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize)]
 struct GetByIdParams {
     id: i32,
 }
 
-static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
-
 #[tokio::main]
 async fn main() {
+    // Always set a user agent for your ESI client
+    // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
+    // E.G. "MyApp/1.0 (contact@example.com)"
+    let user_agent: String = format!(
+        "{}/{} ({})",
+        env!("CARGO_PKG_NAME"),
+        env!("CARGO_PKG_VERSION"),
+        env!("CARGO_PKG_REPOSITORY")
+    );
+    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
+        .user_agent(&user_agent)
+        .build()
+        .expect("Failed to build ESI client");
+
+    // Arc is used to share the client between threads safely
+    // Sharing the esi_client as an Extension avoids having initialize it in every API route
+    // This allows you to configure it once here in main as opposed to configuring again in every API route
+    let shared_client = Arc::new(esi_client);
     let app = Router::new()
         .route("/character", get(get_esi_character))
-        .route("/corporation", get(get_esi_corporation));
+        .route("/corporation", get(get_esi_corporation))
+        .layer(Extension(shared_client));
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8000")
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
         .await
         .unwrap();
 
-    println!("Test character API at http://localhost:8000/character?id=2114794365");
-    println!("Test corporation API at http://localhost:8000/corporation?id=98785281");
+    println!("Test character API at http://localhost:8080/character?id=2114794365");
+    println!("Test corporation API at http://localhost:8080/corporation?id=98785281");
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn get_esi_character(params: Query<GetByIdParams>) -> Response {
-    let mut esi_client: eve_esi::Client = eve_esi::Client::new(USER_AGENT);
-
-    esi_client.esi_url = "https://esi.evetech.net/latest".to_string();
-
+async fn get_esi_character(
+    Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>,
+    params: Query<GetByIdParams>,
+) -> Response {
     let character_id: i32 = params.0.id;
 
-    match esi_client.get_character(character_id).await {
+    match esi_client
+        .character()
+        .get_character_public_information(character_id)
+        .await
+    {
         Ok(character) => (StatusCode::OK, Json(character)).into_response(),
         Err(error) => {
-            let status_code: StatusCode =
-                StatusCode::from_u16(error.status().unwrap().into()).unwrap();
+            let status_code: StatusCode = match &error {
+                eve_esi::error::EsiError::ReqwestError(ref err) => {
+                    StatusCode::from_u16(err.status().unwrap().into()).unwrap()
+                }
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            };
 
             (status_code, Json(error.to_string())).into_response()
         }
     }
 }
 
-async fn get_esi_corporation(params: Query<GetByIdParams>) -> Response {
-    let esi_client: eve_esi::Client = eve_esi::Client::new(USER_AGENT);
-
+async fn get_esi_corporation(
+    Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>,
+    params: Query<GetByIdParams>,
+) -> Response {
     let corporation_id: i32 = params.0.id;
 
-    match esi_client.get_corporation(corporation_id).await {
+    match esi_client
+        .corporation()
+        .get_corporation_information(corporation_id)
+        .await
+    {
         Ok(corporation) => (StatusCode::OK, Json(corporation)).into_response(),
         Err(error) => {
-            let status_code = StatusCode::from_u16(error.status().unwrap().into()).unwrap();
+            let status_code: StatusCode = match &error {
+                eve_esi::error::EsiError::ReqwestError(ref err) => {
+                    StatusCode::from_u16(err.status().unwrap().into()).unwrap()
+                }
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            };
 
             (status_code, Json(error.to_string())).into_response()
         }
