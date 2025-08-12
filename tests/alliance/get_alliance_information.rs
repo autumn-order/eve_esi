@@ -37,7 +37,7 @@ async fn get_alliance_information() {
         .expect("Failed to build EsiClient");
 
     let alliance: eve_esi::model::alliance::Alliance = esi_client
-        .alliances()
+        .alliance()
         .get_alliance_information(99013534)
         .await
         .unwrap();
@@ -77,7 +77,7 @@ async fn get_alliance_information_not_found() {
         .expect("Failed to build EsiClient");
 
     let result = esi_client
-        .alliances()
+        .alliance()
         .get_alliance_information(99999999)
         .await;
 

@@ -34,7 +34,7 @@ async fn get_corporation() {
         .expect("Failed to build EsiClient");
 
     let corporation = esi_client
-        .corporations()
+        .corporation()
         .get_corporation_information(98785281)
         .await
         .unwrap();
@@ -64,7 +64,7 @@ async fn get_corporation_not_found() {
         .expect("Failed to build EsiClient");
 
     let result = esi_client
-        .corporations()
+        .corporation()
         .get_corporation_information(99999999)
         .await;
 

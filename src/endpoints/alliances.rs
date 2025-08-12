@@ -35,7 +35,7 @@ impl<'a> AllianceApi<'a> {
     ///         .expect("Failed to build EsiClient");
     ///
     ///     // Get information about The Autumn alliance (id: 99013534)
-    ///     let alliance = esi_client.alliances().get_alliance_information(99013534).await.unwrap();
+    ///     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();
     ///     println!("Alliance name: {}", alliance.name);
     /// }
     /// ```

@@ -54,7 +54,7 @@ async fn get_character_public_information() {
         .expect("Failed to build EsiClient");
 
     let character = esi_client
-        .characters()
+        .character()
         .get_character_public_information(2114794365)
         .await
         .unwrap();
@@ -94,7 +94,7 @@ async fn get_character_public_information_not_found() {
         .expect("Failed to build EsiClient");
 
     let result = esi_client
-        .characters()
+        .character()
         .get_character_public_information(2114794365)
         .await;
 

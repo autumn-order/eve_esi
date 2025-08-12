@@ -49,7 +49,7 @@ async fn get_esi_character(
     let character_id: i32 = params.0.id;
 
     match esi_client
-        .characters()
+        .character()
         .get_character_public_information(character_id)
         .await
     {
@@ -74,7 +74,7 @@ async fn get_esi_corporation(
     let corporation_id: i32 = params.0.id;
 
     match esi_client
-        .corporations()
+        .corporation()
         .get_corporation_information(corporation_id)
         .await
     {

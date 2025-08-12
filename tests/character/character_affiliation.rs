@@ -56,7 +56,7 @@ async fn character_affiliation() {
         .expect("Failed to build EsiClient");
 
     let character_affiliations = esi_client
-        .characters()
+        .character()
         .character_affiliation(vec![2114794365, 2117053828])
         .await
         .unwrap();
@@ -99,7 +99,7 @@ async fn character_affiliation_bad_request() {
         .build()
         .expect("Failed to build EsiClient");
 
-    let result = esi_client.characters().character_affiliation(vec![0]).await;
+    let result = esi_client.character().character_affiliation(vec![0]).await;
 
     mock.assert();
 

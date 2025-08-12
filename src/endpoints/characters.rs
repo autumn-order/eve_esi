@@ -77,7 +77,7 @@ impl<'a> CharacterApi<'a> {
     ///         .expect("Failed to build EsiClient");
     ///
     ///     // Get affiliations for characters with IDs 2114794365 and 2117053828
-    ///     let affiliations = esi_client.characters().character_affiliation(vec![2114794365, 2117053828]).await.unwrap();
+    ///     let affiliations = esi_client.character().character_affiliation(vec![2114794365, 2117053828]).await.unwrap();
     ///     for affiliation in affiliations {
     ///         let alliance_id = if let Some(alliance_id) = affiliation.alliance_id {
     ///             alliance_id.to_string()
