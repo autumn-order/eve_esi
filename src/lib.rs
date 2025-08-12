@@ -28,12 +28,12 @@
 //!
 //! Make certain you set the user agent as demonstrated above, ensure it includes contact email in case there are any issues with your ESI requests.
 
-pub mod client;
 pub mod error;
 pub mod model;
 pub mod oauth2;
 
 pub use crate::client::EsiClient;
 
+mod client;
 mod endpoints;
 mod esi;
