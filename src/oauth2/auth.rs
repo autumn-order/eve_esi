@@ -5,8 +5,7 @@
 use crate::error::{EsiError, OAuthError};
 use crate::EsiClient;
 
-use oauth2::basic::BasicClient;
-use oauth2::{AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope, TokenUrl};
+use oauth2::{CsrfToken, Scope};
 
 use crate::model::oauth2::AuthenticationData;
 
@@ -14,23 +13,21 @@ impl EsiClient {
     /// Generates a login URL and state string for initiating the EVE Online OAuth2 authentication process.
     ///
     /// This method constructs the URL that users should visit to begin authentication with EVE Online SSO.
-    /// After successful authentication, EVE Online will redirect to the specified callback URL (`redirect_url`),
-    /// allowing your application to access the granted user information and permissions.
+    /// After successful authentication, EVE Online will redirect to the callback URL (`callback_url`) specified
+    /// in your `EsiClient` configuration with an authorization code to receive an access token (See [crate::oauth2::token::get_token]).
     ///
     /// # Arguments
-    /// - `redirect_url`: The callback URL to which EVE Online will redirect after authentication. This must match the redirect URI registered in your EVE developer application.
     /// - `scopes`: A vector of scope strings representing the permissions your application is requesting. These must match the scopes configured in your EVE developer application.
     ///
     /// # Returns
-    /// Returns a [`AuthenticationData`](crate::model::oauth::AuthenticationData) struct containing:
+    /// Returns a [`AuthenticationData`](crate::model::oauth2::AuthenticationData) struct containing:
     /// - `login_url`: The URL users should visit to authenticate.
     /// - `state`: A unique state string for CSRF protection.
     ///
     /// # Errors
     /// Returns an [`EveEsiError`](crate::error::EveEsiError) if:
-    /// - The client_id or client_secret is missing from the esi_client configuration.
-    /// - The provided `redirect_url` is invalid or improperly formatted.
-    /// - There is an error constructing the OAuth2 URLs.
+    /// - The client_id, client_secret, and callback_url is missing from the esi_client configuration
+    ///   which results in an `OAuthClientNotConfigured` error.
     ///
     /// # Notes
     /// - The `state` string should be stored and verified upon callback to protect against CSRF attacks.
@@ -58,37 +55,11 @@ impl EsiClient {
         &self,
         scopes: Vec<String>,
     ) -> Result<AuthenticationData, EsiError> {
-        let client_id = match self.client_id.clone() {
-            Some(id) => id.clone(),
-            None => return Err(EsiError::OAuthError(OAuthError::MissingClientId)),
+        let client = if let Some(ref client) = self.oauth_client {
+            client
+        } else {
+            return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured));
         };
-        let client_secret = match self.client_secret.clone() {
-            Some(secret) => secret.clone(),
-            None => return Err(EsiError::OAuthError(OAuthError::MissingClientSecret)),
-        };
-        let callback_url = match self.callback_url.clone() {
-            Some(url) => url.clone(),
-            None => return Err(EsiError::OAuthError(OAuthError::MissingCallbackUrl)),
-        };
-
-        let auth_url = match AuthUrl::new(self.auth_url.clone()) {
-            Ok(url) => url,
-            Err(_) => return Err(EsiError::OAuthError(OAuthError::InvalidAuthUrl)),
-        };
-        let token_url = match TokenUrl::new(self.token_url.clone()) {
-            Ok(url) => url,
-            Err(_) => return Err(EsiError::OAuthError(OAuthError::InvalidTokenUrl)),
-        };
-        let redirect_url = match RedirectUrl::new(callback_url) {
-            Ok(url) => url,
-            Err(_) => return Err(EsiError::OAuthError(OAuthError::InvalidCallbackUrl)),
-        };
-
-        let client = BasicClient::new(ClientId::new(client_id))
-            .set_client_secret(ClientSecret::new(client_secret))
-            .set_auth_uri(auth_url)
-            .set_token_uri(token_url)
-            .set_redirect_uri(redirect_url);
 
         let scopes: Vec<Scope> = scopes.into_iter().map(Scope::new).collect();
 
@@ -112,8 +83,8 @@ mod tests {
     /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
     ///
     /// # Test Setup
-    /// - Creates an ESI client with a mock client_id and client_secret
-    /// - Configures a redirect URL and requests public_data scope
+    /// - Creates an ESI client with a client_id, client_secret, and callback_url
+    /// - Configure scopes with the public_data scope
     /// - Calls the initiate_oauth_login method to generate authentication data
     ///
     /// # Assertions
@@ -121,13 +92,11 @@ mod tests {
     ///   confirming that proper CSRF protection is in place
     #[test]
     fn test_successful_login_url() {
-        let callback_url = "http://localhost:8080/callback";
-
         let esi_client = crate::EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
             .client_secret("client_secret")
-            .callback_url(callback_url)
+            .callback_url("http://localhost:8080/callback")
             .build()
             .expect("Failed to build EsiClient");
 
@@ -138,23 +107,19 @@ mod tests {
         assert!(auth_data.state.len() > 0);
     }
 
-    /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
+    /// Tests attempting to initiate an OAuth2 login without configuring the client ID, client secret, or callback URL.
     ///
     /// # Test Setup
-    /// - Creates an ESI client with a mock client_secret and the client_id set to None
-    /// - Configures a redirect URL and requests public_data scope
+    /// - Creates an ESI client without setting the client_id, client_secret, or callback_url
+    /// - Configure scopes with the public_data scope
     /// - Calls the initiate_oauth_login method to generate authentication data
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::MissingClientId
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::OAuthClientNotConfigured)
     #[test]
-    fn test_missing_client_id() {
-        let callback_url = "http://localhost:8080/callback";
-
+    fn test_oauth_client_not_configured() {
         let esi_client = crate::EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
-            .client_secret("client_secret")
-            .callback_url(callback_url)
             .build()
             .expect("Failed to build EsiClient");
 
@@ -166,10 +131,10 @@ mod tests {
             Ok(_) => {
                 panic!("Expected Err");
             }
-            Err(EsiError::OAuthError(OAuthError::MissingClientId)) => {
+            Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)) => {
                 assert!(true);
             }
-            Err(_) => panic!("Expected EsiError::MissingClientId"),
+            Err(_) => panic!("Expected EsiError::OAuthError(OAuthError::OAuth2NotConfigured)"),
         }
     }
 }

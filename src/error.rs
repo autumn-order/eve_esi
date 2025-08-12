@@ -109,10 +109,39 @@ pub enum EsiError {
 ///     .build();
 /// let result = esi_client.initiate_oauth_login(scopes);
 ///
-/// assert!(matches!(result, Err(EsiError::OAuthError(OAuthError::MissingClientId))));
+/// assert!(matches!(result, Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured))));
 /// ```
 #[derive(Error, Debug)]
 pub enum OAuthError {
+    /// Error returned when OAuth2 has not been configured for `EsiClient`.
+    ///
+    /// This error occurs when the `EsiClient` is built without setting
+    /// the client ID, client secret, and redirect URI.
+    ///
+    /// # Resolution
+    /// To fix this configure your EsiClient with the client ID, client secret,
+    /// and callback URL from https://developers.eveonline.com/applications
+    ///
+    /// ```
+    /// let esi_client = eve_esi::EsiClient::builder()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)")
+    ///     .client_id("client_id")
+    ///     .client_secret("client_secret")
+    ///     .callback_url("http://localhost:8080/callback")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
+    /// ```
+    #[error(
+        "OAuth2 not configured for EsiClient\n\
+        \n\
+        To fix this configure your EsiClient with the client ID, client secret,\n\
+        and callback URL from https://developers.eveonline.com/applications\n\
+        \n\
+        See this example: https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs\n\
+        "
+    )]
+    OAuth2NotConfigured,
+
     /// Error returned when the ESI client ID is missing.
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2

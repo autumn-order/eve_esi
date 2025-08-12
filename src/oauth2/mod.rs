@@ -32,6 +32,7 @@
 //! ```
 
 pub mod auth;
+pub(crate) mod client;
 pub mod scope;
 
 pub use scope::ScopeBuilder;

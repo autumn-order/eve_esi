@@ -39,6 +39,7 @@
 //! Include application name, version, and contact information in your user agent string.
 
 use crate::error::EsiError;
+use crate::oauth2::client::OAuth2Client;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
@@ -46,25 +47,22 @@ use crate::error::EsiError;
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
     pub(crate) reqwest_client: reqwest::Client,
-    pub(crate) client_id: Option<String>,
-    pub(crate) client_secret: Option<String>,
-    pub(crate) callback_url: Option<String>,
+    pub(crate) oauth_client: Option<OAuth2Client>,
     pub(crate) esi_url: String,
-    pub(crate) auth_url: String,
-    pub(crate) token_url: String,
 }
 
 /// Builder for configuring and constructing an `EsiClient`.
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClientBuilder {
-    user_agent: Option<String>,
-    client_id: Option<String>,
-    client_secret: Option<String>,
-    callback_url: Option<String>,
-    esi_url: String,
-    auth_url: String,
-    token_url: String,
+    pub(crate) oauth_client: Option<OAuth2Client>,
+    pub(crate) user_agent: Option<String>,
+    pub(crate) client_id: Option<String>,
+    pub(crate) client_secret: Option<String>,
+    pub(crate) callback_url: Option<String>,
+    pub(crate) esi_url: String,
+    pub(crate) auth_url: String,
+    pub(crate) token_url: String,
 }
 
 impl EsiClient {
@@ -82,6 +80,7 @@ impl EsiClientBuilder {
     /// For a full overview, features, and usage examples, see the [module-level documentation](self).
     pub fn new() -> Self {
         Self {
+            oauth_client: None,
             user_agent: None,
             client_id: None,
             client_secret: None,
@@ -102,14 +101,18 @@ impl EsiClientBuilder {
         }
         let reqwest_client = client_builder.build()?;
 
+        let mut builder = self;
+        if builder.client_id.is_some()
+            || builder.client_secret.is_some()
+            || builder.callback_url.is_some()
+        {
+            builder = builder.setup_oauth_client()?;
+        }
+
         Ok(EsiClient {
             reqwest_client,
-            client_id: self.client_id,
-            client_secret: self.client_secret,
-            callback_url: self.callback_url,
-            esi_url: self.esi_url,
-            auth_url: self.auth_url,
-            token_url: self.token_url,
+            oauth_client: builder.oauth_client,
+            esi_url: builder.esi_url,
         })
     }
 
@@ -166,9 +169,13 @@ impl EsiClientBuilder {
     /// let esi_client = EsiClient::builder()
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
     ///     .client_id("client_id")
+    ///     .client_secret("client_secret")
+    ///     .callback_url("http://localhost:8080/callback")
     ///     .build()
     ///     .expect("Failed to build EsiClient");
     /// ```
+    ///
+    /// Note: For OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     pub fn client_id(mut self, client_id: &str) -> Self {
         self.client_id = Some(client_id.to_string());
         self
@@ -194,9 +201,12 @@ impl EsiClientBuilder {
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
     ///     .client_id("client_id")
     ///     .client_secret("client_secret")
+    ///     .callback_url("http://localhost:8080/callback")
     ///     .build()
     ///     .expect("Failed to build EsiClient");
     /// ```
+    ///
+    /// Note: For OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     pub fn client_secret(mut self, client_secret: &str) -> Self {
         self.client_secret = Some(client_secret.to_string());
         self
@@ -226,6 +236,8 @@ impl EsiClientBuilder {
     ///     .build()
     ///     .expect("Failed to build EsiClient");
     /// ```
+    ///
+    /// Note: For OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     pub fn callback_url(mut self, callback_url: &str) -> Self {
         self.callback_url = Some(callback_url.to_string());
         self
