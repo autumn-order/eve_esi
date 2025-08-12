@@ -1,3 +1,33 @@
+//! Alliance Endpoints for EVE Online's ESI API.
+//!
+//! This module provides the [`AllianceApi`] struct and associated methods for accessing
+//! alliance-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
+//!
+//! The [`AllianceApi`] acts as a high-level interface for retrieving public information
+//! and affiliations for EVE Online alliances. It requires an [`EsiClient`] instance
+//! to perform HTTP requests to the ESI endpoints.
+//!
+//! # Features
+//! - Fetch public information about an alliance by alliance ID
+//!
+//! # References
+//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//!
+//! # Usage Example
+//! ```no_run
+//! #[tokio::main]
+//! async fn main() {
+//!     let esi_client = eve_esi::EsiClient::builder()
+//!         .user_agent("MyApp/1.0 (contact@example.com)")
+//!         .build()
+//!         .expect("Failed to build EsiClient");
+//!
+//!     // Get information about The Autumn alliance (id: 99013534)
+//!     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();
+//!     println!("Alliance name: {}", alliance.name);
+//! }
+//! ```
+
 use crate::{error::EsiError, model::alliance::Alliance, EsiClient};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -5,26 +35,20 @@ use crate::{error::EsiError, model::alliance::Alliance, EsiClient};
 /// The `AllianceApi` struct acts as an interface for retrieving information about EVE Online alliances
 /// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
 ///
-/// # Example
-/// ```no_run
-/// #[tokio::main]
-/// async fn main() {
-///     let esi_client = eve_esi::EsiClient::builder()
-///         .user_agent("MyApp/1.0 (contact@example.com)")
-///         .build()
-///         .expect("Failed to build EsiClient");
-///
-///     // Get information about The Autumn alliance (id: 99013534)
-///     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();
-///     println!("Alliance name: {}", alliance.name);
-/// }
-/// ```
+/// See the [module-level documentation](self) for an overview and usage example.
 pub struct AllianceApi<'a> {
     client: &'a EsiClient,
 }
 
 impl<'a> AllianceApi<'a> {
-    pub(crate) fn new(client: &'a EsiClient) -> Self {
+    /// Creates a new instance of `AllianceApi`.
+    ///
+    /// # Arguments
+    /// - `client` - The [`EsiClient`] used for making HTTP requests to the ESI endpoints.
+    ///
+    /// # Returns
+    /// Returns a new instance of `AllianceApi`.
+    pub fn new(client: &'a EsiClient) -> Self {
         Self { client }
     }
 

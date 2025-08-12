@@ -1,3 +1,33 @@
+//! Corporation Endpoints for EVE Online's ESI API.
+//!
+//! This module provides the [`CorporationApi`] struct and associated methods for accessing
+//! corporation-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
+//!
+//! The [`CorporationApi`] acts as a high-level interface for retrieving public information
+//! and affiliations for EVE Online corporations. It requires an [`EsiClient`] instance
+//! to perform HTTP requests to the ESI endpoints.
+//!
+//! # Features
+//! - Fetch public information about a corporation by corporation ID
+//!
+//! # References
+//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//!
+//! # Usage Example
+//! ```no_run
+//! #[tokio::main]
+//! async fn main() {
+//!     let esi_client = eve_esi::EsiClient::builder()
+//!         .user_agent("MyApp/1.0 (contact@example.com)")
+//!         .build()
+//!         .expect("Failed to build EsiClient");
+//!
+//!     // Get information about the corporation The Order of Autumn (id: 98785281)
+//!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
+//!     println!("Corporation name: {}", corporation.name);
+//! }
+//! ```
+
 use crate::error::EsiError;
 use crate::model::corporation::Corporation;
 use crate::EsiClient;
@@ -7,25 +37,19 @@ use crate::EsiClient;
 /// The `CorporationApi` struct acts as an interface for retrieving information about EVE Online corporations
 /// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
 ///
-/// # Example
-/// ```no_run
-/// #[tokio::main]
-/// async fn main() {
-///     let esi_client = eve_esi::EsiClient::builder()
-///         .user_agent("MyApp/1.0 (contact@example.com)")
-///         .build()
-///         .expect("Failed to build EsiClient");
-///
-///     // Get information about the corporation The Order of Autumn (id: 98785281)
-///     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
-///     println!("Corporation name: {}", corporation.name);
-/// }
-/// ```
+/// See the [module-level documentation](self) for an overview and usage example.
 pub struct CorporationApi<'a> {
     client: &'a EsiClient,
 }
 
 impl<'a> CorporationApi<'a> {
+    /// Creates a new instance of `CorporationApi`.
+    ///
+    /// # Arguments
+    /// - `client` - The [`EsiClient`] used for making HTTP requests to the ESI endpoints.
+    ///
+    /// # Returns
+    /// Returns a new instance of `CorporationApi`.
     pub fn new(client: &'a EsiClient) -> Self {
         Self { client }
     }

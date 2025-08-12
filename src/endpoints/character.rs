@@ -1,3 +1,33 @@
+//! Character Endpoints for EVE Online's ESI API.
+//!
+//! This module provides the [`CharacterApi`] struct and associated methods for accessing
+//! character-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
+//!
+//! The [`CharacterApi`] acts as a high-level interface for retrieving public information
+//! and affiliations for EVE Online characters. It requires an [`EsiClient`] instance
+//! to perform HTTP requests to the ESI endpoints.
+//!
+//! # Features
+//! - Fetch public information about a character by character ID
+//! - Retrieve affiliations (corporation, alliance, faction) for a list of characters
+//!
+//! # References
+//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//!
+//! # Usage Example
+//! ```no_run
+//! #[tokio::main]
+//! async fn main() {
+//!     let esi_client = eve_esi::EsiClient::builder()
+//!         .user_agent("MyApp/1.0 (contact@example.com)")
+//!         .build()
+//!         .expect("Failed to build EsiClient");
+//!
+//!     // Get public information for a character
+//!     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
+//!     println!("Character name: {}", character.name);
+//! }
+//! ```
 use crate::error::EsiError;
 use crate::EsiClient;
 
@@ -8,25 +38,19 @@ use crate::model::character::{Character, CharacterAffiliation};
 /// The `CharacterApi` struct acts as an interface for retrieving information about EVE Online characters
 /// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
 ///
-/// # Example
-/// ```no_run
-/// #[tokio::main]
-/// async fn main() {
-///     let esi_client = eve_esi::EsiClient::builder()
-///         .user_agent("MyApp/1.0 (contact@example.com)")
-///         .build()
-///         .expect("Failed to build EsiClient");
-///
-///     // Get information about the character Hyziri (id: 2114794365)
-///     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
-///     println!("Character name: {}", character.name);
-/// }
-/// ```
+/// See the [module-level documentation](self) for an overview and usage example.
 pub struct CharacterApi<'a> {
     client: &'a EsiClient,
 }
 
 impl<'a> CharacterApi<'a> {
+    /// Creates a new instance of `CharacterApi`.
+    ///
+    /// # Arguments
+    /// - `client` - The [`EsiClient`] used for making HTTP requests to the ESI endpoints.
+    ///
+    /// # Returns
+    /// Returns a new instance of `CharacterApi`.
     pub fn new(client: &'a EsiClient) -> Self {
         Self { client }
     }
