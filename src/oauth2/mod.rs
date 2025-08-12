@@ -31,8 +31,8 @@
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```
 
-pub mod auth;
 pub(crate) mod client;
+pub mod login;
 pub mod scope;
 
 pub use scope::ScopeBuilder;
