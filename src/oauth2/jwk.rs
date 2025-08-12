@@ -17,7 +17,7 @@ impl EsiClient {
     pub(crate) async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let jwt_keys = self
             .reqwest_client
-            .get(self.eve_jwk_uri.to_string())
+            .get(self.jwk_url.to_string())
             .send()
             .await?
             .json()

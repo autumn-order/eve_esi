@@ -28,6 +28,7 @@
 //!
 //! Make certain you set the user agent as demonstrated above, ensure it includes contact email in case there are any issues with your ESI requests.
 
+pub mod builder;
 pub mod client;
 pub mod endpoints;
 pub mod error;

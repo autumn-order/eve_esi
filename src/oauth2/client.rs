@@ -1,4 +1,4 @@
-//! Configures the OAuth2 client for the EsiClient.
+//! # OAuth2 Client for EVE ESI Client
 //!
 //! This module uses the oauth2 library to configure the OAuth2 client for the EsiClient.
 //! Allows the EsiClient to authenticate with the EVE Online API using OAuth2
@@ -11,7 +11,7 @@ use oauth2::{
     StandardTokenIntrospectionResponse, StandardTokenResponse, TokenUrl,
 };
 
-use crate::client::EsiClientBuilder;
+use crate::builder::EsiClientBuilder;
 use crate::error::{EsiError, OAuthError};
 
 /// OAuth2 client type for EsiClient
