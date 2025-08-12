@@ -24,10 +24,11 @@ async fn main() {
     // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
     // E.G. "MyApp/1.0 (contact@example.com)"
     let user_agent: String = format!(
-        "{}/{} ({})",
+        "{}/{} ({}) ({})",
         env!("CARGO_PKG_NAME"),
         env!("CARGO_PKG_VERSION"),
-        contact_email
+        contact_email,
+        env!("CARGO_PKG_REPOSITORY")
     );
     let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
         .user_agent(&user_agent)
