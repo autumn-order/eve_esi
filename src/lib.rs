@@ -31,9 +31,6 @@ pub mod error;
 pub mod model;
 pub mod oauth2;
 
-#[allow(deprecated)]
-pub use crate::client::Client;
-
 pub use crate::client::EsiClient;
 
 mod endpoints;

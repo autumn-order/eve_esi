@@ -23,8 +23,10 @@
 //! ```
 //! use eve_esi::EsiClient;
 //!
-//! let esi_client = EsiClient::new()
-//!     .user_agent("MyApp/1.0 (contact@example.com)");
+//! let esi_client = EsiClient::builder()
+//!     .user_agent("MyApp/1.0 (contact@example.com)")
+//!     .build()
+//!     .expect("Failed to build EsiClient");
 //! ```
 //!
 //! ## Warning
@@ -34,46 +36,45 @@
 //! ## Deprecated
 //! The `Client` type alias is deprecated. Use [`EsiClient`] directly.
 
+use crate::error::EsiError;
+
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
 /// Use this struct to configure authentication and make requests to ESI endpoints.
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
-    pub(crate) reqwest_client: reqwest::Client,
-    pub(crate) client_id: Option<String>,
-    pub(crate) client_secret: Option<String>,
-    pub(crate) callback_url: Option<String>,
-    /// The base URL for the EVE Online ESI API.
-    pub esi_url: String,
-    /// The URL for EVE Online oauth2 authorization.
-    pub eve_auth_url: String,
-    /// The URL for the EVE Online oauth2 token.
-    pub eve_auth_token_url: String,
+    reqwest_client: reqwest::Client,
+    client_id: Option<String>,
+    client_secret: Option<String>,
+    callback_url: Option<String>,
+    esi_url: String,
+    eve_auth_url: String,
+    eve_auth_token_url: String,
+}
+
+/// Builder for configuring and constructing an `EsiClient`.
+///
+/// For a full overview, features, and usage examples, see the [module-level documentation](self).
+pub struct EsiClientBuilder {
+    user_agent: Option<String>,
+    client_id: Option<String>,
+    client_secret: Option<String>,
+    callback_url: Option<String>,
+    esi_url: String,
+    eve_auth_url: String,
+    eve_auth_token_url: String,
 }
 
 impl EsiClient {
-    /// Creates a new ESI client with default configuration.
-    ///
-    /// # Returns
-    /// A new `EsiClient` instance with default ESI and authentication URLs.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::new()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)");
-    /// ```
-    ///
-    /// # Warning
-    /// EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
-    ///
-    /// Include application name, version, and contact information.
-    ///
-    /// You can do so with `esi_client.user_agent("MyApp/1.0 (contact@example.com)");`
+    pub fn builder() -> EsiClientBuilder {
+        EsiClientBuilder::new()
+    }
+}
+
+impl EsiClientBuilder {
     pub fn new() -> Self {
         Self {
-            reqwest_client: reqwest::Client::new(),
+            user_agent: None,
             client_id: None,
             client_secret: None,
             callback_url: None,
@@ -81,6 +82,27 @@ impl EsiClient {
             eve_auth_url: "https://login.eveonline.com/v2/oauth/authorize".to_string(),
             eve_auth_token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
         }
+    }
+
+    /// Builds the EsiClient
+    ///
+    /// For a full overview, features, and usage examples, see the [module-level documentation](self).
+    pub fn build(self) -> Result<EsiClient, EsiError> {
+        let mut client_builder = reqwest::Client::builder();
+        if let Some(ref user_agent) = self.user_agent {
+            client_builder = client_builder.user_agent(user_agent.clone());
+        }
+        let reqwest_client = client_builder.build()?;
+
+        Ok(EsiClient {
+            reqwest_client,
+            client_id: self.client_id,
+            client_secret: self.client_secret,
+            callback_url: self.callback_url,
+            esi_url: self.esi_url,
+            eve_auth_url: self.eve_auth_url,
+            eve_auth_token_url: self.eve_auth_token_url,
+        })
     }
 
     /// Sets the user agent for the EsiClient.
@@ -94,14 +116,16 @@ impl EsiClient {
     /// - `user_agent` - The user agent string to be used by the reqwest HTTP client.
     ///
     /// # Returns
-    /// The `EsiClient` instance with updated user agent configuration.
+    /// The `EsiClientBuilder` instance with updated user agent configuration.
     ///
     /// # Example
     /// ```
     /// use eve_esi::EsiClient;
     ///
-    /// let esi_client = EsiClient::new()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)");
+    /// let esi_client = EsiClient::builder()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
     /// ```
     ///
     /// # Warning
@@ -111,10 +135,7 @@ impl EsiClient {
     ///
     /// Example: "MyApp/1.0 (contact@example.com)"
     pub fn user_agent(mut self, user_agent: &str) -> Self {
-        self.reqwest_client = reqwest::Client::builder()
-            .user_agent(user_agent.to_string())
-            .build()
-            .unwrap();
+        self.user_agent = Some(user_agent.to_string());
         self
     }
 
@@ -128,15 +149,17 @@ impl EsiClient {
     /// - `client_id` - The OAuth2 client ID obtained from the EVE Online developer portal.
     ///
     /// # Returns
-    /// The `EsiClient` instance with updated client ID configuration.
+    /// The `EsiClientBuilder` instance with updated client ID configuration.
     ///
     /// # Example
     /// ```
     /// use eve_esi::EsiClient;
     ///
-    /// let esi_client = EsiClient::new()
+    /// let esi_client = EsiClient::builder()
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .client_id("client_id");
+    ///     .client_id("client_id")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
     /// ```
     pub fn client_id(mut self, client_id: &str) -> Self {
         self.client_id = Some(client_id.to_string());
@@ -153,16 +176,18 @@ impl EsiClient {
     /// - `client_secret` - The OAuth2 client secret obtained from the EVE Online developer portal.
     ///
     /// # Returns
-    /// The `EsiClient` instance with updated client secret configuration.
+    /// The `EsiClientBuilder` instance with updated client secret configuration.
     ///
     /// # Example
     /// ```
     /// use eve_esi::EsiClient;
     ///
-    /// let esi_client = EsiClient::new()
+    /// let esi_client = EsiClient::builder()
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
     ///     .client_id("client_id")
-    ///     .client_secret("client_secret");
+    ///     .client_secret("client_secret")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
     /// ```
     pub fn client_secret(mut self, client_secret: &str) -> Self {
         self.client_secret = Some(client_secret.to_string());
@@ -185,21 +210,97 @@ impl EsiClient {
     /// ```
     /// use eve_esi::EsiClient;
     ///
-    /// let esi_client = EsiClient::new()
+    /// let esi_client = EsiClient::builder()
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
     ///     .client_id("client_id")
     ///     .client_secret("client_secret")
-    ///     .callback_url("http://localhost:8080/callback");
+    ///     .callback_url("http://localhost:8080/callback")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
     /// ```
     pub fn callback_url(mut self, callback_url: &str) -> Self {
         self.callback_url = Some(callback_url.to_string());
         self
     }
-}
 
-/// Deprecated: Use [`EsiClient`] instead.
-///
-/// This type alias is retained for backward compatibility and will be removed in a future release.
-/// Please update your code to use [`EsiClient`] directly.
-#[deprecated(note = "Use `EsiClient` instead")]
-pub type Client = EsiClient;
+    /// Sets the EVE Online ESI base URL to a custom URL.
+    ///
+    /// This method configures the base URL for EVE Online ESI.
+    /// This is generally used for tests using a mock server with crates such as
+    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    ///
+    /// # Arguments
+    /// - `esi_url` - The EVE Online API base URL.
+    ///
+    /// # Returns
+    /// The `EsiClientBuilder` instance with updated EVE Online API base URL configuration.
+    ///
+    /// # Example
+    /// ```
+    /// use eve_esi::EsiClient;
+    ///
+    /// let esi_client = EsiClient::builder()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)")
+    ///     .esi_url("https://esi.evetech.net/latest")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
+    /// ```
+    pub fn esi_url(mut self, esi_url: &str) -> Self {
+        self.esi_url = esi_url.to_string();
+        self
+    }
+
+    /// Sets the EVE Online oauth2 authorize URL to a custom URL.
+    ///
+    /// This method configures the authorize URL for EVE Online oauth2.
+    /// This is generally used for tests using a mock server with crates such as
+    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    ///
+    /// # Arguments
+    /// - `auth_url` - The EVE Online oauth2 authorize URL.
+    ///
+    /// # Returns
+    /// The `EsiClientBuilder` instance with updated EVE Online oauth2 authorize URL configuration.
+    ///
+    /// # Example
+    /// ```
+    /// use eve_esi::EsiClient;
+    ///
+    /// let esi_client = EsiClient::builder()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)")
+    ///     .esi_url("https://login.eveonline.com/v2/oauth/authorize")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
+    /// ```
+    pub fn auth_url(mut self, auth_url: &str) -> Self {
+        self.eve_auth_url = auth_url.to_string();
+        self
+    }
+
+    /// Sets the EVE Online oauth2 token URL to a custom URL.
+    ///
+    /// This method configures the token URL for EVE Online oauth2 to a custom URL.
+    /// This is generally used for tests using a mock server with crates such as
+    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    ///
+    /// # Arguments
+    /// - `token_url` - The EVE Online oauth2 token URL.
+    ///
+    /// # Returns
+    /// The `EsiClientBuilder` instance with updated EVE Online oauth2 token URL configuration.
+    ///
+    /// # Example
+    /// ```
+    /// use eve_esi::EsiClient;
+    ///
+    /// let esi_client = EsiClient::builder()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)")
+    ///     .auth_token_url("https://login.eveonline.com/v2/oauth/token")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
+    /// ```
+    pub fn auth_token_url(mut self, token_url: &str) -> Self {
+        self.eve_auth_token_url = token_url.to_string();
+        self
+    }
+}
