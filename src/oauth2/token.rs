@@ -20,7 +20,7 @@ impl EsiClient {
     ///     use eve_esi::EsiClient;
     ///     use oauth2::TokenResponse;
     ///
-    ///     // You can get the authorization code as a query parameter in your callback URL
+    ///     // You can get the authorization code as a query parameter in your callback API route
     ///     // when a user is redirected back to your application after authorization.
     ///     let authorization_code = "authorization_code";
     ///
@@ -37,6 +37,8 @@ impl EsiClient {
     ///     let refresh_token = token.refresh_token();
     /// }
     /// ```
+    ///
+    /// See [SSO Example](https://github.com/hyziri/eve_esi/blob/dev/examples/sso.rs) for a more complete example.
     pub async fn get_token(
         &self,
         code: &str,

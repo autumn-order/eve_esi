@@ -284,6 +284,12 @@ pub enum OAuthError {
     )]
     InvalidCallbackUrl,
 
+    /// Error when JWT keys can't be retrieved from the cache despite being saved earlier.
+    ///
+    /// This should never happen as keys are always updated in the cache after fetching.
+    #[error("An error occured while retrieving JWT keys from the cache.")]
+    CacheError,
+
     /// Errors types returned when an OAuth2 token request fails.
     ///
     /// For a more detailed explanation of the error, see the `RequestTokenError` enum.

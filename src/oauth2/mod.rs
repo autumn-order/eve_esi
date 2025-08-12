@@ -32,6 +32,7 @@
 //! ```
 
 pub(crate) mod client;
+pub(crate) mod jwk;
 pub mod login;
 pub mod scope;
 pub mod token;

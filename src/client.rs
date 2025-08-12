@@ -38,7 +38,10 @@
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 
+use tokio::sync::Mutex;
+
 use crate::error::EsiError;
+use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::client::OAuth2Client;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
@@ -49,6 +52,9 @@ pub struct EsiClient {
     pub(crate) reqwest_client: reqwest::Client,
     pub(crate) oauth_client: Option<OAuth2Client>,
     pub(crate) esi_url: String,
+    pub(crate) eve_jwk_uri: String,
+    pub(crate) jwt_keys_cache: Mutex<Option<(EveJwtKeys, std::time::Instant)>>,
+    pub(crate) jwt_keys_cache_ttl: u64,
 }
 
 /// Builder for configuring and constructing an `EsiClient`.
@@ -63,6 +69,7 @@ pub struct EsiClientBuilder {
     pub(crate) esi_url: String,
     pub(crate) auth_url: String,
     pub(crate) token_url: String,
+    pub(crate) eve_jwk_uri: String,
 }
 
 impl EsiClient {
@@ -88,6 +95,7 @@ impl EsiClientBuilder {
             esi_url: "https://esi.evetech.net/latest".to_string(),
             auth_url: "https://login.eveonline.com/v2/oauth/authorize".to_string(),
             token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
+            eve_jwk_uri: "https://login.eveonline.com/oauth/jwks".to_string(),
         }
     }
 
@@ -113,6 +121,9 @@ impl EsiClientBuilder {
             reqwest_client,
             oauth_client: builder.oauth_client,
             esi_url: builder.esi_url,
+            eve_jwk_uri: builder.eve_jwk_uri,
+            jwt_keys_cache: Mutex::new(None),
+            jwt_keys_cache_ttl: 3600, // Default: 1 hour cache TTL
         })
     }
 
@@ -321,6 +332,33 @@ impl EsiClientBuilder {
     /// ```
     pub fn auth_token_url(mut self, token_url: &str) -> Self {
         self.token_url = token_url.to_string();
+        self
+    }
+
+    /// Sets the EVE Online JWK URI to a custom URL.
+    ///
+    /// This method configures the JWK URI for EVE Online OAuth2 to a custom URL.
+    /// This is generally used for tests using a mock server with crates such as
+    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    ///
+    /// # Arguments
+    /// - `eve_jwk_uri` - The EVE Online JWK URI.
+    ///
+    /// # Returns
+    /// The `EsiClientBuilder` instance with updated EVE Online JWK URI configuration.
+    ///
+    /// # Example
+    /// ```
+    /// use eve_esi::EsiClient;
+    ///
+    /// let esi_client = EsiClient::builder()
+    ///     .user_agent("MyApp/1.0 (contact@example.com)")
+    ///     .eve_jwk_uri("https://login.eveonline.com/oauth/jwks")
+    ///     .build()
+    ///     .expect("Failed to build EsiClient");
+    /// ```
+    pub fn eve_jwk_uri(mut self, eve_jwk_uri: &str) -> Self {
+        self.eve_jwk_uri = eve_jwk_uri.to_string();
         self
     }
 }
