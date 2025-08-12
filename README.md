@@ -1,21 +1,21 @@
-![Autumn Banner](https://raw.githubusercontent.com/autumn-order/branding/refs/heads/main/autumn-github-banner-dark.png#gh-light-mode-only)
-![Autumn Banner](https://raw.githubusercontent.com/autumn-order/branding/refs/heads/main/autumn-github-banner-light.png#gh-dark-mode-only)
-
 # EVE ESI
 
-Rust API wrapper for interaction with [EVE Online's ESI](https://esi.evetech.net/ui/).
+Rust API wrapper for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer).
 
 ## Usage
 
+Create a new EsiClient instance and request public information about a character from ESI.
+
 ```rust
-let user_agent = format!("APP_NAME/1.0 (contact@example.com)");
-let esi_client = eve_esi::Client::new(&user_agent);
+#[tokio::main]
+async fn main() {
+    let esi_client = eve_esi::EsiClient::new()
+        .user_agent("MyApp/1.0 (contact@example.com)");
 
-let character_id: i32 = 2114794365;
-
-let character: eve_esi::model::Character = esi_client.characters().get_character(character_id).await.unwrap();
-
-println!(character);
+    // Get information about the corporation The Order of Autumn (id: 98785281)
+    let corporation = esi_client.corporations().get_corporation_information(98785281).await.unwrap();
+    println!("Corporation name: {}", corporation.name);
+}
 ```
 
 Make certain you set the user agent as demonstrated above, ensure it includes contact email in case there are any issues with your ESI requests.
@@ -43,5 +43,4 @@ An example demonstrating how to use the `eve_esi` crate with the `axum` web fram
 ## Notes
 
 - More ESI routes will be added as needed, feel free to submit pull requests to add any you may need.
-- Only public ESI routes are available, private routes will be added at a later date when required by Rust based applications built by [Autumn](https://github.com/autumn-order).
-- You can override the esi_url for the ESI Client by simply doing `esi_client.esi_url = "http://your_url.com" for use cases such as unit tests with crates such as [mockito](https://docs.rs/mockito/latest/mockito/) to emulate endpoints, see this repository's tests folder for examples.
+- You can override the esi_url for the ESI Client by simply using `esi_client.esi_url = "http://your_url.com"` for use cases such as unit tests with crates such as [mockito](https://docs.rs/mockito/latest/mockito/) to emulate endpoints. See this repository's tests folder for examples.
