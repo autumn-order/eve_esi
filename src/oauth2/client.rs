@@ -174,10 +174,10 @@ mod tests {
     #[test]
     fn test_invalid_auth_url() {
         let result = EsiClient::builder()
-            .user_agent("Test App")
-            .client_id("test_id")
-            .client_secret("test_secret")
-            .callback_url("https://example.com/callback")
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .client_id("client_id")
+            .client_secret("client_secret")
+            .callback_url("http://localhost:8080/callback")
             .auth_url("invalid_url") // Invalid URL
             .build();
 
@@ -198,10 +198,10 @@ mod tests {
     #[test]
     fn test_invalid_token_url() {
         let result = EsiClient::builder()
-            .user_agent("Test App")
-            .client_id("test_id")
-            .client_secret("test_secret")
-            .callback_url("https://example.com/callback")
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .client_id("client_id")
+            .client_secret("client_secret")
+            .callback_url("http://localhost:8080/callback")
             .token_url("invalid_url") // Invalid URL
             .build();
 
@@ -222,9 +222,9 @@ mod tests {
     #[test]
     fn test_invalid_callback_url() {
         let result = EsiClient::builder()
-            .user_agent("Test App")
-            .client_id("test_id")
-            .client_secret("test_secret")
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .client_id("client_id")
+            .client_secret("client_secret")
             .callback_url("invalid_url") // Invalid URL
             .build();
 

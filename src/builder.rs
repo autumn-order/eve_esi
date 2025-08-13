@@ -439,7 +439,9 @@ mod tests {
     #[test]
     fn test_successful_build_minimal() {
         // Test building with just the required user_agent
-        let result = EsiClientBuilder::new().user_agent("Test App").build();
+        let result = EsiClientBuilder::new()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build();
 
         assert!(result.is_ok());
         let client = result.unwrap();
@@ -458,10 +460,10 @@ mod tests {
     fn test_successful_build_with_oauth() {
         // Test building with OAuth configuration
         let result = EsiClientBuilder::new()
-            .user_agent("Test App")
-            .client_id("test_client_id")
-            .client_secret("test_client_secret")
-            .callback_url("https://example.com/callback")
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .client_id("client_id")
+            .client_secret("client_secret")
+            .callback_url("http://localhost:8080/callback")
             .build();
 
         assert!(result.is_ok());
@@ -480,8 +482,8 @@ mod tests {
     fn test_build_with_partial_oauth_config() {
         // Test that providing only client_id without the other OAuth params fails
         let result = EsiClientBuilder::new()
-            .user_agent("Test App")
-            .client_id("test_client_id")
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .client_id("client_id")
             .build();
 
         assert!(result.is_err());
@@ -504,7 +506,7 @@ mod tests {
         let custom_jwk_url = "https://custom-jwk.example.com";
 
         let client = EsiClientBuilder::new()
-            .user_agent("Test App")
+            .user_agent("MyApp/1.0 (contact@example.com)")
             .esi_url(custom_esi_url)
             .jwk_url(custom_jwk_url)
             .build()

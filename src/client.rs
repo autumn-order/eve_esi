@@ -62,3 +62,22 @@ impl EsiClient {
         EsiClientBuilder::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Test the [`EsiClient::builder`] method
+    ///
+    /// # Setup
+    /// - Setup a minimal EsiClient with default settings
+    ///
+    /// # Assertions
+    /// - Validation the client was created successfully
+    #[test]
+    fn test_builder() {
+        let esi_client = EsiClient::builder().build();
+
+        assert!(esi_client.is_ok());
+    }
+}
