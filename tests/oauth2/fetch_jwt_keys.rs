@@ -39,7 +39,7 @@ async fn fetch_jwt_keys_success() {
         .expect("Failed to build EsiClient");
 
     // Call the fetch_jwt_keys method
-    let result = esi_client.fetch_jwt_keys().await;
+    let result = esi_client.oauth2().fetch_jwt_keys().await;
 
     // Assert
     mock.assert();
@@ -97,7 +97,7 @@ async fn fetch_jwt_keys_server_error() {
         .expect("Failed to build EsiClient");
 
     // Call the fetch_jwt_keys method
-    let result = esi_client.fetch_jwt_keys().await;
+    let result = esi_client.oauth2().fetch_jwt_keys().await;
 
     // Assert
     mock.assert();

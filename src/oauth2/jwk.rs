@@ -4,9 +4,9 @@
 
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
-use crate::EsiClient;
+use crate::oauth2::OAuth2Api;
 
-impl EsiClient {
+impl<'a> OAuth2Api<'a> {
     /// Retrieves the JWT keys used to validate JWTs obtained from EVE's OAuth2 API.
     ///
     /// # Returns
@@ -16,8 +16,9 @@ impl EsiClient {
     /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let jwt_keys = self
+            .client
             .reqwest_client
-            .get(self.jwk_url.to_string())
+            .get(self.client.jwk_url.to_string())
             .send()
             .await?
             .json()
@@ -36,9 +37,9 @@ impl EsiClient {
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         // First, check if we have valid cached keys
         {
-            let cache = self.jwt_keys_cache.lock().await;
+            let cache = self.client.jwt_keys_cache.lock().await;
             if let Some((keys, timestamp)) = &*cache {
-                if timestamp.elapsed().as_secs() < self.jwt_keys_cache_ttl {
+                if timestamp.elapsed().as_secs() < self.client.jwt_keys_cache_ttl {
                     // Cache is valid, return the keys
                     return Ok(keys.clone());
                 }
@@ -50,7 +51,7 @@ impl EsiClient {
 
         // Update the cache with the new keys
         {
-            let mut cache = self.jwt_keys_cache.lock().await;
+            let mut cache = self.client.jwt_keys_cache.lock().await;
             *cache = Some((fresh_keys.clone(), std::time::Instant::now()));
         }
 

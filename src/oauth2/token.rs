@@ -1,12 +1,12 @@
 //! Methods to retrieve & validate tokens from EVE Online's OAuth2 API.
 
-use crate::error::{EsiError, OAuthError};
-use crate::EsiClient;
-
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, StandardTokenResponse};
 
-impl EsiClient {
+use crate::error::{EsiError, OAuthError};
+use crate::oauth2::OAuth2Api;
+
+impl<'a> OAuth2Api<'a> {
     /// Retrieves a token from EVE Online's OAuth2 API.
     ///
     /// This method uses the configured EsiClient to retrieve a token from EVE Online's
@@ -32,7 +32,12 @@ impl EsiClient {
     ///         .build()
     ///         .expect("Failed to build EsiClient");
     ///
-    ///     let token = esi_client.get_token(authorization_code).await.expect("Failed to get token");
+    ///     let token = esi_client
+    ///         .oauth2()
+    ///         .get_token(authorization_code)
+    ///         .await
+    ///         .expect("Failed to get token");
+    ///
     ///     let access_token = token.access_token();
     ///     let refresh_token = token.refresh_token();
     /// }
@@ -43,7 +48,7 @@ impl EsiClient {
         &self,
         code: &str,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, EsiError> {
-        let client = if let Some(ref client) = self.oauth_client {
+        let client = if let Some(ref client) = self.client.oauth_client {
             client
         } else {
             return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured));
@@ -51,7 +56,7 @@ impl EsiClient {
 
         match client
             .exchange_code(AuthorizationCode::new(code.to_string()))
-            .request_async(&self.reqwest_client)
+            .request_async(&self.client.reqwest_client)
             .await
         {
             Ok(token) => Ok(token),

@@ -45,7 +45,7 @@ async fn get_jwt_keys_valid_cache() {
     }
 
     // Call the method under test
-    let result = esi_client.get_jwt_keys().await;
+    let result = esi_client.oauth2().get_jwt_keys().await;
 
     // Assert
     assert!(result.is_ok());
@@ -107,7 +107,7 @@ async fn get_jwt_keys_expired_cache() {
     }
 
     // Call the method under test
-    let result = esi_client.get_jwt_keys().await;
+    let result = esi_client.oauth2().get_jwt_keys().await;
 
     // Assert
     mock.assert(); // Verify the refresh request was made
@@ -166,7 +166,7 @@ async fn get_jwt_keys_empty_cache() {
         .expect("Failed to build EsiClient");
 
     // Call the method under test
-    let result = esi_client.get_jwt_keys().await;
+    let result = esi_client.oauth2().get_jwt_keys().await;
 
     // Assert
     mock.assert(); // Verify the refresh request was made

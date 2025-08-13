@@ -57,7 +57,7 @@ async fn main() {
 async fn login(Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>) -> Response {
     let scopes = eve_esi::oauth2::ScopeBuilder::new().public_data().build();
 
-    let auth_data = match esi_client.initiate_oauth_login(scopes) {
+    let auth_data = match esi_client.oauth2().initiate_oauth_login(scopes) {
         Ok(auth_data) => auth_data,
         Err(err) => {
             println!("Error initiating OAuth login: {}", err);

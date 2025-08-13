@@ -2,14 +2,13 @@
 //!
 //! See the [module-level documentation](super) for an overview and usage example.
 
-use crate::error::{EsiError, OAuthError};
-use crate::EsiClient;
-
 use oauth2::{CsrfToken, Scope};
 
+use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::AuthenticationData;
+use crate::oauth2::OAuth2Api;
 
-impl EsiClient {
+impl<'a> OAuth2Api<'a> {
     /// Generates a login URL and state string for initiating the EVE Online OAuth2 authentication process.
     ///
     /// This method constructs the URL that users should visit to begin authentication with EVE Online SSO.
@@ -46,6 +45,7 @@ impl EsiClient {
     ///     .public_data()
     ///     .build();
     /// let auth_data = esi_client
+    ///     .oauth2()
     ///     .initiate_oauth_login(scopes)
     ///     .unwrap();
     ///
@@ -55,7 +55,7 @@ impl EsiClient {
         &self,
         scopes: Vec<String>,
     ) -> Result<AuthenticationData, EsiError> {
-        let client = if let Some(ref client) = self.oauth_client {
+        let client = if let Some(ref client) = self.client.oauth_client {
             client
         } else {
             return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured));
@@ -102,7 +102,7 @@ mod tests {
 
         let scopes = ScopeBuilder::new().public_data().build();
 
-        let auth_data = esi_client.initiate_oauth_login(scopes).unwrap();
+        let auth_data = esi_client.oauth2().initiate_oauth_login(scopes).unwrap();
 
         assert!(auth_data.state.len() > 0);
     }
@@ -125,7 +125,7 @@ mod tests {
 
         let scopes = ScopeBuilder::new().public_data().build();
 
-        let result = esi_client.initiate_oauth_login(scopes);
+        let result = esi_client.oauth2().initiate_oauth_login(scopes);
 
         match result {
             Ok(_) => {
