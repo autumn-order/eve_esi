@@ -33,7 +33,7 @@ async fn get_jwt_keys_valid_cache() {
 
     // Create ESI client with mock JWK endpoint
     let esi_client = EsiClient::builder()
-        .user_agent("UnitTest/1.0 (test@example.com)")
+        .user_agent("MyApp/1.0 (contact@example.com)")
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
         .build()
         .expect("Failed to build EsiClient");
@@ -92,7 +92,7 @@ async fn get_jwt_keys_expired_cache() {
 
     // Create ESI client with mock JWK endpoint and custom cache TTL (0 seconds = always expired)
     let mut esi_client = EsiClient::builder()
-        .user_agent("UnitTest/1.0 (test@example.com)")
+        .user_agent("MyApp/1.0 (contact@example.com)")
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
         .build()
         .expect("Failed to build EsiClient");
@@ -160,7 +160,7 @@ async fn get_jwt_keys_empty_cache() {
 
     // Create ESI client with mock JWK endpoint
     let esi_client = EsiClient::builder()
-        .user_agent("UnitTest/1.0 (test@example.com)")
+        .user_agent("MyApp/1.0 (contact@example.com)")
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
         .build()
         .expect("Failed to build EsiClient");

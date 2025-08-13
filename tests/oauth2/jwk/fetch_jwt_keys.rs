@@ -33,7 +33,7 @@ async fn fetch_jwt_keys_success() {
 
     // Create ESI client with mock JWK endpoint
     let esi_client = EsiClient::builder()
-        .user_agent("UnitTest/1.0 (test@example.com)")
+        .user_agent("MyApp/1.0 (contact@example.com)")
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
         .build()
         .expect("Failed to build EsiClient");
@@ -91,7 +91,7 @@ async fn fetch_jwt_keys_server_error() {
 
     // Create ESI client with mock JWK endpoint
     let esi_client = EsiClient::builder()
-        .user_agent("UnitTest/1.0 (test@example.com)")
+        .user_agent("MyApp/1.0 (contact@example.com)")
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
         .build()
         .expect("Failed to build EsiClient");
