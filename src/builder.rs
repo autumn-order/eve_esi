@@ -348,6 +348,12 @@ mod tests {
     use crate::error::OAuthError;
 
     /// Test default values of the `EsiClientBuilder`.
+    ///
+    /// # Setup
+    /// - Creates an ESI client using the default values
+    ///
+    /// # Assertions
+    /// - Checks that the default values are set correctly
     #[test]
     fn test_default_builder_values() {
         let builder = EsiClientBuilder::new();
@@ -371,6 +377,12 @@ mod tests {
     }
 
     /// Test setter methods of the `EsiClientBuilder`.
+    ///
+    /// # Setup
+    /// - Creates an ESI client with all values modified
+    ///
+    /// # Assertions
+    /// - Checks that all setter methods were set correctly
     #[test]
     fn test_builder_setter_methods() {
         let builder = EsiClientBuilder::new()
@@ -404,6 +416,12 @@ mod tests {
     ///
     /// The builder allows building without a user agent, but it's not recommended
     /// This test just verifies it doesn't fail
+    ///
+    /// # Setup
+    /// - Creates an ESI client builder without a user agent.
+    ///
+    /// # Assertions
+    /// - Verifies that the client was built successfully.
     #[test]
     fn test_build_without_user_agent() {
         let result = EsiClientBuilder::new().build();
@@ -412,6 +430,12 @@ mod tests {
     }
 
     /// Test successful build with minimal configuration.
+    ///
+    /// # Setup
+    /// - Creates an ESI client builder with minimal configuration.
+    ///
+    /// # Assertions
+    /// - Verifies that the client receives the configured values from the builder.
     #[test]
     fn test_successful_build_minimal() {
         // Test building with just the required user_agent
@@ -424,6 +448,12 @@ mod tests {
     }
 
     /// Test successful build with OAuth configuration.
+    ///
+    /// # Setup
+    /// - Creates an ESI client builder with OAuth configuration.
+    ///
+    /// # Assertions
+    /// - Verifies that the client receives the configured values from the builder.
     #[test]
     fn test_successful_build_with_oauth() {
         // Test building with OAuth configuration
@@ -440,6 +470,12 @@ mod tests {
     }
 
     /// Test failed build due to partial OAuth configuration.
+    ///
+    /// # Setup
+    /// - Creates an ESI client builder with only the client_id set.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::MissingClientSecret)
     #[test]
     fn test_build_with_partial_oauth_config() {
         // Test that providing only client_id without the other OAuth params fails
@@ -456,6 +492,12 @@ mod tests {
     }
 
     /// Ensure that the builder correctly transfers configuration to the client.
+    ///
+    /// # Setup
+    /// - Creates an ESI client builder with custom ESI and JWK URLs.
+    ///
+    /// # Assertions
+    /// - Verifies that the client receives the configured values from the builder.
     #[test]
     fn test_builder_to_client_configuration_transfer() {
         let custom_esi_url = "https://custom-esi.example.com";

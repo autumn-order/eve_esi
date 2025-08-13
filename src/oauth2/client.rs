@@ -146,6 +146,7 @@ mod tests {
     /// - Verifies that the error response is EsiError::MissingCallbackUrl
     #[test]
     fn test_missing_callback_url() {
+        // Create an ESI client
         let result = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
@@ -160,6 +161,77 @@ mod tests {
                 assert!(true);
             }
             Err(_) => panic!("Expected EsiError::MissingCallbackUrl"),
+        }
+    }
+
+    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid auth_url
+    ///
+    /// # Test Setup
+    /// - Creates an ESI client with the auth_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidAuthUrl)
+    #[test]
+    fn test_invalid_auth_url() {
+        let result = EsiClient::builder()
+            .user_agent("Test App")
+            .client_id("test_id")
+            .client_secret("test_secret")
+            .callback_url("https://example.com/callback")
+            .auth_url("invalid_url") // Invalid URL
+            .build();
+
+        assert!(result.is_err());
+        match result {
+            Err(EsiError::OAuthError(OAuthError::InvalidAuthUrl)) => {}
+            _ => panic!("Expected InvalidAuthUrl error"),
+        }
+    }
+
+    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid token_url
+    ///
+    /// # Test Setup
+    /// - Creates an ESI client with the token_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidTokenUrl)
+    #[test]
+    fn test_invalid_token_url() {
+        let result = EsiClient::builder()
+            .user_agent("Test App")
+            .client_id("test_id")
+            .client_secret("test_secret")
+            .callback_url("https://example.com/callback")
+            .token_url("invalid_url") // Invalid URL
+            .build();
+
+        assert!(result.is_err());
+        match result {
+            Err(EsiError::OAuthError(OAuthError::InvalidTokenUrl)) => {}
+            _ => panic!("Expected InvalidTokenUrl error"),
+        }
+    }
+
+    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid callback_url
+    ///
+    /// # Test Setup
+    /// - Creates an ESI client with the callback_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidCallbackUrl)
+    #[test]
+    fn test_invalid_callback_url() {
+        let result = EsiClient::builder()
+            .user_agent("Test App")
+            .client_id("test_id")
+            .client_secret("test_secret")
+            .callback_url("invalid_url") // Invalid URL
+            .build();
+
+        assert!(result.is_err());
+        match result {
+            Err(EsiError::OAuthError(OAuthError::InvalidCallbackUrl)) => {}
+            _ => panic!("Expected InvalidCallbackUrl error"),
         }
     }
 }
