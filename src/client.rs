@@ -42,8 +42,16 @@ pub struct EsiClient {
     pub(crate) oauth_client: Option<OAuth2Client>,
     pub(crate) esi_url: String,
     pub(crate) jwk_url: String,
-    pub(crate) jwt_keys_cache: Mutex<Option<(EveJwtKeys, std::time::Instant)>>,
-    pub(crate) jwt_keys_cache_ttl: u64,
+    /// Cache for JWT keys used to validate tokens from EVE Online's OAuth2 API.
+    ///
+    /// Consider using the [`EsiClient::get_jwt_keys`] method to retrieve the keys from the cache &
+    /// automatically refresh them.
+    /// Direct modification of this field is typically only for testing purposes.
+    pub jwt_keys_cache: Mutex<Option<(EveJwtKeys, std::time::Instant)>>,
+    /// Cache TTL for JWT keys in seconds.
+    ///
+    /// By default is set to 3600 seconds (1 hour), but can be overridden by setting this field.
+    pub jwt_keys_cache_ttl: u64,
 }
 
 impl EsiClient {

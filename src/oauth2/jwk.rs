@@ -14,7 +14,7 @@ impl EsiClient {
     ///
     /// # Errors
     /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
-    pub(crate) async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
+    pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let jwt_keys = self
             .reqwest_client
             .get(self.jwk_url.to_string())
