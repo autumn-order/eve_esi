@@ -305,11 +305,11 @@ impl EsiClientBuilder {
     ///
     /// let esi_client = EsiClient::builder()
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .auth_token_url("https://login.eveonline.com/v2/oauth/token")
+    ///     .token_url("https://login.eveonline.com/v2/oauth/token")
     ///     .build()
     ///     .expect("Failed to build EsiClient");
     /// ```
-    pub fn auth_token_url(mut self, token_url: &str) -> Self {
+    pub fn token_url(mut self, token_url: &str) -> Self {
         self.token_url = token_url.to_string();
         self
     }
@@ -339,5 +339,137 @@ impl EsiClientBuilder {
     pub fn jwk_url(mut self, jwk_url: &str) -> Self {
         self.jwk_url = jwk_url.to_string();
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::error::OAuthError;
+
+    /// Test default values of the `EsiClientBuilder`.
+    #[test]
+    fn test_default_builder_values() {
+        let builder = EsiClientBuilder::new();
+
+        // Check default values
+        assert_eq!(builder.esi_url, "https://esi.evetech.net/latest");
+        assert_eq!(
+            builder.auth_url,
+            "https://login.eveonline.com/v2/oauth/authorize"
+        );
+        assert_eq!(
+            builder.token_url,
+            "https://login.eveonline.com/v2/oauth/token"
+        );
+        assert_eq!(builder.jwk_url, "https://login.eveonline.com/oauth/jwks");
+        assert!(builder.user_agent.is_none());
+        assert!(builder.client_id.is_none());
+        assert!(builder.client_secret.is_none());
+        assert!(builder.callback_url.is_none());
+        assert!(builder.oauth_client.is_none());
+    }
+
+    /// Test setter methods of the `EsiClientBuilder`.
+    #[test]
+    fn test_builder_setter_methods() {
+        let builder = EsiClientBuilder::new()
+            .esi_url("https://example.com")
+            .auth_url("https://auth.example.com")
+            .token_url("https://token.example.com")
+            .jwk_url("https://jwk.example.com")
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .client_id("client_id")
+            .client_secret("client_secret")
+            .callback_url("https://callback.example.com");
+
+        // Check updated values
+        assert_eq!(builder.esi_url, "https://example.com");
+        assert_eq!(builder.auth_url, "https://auth.example.com");
+        assert_eq!(builder.token_url, "https://token.example.com");
+        assert_eq!(builder.jwk_url, "https://jwk.example.com");
+        assert_eq!(
+            builder.user_agent,
+            Some("MyApp/1.0 (contact@example.com)".to_string())
+        );
+        assert_eq!(builder.client_id, Some("client_id".to_string()));
+        assert_eq!(builder.client_secret, Some("client_secret".to_string()));
+        assert_eq!(
+            builder.callback_url,
+            Some("https://callback.example.com".to_string())
+        );
+    }
+
+    /// Test build without user agent.
+    ///
+    /// The builder allows building without a user agent, but it's not recommended
+    /// This test just verifies it doesn't fail
+    #[test]
+    fn test_build_without_user_agent() {
+        let result = EsiClientBuilder::new().build();
+
+        assert!(result.is_ok());
+    }
+
+    /// Test successful build with minimal configuration.
+    #[test]
+    fn test_successful_build_minimal() {
+        // Test building with just the required user_agent
+        let result = EsiClientBuilder::new().user_agent("Test App").build();
+
+        assert!(result.is_ok());
+        let client = result.unwrap();
+        assert_eq!(client.esi_url, "https://esi.evetech.net/latest");
+        assert!(client.oauth_client.is_none());
+    }
+
+    /// Test successful build with OAuth configuration.
+    #[test]
+    fn test_successful_build_with_oauth() {
+        // Test building with OAuth configuration
+        let result = EsiClientBuilder::new()
+            .user_agent("Test App")
+            .client_id("test_client_id")
+            .client_secret("test_client_secret")
+            .callback_url("https://example.com/callback")
+            .build();
+
+        assert!(result.is_ok());
+        let client = result.unwrap();
+        assert!(client.oauth_client.is_some());
+    }
+
+    /// Test failed build due to partial OAuth configuration.
+    #[test]
+    fn test_build_with_partial_oauth_config() {
+        // Test that providing only client_id without the other OAuth params fails
+        let result = EsiClientBuilder::new()
+            .user_agent("Test App")
+            .client_id("test_client_id")
+            .build();
+
+        assert!(result.is_err());
+        match result {
+            Err(EsiError::OAuthError(OAuthError::MissingClientSecret)) => {}
+            _ => panic!("Expected MissingClientSecret error"),
+        }
+    }
+
+    /// Ensure that the builder correctly transfers configuration to the client.
+    #[test]
+    fn test_builder_to_client_configuration_transfer() {
+        let custom_esi_url = "https://custom-esi.example.com";
+        let custom_jwk_url = "https://custom-jwk.example.com";
+
+        let client = EsiClientBuilder::new()
+            .user_agent("Test App")
+            .esi_url(custom_esi_url)
+            .jwk_url(custom_jwk_url)
+            .build()
+            .expect("Failed to build client");
+
+        // Verify the client received the configured values from the builder
+        assert_eq!(client.esi_url, custom_esi_url);
+        assert_eq!(client.jwk_url, custom_jwk_url);
     }
 }
