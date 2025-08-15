@@ -37,4 +37,5 @@ pub mod oauth2;
 
 pub use crate::client::EsiClient;
 
+mod constant;
 mod esi;

@@ -65,6 +65,8 @@ impl EsiClient {
 
 #[cfg(test)]
 mod tests {
+    use crate::constant::{DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL};
+
     use super::*;
 
     /// Test the successful minimal build of [`EsiClient::builder`]
@@ -81,16 +83,10 @@ mod tests {
         let builder = EsiClient::builder();
 
         // Verify the builder has expected default values
-        assert_eq!(builder.esi_url, "https://esi.evetech.net/latest");
-        assert_eq!(
-            builder.auth_url,
-            "https://login.eveonline.com/v2/oauth/authorize"
-        );
-        assert_eq!(
-            builder.token_url,
-            "https://login.eveonline.com/v2/oauth/token"
-        );
-        assert_eq!(builder.jwk_url, "https://login.eveonline.com/oauth/jwks");
+        assert_eq!(builder.esi_url, DEFAULT_ESI_URL);
+        assert_eq!(builder.auth_url, DEFAULT_AUTH_URL);
+        assert_eq!(builder.token_url, DEFAULT_TOKEN_URL);
+        assert_eq!(builder.jwk_url, DEFAULT_JWK_URL);
         assert!(builder.user_agent.is_none());
         assert!(builder.client_id.is_none());
         assert!(builder.client_secret.is_none());

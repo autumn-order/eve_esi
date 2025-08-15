@@ -41,6 +41,9 @@
 
 use tokio::sync::RwLock;
 
+use crate::constant::{
+    DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWK_CACHE_TTL, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
+};
 use crate::error::EsiError;
 use crate::oauth2::client::OAuth2Client;
 use crate::EsiClient;
@@ -71,10 +74,10 @@ impl EsiClientBuilder {
             client_id: None,
             client_secret: None,
             callback_url: None,
-            esi_url: "https://esi.evetech.net/latest".to_string(),
-            auth_url: "https://login.eveonline.com/v2/oauth/authorize".to_string(),
-            token_url: "https://login.eveonline.com/v2/oauth/token".to_string(),
-            jwk_url: "https://login.eveonline.com/oauth/jwks".to_string(),
+            esi_url: DEFAULT_ESI_URL.to_string(),
+            auth_url: DEFAULT_AUTH_URL.to_string(),
+            token_url: DEFAULT_TOKEN_URL.to_string(),
+            jwk_url: DEFAULT_JWK_URL.to_string(),
         }
     }
 
@@ -102,7 +105,7 @@ impl EsiClientBuilder {
             esi_url: builder.esi_url,
             jwk_url: builder.jwk_url,
             jwt_keys_cache: RwLock::new(None),
-            jwt_keys_cache_ttl: 3600, // Default: 1 hour cache TTL
+            jwt_keys_cache_ttl: DEFAULT_JWK_CACHE_TTL,
         })
     }
 
@@ -359,16 +362,10 @@ mod tests {
         let builder = EsiClientBuilder::new();
 
         // Check default values
-        assert_eq!(builder.esi_url, "https://esi.evetech.net/latest");
-        assert_eq!(
-            builder.auth_url,
-            "https://login.eveonline.com/v2/oauth/authorize"
-        );
-        assert_eq!(
-            builder.token_url,
-            "https://login.eveonline.com/v2/oauth/token"
-        );
-        assert_eq!(builder.jwk_url, "https://login.eveonline.com/oauth/jwks");
+        assert_eq!(builder.esi_url, DEFAULT_ESI_URL);
+        assert_eq!(builder.auth_url, DEFAULT_AUTH_URL);
+        assert_eq!(builder.token_url, DEFAULT_TOKEN_URL);
+        assert_eq!(builder.jwk_url, DEFAULT_JWK_URL);
         assert!(builder.user_agent.is_none());
         assert!(builder.client_id.is_none());
         assert!(builder.client_secret.is_none());
@@ -393,7 +390,7 @@ mod tests {
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
             .client_secret("client_secret")
-            .callback_url("https://callback.example.com");
+            .callback_url("http://localhost:8000/callback");
 
         // Check updated values
         assert_eq!(builder.esi_url, "https://example.com");
@@ -408,7 +405,7 @@ mod tests {
         assert_eq!(builder.client_secret, Some("client_secret".to_string()));
         assert_eq!(
             builder.callback_url,
-            Some("https://callback.example.com".to_string())
+            Some("http://localhost:8000/callback".to_string())
         );
     }
 
@@ -445,7 +442,7 @@ mod tests {
 
         assert!(result.is_ok());
         let client = result.unwrap();
-        assert_eq!(client.esi_url, "https://esi.evetech.net/latest");
+        assert_eq!(client.esi_url, DEFAULT_ESI_URL);
         assert!(client.oauth_client.is_none());
     }
 
