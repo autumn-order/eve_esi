@@ -67,17 +67,39 @@ impl EsiClient {
 mod tests {
     use super::*;
 
-    /// Test the [`EsiClient::builder`] method
+    /// Test the successful minimal build of [`EsiClient::builder`]
     ///
     /// # Setup
-    /// - Setup a minimal EsiClient with default settings
+    /// - Setup an EsiClientBuilder using the builder() method
     ///
     /// # Assertions
-    /// - Validation the client was created successfully
+    /// - Validate that the default values are correct
+    /// - Verify that the esi_client has built successfully
     #[test]
-    fn test_builder() {
-        let esi_client = EsiClient::builder().build();
+    fn test_successful_build_minimal() {
+        // Test that builder() returns a valid EsiClientBuilder
+        let builder = EsiClient::builder();
 
+        // Verify the builder has expected default values
+        assert_eq!(builder.esi_url, "https://esi.evetech.net/latest");
+        assert_eq!(
+            builder.auth_url,
+            "https://login.eveonline.com/v2/oauth/authorize"
+        );
+        assert_eq!(
+            builder.token_url,
+            "https://login.eveonline.com/v2/oauth/token"
+        );
+        assert_eq!(builder.jwk_url, "https://login.eveonline.com/oauth/jwks");
+        assert!(builder.user_agent.is_none());
+        assert!(builder.client_id.is_none());
+        assert!(builder.client_secret.is_none());
+        assert!(builder.callback_url.is_none());
+
+        // Verify that the esi_client has built successfully
+        let esi_client = builder.build();
         assert!(esi_client.is_ok());
+
+        // Note: More comprehensive tests for the builder pattern are in builder.rs
     }
 }

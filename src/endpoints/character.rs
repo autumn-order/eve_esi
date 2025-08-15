@@ -137,9 +137,9 @@ impl<'a> CharacterApi<'a> {
         character_ids: Vec<i32>,
     ) -> Result<Vec<CharacterAffiliation>, EsiError> {
         let url = format!("{}/characters/affiliation/", self.client.esi_url);
+        let esi_client = self.client;
 
-        Ok(self
-            .client
+        Ok(esi_client
             .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i32>>(&url, &character_ids)
             .await?)
     }

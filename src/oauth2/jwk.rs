@@ -15,9 +15,10 @@ impl<'a> OAuth2Api<'a> {
     /// # Errors
     /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
-        let jwt_keys = self
-            .client
-            .reqwest_client
+        let esi_client = self.client;
+        let reqwest_client = &esi_client.reqwest_client;
+
+        let jwt_keys = reqwest_client
             .get(self.client.jwk_url.to_string())
             .send()
             .await?
