@@ -219,6 +219,18 @@ pub enum OAuthError {
     )]
     InvalidCallbackUrl,
 
+    /// Error updating JWT key cache to validate tokens
+    ///
+    /// Occurs when the JWT key cache for EsiClient fails to update and the cache is currently empty.
+    /// Generally this is a configuration error with the EsiClient or EVE's API continually rejecting
+    /// the attempts to fetch new keys.
+    #[error("JWT key cache error:\n\
+        \n\
+        An error occurred while updating the JWT key cache.\n\
+        This occurs when the JWT key cache for EsiClient is empty and attempts to fetch new keys fails."
+    )]
+    JwtKeyCacheError,
+
     /// Errors types returned when an OAuth2 token request fails.
     ///
     /// For a more detailed explanation of the error, see the `RequestTokenError` enum.

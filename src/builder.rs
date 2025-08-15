@@ -39,6 +39,7 @@
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 
+use std::sync::atomic::AtomicBool;
 use tokio::sync::RwLock;
 
 use crate::constant::{
@@ -106,6 +107,7 @@ impl EsiClientBuilder {
             jwk_url: builder.jwk_url,
             jwt_keys_cache: RwLock::new(None),
             jwt_keys_cache_ttl: DEFAULT_JWK_CACHE_TTL,
+            jwt_key_refresh_in_progress: AtomicBool::new(false),
         })
     }
 
