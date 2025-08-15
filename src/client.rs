@@ -28,12 +28,15 @@
 //! Include application name, version, and contact information in your user agent string.
 
 use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
 use tokio::sync::RwLock;
 
 use crate::builder::EsiClientBuilder;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::client::OAuth2Client;
+
+type JwtKeyCache = Arc<RwLock<Option<(EveJwtKeys, std::time::Instant)>>>;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
@@ -44,18 +47,20 @@ pub struct EsiClient {
     pub(crate) oauth_client: Option<OAuth2Client>,
     pub(crate) esi_url: String,
     pub(crate) jwk_url: String,
+    /// Cache TTL for JWT keys in seconds.
+    pub jwt_keys_cache_ttl: u64,
+
+    // Use an Arc to share the cache & refresh status between threads
+    // This is necessary for the background JWT key refresh task spawned when calling the
+    // `get_jwt_keys` method in `oauth2/jwk.rs`.
     /// Cache for JWT keys used to validate tokens from EVE Online's OAuth2 API.
     ///
     /// Consider using the [`get_jwt_keys`] method to retrieve the keys from the cache &
     /// automatically refresh them when expired.
     /// Direct modification of this field is typically only for testing purposes.
-    pub jwt_keys_cache: RwLock<Option<(EveJwtKeys, std::time::Instant)>>,
-    /// Cache TTL for JWT keys in seconds.
-    ///
-    /// By default is set to 3600 seconds (1 hour), but can be overridden by setting this field.
-    pub jwt_keys_cache_ttl: u64,
+    pub jwt_keys_cache: JwtKeyCache,
     /// Flag indicating whether a JWT key refresh is currently in progress to prevent concurrent refreshes.
-    pub jwt_key_refresh_in_progress: AtomicBool,
+    pub jwt_key_refresh_in_progress: Arc<AtomicBool>,
 }
 
 impl EsiClient {

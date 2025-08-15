@@ -40,6 +40,7 @@
 //! Include application name, version, and contact information in your user agent string.
 
 use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::constant::{
@@ -105,9 +106,9 @@ impl EsiClientBuilder {
             oauth_client: builder.oauth_client,
             esi_url: builder.esi_url,
             jwk_url: builder.jwk_url,
-            jwt_keys_cache: RwLock::new(None),
             jwt_keys_cache_ttl: DEFAULT_JWK_CACHE_TTL,
-            jwt_key_refresh_in_progress: AtomicBool::new(false),
+            jwt_keys_cache: Arc::new(RwLock::new(None)),
+            jwt_key_refresh_in_progress: Arc::new(AtomicBool::new(false)),
         })
     }
 

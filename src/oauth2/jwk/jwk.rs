@@ -56,72 +56,96 @@ impl<'a> OAuth2Api<'a> {
         Ok(fresh_keys)
     }
 
-    /// Gets JWT keys with caching support.
+    /// Gets JWT keys with caching support & background refreshing.
     ///
     /// This method returns JWT keys from the cache if available and not expired,
     /// otherwise it fetches fresh keys from EVE's OAuth2 API and updates the cache.
     ///
-    /// This method prevents multiple concurrent refresh attempts by using an atomic flag.
-    /// If a refresh is already in progress when this method is called, it will wait
+    /// If the cache is 80% to expiration, it will start a background task to refresh the keys
+    /// proactively. This method prevents multiple concurrent refresh attempts by using an atomic
+    /// flag. If a refresh is already in progress when this method is called, it will wait
     /// briefly and retry getting the keys from cache.
-    ///
-    /// # Errors
-    /// - Returns an error if the JWT key cache is empty and new keys could not be fetched.
     ///
     /// # Returns
     /// - A Result containing the JWT keys in successful, or an error if the fetch failed.
+    ///
+    /// # Errors
+    /// - Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
-        // TODO: Proactively refresh keys before they expire
         let esi_client = self.client;
+        // LOG: debug log for retrieving keys
 
-        // First, check if we have valid cached keys
-        {
+        // Retrieve keys from cache
+        let keys = {
             let cache = self.client.jwt_keys_cache.read().await;
-            if let Some((keys, timestamp)) = &*cache {
-                if timestamp.elapsed().as_secs() < self.client.jwt_keys_cache_ttl {
-                    // Cache is valid, return the keys
-                    return Ok(keys.clone());
+            match &*cache {
+                Some((keys, timestamp)) => Some((keys.clone(), timestamp.clone())),
+                None => None,
+            }
+        }; // Lock is released here
+
+        if let Some((keys, timestamp)) = keys {
+            // LOG: Debug log that keys found in cache
+
+            // Run a background refresh task if cache is 80% to expiration
+            // TODO: make refresh threshold configurable
+            if timestamp.elapsed().as_secs() < (self.client.jwt_keys_cache_ttl * 8 / 10) {
+                if self.try_acquire_refresh_lock() {
+                    self.trigger_background_jwt_refresh().await;
                 }
             }
-        } // Lock is released here
 
-        // Try to set the refresh flag if not already set
-        let was_already_refreshing = esi_client
-            .jwt_key_refresh_in_progress
-            .compare_exchange(
-                false,
-                true,
-                std::sync::atomic::Ordering::Acquire,
-                std::sync::atomic::Ordering::Relaxed,
-            )
-            .is_err();
+            // Return keys if cache is not expired
+            if timestamp.elapsed().as_secs() < self.client.jwt_keys_cache_ttl {
+                // LOG: Debug log using cached keys
+                return Ok(keys);
+            }
 
+            // ELSE
+            // LOG: Debug log cache expiration
+        }
+        // ELSE
+        // LOG: Debug log cache miss
+
+        // If we got here, JWT key cache is missing or expired
+        // TODO: Utilize a notification mechanism so that the threads wait
+        // precisely rather than approximately as long as it takes to refresh the keys
+        // Try to get the refresh lock
         // TODO: Retry with exponential backoff
         // TODO: configurable number of retry attempts
-        if was_already_refreshing {
-            // Another thread is already refreshing, wait briefly and check cache again
+        if !self.try_acquire_refresh_lock() {
+            // LOG: Debug log waiting for another thread
+
+            // Another thread is refreshing, wait briefly
             // TODO: make adjustable rather than hard-coded
             // TODO: Make the default sleep duration a static in constant.rs
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
-            // Retry getting from cache after waiting
-            let cache = esi_client.jwt_keys_cache.read().await;
-            if let Some((keys, _)) = &*cache {
-                return Ok(keys.clone());
+            // Try cache again after waiting
+            if let Some(keys) = self.get_keys_from_cache().await {
+                // LOG: Debug log successful retrieval after waiting
+                return Ok(keys);
             }
-
-            // If still no keys in cache after waiting, return an error
+            // LOG: Warn log failed key retrieval after waiting
             return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError));
         }
 
-        // We successfully set the flag, so we're responsible for refreshing
-        let result = self.fetch_and_update_cache().await;
+        // LOG: info log before fetching fresh keys
 
-        // Reset the flag regardless of whether the fetch succeeded or failed
+        // We have the lock, so refresh the cache
+        let fresh_keys = self.fetch_and_update_cache().await?;
+        // MATCH for LOG
+        // OK
+        // LOG: info log successfuly fetched and cached fresh keys
+        // ERR
+        // LOG: error log failed to fetch fresh JWT keys
+
+        // Always release the lock
+        // LOG: debug log lock release
         esi_client
             .jwt_key_refresh_in_progress
             .store(false, std::sync::atomic::Ordering::Release);
 
-        result
+        Ok(fresh_keys)
     }
 }

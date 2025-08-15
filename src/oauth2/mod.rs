@@ -33,12 +33,13 @@
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```
 
-pub(crate) mod client;
 pub mod error;
-pub(crate) mod jwk;
+pub mod jwk;
 pub mod login;
 pub mod scope;
 pub mod token;
+
+pub(crate) mod client;
 
 pub use scope::ScopeBuilder;
 
