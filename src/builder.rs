@@ -39,7 +39,7 @@
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 use crate::error::EsiError;
 use crate::oauth2::client::OAuth2Client;
@@ -101,7 +101,7 @@ impl EsiClientBuilder {
             oauth_client: builder.oauth_client,
             esi_url: builder.esi_url,
             jwk_url: builder.jwk_url,
-            jwt_keys_cache: Mutex::new(None),
+            jwt_keys_cache: RwLock::new(None),
             jwt_keys_cache_ttl: 3600, // Default: 1 hour cache TTL
         })
     }

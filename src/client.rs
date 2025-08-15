@@ -27,7 +27,7 @@
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 use crate::builder::EsiClientBuilder;
 use crate::model::oauth2::EveJwtKeys;
@@ -47,7 +47,7 @@ pub struct EsiClient {
     /// Consider using the [`EsiClient::get_jwt_keys`] method to retrieve the keys from the cache &
     /// automatically refresh them.
     /// Direct modification of this field is typically only for testing purposes.
-    pub jwt_keys_cache: Mutex<Option<(EveJwtKeys, std::time::Instant)>>,
+    pub jwt_keys_cache: RwLock<Option<(EveJwtKeys, std::time::Instant)>>,
     /// Cache TTL for JWT keys in seconds.
     ///
     /// By default is set to 3600 seconds (1 hour), but can be overridden by setting this field.

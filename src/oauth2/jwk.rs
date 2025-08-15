@@ -38,7 +38,7 @@ impl<'a> OAuth2Api<'a> {
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         // First, check if we have valid cached keys
         {
-            let cache = self.client.jwt_keys_cache.lock().await;
+            let cache = self.client.jwt_keys_cache.read().await;
             if let Some((keys, timestamp)) = &*cache {
                 if timestamp.elapsed().as_secs() < self.client.jwt_keys_cache_ttl {
                     // Cache is valid, return the keys
@@ -52,7 +52,7 @@ impl<'a> OAuth2Api<'a> {
 
         // Update the cache with the new keys
         {
-            let mut cache = self.client.jwt_keys_cache.lock().await;
+            let mut cache = self.client.jwt_keys_cache.write().await;
             *cache = Some((fresh_keys.clone(), std::time::Instant::now()));
         }
 
