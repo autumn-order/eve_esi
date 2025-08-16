@@ -19,6 +19,7 @@ impl<'a> OAuth2Api<'a> {
         let jwk_url = esi_client.jwk_url.clone();
         let refresh_in_progress = esi_client.jwt_key_refresh_in_progress.clone();
         let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
+        let jwt_keys_last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
 
         tokio::spawn(async move {
             debug!("Background JWT key refresh task started");
@@ -55,8 +56,16 @@ impl<'a> OAuth2Api<'a> {
 
             if let Err(err) = result {
                 error!("Background JWT key refresh failed: {:?}", err);
+
+                // Record the failure time
+                let mut last_failure = jwt_keys_last_refresh_failure.write().await;
+                *last_failure = Some(Instant::now());
             } else {
                 debug!("Background JWT key refresh task successful");
+
+                // Clear any previous failure on success
+                let mut last_failure = jwt_keys_last_refresh_failure.write().await;
+                *last_failure = None;
             }
         });
 

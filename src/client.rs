@@ -63,6 +63,8 @@ pub struct EsiClient {
     pub jwt_key_refresh_in_progress: Arc<AtomicBool>,
     /// Notifier for JWT key refresh completion.
     pub jwt_key_refresh_notifier: Arc<Notify>,
+    /// Timestamp of the last failed JWT key refresh attempt.
+    pub jwt_keys_last_refresh_failure: Arc<RwLock<Option<std::time::Instant>>>,
 }
 
 impl EsiClient {

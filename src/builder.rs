@@ -111,6 +111,7 @@ impl EsiClientBuilder {
             jwt_keys_cache: Arc::new(RwLock::new(None)),
             jwt_key_refresh_in_progress: Arc::new(AtomicBool::new(false)),
             jwt_key_refresh_notifier: Arc::new(Notify::new()),
+            jwt_keys_last_refresh_failure: Arc::new(RwLock::new(None)),
         })
     }
 

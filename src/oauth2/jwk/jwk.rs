@@ -9,7 +9,10 @@ use std::time::Instant;
 use ::tokio::time::Duration;
 use log::{debug, error, info};
 
-use crate::constant::DEFAULT_JWK_REFRESH_TIMEOUT;
+use crate::constant::{
+    DEFAULT_JWK_REFRESH_FAILURE_BACKOFF, DEFAULT_JWK_REFRESH_THRESHOLD_PERCENT,
+    DEFAULT_JWK_REFRESH_TIMEOUT,
+};
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::error::OAuthError;
@@ -92,10 +95,24 @@ impl<'a> OAuth2Api<'a> {
         if let Some((keys, timestamp)) = keys {
             debug!("JWT keys found in cache");
 
-            // Run a background refresh task if cache is 80% to expiration
+            // Run a background refresh task if cache is at a certain % to expiration
             // TODO: make refresh threshold configurable
-            if timestamp.elapsed().as_secs() < (self.client.jwt_keys_cache_ttl * 8 / 10) {
-                if self.try_acquire_refresh_lock() {
+            // TODO: make backoff threshold configurable
+            if timestamp.elapsed().as_secs()
+                < (self.client.jwt_keys_cache_ttl * DEFAULT_JWK_REFRESH_THRESHOLD_PERCENT / 100)
+            {
+                // Check if we should respect a backoff period due to previous failure
+                let should_respect_backoff = {
+                    match &*self.client.jwt_keys_last_refresh_failure.read().await {
+                        Some(last_failure) => {
+                            last_failure.elapsed().as_secs() < DEFAULT_JWK_REFRESH_FAILURE_BACKOFF
+                        }
+                        None => false,
+                    }
+                };
+
+                // Only trigger background refresh if not in backoff period and we can acquire the lock
+                if !should_respect_backoff && self.try_acquire_refresh_lock() {
                     self.trigger_background_jwt_refresh().await;
                 }
             }
