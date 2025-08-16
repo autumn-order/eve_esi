@@ -1,8 +1,10 @@
 use std::sync::atomic::Ordering;
 use std::time::Instant;
 
-use log::{debug, error};
+use ::tokio::time::Duration;
+use log::{debug, error, info};
 
+use crate::constant::{DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES};
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
@@ -13,6 +15,7 @@ impl<'a> OAuth2Api<'a> {
         debug!("Triggering background JWT refresh task");
 
         let esi_client = self.client;
+
         // Clone the required components
         let reqwest_client = esi_client.reqwest_client.clone();
         let jwt_keys_cache = esi_client.jwt_keys_cache.clone();
@@ -70,5 +73,60 @@ impl<'a> OAuth2Api<'a> {
         });
 
         debug!("Background JWT key refresh task spawned");
+    }
+
+    /// Refreshes JWT keys with retry logic
+    /// This function assumes the refresh lock is already acquired
+    pub async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
+        info!("Fetching fresh JWT keys");
+
+        // We have the lock, so refresh the cache
+        // Retry up to DEFAULT_JWK_REFRESH_MAX_RETRIES times with exponential backoff
+        let mut retry_attempts = 0;
+        let mut result = self.fetch_and_update_cache().await;
+
+        // Retry logic - attempt retries if the initial fetch failed
+        while result.is_err() && retry_attempts < DEFAULT_JWK_REFRESH_MAX_RETRIES {
+            let backoff_duration = Duration::from_millis(
+                // Calculate exponential backoff duration:
+                // Initial backoff (DEFAULT_JWK_REFRESH_BACKOFF) multiplied by 2^retry_attempts
+                // This causes wait time to double with each retry attempt
+                DEFAULT_JWK_REFRESH_BACKOFF * 2u64.pow(retry_attempts as u32),
+            );
+            debug!(
+                "JWT key fetch failed. Retrying ({}/{}) after {}ms",
+                retry_attempts + 1,
+                DEFAULT_JWK_REFRESH_MAX_RETRIES,
+                backoff_duration.as_millis()
+            );
+
+            // Wait before retrying
+            tokio::time::sleep(backoff_duration).await;
+
+            // Try to fetch again
+            result = self.fetch_and_update_cache().await;
+            retry_attempts += 1;
+        }
+
+        // Always release the lock
+        self.release_refresh_lock_and_notify();
+
+        // Return the result or error
+        match result {
+            Ok(keys) => {
+                debug!("Successfully fetched and cached fresh JWT keys");
+                // Clear any previous failure on success
+                let mut last_failure = self.client.jwt_keys_last_refresh_failure.write().await;
+                *last_failure = None;
+                Ok(keys)
+            }
+            Err(_) => {
+                // Record the failure with retry count + 1 (to account for initial attempt)
+                let error = self
+                    .record_refresh_failure(DEFAULT_JWK_REFRESH_MAX_RETRIES + 1)
+                    .await;
+                Err(error)
+            }
+        }
     }
 }
