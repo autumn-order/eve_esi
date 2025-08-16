@@ -27,6 +27,36 @@
 //! ```
 //!
 //! Make certain you set the user agent as demonstrated above, ensure it includes contact email in case there are any issues with your ESI requests.
+//!
+//! # Logging
+//!
+//! This library uses the [`log`](https://crates.io/crates/log) crate for logging. To capture log output,
+//! applications using this library should initialize a logger implementation like `env_logger`,
+//! `simple_logger`, or any other implementation of the `log` crate's facade.
+//!
+//! ## Log Levels
+//!
+//! - **Error**: Used for failures that prevent successful API calls
+//! - **Warn**: Used for potential issues that don't prevent operation but could be problematic
+//! - **Info**: Used for successful API calls and important client state changes
+//! - **Debug**: Used for detailed information about API call parameters and responses
+//! - **Trace**: Used for very detailed debugging information
+//!
+//! ## Example with env_logger
+//!
+//! ```no_run
+//! // Set RUST_LOG environment variable to control log levels
+//! // e.g., RUST_LOG=eve_esi=debug,info
+//!
+//! // Initialize env_logger
+//! env_logger::init();
+//!
+//! // Now logs from eve_esi will be captured
+//! let esi_client = eve_esi::EsiClient::builder()
+//!     .user_agent("MyApp/1.0 (contact@example.com)")
+//!     .build()
+//!     .expect("Failed to build EsiClient");
+//! ```
 
 pub mod builder;
 pub mod client;

@@ -42,6 +42,36 @@ An example demonstrating how to use the `eve_esi` crate with the `axum` web fram
 5. Go to `http://localhost:8080/login` in your browser
 6. Follow the login process, once authorized you'll be shown your character's information.
 
+## Logging
+
+This library uses the [`log`](https://crates.io/crates/log) crate for logging. To capture log output,
+applications using this library should initialize a logger implementation like `env_logger`,
+`simple_logger`, or any other implementation of the `log` crate's facade.
+
+### Log Levels
+
+- **Error**: Used for failures that prevent successful API calls
+- **Warn**: Used for potential issues that don't prevent operation but could be problematic
+- **Info**: Used for successful API calls and important client state changes
+- **Debug**: Used for detailed information about API call parameters and responses
+- **Trace**: Used for very detailed debugging information
+
+### Example with env_logger
+
+```rust
+// Set RUST_LOG environment variable to control log levels
+// e.g., RUST_LOG=eve_esi=debug,info
+
+// Initialize env_logger
+env_logger::init();
+
+// Now logs from eve_esi will be captured
+let esi_client = eve_esi::EsiClient::builder()
+    .user_agent("MyApp/1.0 (contact@example.com)")
+    .build()
+    .expect("Failed to build EsiClient");
+```
+
 ## Notes
 
 - More ESI routes will be added as needed, feel free to submit pull requests to add any you may need.

@@ -5,6 +5,8 @@
 
 use std::time::Instant;
 
+use log::{debug, error, info};
+
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::error::OAuthError;
@@ -73,7 +75,7 @@ impl<'a> OAuth2Api<'a> {
     /// - Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
-        // LOG: debug log for retrieving keys
+        debug!("Retrieving JWT keys");
 
         // Retrieve keys from cache
         let keys = {
@@ -85,7 +87,7 @@ impl<'a> OAuth2Api<'a> {
         }; // Lock is released here
 
         if let Some((keys, timestamp)) = keys {
-            // LOG: Debug log that keys found in cache
+            debug!("JWT keys found in cache");
 
             // Run a background refresh task if cache is 80% to expiration
             // TODO: make refresh threshold configurable
@@ -97,15 +99,14 @@ impl<'a> OAuth2Api<'a> {
 
             // Return keys if cache is not expired
             if timestamp.elapsed().as_secs() < self.client.jwt_keys_cache_ttl {
-                // LOG: Debug log using cached keys
+                debug!("Using cached JWT keys");
                 return Ok(keys);
+            } else {
+                debug!("JWT keys cache expired");
             }
-
-            // ELSE
-            // LOG: Debug log cache expiration
+        } else {
+            debug!("JWT keys cache miss");
         }
-        // ELSE
-        // LOG: Debug log cache miss
 
         // If we got here, JWT key cache is missing or expired
         // TODO: Utilize a notification mechanism so that the threads wait
@@ -114,7 +115,7 @@ impl<'a> OAuth2Api<'a> {
         // TODO: Retry with exponential backoff
         // TODO: configurable number of retry attempts
         if !self.try_acquire_refresh_lock() {
-            // LOG: Debug log waiting for another thread
+            debug!("Waiting for another thread to refresh JWT keys");
 
             // Another thread is refreshing, wait briefly
             // TODO: make adjustable rather than hard-coded
@@ -123,25 +124,30 @@ impl<'a> OAuth2Api<'a> {
 
             // Try cache again after waiting
             if let Some(keys) = self.get_keys_from_cache().await {
-                // LOG: Debug log successful retrieval after waiting
+                debug!("Successfully retrieved JWT keys after waiting for refresh");
                 return Ok(keys);
             }
-            // LOG: Warn log failed key retrieval after waiting
+
+            debug!("Failed to retrieve JWT keys after waiting for refresh");
             return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError));
         }
 
-        // LOG: info log before fetching fresh keys
+        info!("Fetching fresh JWT keys");
 
         // We have the lock, so refresh the cache
-        let fresh_keys = self.fetch_and_update_cache().await?;
-        // MATCH for LOG
-        // OK
-        // LOG: info log successfuly fetched and cached fresh keys
-        // ERR
-        // LOG: error log failed to fetch fresh JWT keys
+        let fresh_keys = match self.fetch_and_update_cache().await {
+            Ok(keys) => {
+                debug!("Successfully fetched and cached fresh JWT keys");
+                keys
+            }
+            Err(err) => {
+                error!("Failed to fetch fresh JWT keys: {}", err);
+                return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError));
+            }
+        };
 
         // Always release the lock
-        // LOG: debug log lock release
+        debug!("Releasing JWT key refresh lock");
         esi_client
             .jwt_key_refresh_in_progress
             .store(false, std::sync::atomic::Ordering::Release);

@@ -1,13 +1,15 @@
+use std::time::Instant;
+
+use log::{debug, error};
+
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
-use std::time::Instant;
-
 impl<'a> OAuth2Api<'a> {
     /// Helper function to trigger a background JWT refresh task.
     pub async fn trigger_background_jwt_refresh(&self) {
-        // LOG: debug log trigger background JWT refresh task
+        debug!("Triggering background JWT refresh task");
 
         let esi_client = self.client;
         // Clone the required components
@@ -17,10 +19,10 @@ impl<'a> OAuth2Api<'a> {
         let refresh_in_progress = esi_client.jwt_key_refresh_in_progress.clone();
 
         tokio::spawn(async move {
-            // LOG: debug log background JWT key refresh task started
+            debug!("Background JWT key refresh task started");
 
             let result = async {
-                // LOG: debug log fetching fresh keys from JWK URL
+                debug!("Fetching fresh keys from JWK URL: {}", jwk_url);
 
                 // Fetch fresh keys from EVE's OAuth2 API
                 let fresh_keys = reqwest_client
@@ -31,27 +33,27 @@ impl<'a> OAuth2Api<'a> {
                     .await?;
 
                 // Update the cache with the new keys
-                // LOG: debug log updating JWT keys cache
+                debug!("Updating JWT keys cache");
                 {
                     let mut cache = jwt_keys_cache.write().await;
                     *cache = Some((fresh_keys, Instant::now()));
                 }
-                // LOG: Info log JWT keys cache updated
+                debug!("JWT keys cache updated");
                 Ok::<_, EsiError>(())
             }
             .await;
 
-            // Always reset the refresh flag
-            // LOG: debug log reset JWT key refresh flag
+            // Always release the lock
+            debug!("Releasing JWT key refresh lock");
             refresh_in_progress.store(false, std::sync::atomic::Ordering::Release);
 
             if let Err(err) = result {
-                // LOG: error log background JWT key refresh failed
-                eprintln!("Background JWT key refresh failed: {:?}", err);
-                // LOG: debug log background JWT key refresh task successful
+                error!("Background JWT key refresh failed: {:?}", err);
+            } else {
+                debug!("Background JWT key refresh task successful");
             }
         });
 
-        // LOG: debug log JWT key refresh task spawned
+        debug!("Background JWT key refresh task spawned");
     }
 }
