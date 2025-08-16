@@ -41,7 +41,8 @@
 
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
-use tokio::sync::RwLock;
+
+use tokio::sync::{Notify, RwLock};
 
 use crate::constant::{
     DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWK_CACHE_TTL, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
@@ -109,6 +110,7 @@ impl EsiClientBuilder {
             jwt_keys_cache_ttl: DEFAULT_JWK_CACHE_TTL,
             jwt_keys_cache: Arc::new(RwLock::new(None)),
             jwt_key_refresh_in_progress: Arc::new(AtomicBool::new(false)),
+            jwt_key_refresh_notifier: Arc::new(Notify::new()),
         })
     }
 

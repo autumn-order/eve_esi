@@ -3,10 +3,13 @@
 //! This module provides methods to fetch and cache JWT keys used for validating JWTs
 //! obtained from EVE's OAuth2 API.
 
+use std::sync::atomic::Ordering;
 use std::time::Instant;
 
+use ::tokio::time::Duration;
 use log::{debug, error, info};
 
+use crate::constant::DEFAULT_JWK_REFRESH_TIMEOUT;
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::error::OAuthError;
@@ -109,20 +112,24 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // If we got here, JWT key cache is missing or expired
-        // TODO: Utilize a notification mechanism so that the threads wait
-        // precisely rather than approximately as long as it takes to refresh the keys
-        // Try to get the refresh lock
-        // TODO: Retry with exponential backoff
-        // TODO: configurable number of retry attempts
         if !self.try_acquire_refresh_lock() {
             debug!("Waiting for another thread to refresh JWT keys");
 
-            // Another thread is refreshing, wait briefly
-            // TODO: make adjustable rather than hard-coded
-            // TODO: Make the default sleep duration a static in constant.rs
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            // Create a future that waits for the notification
+            let notify_future = self.client.jwt_key_refresh_notifier.notified();
 
-            // Try cache again after waiting
+            // Wait for the notification or a timeout (as fallback)
+            tokio::select! {
+                _ = notify_future => {
+                    debug!("Received notification that JWT keys refresh is complete");
+                }
+                // TODO: configurable timeout
+                _ = tokio::time::sleep(Duration::from_secs(DEFAULT_JWK_REFRESH_TIMEOUT)) => {
+                    debug!("Timed out waiting for JWT keys refresh notification");
+                }
+            }
+
+            // Try cache again after being notified
             if let Some(keys) = self.get_keys_from_cache().await {
                 debug!("Successfully retrieved JWT keys after waiting for refresh");
                 return Ok(keys);
@@ -135,23 +142,30 @@ impl<'a> OAuth2Api<'a> {
         info!("Fetching fresh JWT keys");
 
         // We have the lock, so refresh the cache
-        let fresh_keys = match self.fetch_and_update_cache().await {
-            Ok(keys) => {
-                debug!("Successfully fetched and cached fresh JWT keys");
-                keys
-            }
-            Err(err) => {
-                error!("Failed to fetch fresh JWT keys: {}", err);
-                return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError));
-            }
-        };
+        // TODO: Retry with exponential backoff
+        // TODO: configurable number of retry attempts
+        let result = self.fetch_and_update_cache().await;
 
         // Always release the lock
         debug!("Releasing JWT key refresh lock");
         esi_client
             .jwt_key_refresh_in_progress
-            .store(false, std::sync::atomic::Ordering::Release);
+            .store(false, Ordering::Release);
 
-        Ok(fresh_keys)
+        // Notify waiters regardless of success or failure
+        // This is important - we must notify even if refresh failed
+        self.client.jwt_key_refresh_notifier.notify_waiters();
+
+        // Return the result or error
+        match result {
+            Ok(keys) => {
+                debug!("Successfully fetched and cached fresh JWT keys");
+                Ok(keys)
+            }
+            Err(err) => {
+                error!("Failed to fetch fresh JWT keys: {}", err);
+                Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError))
+            }
+        }
     }
 }

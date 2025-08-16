@@ -30,7 +30,7 @@
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-use tokio::sync::RwLock;
+use tokio::sync::{Notify, RwLock};
 
 use crate::builder::EsiClientBuilder;
 use crate::model::oauth2::EveJwtKeys;
@@ -61,6 +61,8 @@ pub struct EsiClient {
     pub jwt_keys_cache: JwtKeyCache,
     /// Flag indicating whether a JWT key refresh is currently in progress to prevent concurrent refreshes.
     pub jwt_key_refresh_in_progress: Arc<AtomicBool>,
+    /// Notifier for JWT key refresh completion.
+    pub jwt_key_refresh_notifier: Arc<Notify>,
 }
 
 impl EsiClient {

@@ -6,3 +6,4 @@ pub static DEFAULT_JWK_URL: &str = "https://login.eveonline.com/oauth/jwks";
 
 // Default jwk cache TTL for EsiClient
 pub static DEFAULT_JWK_CACHE_TTL: u64 = 3600; // 1 hour cache TTL
+pub static DEFAULT_JWK_REFRESH_TIMEOUT: u64 = 5; // 5 seconds cache refresh timeout
