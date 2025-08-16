@@ -10,8 +10,8 @@ use ::tokio::time::Duration;
 use log::{debug, error, info};
 
 use crate::constant::{
-    DEFAULT_JWK_REFRESH_FAILURE_BACKOFF, DEFAULT_JWK_REFRESH_THRESHOLD_PERCENT,
-    DEFAULT_JWK_REFRESH_TIMEOUT,
+    DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
+    DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
 };
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
@@ -99,13 +99,16 @@ impl<'a> OAuth2Api<'a> {
             // TODO: make refresh threshold configurable
             // TODO: make backoff threshold configurable
             if timestamp.elapsed().as_secs()
-                < (self.client.jwt_keys_cache_ttl * DEFAULT_JWK_REFRESH_THRESHOLD_PERCENT / 100)
+                < (self.client.jwt_keys_cache_ttl
+                    * DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT
+                    / 100)
             {
                 // Check if we should respect a backoff period due to previous failure
                 let should_respect_backoff = {
                     match &*self.client.jwt_keys_last_refresh_failure.read().await {
                         Some(last_failure) => {
-                            last_failure.elapsed().as_secs() < DEFAULT_JWK_REFRESH_FAILURE_BACKOFF
+                            last_failure.elapsed().as_secs()
+                                < DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
                         }
                         None => false,
                     }
@@ -152,16 +155,48 @@ impl<'a> OAuth2Api<'a> {
                 return Ok(keys);
             }
 
-            debug!("Failed to retrieve JWT keys after waiting for refresh");
-            return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError));
+            // Create a descriptive error message
+            let error_message = "Failed to fetch JWT keys after waiting for refresh".to_string();
+
+            // Log the error at debug level
+            debug!("{}", error_message);
+
+            // Return appropriate error type
+            return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
+                error_message,
+            )));
         }
 
         info!("Fetching fresh JWT keys");
 
         // We have the lock, so refresh the cache
-        // TODO: Retry with exponential backoff
-        // TODO: configurable number of retry attempts
-        let result = self.fetch_and_update_cache().await;
+        // Retry up to DEFAULT_JWK_REFRESH_MAX_RETRIES times with exponential backoff
+        let mut retry_attempts = 0;
+
+        let mut result = self.fetch_and_update_cache().await;
+
+        // Retry logic - attempt retries if the initial fetch failed
+        while result.is_err() && retry_attempts < DEFAULT_JWK_REFRESH_MAX_RETRIES {
+            let backoff_duration = Duration::from_millis(
+                // Calculate exponential backoff duration:
+                // Initial backoff (DEFAULT_JWK_REFRESH_BACKOFF) multiplied by 2^retry_attempts
+                // This causes wait time to double with each retry attempt
+                DEFAULT_JWK_REFRESH_BACKOFF * 2u64.pow(retry_attempts as u32),
+            );
+            debug!(
+                "JWT key fetch failed. Retrying ({}/{}) after {}ms",
+                retry_attempts + 1,
+                DEFAULT_JWK_REFRESH_MAX_RETRIES,
+                backoff_duration.as_millis()
+            );
+
+            // Wait before retrying
+            tokio::time::sleep(backoff_duration).await;
+
+            // Try to fetch again
+            result = self.fetch_and_update_cache().await;
+            retry_attempts += 1;
+        }
 
         // Always release the lock
         debug!("Releasing JWT key refresh lock");
@@ -180,8 +215,22 @@ impl<'a> OAuth2Api<'a> {
                 Ok(keys)
             }
             Err(err) => {
-                error!("Failed to fetch fresh JWT keys: {}", err);
-                Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError))
+                let mut failure_time = self.client.jwt_keys_last_refresh_failure.write().await;
+                *failure_time = Some(Instant::now());
+
+                // Create a descriptive error message
+                let error_message = format!(
+                    "Failed to fetch JWT keys after {} attempts",
+                    retry_attempts + 1
+                );
+
+                // Log the error at error level
+                error!("{}: {}", error_message, err);
+
+                // Return appropriate error type
+                Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
+                    error_message,
+                )))
             }
         }
     }
