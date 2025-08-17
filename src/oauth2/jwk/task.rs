@@ -14,7 +14,7 @@ use std::sync::atomic::Ordering;
 use std::time::Instant;
 
 use ::tokio::time::Duration;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 
 use crate::constant::{DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES};
 use crate::error::{EsiError, OAuthError};
@@ -63,11 +63,15 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::cache_lock_release_and_notify`]: Used to release the lock and notify
     ///   waiting threads of the refresh completion
     pub(super) async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
-        info!("Fetching fresh JWT keys");
+        info!("Starting JWT keys refresh operation");
+
+        // Track operation timing for performance monitoring
+        let start_time = std::time::Instant::now();
 
         // We have the lock, so refresh the cache
         // Retry up to DEFAULT_JWK_REFRESH_MAX_RETRIES times with exponential backoff
         let mut retry_attempts = 0;
+        debug!("Attempting initial JWT key fetch");
         let mut result = self.fetch_and_update_cache().await;
 
         // Retry logic - attempt retries if the initial fetch failed
@@ -89,6 +93,10 @@ impl<'a> OAuth2Api<'a> {
             tokio::time::sleep(backoff_duration).await;
 
             // Try to fetch again
+            debug!(
+                "Retry attempt # {}: fetching JWT keys after backoff",
+                retry_attempts + 1
+            );
             result = self.fetch_and_update_cache().await;
             retry_attempts += 1;
         }
@@ -99,23 +107,27 @@ impl<'a> OAuth2Api<'a> {
         // Return the result or error
         match result {
             Ok(keys) => {
-                debug!("Successfully fetched and cached fresh JWT keys");
+                let elapsed = start_time.elapsed();
+                info!(
+                    "Successfully fetched and cached fresh JWT keys (took {}ms)",
+                    elapsed.as_millis()
+                );
+                debug!("JWT keys cache refreshed with {} keys", keys.keys.len());
                 // Clear any previous failure on success
                 let mut last_failure = self.client.jwt_keys_last_refresh_failure.write().await;
                 *last_failure = None;
                 Ok(keys)
             }
-            Err(_) => {
+            Err(e) => {
+                let elapsed = start_time.elapsed();
                 let mut failure_time = self.client.jwt_keys_last_refresh_failure.write().await;
                 *failure_time = Some(std::time::Instant::now());
 
-                error!(
-                    "JWT key refresh failed: attempts={}, backoff_period={}ms",
-                    retry_attempts, DEFAULT_JWK_REFRESH_BACKOFF
-                );
-
                 let error_message =
-                    format!("Failed to fetch JWT keys after {} attempts", retry_attempts);
+                    format!("JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
+                        elapsed.as_millis(), retry_attempts, DEFAULT_JWK_REFRESH_BACKOFF, e);
+
+                error!("{}", error_message);
 
                 Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
                     error_message,
@@ -169,40 +181,57 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::should_respect_backoff`]: Checks if we should delay refresh after failure
     /// - [`Self::is_approaching_expiry`]: Determines if keys are nearing expiration
     pub(super) async fn check_cache_and_trigger_background_refresh(&self) -> Option<EveJwtKeys> {
+        debug!("Checking JWT keys cache state");
         // Retrieve keys from cache
         let keys = {
             let cache = self.client.jwt_keys_cache.read().await;
             match &*cache {
-                Some((keys, timestamp)) => Some((keys.clone(), *timestamp)),
-                None => None,
+                Some((keys, timestamp)) => {
+                    debug!(
+                        "JWT keys found in cache, age: {}s",
+                        timestamp.elapsed().as_secs()
+                    );
+                    Some((keys.clone(), *timestamp))
+                }
+                None => {
+                    debug!("JWT keys cache is empty");
+                    None
+                }
             }
         };
 
         if let Some((keys, timestamp)) = keys {
-            debug!("JWT keys found in cache");
-
             // Check if we should run a background refresh task
-            let is_approaching_expiry = self.is_approaching_expiry(timestamp.elapsed().as_secs());
+            let age_seconds = timestamp.elapsed().as_secs();
+            let is_approaching_expiry = self.is_approaching_expiry(age_seconds);
 
             if is_approaching_expiry {
+                debug!("JWT keys approaching expiry (age: {}s)", age_seconds);
                 // Check if we should respect a backoff period due to previous failure
                 let should_respect_backoff = self.should_respect_backoff().await;
 
-                // Only trigger background refresh if not in backoff period and we can acquire the lock
-                if !should_respect_backoff && self.cache_lock_try_acquire() {
+                if should_respect_backoff {
+                    debug!("Respecting backoff period, delaying JWT key refresh");
+                } else if self.cache_lock_try_acquire() {
+                    debug!("JWT keys approaching expiry, triggering background refresh");
                     self.trigger_background_jwt_refresh().await;
+                } else {
+                    debug!("JWT key background refresh already in progress");
                 }
+            } else {
+                debug!("JWT keys still fresh (age: {}s)", age_seconds);
             }
 
             // Return keys if cache is not expired
             if !self.is_cache_expired(timestamp.elapsed().as_secs()) {
-                debug!("Using cached JWT keys");
+                debug!("Using cached JWT keys containing {} keys", keys.keys.len());
                 return Some(keys);
             } else {
-                debug!("JWT keys cache expired");
+                info!(
+                    "JWT keys cache expired (age: {}s)",
+                    timestamp.elapsed().as_secs()
+                );
             }
-        } else {
-            debug!("JWT keys cache miss");
         }
 
         None
@@ -251,28 +280,40 @@ impl<'a> OAuth2Api<'a> {
         let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
         let jwt_keys_last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
 
+        debug!(
+            "Preparing background refresh task with JWK URL: {}",
+            jwk_url
+        );
+
         tokio::spawn(async move {
             debug!("Background JWT key refresh task started");
+
+            // Track operation timing for performance monitoring
+            let start_time = std::time::Instant::now();
 
             let result = async {
                 debug!("Fetching fresh keys from JWK URL: {}", jwk_url);
 
                 // Fetch fresh keys from EVE's OAuth2 API
-                let fresh_keys = reqwest_client
-                    .get(jwk_url.to_string())
-                    .send()
-                    .await?
-                    .json::<EveJwtKeys>()
-                    .await?;
+                let response = reqwest_client.get(jwk_url.to_string()).send().await?;
+
+                debug!("JWK response received, status: {}", response.status());
+
+                let fresh_keys = response.json::<EveJwtKeys>().await?;
+                debug!(
+                    "Successfully parsed JWT keys response with {} keys",
+                    fresh_keys.keys.len()
+                );
 
                 // Update the cache with the new keys
-                debug!("Updating JWT keys cache");
+                debug!("Acquiring write lock for JWT keys cache update");
                 {
                     let mut cache = jwt_keys_cache.write().await;
+                    let keys_count = fresh_keys.keys.len();
                     *cache = Some((fresh_keys, Instant::now()));
+                    debug!("JWT keys cache updated with {} keys", keys_count);
                 }
 
-                debug!("JWT keys cache updated");
                 Ok::<_, EsiError>(())
             }
             .await;
@@ -284,21 +325,34 @@ impl<'a> OAuth2Api<'a> {
             // Notify waiting threads that the cache has been updated
             jwt_key_refresh_notifier.notify_waiters();
 
-            if let Err(err) = result {
-                error!("Background JWT key refresh failed: {:?}", err);
+            let elapsed = start_time.elapsed();
+            match result {
+                Ok(_) => {
+                    info!(
+                        "Background JWT key refresh task completed successfully in {}ms",
+                        elapsed.as_millis()
+                    );
 
-                // Record the failure time
-                let mut last_failure = jwt_keys_last_refresh_failure.write().await;
-                *last_failure = Some(Instant::now());
-            } else {
-                debug!("Background JWT key refresh task successful");
+                    // Clear any previous failure on success
+                    let mut last_failure = jwt_keys_last_refresh_failure.write().await;
+                    *last_failure = None;
+                    debug!("Cleared previous JWT refresh failure records");
+                }
+                Err(err) => {
+                    warn!(
+                        "Background JWT key refresh failed after {}ms: {:?}",
+                        elapsed.as_millis(),
+                        err
+                    );
 
-                // Clear any previous failure on success
-                let mut last_failure = jwt_keys_last_refresh_failure.write().await;
-                *last_failure = None;
+                    // Record the failure time
+                    let mut last_failure = jwt_keys_last_refresh_failure.write().await;
+                    *last_failure = Some(Instant::now());
+                    debug!("Recorded JWT refresh failure timestamp");
+                }
             }
         });
 
-        debug!("Background JWT key refresh task spawned");
+        debug!("Background JWT key refresh task spawned successfully");
     }
 }
