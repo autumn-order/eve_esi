@@ -1,4 +1,4 @@
-//! # Core JWT Key API Functions
+//! Core JWT Key API Functions
 //!
 //! This module provides the primary public interfaces for JWT key operations,
 //! including fetching, caching, and retrieving keys for JWT validation.

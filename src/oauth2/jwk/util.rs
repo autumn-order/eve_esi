@@ -1,4 +1,4 @@
-//! # JWT Key Utility Functions
+//! JWT Key Utility Functions
 //!
 //! This module provides utility functions for JWT key management, including:
 //!
@@ -12,7 +12,7 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use log::{debug, error};
+use log::{debug, error, trace};
 use tokio::time::Duration;
 
 use crate::constant::{
@@ -70,6 +70,7 @@ impl<'a> OAuth2Api<'a> {
 
         // Create a future that waits for the notification
         let notify_future = self.client.jwt_key_refresh_notifier.notified();
+        trace!("Created notification future for JWT key refresh wait");
 
         // Wait for the notification or a timeout (as fallback)
         tokio::select! {
@@ -122,9 +123,28 @@ impl<'a> OAuth2Api<'a> {
     pub(super) async fn should_respect_backoff(&self) -> bool {
         match &*self.client.jwt_keys_last_refresh_failure.read().await {
             Some(last_failure) => {
-                last_failure.elapsed().as_secs() < DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
+                let elapsed_secs = last_failure.elapsed().as_secs();
+                let should_backoff = elapsed_secs < DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF;
+
+                if should_backoff {
+                    debug!(
+                        "Respecting backoff period: {}s elapsed of {}s required",
+                        elapsed_secs, DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
+                    );
+                } else {
+                    trace!(
+                        "Backoff period elapsed: {}s passed (required {}s)",
+                        elapsed_secs,
+                        DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
+                    );
+                }
+
+                should_backoff
             }
-            None => false,
+            None => {
+                trace!("No previous JWT key refresh failures recorded, no backoff needed");
+                false
+            }
         }
     }
 
@@ -166,7 +186,10 @@ impl<'a> OAuth2Api<'a> {
 
         let error_message = format!("Failed to fetch JWT keys after {} attempts", attempt_count);
 
-        error!("{}", error_message);
+        error!(
+            "JWT key refresh failed: attempts={}, backoff_period={}s",
+            attempt_count, DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
+        );
 
         EsiError::OAuthError(OAuthError::JwtKeyCacheError(error_message))
     }
@@ -189,9 +212,29 @@ impl<'a> OAuth2Api<'a> {
     /// - `true` if the elapsed time exceeds the threshold percentage of the TTL
     /// - `false` if the cache is still well within its valid period
     pub(super) fn is_approaching_expiry(&self, elapsed_seconds: u64) -> bool {
-        elapsed_seconds
-            > (self.client.jwt_keys_cache_ttl * DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT
-                / 100)
+        let threshold_seconds =
+            self.client.jwt_keys_cache_ttl * DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT / 100;
+        let is_approaching = elapsed_seconds > threshold_seconds;
+
+        if is_approaching {
+            debug!(
+                "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
+                elapsed_seconds,
+                threshold_seconds,
+                DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
+                self.client.jwt_keys_cache_ttl
+            );
+        } else {
+            trace!(
+                "JWT keys cache still fresh: elapsed={}s, threshold={}s ({}% of ttl={}s)",
+                elapsed_seconds,
+                threshold_seconds,
+                DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
+                self.client.jwt_keys_cache_ttl
+            );
+        }
+
+        is_approaching
     }
 
     /// Determines if the cache has completely expired based on elapsed time
@@ -213,6 +256,21 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::is_approaching_expiry`]: Checks if the cache is nearing expiration
     ///   but hasn't fully expired yet
     pub(super) fn is_cache_expired(&self, elapsed_seconds: u64) -> bool {
-        elapsed_seconds >= self.client.jwt_keys_cache_ttl
+        let is_expired = elapsed_seconds >= self.client.jwt_keys_cache_ttl;
+
+        if is_expired {
+            debug!(
+                "JWT keys cache expired: elapsed={}s, ttl={}s",
+                elapsed_seconds, self.client.jwt_keys_cache_ttl
+            );
+        } else {
+            trace!(
+                "JWT keys cache valid: elapsed={}s, ttl={}s",
+                elapsed_seconds,
+                self.client.jwt_keys_cache_ttl
+            );
+        }
+
+        is_expired
     }
 }

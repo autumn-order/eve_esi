@@ -1,4 +1,4 @@
-//! # JWT Key Cache Management
+//! JWT Key Cache Management
 //!
 //! This module implements the caching mechanisms for JWT keys, including:
 //! - Direct cache access functions

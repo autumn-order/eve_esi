@@ -1,4 +1,4 @@
-//! # JWT Key Background Tasks and Refresh Operations
+//! JWT Key Background Tasks and Refresh Operations
 //!
 //! This module handles background refresh tasks and implements the retry logic
 //! for JWT key fetching operations. It includes:
