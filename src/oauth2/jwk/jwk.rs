@@ -9,7 +9,8 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use log::debug;
+use log::{debug, error};
+use std::time::Instant;
 
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
@@ -40,6 +41,8 @@ impl<'a> OAuth2Api<'a> {
             return Ok(keys);
         }
 
+        debug!("JWT keys not available in cache or expired");
+
         // If we got here, JWT key cache is missing or expired
         // Check if the keys are already being refreshed on another thread
         if !self.cache_lock_try_acquire() {
@@ -64,13 +67,39 @@ impl<'a> OAuth2Api<'a> {
     /// # Errors
     /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
     pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, EsiError> {
+        debug!("Fetching fresh JWT keys and updating cache");
+        let start_time = Instant::now();
+
         // Fetch fresh keys from EVE's OAuth2 API
-        let fresh_keys = self.fetch_jwt_keys().await?;
+        let fetch_result = self.fetch_jwt_keys().await;
 
-        // Update the cache with the new keys
-        self.cache_update_keys(fresh_keys.clone()).await;
+        match fetch_result {
+            Ok(fresh_keys) => {
+                debug!(
+                    "Successfully fetched {} JWT keys, updating cache",
+                    fresh_keys.keys.len()
+                );
 
-        Ok(fresh_keys)
+                // Update the cache with the new keys
+                self.cache_update_keys(fresh_keys.clone()).await;
+
+                let elapsed = start_time.elapsed();
+                debug!(
+                    "JWT keys cache updated successfully (took {}ms)",
+                    elapsed.as_millis()
+                );
+                Ok(fresh_keys)
+            }
+            Err(e) => {
+                let elapsed = start_time.elapsed();
+                error!(
+                    "Failed to fetch JWT keys after {}ms: {:?}",
+                    elapsed.as_millis(),
+                    e
+                );
+                Err(e)
+            }
+        }
     }
 
     /// Fetches JWT keys from EVE's OAuth2 API regardless of the JWT key cache state.
@@ -81,16 +110,59 @@ impl<'a> OAuth2Api<'a> {
     /// # Errors
     /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
+        debug!(
+            "Fetching JWT keys from EVE OAuth2 API: {}",
+            self.client.jwk_url
+        );
+        let start_time = Instant::now();
+
         let esi_client = self.client;
         let reqwest_client = &esi_client.reqwest_client;
 
         // Fetch fresh keys from EVE's OAuth2 API
-        let jwt_keys = reqwest_client
+        let response = match reqwest_client
             .get(self.client.jwk_url.to_string())
             .send()
-            .await?
-            .json()
-            .await?;
+            .await
+        {
+            Ok(resp) => {
+                debug!(
+                    "Received response from JWT keys endpoint, status: {}",
+                    resp.status()
+                );
+                resp
+            }
+            Err(e) => {
+                let elapsed = start_time.elapsed();
+                error!(
+                    "Failed to connect to JWT keys endpoint after {}ms: {:?}",
+                    elapsed.as_millis(),
+                    e
+                );
+                return Err(e.into());
+            }
+        };
+
+        let jwt_keys = match response.json::<EveJwtKeys>().await {
+            Ok(keys) => {
+                let elapsed = start_time.elapsed();
+                debug!(
+                    "Successfully parsed JWT keys response with {} keys (took {}ms)",
+                    keys.keys.len(),
+                    elapsed.as_millis()
+                );
+                keys
+            }
+            Err(e) => {
+                let elapsed = start_time.elapsed();
+                error!(
+                    "Failed to parse JWT keys response after {}ms: {:?}",
+                    elapsed.as_millis(),
+                    e
+                );
+                return Err(e.into());
+            }
+        };
 
         Ok(jwt_keys)
     }
