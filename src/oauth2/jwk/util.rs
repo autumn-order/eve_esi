@@ -12,6 +12,8 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
+use std::time::Instant;
+
 use log::{debug, trace};
 use tokio::time::Duration;
 
@@ -67,6 +69,7 @@ impl<'a> OAuth2Api<'a> {
     ///   initiate a refresh or wait for another thread's refresh
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
         debug!("Waiting for another thread to refresh JWT keys");
+        let start_time = Instant::now();
 
         // Create a future that waits for the notification
         let notify_future = self.client.jwt_key_refresh_notifier.notified();
@@ -75,22 +78,31 @@ impl<'a> OAuth2Api<'a> {
         // Wait for the notification or a timeout (as fallback)
         tokio::select! {
             _ = notify_future => {
-                debug!("Received notification that JWT keys refresh is complete");
+                let elapsed = start_time.elapsed();
+                debug!("Received notification that JWT keys refresh is complete after {}ms", elapsed.as_millis());
             }
             _ = tokio::time::sleep(Duration::from_secs(DEFAULT_JWK_REFRESH_TIMEOUT)) => {
-                debug!("Timed out waiting for JWT keys refresh notification");
+                let elapsed = start_time.elapsed();
+                debug!("Timed out waiting for JWT keys refresh notification after {}ms", elapsed.as_millis());
             }
         }
 
+        let elapsed = start_time.elapsed();
+
         // Try cache again after being notified
         if let Some(keys) = self.cache_get_keys().await {
-            debug!("Successfully retrieved JWT keys after waiting for refresh");
+            debug!(
+                "Successfully retrieved JWT keys after waiting for refresh (took {}ms)",
+                elapsed.as_millis()
+            );
             return Ok(keys);
         }
 
         // Create a descriptive error message
-        let error_message =
-            "Failed to retrieve JWT keys from cache after waiting for refresh".to_string();
+        let error_message = format!(
+            "Failed to retrieve JWT keys from cache after waiting for refresh for {}ms",
+            elapsed.as_millis()
+        );
 
         // Log the error at debug level
         debug!("{}", error_message);
