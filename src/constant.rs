@@ -19,7 +19,7 @@ pub static DEFAULT_JWK_REFRESH_BACKOFF: u64 = 100;
 /// Default timeout in seconds when waiting for another thread to refresh JWT key (5 seconds)
 pub static DEFAULT_JWK_REFRESH_TIMEOUT: u64 = 5;
 // Default JWT key cache background refresh settings
-/// Default backoff period in seconds after a JWT key refresh failure (60 seconds)
-pub static DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF: u64 = 60;
+/// Default cooldown period in seconds after a JWT key refresh failure (60 seconds)
+pub static DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN: u64 = 60;
 /// Default percentage of JWK_CACHE_TTL for when the background JWT key refresh is triggered (80%)
 pub static DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT: u64 = 80;

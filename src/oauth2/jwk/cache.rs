@@ -143,7 +143,6 @@ impl<'a> OAuth2Api<'a> {
     ///
     /// ## Cache
     /// - [`Self::cache_lock_release_and_notify`]: Releases the lock acquired by this method
-
     pub(super) fn cache_lock_try_acquire(&self) -> bool {
         let result = !self
             .client

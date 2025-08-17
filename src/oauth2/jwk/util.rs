@@ -12,11 +12,11 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use log::{debug, error, trace};
+use log::{debug, trace};
 use tokio::time::Duration;
 
 use crate::constant::{
-    DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
+    DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
     DEFAULT_JWK_REFRESH_TIMEOUT,
 };
 use crate::error::EsiError;
@@ -110,7 +110,7 @@ impl<'a> OAuth2Api<'a> {
     ///
     /// # Implementation Details
     /// - Reads from the shared [`crate::EsiClient::jwt_keys_last_refresh_failure`] timestamp
-    /// - Uses [`DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF`] (60 seconds) as the minimum wait time
+    /// - Uses [`DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN`] (60 seconds) as the minimum wait time
     ///   between refresh attempts after a failure
     ///
     /// # Thread Safety
@@ -124,18 +124,18 @@ impl<'a> OAuth2Api<'a> {
         match &*self.client.jwt_keys_last_refresh_failure.read().await {
             Some(last_failure) => {
                 let elapsed_secs = last_failure.elapsed().as_secs();
-                let should_backoff = elapsed_secs < DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF;
+                let should_backoff = elapsed_secs < DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN;
 
                 if should_backoff {
                     debug!(
                         "Respecting backoff period: {}s elapsed of {}s required",
-                        elapsed_secs, DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
+                        elapsed_secs, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN
                     );
                 } else {
                     trace!(
                         "Backoff period elapsed: {}s passed (required {}s)",
                         elapsed_secs,
-                        DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
+                        DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN
                     );
                 }
 
@@ -146,52 +146,6 @@ impl<'a> OAuth2Api<'a> {
                 false
             }
         }
-    }
-
-    /// Records a JWT key refresh failure and returns an appropriate error
-    ///
-    /// This method is called when a JWT key refresh operation fails after
-    /// multiple attempts. It records the current time as the last failure
-    /// timestamp, which is used by the backoff mechanism to prevent excessive
-    /// retry attempts.
-    ///
-    /// # Implementation Details
-    /// - Updates the [`crate::EsiClient::jwt_keys_last_refresh_failure`] timestamp
-    ///   with the current time
-    /// - Creates a descriptive error message that includes the attempt count
-    /// - Logs the error at the ERROR level
-    /// - Constructs and returns an appropriate [`EsiError`] instance
-    ///
-    /// # Thread Safety
-    /// This method acquires a write lock on the failure timestamp, ensuring that
-    /// no other thread can read or write to it while the update is in progress.
-    ///
-    /// # Parameters
-    /// - `attempt_count`: The number of attempts that were made before giving up
-    ///
-    /// # Returns
-    /// - An [`EsiError::OAuthError`] with a [`OAuthError::JwtKeyCacheError`] variant
-    ///   containing a descriptive error message regarding the error and the attempt count.
-    ///
-    /// # Related Methods
-    ///
-    /// ## Task
-    /// - [`Self::refresh_jwt_keys_with_retry`]: Calls this method when refresh attempts fail
-    ///
-    /// ## Utility
-    /// - [`Self::should_respect_backoff`]: Checks the timestamp set by this method
-    pub(super) async fn record_refresh_failure(&self, attempt_count: u64) -> EsiError {
-        let mut failure_time = self.client.jwt_keys_last_refresh_failure.write().await;
-        *failure_time = Some(std::time::Instant::now());
-
-        let error_message = format!("Failed to fetch JWT keys after {} attempts", attempt_count);
-
-        error!(
-            "JWT key refresh failed: attempts={}, backoff_period={}s",
-            attempt_count, DEFAULT_JWK_BACKGROUND_REFRESH_BACKOFF
-        );
-
-        EsiError::OAuthError(OAuthError::JwtKeyCacheError(error_message))
     }
 
     /// Determines if the cache is approaching expiry based on elapsed time
