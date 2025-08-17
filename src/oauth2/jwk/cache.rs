@@ -1,3 +1,16 @@
+//! # JWT Key Cache Management
+//!
+//! This module implements the caching mechanisms for JWT keys, including:
+//! - Direct cache access functions
+//! - Cache update operations
+//! - Lock management for thread-safe cache access
+//! - Cache invalidation strategies
+//!
+//! The caching system uses RwLocks for efficient concurrent reads with exclusive writes
+//! and atomic operations for coordinating refresh operations across threads.
+//!
+//! See the [module-level documentation](super) for a more detailed overview and usage.
+
 use log::debug;
 
 use crate::model::oauth2::EveJwtKeys;

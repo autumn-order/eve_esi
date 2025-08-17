@@ -1,3 +1,15 @@
+//! # JWT Key Background Tasks and Refresh Operations
+//!
+//! This module handles background refresh tasks and implements the retry logic
+//! for JWT key fetching operations. It includes:
+//!
+//! - Background refresh task spawning and management
+//! - Exponential backoff retry implementation
+//! - Cache state monitoring for proactive refreshes
+//! - Failure handling and recovery strategies
+//!
+//! See the [module-level documentation](super) for a more detailed overview and usage.
+
 use std::sync::atomic::Ordering;
 use std::time::Instant;
 

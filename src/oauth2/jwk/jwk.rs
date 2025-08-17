@@ -1,7 +1,13 @@
-//! Utility functions to retrieve EVE SSO JWT keys
+//! # Core JWT Key API Functions
 //!
-//! This module provides methods to fetch and cache JWT keys used for validating JWTs
-//! obtained from EVE's OAuth2 API.
+//! This module provides the primary public interfaces for JWT key operations,
+//! including fetching, caching, and retrieving keys for JWT validation.
+//!
+//! The main functions in this module serve as the entry points for JWT key
+//! operations in the EVE ESI OAuth2 flow. They orchestrate the interaction
+//! between cache management, refresh tasks, and external API calls.
+//!
+//! See the [module-level documentation](super) for a more detailed overview and usage.
 
 use log::debug;
 

@@ -1,3 +1,17 @@
+//! # JWT Key Utility Functions
+//!
+//! This module provides utility functions for JWT key management, including:
+//!
+//! - Cache expiry calculations
+//! - Backoff period enforcement
+//! - Error handling and reporting
+//! - Waiting mechanisms for concurrent refresh operations
+//!
+//! These utilities support the core JWT key operations with helper functions
+//! that implement common patterns and checks used throughout the JWT key system.
+//!
+//! See the [module-level documentation](super) for a more detailed overview and usage.
+
 use log::{debug, error};
 use tokio::time::Duration;
 
