@@ -14,9 +14,11 @@ use std::sync::atomic::Ordering;
 use std::time::Instant;
 
 use ::tokio::time::Duration;
-use log::{debug, error, info, warn};
+use log::{debug, error, info, trace, warn};
 
-use crate::constant::{DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES};
+use crate::constant::{
+    DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
+};
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
@@ -134,6 +136,92 @@ impl<'a> OAuth2Api<'a> {
                 )))
             }
         }
+    }
+
+    /// Waits for an ongoing JWT key cache refresh operation to complete and returns the result
+    ///
+    /// This method is designed to be called when a thread detects that another thread
+    /// is already refreshing the JWT keys. Instead of initiating another refresh or failing
+    /// immediately, this method allows the current thread to efficiently wait for the
+    /// completion of the ongoing refresh operation.
+    ///
+    /// # Implementation Details
+    /// - Uses the async notification pattern via [`tokio::sync::Notify`]
+    /// - Waits for either a notification from the refreshing thread or times out after
+    ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
+    /// - After the wait completes (either via notification or timeout), attempts to
+    ///   retrieve the keys from the cache one more time
+    /// - If keys are still not available after waiting, returns a descriptive error
+    ///
+    /// # Thread Safety
+    /// This method is thread-safe and can be called concurrently by multiple threads.
+    /// All threads will be notified when the refresh completes, ensuring efficient
+    /// wake-up without unnecessary polling or lock contention.
+    ///
+    /// # Returns
+    /// - Ok([`EveJwtKeys`]) if the refresh was successful and keys are now in the cache
+    /// - Err([`EsiError`]) if the refresh attempt failed or timed out after
+    ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
+    ///
+    /// # Related Methods
+    ///
+    /// ## High-Level
+    /// - [`Self::get_jwt_keys`]: Public-facing method that might trigger the waiting process
+    ///
+    /// ## Task
+    /// - [`Self::refresh_jwt_keys_with_retry`]: Performs the actual refresh with retry logic
+    /// - [`Self::check_cache_and_trigger_background_refresh`]: Used to check cache and
+    ///   potentially trigger a background refresh that other threads may wait for
+    ///
+    /// ## Cache
+    /// - [`Self::cache_lock_try_acquire`]: Used to determine if a thread should
+    /// - [`Self::cache_lock_release_and_notify`]: Called by the refreshing thread to
+    ///   wake up all waiting threads when the refresh operation completes
+    ///   initiate a refresh or wait for another thread's refresh
+    pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
+        debug!("Waiting for another thread to refresh JWT keys");
+        let start_time = Instant::now();
+
+        // Create a future that waits for the notification
+        let notify_future = self.client.jwt_key_refresh_notifier.notified();
+        trace!("Created notification future for JWT key refresh wait");
+
+        // Wait for the notification or a timeout (as fallback)
+        tokio::select! {
+            _ = notify_future => {
+                let elapsed = start_time.elapsed();
+                debug!("Received notification that JWT keys refresh is complete after {}ms", elapsed.as_millis());
+            }
+            _ = tokio::time::sleep(Duration::from_secs(DEFAULT_JWK_REFRESH_TIMEOUT)) => {
+                let elapsed = start_time.elapsed();
+                debug!("Timed out waiting for JWT keys refresh notification after {}ms", elapsed.as_millis());
+            }
+        }
+
+        let elapsed = start_time.elapsed();
+
+        // Try cache again after being notified
+        if let Some(keys) = self.cache_get_keys().await {
+            debug!(
+                "Successfully retrieved JWT keys after waiting for refresh (took {}ms)",
+                elapsed.as_millis()
+            );
+            return Ok(keys);
+        }
+
+        // Create a descriptive error message
+        let error_message = format!(
+            "Failed to retrieve JWT keys from cache after waiting for refresh for {}ms",
+            elapsed.as_millis()
+        );
+
+        // Log the error at debug level
+        debug!("{}", error_message);
+
+        // Return appropriate error type
+        Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
+            error_message,
+        )))
     }
 
     /// Checks if the cache has valid keys and triggers background refresh if needed
