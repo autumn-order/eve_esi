@@ -1,6 +1,7 @@
 #![warn(missing_docs)]
 
 //! EVE ESI
+//!
 //! Rust API wrapper for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer).
 //! See the [README](https://github.com/hyziri/eve_esi/blob/main/README.md) for more examples and details.
 //!
