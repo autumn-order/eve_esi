@@ -33,6 +33,7 @@ impl<'a> OAuth2Api<'a> {
     /// # Errors
     /// - Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
+        #[cfg(not(tarpaulin_include))]
         debug!("Retrieving JWT keys");
 
         // Check if we have valid keys in the cache
@@ -41,6 +42,7 @@ impl<'a> OAuth2Api<'a> {
             return Ok(keys);
         }
 
+        #[cfg(not(tarpaulin_include))]
         debug!("JWT keys not available in cache or expired");
 
         // If we got here, JWT key cache is missing or expired
@@ -67,7 +69,9 @@ impl<'a> OAuth2Api<'a> {
     /// # Errors
     /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
     pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, EsiError> {
+        #[cfg(not(tarpaulin_include))]
         debug!("Fetching fresh JWT keys and updating cache");
+
         let start_time = Instant::now();
 
         // Fetch fresh keys from EVE's OAuth2 API
@@ -75,6 +79,7 @@ impl<'a> OAuth2Api<'a> {
 
         match fetch_result {
             Ok(fresh_keys) => {
+                #[cfg(not(tarpaulin_include))]
                 debug!(
                     "Successfully fetched {} JWT keys, updating cache",
                     fresh_keys.keys.len()
@@ -84,19 +89,25 @@ impl<'a> OAuth2Api<'a> {
                 self.cache_update_keys(fresh_keys.clone()).await;
 
                 let elapsed = start_time.elapsed();
+
+                #[cfg(not(tarpaulin_include))]
                 debug!(
                     "JWT keys cache updated successfully (took {}ms)",
                     elapsed.as_millis()
                 );
+
                 Ok(fresh_keys)
             }
             Err(e) => {
                 let elapsed = start_time.elapsed();
+
+                #[cfg(not(tarpaulin_include))]
                 error!(
                     "Failed to fetch JWT keys after {}ms: {:?}",
                     elapsed.as_millis(),
                     e
                 );
+
                 Err(e)
             }
         }
@@ -110,10 +121,12 @@ impl<'a> OAuth2Api<'a> {
     /// # Errors
     /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
+        #[cfg(not(tarpaulin_include))]
         debug!(
             "Fetching JWT keys from EVE OAuth2 API: {}",
             self.client.jwk_url
         );
+
         let start_time = Instant::now();
 
         let esi_client = self.client;
@@ -126,19 +139,24 @@ impl<'a> OAuth2Api<'a> {
             .await
         {
             Ok(resp) => {
+                #[cfg(not(tarpaulin_include))]
                 debug!(
                     "Received response from JWT keys endpoint, status: {}",
                     resp.status()
                 );
+
                 resp
             }
             Err(e) => {
                 let elapsed = start_time.elapsed();
+
+                #[cfg(not(tarpaulin_include))]
                 error!(
                     "Failed to connect to JWT keys endpoint after {}ms: {:?}",
                     elapsed.as_millis(),
                     e
                 );
+
                 return Err(e.into());
             }
         };
@@ -146,20 +164,26 @@ impl<'a> OAuth2Api<'a> {
         let jwt_keys = match response.json::<EveJwtKeys>().await {
             Ok(keys) => {
                 let elapsed = start_time.elapsed();
+
+                #[cfg(not(tarpaulin_include))]
                 debug!(
                     "Successfully parsed JWT keys response with {} keys (took {}ms)",
                     keys.keys.len(),
                     elapsed.as_millis()
                 );
+
                 keys
             }
             Err(e) => {
                 let elapsed = start_time.elapsed();
+
+                #[cfg(not(tarpaulin_include))]
                 error!(
                     "Failed to parse JWT keys response after {}ms: {:?}",
                     elapsed.as_millis(),
                     e
                 );
+
                 return Err(e.into());
             }
         };

@@ -65,6 +65,7 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::cache_lock_release_and_notify`]: Used to release the lock and notify
     ///   waiting threads of the refresh completion
     pub(super) async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
+        #[cfg(not(tarpaulin_include))]
         info!("Starting JWT keys refresh operation");
 
         // Track operation timing for performance monitoring
@@ -73,7 +74,10 @@ impl<'a> OAuth2Api<'a> {
         // We have the lock, so refresh the cache
         // Retry up to DEFAULT_JWK_REFRESH_MAX_RETRIES times with exponential backoff
         let mut retry_attempts = 0;
+
+        #[cfg(not(tarpaulin_include))]
         debug!("Attempting initial JWT key fetch");
+
         let mut result = self.fetch_and_update_cache().await;
 
         // Retry logic - attempt retries if the initial fetch failed
@@ -84,6 +88,8 @@ impl<'a> OAuth2Api<'a> {
                 // This causes wait time to double with each retry attempt
                 DEFAULT_JWK_REFRESH_BACKOFF * 2u64.pow(retry_attempts as u32),
             );
+
+            #[cfg(not(tarpaulin_include))]
             debug!(
                 "JWT key fetch failed. Retrying ({}/{}) after {}ms",
                 retry_attempts + 1,
@@ -95,10 +101,12 @@ impl<'a> OAuth2Api<'a> {
             tokio::time::sleep(backoff_duration).await;
 
             // Try to fetch again
+            #[cfg(not(tarpaulin_include))]
             debug!(
                 "Retry attempt # {}: fetching JWT keys after backoff",
                 retry_attempts + 1
             );
+
             result = self.fetch_and_update_cache().await;
             retry_attempts += 1;
         }
@@ -110,14 +118,20 @@ impl<'a> OAuth2Api<'a> {
         match result {
             Ok(keys) => {
                 let elapsed = start_time.elapsed();
+
+                #[cfg(not(tarpaulin_include))]
                 info!(
                     "Successfully fetched and cached fresh JWT keys (took {}ms)",
                     elapsed.as_millis()
                 );
+
+                #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys cache refreshed with {} keys", keys.keys.len());
+
                 // Clear any previous failure on success
                 let mut last_failure = self.client.jwt_keys_last_refresh_failure.write().await;
                 *last_failure = None;
+
                 Ok(keys)
             }
             Err(e) => {
@@ -129,6 +143,7 @@ impl<'a> OAuth2Api<'a> {
                     format!("JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
                         elapsed.as_millis(), retry_attempts, DEFAULT_JWK_REFRESH_BACKOFF, e);
 
+                #[cfg(not(tarpaulin_include))]
                 error!("{}", error_message);
 
                 Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
@@ -179,11 +194,15 @@ impl<'a> OAuth2Api<'a> {
     ///   wake up all waiting threads when the refresh operation completes
     ///   initiate a refresh or wait for another thread's refresh
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
+        #[cfg(not(tarpaulin_include))]
         debug!("Waiting for another thread to refresh JWT keys");
+
         let start_time = Instant::now();
 
         // Create a future that waits for the notification
         let notify_future = self.client.jwt_key_refresh_notifier.notified();
+
+        #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
 
         // Wait for the notification or a timeout (as fallback)
@@ -202,10 +221,12 @@ impl<'a> OAuth2Api<'a> {
 
         // Try cache again after being notified
         if let Some(keys) = self.cache_get_keys().await {
+            #[cfg(not(tarpaulin_include))]
             debug!(
                 "Successfully retrieved JWT keys after waiting for refresh (took {}ms)",
                 elapsed.as_millis()
             );
+
             return Ok(keys);
         }
 
@@ -216,6 +237,7 @@ impl<'a> OAuth2Api<'a> {
         );
 
         // Log the error at debug level
+        #[cfg(not(tarpaulin_include))]
         debug!("{}", error_message);
 
         // Return appropriate error type
@@ -269,20 +291,26 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::should_respect_backoff`]: Checks if we should delay refresh after failure
     /// - [`Self::is_approaching_expiry`]: Determines if keys are nearing expiration
     pub(super) async fn check_cache_and_trigger_background_refresh(&self) -> Option<EveJwtKeys> {
+        #[cfg(not(tarpaulin_include))]
         debug!("Checking JWT keys cache state");
+
         // Retrieve keys from cache
         let keys = {
             let cache = self.client.jwt_keys_cache.read().await;
             match &*cache {
                 Some((keys, timestamp)) => {
+                    #[cfg(not(tarpaulin_include))]
                     debug!(
                         "JWT keys found in cache, age: {}s",
                         timestamp.elapsed().as_secs()
                     );
+
                     Some((keys.clone(), *timestamp))
                 }
                 None => {
+                    #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys cache is empty");
+
                     None
                 }
             }
@@ -294,27 +322,36 @@ impl<'a> OAuth2Api<'a> {
             let is_approaching_expiry = self.is_approaching_expiry(age_seconds);
 
             if is_approaching_expiry {
+                #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys approaching expiry (age: {}s)", age_seconds);
                 // Check if we should respect a backoff period due to previous failure
                 let should_respect_backoff = self.should_respect_backoff().await;
 
                 if should_respect_backoff {
+                    #[cfg(not(tarpaulin_include))]
                     debug!("Respecting backoff period, delaying JWT key refresh");
                 } else if self.cache_lock_try_acquire() {
+                    #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys approaching expiry, triggering background refresh");
+
                     self.trigger_background_jwt_refresh().await;
                 } else {
+                    #[cfg(not(tarpaulin_include))]
                     debug!("JWT key background refresh already in progress");
                 }
             } else {
+                #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys still fresh (age: {}s)", age_seconds);
             }
 
             // Return keys if cache is not expired
             if !self.is_cache_expired(timestamp.elapsed().as_secs()) {
+                #[cfg(not(tarpaulin_include))]
                 debug!("Using cached JWT keys containing {} keys", keys.keys.len());
+
                 return Some(keys);
             } else {
+                #[cfg(not(tarpaulin_include))]
                 info!(
                     "JWT keys cache expired (age: {}s)",
                     timestamp.elapsed().as_secs()
@@ -356,6 +393,7 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::cache_lock_try_acquire`]: Should be called before this function
     /// - [`Self::cache_lock_release_and_notify`]: Releases lock and notifies waiting threads
     pub(super) async fn trigger_background_jwt_refresh(&self) {
+        #[cfg(not(tarpaulin_include))]
         debug!("Triggering background JWT refresh task");
 
         let esi_client = self.client;
@@ -368,37 +406,47 @@ impl<'a> OAuth2Api<'a> {
         let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
         let jwt_keys_last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
 
+        #[cfg(not(tarpaulin_include))]
         debug!(
             "Preparing background refresh task with JWK URL: {}",
             jwk_url
         );
 
         tokio::spawn(async move {
+            #[cfg(not(tarpaulin_include))]
             debug!("Background JWT key refresh task started");
 
             // Track operation timing for performance monitoring
             let start_time = std::time::Instant::now();
 
             let result = async {
+                #[cfg(not(tarpaulin_include))]
                 debug!("Fetching fresh keys from JWK URL: {}", jwk_url);
 
                 // Fetch fresh keys from EVE's OAuth2 API
                 let response = reqwest_client.get(jwk_url.to_string()).send().await?;
 
+                #[cfg(not(tarpaulin_include))]
                 debug!("JWK response received, status: {}", response.status());
 
                 let fresh_keys = response.json::<EveJwtKeys>().await?;
+
+                #[cfg(not(tarpaulin_include))]
                 debug!(
                     "Successfully parsed JWT keys response with {} keys",
                     fresh_keys.keys.len()
                 );
 
                 // Update the cache with the new keys
+                #[cfg(not(tarpaulin_include))]
                 debug!("Acquiring write lock for JWT keys cache update");
+
                 {
                     let mut cache = jwt_keys_cache.write().await;
                     let keys_count = fresh_keys.keys.len();
                     *cache = Some((fresh_keys, Instant::now()));
+
+                    #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys cache updated with {} keys", keys_count);
                 }
 
@@ -407,7 +455,9 @@ impl<'a> OAuth2Api<'a> {
             .await;
 
             // Always release the lock
+            #[cfg(not(tarpaulin_include))]
             debug!("Releasing JWT key refresh lock");
+
             refresh_in_progress.store(false, Ordering::Release);
 
             // Notify waiting threads that the cache has been updated
@@ -416,6 +466,7 @@ impl<'a> OAuth2Api<'a> {
             let elapsed = start_time.elapsed();
             match result {
                 Ok(_) => {
+                    #[cfg(not(tarpaulin_include))]
                     info!(
                         "Background JWT key refresh task completed successfully in {}ms",
                         elapsed.as_millis()
@@ -424,9 +475,12 @@ impl<'a> OAuth2Api<'a> {
                     // Clear any previous failure on success
                     let mut last_failure = jwt_keys_last_refresh_failure.write().await;
                     *last_failure = None;
+
+                    #[cfg(not(tarpaulin_include))]
                     debug!("Cleared previous JWT refresh failure records");
                 }
                 Err(err) => {
+                    #[cfg(not(tarpaulin_include))]
                     warn!(
                         "Background JWT key refresh failed after {}ms: {:?}",
                         elapsed.as_millis(),
@@ -436,11 +490,13 @@ impl<'a> OAuth2Api<'a> {
                     // Record the failure time
                     let mut last_failure = jwt_keys_last_refresh_failure.write().await;
                     *last_failure = Some(Instant::now());
+
+                    #[cfg(not(tarpaulin_include))]
                     debug!("Recorded JWT refresh failure timestamp");
                 }
             }
         });
-
+        #[cfg(not(tarpaulin_include))]
         debug!("Background JWT key refresh task spawned successfully");
     }
 }

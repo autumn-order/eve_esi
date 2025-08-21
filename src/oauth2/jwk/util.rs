@@ -93,6 +93,7 @@ impl<'a> OAuth2Api<'a> {
         let is_approaching = elapsed_seconds > threshold_seconds;
 
         if is_approaching {
+            #[cfg(not(tarpaulin_include))]
             debug!(
                 "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
                 elapsed_seconds,
@@ -101,6 +102,7 @@ impl<'a> OAuth2Api<'a> {
                 self.client.jwt_keys_cache_ttl
             );
         } else {
+            #[cfg(not(tarpaulin_include))]
             trace!(
                 "JWT keys cache still fresh: elapsed={}s, threshold={}s ({}% of ttl={}s)",
                 elapsed_seconds,
@@ -135,11 +137,13 @@ impl<'a> OAuth2Api<'a> {
         let is_expired = elapsed_seconds >= self.client.jwt_keys_cache_ttl;
 
         if is_expired {
+            #[cfg(not(tarpaulin_include))]
             debug!(
                 "JWT keys cache expired: elapsed={}s, ttl={}s",
                 elapsed_seconds, self.client.jwt_keys_cache_ttl
             );
         } else {
+            #[cfg(not(tarpaulin_include))]
             trace!(
                 "JWT keys cache valid: elapsed={}s, ttl={}s",
                 elapsed_seconds,

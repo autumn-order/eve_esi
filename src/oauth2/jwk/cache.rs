@@ -57,20 +57,27 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::wait_for_ongoing_refresh`]: Used after detecting an ongoing refresh operation
     /// - [`Self::is_cache_expired`]: Can be used alongside this method to check validity
     pub(super) async fn cache_get_keys(&self) -> Option<EveJwtKeys> {
+        #[cfg(not(tarpaulin_include))]
         trace!("Attempting to retrieve JWT keys from cache");
+
         let cache = self.client.jwt_keys_cache.read().await;
         match &*cache {
             Some((keys, timestamp)) => {
                 let elapsed = timestamp.elapsed().as_secs();
+
+                #[cfg(not(tarpaulin_include))]
                 trace!(
                     "Found JWT keys in cache: kid_count={}, elapsed={}s",
                     keys.keys.len(),
                     elapsed
                 );
+
                 Some(keys.clone())
             }
             None => {
+                #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys cache is empty, keys need to be fetched");
+
                 None
             }
         }
@@ -100,13 +107,17 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::get_jwt_keys`]: Public-facing method that relies on this method for cache updates
     /// - [`Self::fetch_and_update_cache`]: Uses this method to update the cache with freshly fetched keys
     pub(super) async fn cache_update_keys(&self, keys: EveJwtKeys) {
+        #[cfg(not(tarpaulin_include))]
         debug!(
             "Updating JWT keys cache with {} keys, ttl={}s",
             keys.keys.len(),
             self.client.jwt_keys_cache_ttl
         );
+
         let mut cache = self.client.jwt_keys_cache.write().await;
         *cache = Some((keys, std::time::Instant::now()));
+
+        #[cfg(not(tarpaulin_include))]
         debug!("JWT keys cache successfully updated");
     }
 
@@ -156,8 +167,10 @@ impl<'a> OAuth2Api<'a> {
             .is_err();
 
         if result {
+            #[cfg(not(tarpaulin_include))]
             debug!("Successfully acquired JWT key refresh lock");
         } else {
+            #[cfg(not(tarpaulin_include))]
             trace!("Failed to acquire JWT key refresh lock (already held by another thread)");
         }
 
@@ -196,14 +209,20 @@ impl<'a> OAuth2Api<'a> {
     /// ## Utility
     /// - [`Self::wait_for_ongoing_refresh`]: Method used by threads waiting for notification
     pub(super) fn cache_lock_release_and_notify(&self) {
+        #[cfg(not(tarpaulin_include))]
         debug!("Releasing JWT key refresh lock");
+
         self.client
             .jwt_key_refresh_in_progress
             .store(false, std::sync::atomic::Ordering::Release);
 
         // Notify waiters
+        #[cfg(not(tarpaulin_include))]
         trace!("Notifying waiters about JWT key refresh completion");
+
         self.client.jwt_key_refresh_notifier.notify_waiters();
+
+        #[cfg(not(tarpaulin_include))]
         debug!("JWT key refresh lock released and waiters notified");
     }
 }
