@@ -112,6 +112,8 @@ When writing code for this project, we are meticulous in that we always include:
 - Logging
 - Integration & unit testing
 
+Note: For logging, please use `#[cfg(not(tarpaulin_include))]` to exempt the log macros from code coverage as `cargo tarpaulin` will report the line as uncovered when they aren't necessary for test coverage. See examples below for usage.
+
 See `src/oauth2/jwt/task.rs` for an example of how these best practices are followed.
 See `tests/alliance/get_alliance_information.rs` for an example of how to write integration tests for the endpoints.
 

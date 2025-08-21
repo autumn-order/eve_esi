@@ -45,11 +45,13 @@ impl<'a> OAuth2Api<'a> {
                 let should_backoff = elapsed_secs < DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN;
 
                 if should_backoff {
+                    #[cfg(not(tarpaulin_include))]
                     debug!(
                         "Respecting backoff period: {}s elapsed of {}s required",
                         elapsed_secs, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN
                     );
                 } else {
+                    #[cfg(not(tarpaulin_include))]
                     trace!(
                         "Backoff period elapsed: {}s passed (required {}s)",
                         elapsed_secs,
@@ -60,7 +62,9 @@ impl<'a> OAuth2Api<'a> {
                 should_backoff
             }
             None => {
+                #[cfg(not(tarpaulin_include))]
                 trace!("No previous JWT key refresh failures recorded, no backoff needed");
+
                 false
             }
         }
@@ -144,5 +148,105 @@ impl<'a> OAuth2Api<'a> {
         }
 
         is_expired
+    }
+}
+
+#[cfg(test)]
+mod should_respect_backoff_tests {
+    use std::sync::Arc;
+
+    use tokio::sync::RwLock;
+
+    use crate::EsiClient;
+
+    /// Validate backoff period is respected correctly
+    ///
+    /// When there is a backoff period within the default of the past (60 seconds),
+    /// assert that the function returns true, indicating that we should not attempt
+    /// a refresh.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    /// - Set the backoff period to within the default of 60 seconds
+    ///
+    /// # Assertions
+    /// - Verifies that the function returns true, indicating that we should respect the backoff
+    ///   period and not attempt a refresh.
+    #[tokio::test]
+    async fn test_should_respect_backoff_recent_failure() {
+        // Setup EsiClient
+        let mut esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@email.com")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Set the backoff period to within default of (60 seconds)
+        esi_client.jwt_keys_last_refresh_failure = Arc::new(RwLock::new(Some(
+            std::time::Instant::now() - std::time::Duration::from_secs(30),
+        )));
+
+        // Run function
+        let should_backoff = esi_client.oauth2().should_respect_backoff().await;
+
+        // Assert true
+        assert_eq!(should_backoff, true);
+    }
+
+    /// Validate that the backoff period is respected correctly when a past failure exists
+    ///
+    /// When the back off period is greater than the default of 60 seconds,
+    /// assert that the function returns false, indicating that we can attempt a refresh.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    /// - Set the backoff period to greater than the default of 60 seconds
+    ///
+    /// # Assertions
+    /// - Verifies that the function returns false, indicating that we can attempt a refresh.
+    #[tokio::test]
+    async fn test_should_respect_backoff_past_backoff() {
+        // Setup EsiClient
+        let mut esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@email.com")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Set the back off period greater than default of (60 seconds)
+        esi_client.jwt_keys_last_refresh_failure = Arc::new(RwLock::new(Some(
+            std::time::Instant::now() - std::time::Duration::from_secs(61),
+        )));
+
+        // Run function
+        let should_backoff = esi_client.oauth2().should_respect_backoff().await;
+
+        // Assert false
+        assert_eq!(should_backoff, false);
+    }
+
+    /// Validate that no backoff is needed when no past failure exists
+    ///
+    /// When there is no previous failure recorded, the function should return false,
+    /// indicating that we can attempt a refresh without any backoff period.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    /// - Do not set any backoff period
+    ///
+    /// # Assertions
+    /// - Verifies that the function returns false, indicating that we can attempt a refresh.
+    #[tokio::test]
+    async fn test_should_respect_backoff_no_failure() {
+        // Setup EsiClient
+        // Don't set back off period
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@email.com")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Run function
+        let should_backoff = esi_client.oauth2().should_respect_backoff().await;
+
+        // Assert false
+        assert_eq!(should_backoff, false);
     }
 }
