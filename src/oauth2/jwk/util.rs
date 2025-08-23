@@ -88,11 +88,21 @@ impl<'a> OAuth2Api<'a> {
     /// - `true` if the elapsed time exceeds the threshold percentage of the TTL
     /// - `false` if the cache is still well within its valid period
     pub(super) fn is_approaching_expiry(&self, elapsed_seconds: u64) -> bool {
-        let threshold_seconds =
-            self.client.jwt_keys_cache_ttl * DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT / 100;
-        let is_approaching = elapsed_seconds > threshold_seconds;
+        let esi_client = self.client;
 
-        if is_approaching {
+        // Retrieve cache TTL, this determines how many seconds it takes for the keys to expire
+        // By default, it is 3600 seconds (1 hour)
+        let jwt_cache_ttl = esi_client.jwt_keys_cache_ttl;
+
+        // Determine how many seconds need to pass for the keys to be considered nearing expiration
+        // By default, 80% of 3600 seconds must have elapsed, 2880 seconds.
+        let threshold_seconds =
+            jwt_cache_ttl * DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT / 100;
+
+        // By default, if more than 2880 seconds have elapsed then the keys are nearing expiration.
+        let is_approaching_expiry = elapsed_seconds > threshold_seconds;
+
+        if is_approaching_expiry {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
@@ -112,7 +122,7 @@ impl<'a> OAuth2Api<'a> {
             );
         }
 
-        is_approaching
+        is_approaching_expiry
     }
 
     /// Determines if the cache has completely expired based on elapsed time
@@ -252,5 +262,70 @@ mod should_respect_backoff_tests {
 
         // Assert false
         assert_eq!(should_backoff, false);
+    }
+}
+
+#[cfg(test)]
+mod is_approaching_expiry_tests {
+    use crate::EsiClient;
+
+    /// Validates function returns true if cache is approaching expiration
+    ///
+    /// When the JWT key cache expiration is past 80% expired (2880 seconds of 3600 default expiration),
+    /// the function should return true indicating that the cache is almost expired.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    /// - Set the JWT key cache to beyond 80% expired
+    ///
+    /// # Validations
+    /// - Verifies the function returns true, cache is almost expired.
+    #[test]
+    fn test_is_approaching_expiry_true() {
+        // Setup EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@email.com")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Set JWT key cache TTL to past 80% expired
+        let expiry = std::time::Instant::now() - std::time::Duration::from_secs(3000);
+        let timestamp = expiry.elapsed().as_secs();
+
+        // Test function
+        let result = esi_client.oauth2().is_approaching_expiry(timestamp);
+
+        // Assert true
+        assert_eq!(result, true)
+    }
+
+    /// Validates function returns false if cache is not approaching expiration
+    ///
+    /// When the JWT key cache expiration is not yet at 80%, the function
+    /// should return false indicating we are not yet nearing expiration.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    /// - Set the client JWT key cache to less than 80% expired
+    ///
+    /// # Validations
+    /// - Verifies the function returns false, cache is not yet nearing expiration.
+    #[test]
+    fn test_is_approaching_expiry_false() {
+        // Setup EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@email.com")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Set JWT key cache TTL to new keys
+        let expiry = std::time::Instant::now();
+        let timestamp = expiry.elapsed().as_secs();
+
+        // Test function
+        let result = esi_client.oauth2().is_approaching_expiry(timestamp);
+
+        // Assert false
+        assert_eq!(result, false)
     }
 }

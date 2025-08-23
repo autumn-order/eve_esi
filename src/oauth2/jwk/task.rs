@@ -17,7 +17,8 @@ use ::tokio::time::Duration;
 use log::{debug, error, info, trace, warn};
 
 use crate::constant::{
-    DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
+    DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_REFRESH_BACKOFF,
+    DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
 };
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
@@ -294,9 +295,11 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         debug!("Checking JWT keys cache state");
 
+        let esi_client = self.client;
+
         // Retrieve keys from cache
         let keys = {
-            let cache = self.client.jwt_keys_cache.read().await;
+            let cache = esi_client.jwt_keys_cache.read().await;
             match &*cache {
                 Some((keys, timestamp)) => {
                     #[cfg(not(tarpaulin_include))]
@@ -318,12 +321,12 @@ impl<'a> OAuth2Api<'a> {
 
         if let Some((keys, timestamp)) = keys {
             // Check if we should run a background refresh task
-            let age_seconds = timestamp.elapsed().as_secs();
-            let is_approaching_expiry = self.is_approaching_expiry(age_seconds);
+            let elapsed_seconds = timestamp.elapsed().as_secs();
+            let is_approaching_expiry = self.is_approaching_expiry(elapsed_seconds);
 
             if is_approaching_expiry {
                 #[cfg(not(tarpaulin_include))]
-                debug!("JWT keys approaching expiry (age: {}s)", age_seconds);
+                debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
                 // Check if we should respect a backoff period due to previous failure
                 let should_respect_backoff = self.should_respect_backoff().await;
 
@@ -341,7 +344,7 @@ impl<'a> OAuth2Api<'a> {
                 }
             } else {
                 #[cfg(not(tarpaulin_include))]
-                debug!("JWT keys still fresh (age: {}s)", age_seconds);
+                debug!("JWT keys still fresh (age: {}s)", elapsed_seconds);
             }
 
             // Return keys if cache is not expired
