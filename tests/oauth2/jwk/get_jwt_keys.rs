@@ -1,8 +1,10 @@
-use eve_esi::EsiClient;
-use mockito::Server;
 use std::time::Instant;
 
-use super::util::{create_mock_jwt_keys, create_mock_jwt_keys_alternative};
+use eve_esi::model::oauth2::EveJwtKeys;
+use eve_esi::EsiClient;
+use mockito::Server;
+
+use super::util::create_mock_jwt_keys_alternative;
 
 /// Tests that get_jwt_keys returns cached keys when they are not expired.
 ///
@@ -22,7 +24,7 @@ async fn get_jwt_keys_valid_cache() {
     let mock_server_url = mock_server.url();
 
     // Create cached JWT keys
-    let cached_keys = create_mock_jwt_keys();
+    let cached_keys = EveJwtKeys::create_mock_keys();
 
     // Create a mock that should NOT be called (will fail test if called)
     let mock = mock_server
@@ -79,7 +81,7 @@ async fn get_jwt_keys_expired_cache() {
     let mock_server_url = mock_server.url();
 
     // Create old cached keys and new expected keys
-    let old_cached_keys = create_mock_jwt_keys();
+    let old_cached_keys = EveJwtKeys::create_mock_keys();
     let new_expected_keys = create_mock_jwt_keys_alternative();
 
     // Create mock response with new keys

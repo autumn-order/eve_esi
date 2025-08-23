@@ -67,7 +67,7 @@ impl<'a> OAuth2Api<'a> {
 
                 #[cfg(not(tarpaulin_include))]
                 trace!(
-                    "Found JWT keys in cache: kid_count={}, elapsed={}s",
+                    "Found JWT keys in cache: key_count={}, elapsed={}s",
                     keys.keys.len(),
                     elapsed
                 );
@@ -224,5 +224,73 @@ impl<'a> OAuth2Api<'a> {
 
         #[cfg(not(tarpaulin_include))]
         debug!("JWT key refresh lock released and waiters notified");
+    }
+}
+
+#[cfg(test)]
+mod cache_get_keys_tests {
+    use std::sync::Arc;
+
+    use tokio::sync::RwLock;
+
+    use crate::{model::oauth2::EveJwtKeys, EsiClient};
+
+    /// Validates function returns Some keys when cache has keys
+    ///
+    /// Checks that when the cache has keys set, the cache_get_keys
+    /// function returns them properly without issues.
+    ///
+    /// # Test Setup
+    /// - Setup basic EsiClient
+    /// - Set EsiClient JWT key cache with mock keys
+    ///
+    /// # Assertions
+    /// - Verify function returns Some(EveJwtKeys)
+    #[tokio::test]
+    async fn test_cache_get_keys_some() {
+        // Setup basic EsiClient
+        let mut esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Set JWT key cache
+        let keys = (EveJwtKeys::create_mock_keys(), std::time::Instant::now());
+        let cache = Arc::new(RwLock::new(Some(keys)));
+        esi_client.jwt_keys_cache = cache;
+
+        // Test function
+        let result = esi_client.oauth2().cache_get_keys().await;
+
+        // Assert Some
+        assert!(result.is_some())
+    }
+
+    /// Validates function returns none when cache is empty
+    ///
+    /// Checks that when the cache is empty, the cache_get_jeys
+    /// function returns None as expected.
+    ///
+    /// # Test Setup
+    /// - Setup basic EsiClient
+    /// - Do not set the JWT key cache
+    ///
+    /// # Assertions
+    /// - Verify function returns None
+    #[tokio::test]
+    async fn test_cache_get_keys_none() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Do not set JWT key cache which is None by default
+
+        // Test function
+        let result = esi_client.oauth2().cache_get_keys().await;
+
+        // Assert None
+        assert!(result.is_none())
     }
 }

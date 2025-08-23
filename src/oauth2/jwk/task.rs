@@ -294,8 +294,6 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         debug!("Checking JWT keys cache state");
 
-        let esi_client = self.client;
-
         // Retrieve keys from cache
         let keys = self.cache_get_keys().await;
 
