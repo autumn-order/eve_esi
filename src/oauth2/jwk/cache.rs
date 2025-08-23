@@ -294,3 +294,40 @@ mod cache_get_keys_tests {
         assert!(result.is_none())
     }
 }
+
+#[cfg(test)]
+mod cache_update_keys_tests {
+    use crate::{model::oauth2::EveJwtKeys, EsiClient};
+
+    /// Validates that cache properly updates with new keys
+    ///
+    /// Checks that writing new keys to the JWT key cache on
+    /// EsiClient is successful.
+    ///
+    /// # Test Setup
+    /// - Setup basic EsiClient
+    /// - Create mock JWT keys
+    ///
+    /// # Assertions
+    /// - Assert that the EsiClient jwt_keys_cache now is Some()
+    #[tokio::test]
+    async fn test_cache_update_keys() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Create mock keys
+        let mock_keys = EveJwtKeys::create_mock_keys();
+
+        // Test function
+        esi_client.oauth2().cache_update_keys(mock_keys).await;
+
+        // Assert some
+        let cache = esi_client.jwt_keys_cache.read().await;
+        let result = &*cache;
+
+        assert!(result.is_some())
+    }
+}
