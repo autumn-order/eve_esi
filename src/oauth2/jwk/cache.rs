@@ -56,7 +56,7 @@ impl<'a> OAuth2Api<'a> {
     /// Utility
     /// - [`Self::wait_for_ongoing_refresh`]: Used after detecting an ongoing refresh operation
     /// - [`Self::is_cache_expired`]: Can be used alongside this method to check validity
-    pub(super) async fn cache_get_keys(&self) -> Option<EveJwtKeys> {
+    pub(super) async fn cache_get_keys(&self) -> Option<(EveJwtKeys, std::time::Instant)> {
         #[cfg(not(tarpaulin_include))]
         trace!("Attempting to retrieve JWT keys from cache");
 
@@ -72,7 +72,7 @@ impl<'a> OAuth2Api<'a> {
                     elapsed
                 );
 
-                Some(keys.clone())
+                Some((keys.clone(), timestamp.clone()))
             }
             None => {
                 #[cfg(not(tarpaulin_include))]

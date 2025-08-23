@@ -220,7 +220,7 @@ impl<'a> OAuth2Api<'a> {
         let elapsed = start_time.elapsed();
 
         // Try cache again after being notified
-        if let Some(keys) = self.cache_get_keys().await {
+        if let Some((keys, _)) = self.cache_get_keys().await {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "Successfully retrieved JWT keys after waiting for refresh (took {}ms)",
@@ -297,26 +297,7 @@ impl<'a> OAuth2Api<'a> {
         let esi_client = self.client;
 
         // Retrieve keys from cache
-        let keys = {
-            let cache = esi_client.jwt_keys_cache.read().await;
-            match &*cache {
-                Some((keys, timestamp)) => {
-                    #[cfg(not(tarpaulin_include))]
-                    debug!(
-                        "JWT keys found in cache, age: {}s",
-                        timestamp.elapsed().as_secs()
-                    );
-
-                    Some((keys.clone(), *timestamp))
-                }
-                None => {
-                    #[cfg(not(tarpaulin_include))]
-                    debug!("JWT keys cache is empty");
-
-                    None
-                }
-            }
-        };
+        let keys = self.cache_get_keys().await;
 
         if let Some((keys, timestamp)) = keys {
             // Check if we should run a background refresh task
