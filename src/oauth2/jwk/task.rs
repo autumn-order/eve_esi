@@ -17,8 +17,7 @@ use ::tokio::time::Duration;
 use log::{debug, error, info, trace, warn};
 
 use crate::constant::{
-    DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_REFRESH_BACKOFF,
-    DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
+    DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
 };
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;

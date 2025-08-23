@@ -269,7 +269,7 @@ mod should_respect_backoff_tests {
 mod is_approaching_expiry_tests {
     use crate::EsiClient;
 
-    /// Validates function returns true if cache is approaching expiration
+    /// Validates function returns true if cache is past 80% expiration
     ///
     /// When the JWT key cache expiration is past 80% expired (2880 seconds of 3600 default expiration),
     /// the function should return true indicating that the cache is almost expired.
@@ -288,12 +288,13 @@ mod is_approaching_expiry_tests {
             .build()
             .expect("Failed to build EsiClient");
 
-        // Set JWT key cache TTL to past 80% expired
-        let expiry = std::time::Instant::now() - std::time::Duration::from_secs(3000);
-        let timestamp = expiry.elapsed().as_secs();
+        // Set the expiration timestamp to psat default expiry of 2880 seconds
+        // Default approaching expiry is 2880 seconds (80% of 3600 seconds default)
+        let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+        let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = esi_client.oauth2().is_approaching_expiry(timestamp);
+        let result = esi_client.oauth2().is_approaching_expiry(elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -318,14 +319,78 @@ mod is_approaching_expiry_tests {
             .build()
             .expect("Failed to build EsiClient");
 
-        // Set JWT key cache TTL to new keys
-        let expiry = std::time::Instant::now();
-        let timestamp = expiry.elapsed().as_secs();
+        // Set the expiration timestamp to represent fresh keys
+        let timestamp = std::time::Instant::now();
+        let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = esi_client.oauth2().is_approaching_expiry(timestamp);
+        let result = esi_client.oauth2().is_approaching_expiry(elapsed_seconds);
 
         // Assert false
+        assert_eq!(result, false)
+    }
+}
+
+#[cfg(test)]
+mod is_cache_expired_tests {
+    use crate::EsiClient;
+
+    /// Validates function returns true if cache is expired
+    ///
+    /// When the JWT key cache has been set more than 3600 seconds ago
+    /// by default, the cache should be considered fully expired.
+    ///
+    /// # Setup
+    /// - Create a basic EsiClient
+    /// - Set the client JWT key cache to past 3600 seconds expiration
+    ///
+    /// # Assertions
+    /// - Verifies the function returns true, the cache is fully expired
+    #[test]
+    fn test_is_cache_expired_true() {
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Set expiration timestamp to past default expiration of 3600 seconds
+        let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(3601);
+        let elapsed_seconds = timestamp.elapsed().as_secs();
+
+        // Test function
+        let result = esi_client.oauth2().is_cache_expired(elapsed_seconds);
+
+        // Assert true
+        assert_eq!(result, true)
+    }
+
+    /// Validates function returns false if cache is not expired
+    ///
+    /// When the JWT key cache has been set less than 3600 seconds ago
+    /// by default, the cache should be not yet expired.
+    ///
+    /// # Setup
+    /// - Create a basic EsiClient
+    /// - Set the client JWT key cache to fresh keys
+    ///
+    /// # Assertions
+    /// - Verifies the function returns true, the cache is fully expired
+    #[test]
+    fn test_is_cache_expired_false() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Set expiration timestamp to represent fresh keys
+        let timestamp = std::time::Instant::now();
+        let elapsed_seconds = timestamp.elapsed().as_secs();
+
+        // Test function
+        let result = esi_client.oauth2().is_cache_expired(elapsed_seconds);
+
+        // Assert true
         assert_eq!(result, false)
     }
 }
