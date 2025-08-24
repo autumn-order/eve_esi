@@ -155,8 +155,9 @@ impl<'a> OAuth2Api<'a> {
     /// ## Cache
     /// - [`Self::cache_lock_release_and_notify`]: Releases the lock acquired by this method
     pub(super) fn cache_lock_try_acquire(&self) -> bool {
-        let result = !self
-            .client
+        let esi_client = self.client;
+
+        let result = !esi_client
             .jwt_key_refresh_in_progress
             .compare_exchange(
                 false,
@@ -329,5 +330,74 @@ mod cache_update_keys_tests {
         let result = &*cache;
 
         assert!(result.is_some())
+    }
+}
+
+#[cfg(test)]
+mod cache_lock_try_acquire_tests {
+    use crate::EsiClient;
+
+    /// Checks that lock is properly acquired when not already in use
+    ///
+    /// Attempts to acquire a lock to refresh JWT keys on a new
+    /// EsiClient which should return as successful (true) indicating
+    /// that no other threads are currently attempting a key refresh.
+    ///
+    /// # Test Setup
+    /// - Setup a basic EsiClient
+    /// - Attempt to acquire a lock for JWT key refresh
+    ///
+    /// # Assertions
+    /// - Assert that result is true when acquiring lock
+    #[test]
+    fn test_cache_lock_try_acquire_success() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Attempt to acquire lock
+        let result = esi_client.oauth2().cache_lock_try_acquire();
+
+        // Assert
+        assert_eq!(result, true)
+    }
+
+    /// Checks that lock is not acquired when already in use
+    ///
+    /// Acquires a lock initially and then attempts to acquire a lock
+    /// again despite it already being in use which should return as
+    /// unsuccessful (false).
+    ///
+    /// # Test Setup
+    /// - Setup basic EsiClient
+    /// - Acquire a lock initially
+    /// - Attempt to acquire lock again
+    ///
+    /// # Assertions
+    /// - Asserts that result is false when attempting to acquire lock
+    ///   a second time indicating it is already in use.
+    #[test]
+    fn test_cache_lock_try_acquire_unsuccessful() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Acquire a lock initially
+        let lock = esi_client.oauth2().cache_lock_try_acquire();
+
+        if !lock {
+            panic!("Failed to acquire initial lock")
+        }
+
+        // Acquire lock a second time
+        // Should return false indicating lock is already in use
+        let result = esi_client.oauth2().cache_lock_try_acquire();
+
+        // Assert
+        assert_eq!(result, false)
     }
 }
