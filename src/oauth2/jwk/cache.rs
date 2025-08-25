@@ -401,3 +401,84 @@ mod cache_lock_try_acquire_tests {
         assert_eq!(result, false)
     }
 }
+
+#[cfg(test)]
+mod cache_lock_release_and_notify_tests {
+    use std::time::Duration;
+
+    use crate::EsiClient;
+
+    /// Verifies that lock is successfully released & waiters are notified
+    ///
+    /// Acquires a lock and sets up a notification listener which listens
+    /// for the notification of when the lock is released. If the notification
+    /// is never received than the listener will timeout. Checks to ensure that
+    /// notification was properly received as well as the lock was released
+    /// without issues.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    /// - Acquire a JWT key refresh lock
+    /// - Setup a notification listener
+    ///
+    /// # Assertions
+    /// - Assert that lock has been properly acquired
+    /// - Assert that lock release notification was received
+    /// - Assert that lock has been properly released
+    #[tokio::test]
+    async fn test_cache_lock_release_and_notify_success() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Acquire a lock
+        let lock = !esi_client
+            .jwt_key_refresh_in_progress
+            .compare_exchange(
+                false,
+                true,
+                std::sync::atomic::Ordering::Acquire,
+                std::sync::atomic::Ordering::Relaxed,
+            )
+            .is_err();
+
+        // Assert that lock is in place
+        assert_eq!(lock, true);
+
+        // Create the notification future BEFORE triggering release
+        let notification = esi_client.jwt_key_refresh_notifier.notified();
+        let timeout = tokio::time::sleep(Duration::from_millis(50));
+
+        // Release and notify
+        esi_client.oauth2().cache_lock_release_and_notify();
+
+        let notified = tokio::select! {
+            _ = notification => {
+                // Notification received successfully
+                true
+            }
+            _ = timeout => {
+                // Timed out waiting for notification
+                false
+            }
+        };
+
+        // Assert that notification was received
+        assert_eq!(notified, true);
+
+        // Assert that lock has been released and can be acquired again
+        let lock = !esi_client
+            .jwt_key_refresh_in_progress
+            .compare_exchange(
+                false,
+                true,
+                std::sync::atomic::Ordering::Acquire,
+                std::sync::atomic::Ordering::Relaxed,
+            )
+            .is_err();
+
+        assert_eq!(lock, true)
+    }
+}
