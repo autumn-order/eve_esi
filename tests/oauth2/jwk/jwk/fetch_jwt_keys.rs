@@ -8,9 +8,10 @@ use mockito::Server;
 /// # Test Setup
 /// - Creates a mock server to simulate the EVE JWK endpoint
 /// - Configures a mock response with expected JWT keys
-/// - Points the ESI client to the mock server URL for JWK endpoint
+/// - Point the ESI client to the mock server URL for JWK endpoint
 ///
 /// # Assertions
+/// - Verifies that fetch request was made
 /// - Verifies that the returned JWT keys match the expected keys
 #[tokio::test]
 async fn fetch_jwt_keys_success() {
@@ -156,6 +157,7 @@ async fn fetch_jwt_keys_network_error() {
 /// - Points the ESI client to the mock server URL for JWK endpoint
 ///
 /// # Assertions
+/// - Verifies that fetch request was made
 /// - Verifies that the returned error is of type ReqwestError
 ///   and is related to a decoding issue.
 #[tokio::test]
