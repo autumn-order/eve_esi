@@ -145,8 +145,14 @@ impl<'a> OAuth2Api<'a> {
                     resp.status()
                 );
 
+                // If server response status code is an error, return an error
+                if let Err(err) = resp.error_for_status_ref() {
+                    return Err(err.into());
+                }
+
                 resp
             }
+            // Typically connection/request related errors
             Err(e) => {
                 let elapsed = start_time.elapsed();
 
@@ -161,6 +167,7 @@ impl<'a> OAuth2Api<'a> {
             }
         };
 
+        // Convert response body into EveJwtKeys struct
         let jwt_keys = match response.json::<EveJwtKeys>().await {
             Ok(keys) => {
                 let elapsed = start_time.elapsed();
@@ -174,6 +181,7 @@ impl<'a> OAuth2Api<'a> {
 
                 keys
             }
+            // Error related to parsing the body to the EveJwtKeys struct
             Err(e) => {
                 let elapsed = start_time.elapsed();
 
