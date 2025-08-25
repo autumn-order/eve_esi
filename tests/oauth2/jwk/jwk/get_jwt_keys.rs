@@ -4,7 +4,7 @@ use eve_esi::model::oauth2::EveJwtKeys;
 use eve_esi::EsiClient;
 use mockito::Server;
 
-use super::util::create_mock_jwt_keys_alternative;
+use super::super::mock::create_mock_jwt_keys_alternative;
 
 /// Tests that get_jwt_keys returns cached keys when they are not expired.
 ///
