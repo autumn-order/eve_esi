@@ -211,12 +211,11 @@ async fn test_get_jwt_keys_ongoing_refresh() {
 
     // Create mock response with keys which should not get any requests
     // from the get_jwt_keys method call
-    let keys = EveJwtKeys::create_mock_keys();
     let mock = mock_server
         .mock("GET", "/oauth/jwks")
-        .with_status(200)
+        .with_status(500)
         .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&keys).unwrap())
+        .with_body(r#"{"error": "Internal Server Error"}"#)
         .expect(0)
         .create();
 
@@ -245,10 +244,12 @@ async fn test_get_jwt_keys_ongoing_refresh() {
     let (tx, rx) = tokio::sync::oneshot::channel();
 
     // Spawn a coroutine to perform the background refresh
+    let keys = EveJwtKeys::create_mock_keys();
+
+    let keys_clone = keys.clone();
     let jwt_keys_cache = esi_client.jwt_keys_cache.clone();
     let jwt_key_refresh_lock = esi_client.jwt_key_refresh_in_progress.clone();
     let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
-    let keys_clone = keys.clone();
     tokio::spawn(async move {
         // Signal that refresh is about to start
         let _ = tx.send(());

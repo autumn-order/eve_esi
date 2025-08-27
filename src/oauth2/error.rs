@@ -11,7 +11,7 @@
 //! - `InvalidAuthUrl` - The provided EVE OAuth2 authorization URL is in an invalid format.
 //! - `InvalidTokenUrl` - The provided EVE OAuth2 token URL is in an invalid format.
 //! - `InvalidCallbackUrl` - The provided EVE OAuth2 callback URL is in an invalid format.
-//! - `CacheError` - An error occurred while retrieving JWT keys from the cache.
+//! - `JwtKeyCacheError` - An error occurred while retrieving JWT keys from the cache.
 //!
 //! # Usage
 //! These errors are typically returned when:

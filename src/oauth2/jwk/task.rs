@@ -202,41 +202,52 @@ impl<'a> OAuth2Api<'a> {
         trace!("Created notification future for JWT key refresh wait");
 
         // Wait for the notification or a timeout (as fallback)
-        tokio::select! {
-            _ = notify_future => {
-                let elapsed = start_time.elapsed();
-                debug!("Received notification that JWT keys refresh is complete after {}ms", elapsed.as_millis());
-            }
-            _ = tokio::time::sleep(Duration::from_secs(DEFAULT_JWK_REFRESH_TIMEOUT)) => {
-                let elapsed = start_time.elapsed();
-                debug!("Timed out waiting for JWT keys refresh notification after {}ms", elapsed.as_millis());
-            }
-        }
+        let refresh_timeout = Duration::from_secs(DEFAULT_JWK_REFRESH_TIMEOUT);
+        let refresh_success = tokio::select! {
+            _ = notify_future => {true}
+            _ = tokio::time::sleep(refresh_timeout) => {false}
+        };
 
+        // Return an error if the refresh timed out
         let elapsed = start_time.elapsed();
-
-        // Try cache again after being notified
-        if let Some((keys, _)) = self.cache_get_keys().await {
-            #[cfg(not(tarpaulin_include))]
-            debug!(
-                "Successfully retrieved JWT keys after waiting for refresh (took {}ms)",
+        if !refresh_success {
+            let error_message = format!(
+                "Timed out after waiting {}ms for JWT key refresh.",
                 elapsed.as_millis()
             );
 
+            #[cfg(not(tarpaulin_include))]
+            debug!("{}", error_message);
+
+            // Return error indicating function timed out waiting JWT key refresh
+            return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
+                error_message,
+            )));
+        }
+
+        // Attempt to retrieve keys from cache
+        if let Some((keys, _)) = self.cache_get_keys().await {
+            #[cfg(not(tarpaulin_include))]
+            debug!(
+                "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
+                elapsed.as_millis()
+            );
+
+            // Return keys if successfully retrieved from cache
             return Ok(keys);
         }
 
-        // Create a descriptive error message
+        // If the refresh request failed then no keys will be found in the cache
         let error_message = format!(
-            "Failed to retrieve JWT keys from cache after waiting for refresh for {}ms",
+            "Failed to retrieve JWT keys from cache after waiting {}ms for refresh.
+                    Likely due to a failure to refresh the keys.",
             elapsed.as_millis()
         );
 
-        // Log the error at debug level
         #[cfg(not(tarpaulin_include))]
         debug!("{}", error_message);
 
-        // Return appropriate error type
+        // Return an error indicating no keys were found in cache
         Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
             error_message,
         )))
