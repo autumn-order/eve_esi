@@ -134,21 +134,17 @@ impl<'a> OAuth2Api<'a> {
 
                 Ok(keys)
             }
-            Err(e) => {
+            Err(err) => {
                 let elapsed = start_time.elapsed();
                 let mut failure_time = self.client.jwt_keys_last_refresh_failure.write().await;
                 *failure_time = Some(std::time::Instant::now());
 
-                let error_message =
-                    format!("JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
-                        elapsed.as_millis(), retry_attempts, DEFAULT_JWK_REFRESH_BACKOFF, e);
-
                 #[cfg(not(tarpaulin_include))]
-                error!("{}", error_message);
+                error!("JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
+                    elapsed.as_millis(), retry_attempts, DEFAULT_JWK_REFRESH_BACKOFF, err);
 
-                Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
-                    error_message,
-                )))
+                // Return Error of type EsiError::ReqwestError
+                Err(err.into())
             }
         }
     }
