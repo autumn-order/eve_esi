@@ -300,7 +300,7 @@ impl<'a> OAuth2Api<'a> {
         if let Some((keys, timestamp)) = keys {
             // Check if we should run a background refresh task
             let elapsed_seconds = timestamp.elapsed().as_secs();
-            let is_approaching_expiry = self.is_approaching_expiry(elapsed_seconds);
+            let is_approaching_expiry = self.is_cache_approaching_expiry(elapsed_seconds);
 
             if is_approaching_expiry {
                 #[cfg(not(tarpaulin_include))]

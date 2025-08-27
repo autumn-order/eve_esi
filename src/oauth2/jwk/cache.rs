@@ -60,27 +60,29 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         trace!("Attempting to retrieve JWT keys from cache");
 
+        // Retrieve the cache
         let cache = self.client.jwt_keys_cache.read().await;
-        match &*cache {
-            Some((keys, timestamp)) => {
-                let elapsed = timestamp.elapsed().as_secs();
 
-                #[cfg(not(tarpaulin_include))]
-                trace!(
-                    "Found JWT keys in cache: key_count={}, elapsed={}s",
-                    keys.keys.len(),
-                    elapsed
-                );
+        // Check if the cache has keys stored
+        if let Some((keys, timestamp)) = &*cache {
+            let elapsed = timestamp.elapsed().as_secs();
 
-                Some((keys.clone(), timestamp.clone()))
-            }
-            None => {
-                #[cfg(not(tarpaulin_include))]
-                debug!("JWT keys cache is empty, keys need to be fetched");
+            #[cfg(not(tarpaulin_include))]
+            trace!(
+                "Found JWT keys in cache: key_count={}, elapsed={}s",
+                keys.keys.len(),
+                elapsed
+            );
 
-                None
-            }
+            // Return the keys found in cache
+            return Some((keys.clone(), timestamp.clone()));
         }
+
+        #[cfg(not(tarpaulin_include))]
+        debug!("JWT keys cache is empty, keys need to be fetched");
+
+        // Return None since no data was found in the cache
+        None
     }
 
     /// Updates the JWT keys cache with new keys and the current timestamp
@@ -156,26 +158,29 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::cache_lock_release_and_notify`]: Releases the lock acquired by this method
     pub(super) fn cache_lock_try_acquire(&self) -> bool {
         let esi_client = self.client;
+        let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
 
-        let result = !esi_client
-            .jwt_key_refresh_in_progress
-            .compare_exchange(
-                false,
-                true,
-                std::sync::atomic::Ordering::Acquire,
-                std::sync::atomic::Ordering::Relaxed,
-            )
-            .is_err();
+        // Attempt to acquire a lock
+        let lock_acquired = refresh_lock.compare_exchange(
+            false,
+            true,
+            std::sync::atomic::Ordering::Acquire,
+            std::sync::atomic::Ordering::Relaxed,
+        );
 
-        if result {
+        if !lock_acquired.is_err() {
             #[cfg(not(tarpaulin_include))]
             debug!("Successfully acquired JWT key refresh lock");
+
+            // Lock successfully acquired
+            true
         } else {
             #[cfg(not(tarpaulin_include))]
             trace!("Failed to acquire JWT key refresh lock (already held by another thread)");
-        }
 
-        result
+            // Lock already in use
+            false
+        }
     }
 
     /// Releases the JWT key refresh lock and notifies any waiting threads
@@ -210,12 +215,14 @@ impl<'a> OAuth2Api<'a> {
     /// ## Utility
     /// - [`Self::wait_for_ongoing_refresh`]: Method used by threads waiting for notification
     pub(super) fn cache_lock_release_and_notify(&self) {
+        let esi_client = self.client;
+        let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
+
+        // Release the lock
         #[cfg(not(tarpaulin_include))]
         debug!("Releasing JWT key refresh lock");
 
-        self.client
-            .jwt_key_refresh_in_progress
-            .store(false, std::sync::atomic::Ordering::Release);
+        refresh_lock.store(false, std::sync::atomic::Ordering::Release);
 
         // Notify waiters
         #[cfg(not(tarpaulin_include))]
@@ -358,10 +365,10 @@ mod cache_lock_try_acquire_tests {
             .expect("Failed to build EsiClient");
 
         // Attempt to acquire lock
-        let result = esi_client.oauth2().cache_lock_try_acquire();
+        let lock_acquired = esi_client.oauth2().cache_lock_try_acquire();
 
         // Assert
-        assert_eq!(result, true)
+        assert_eq!(lock_acquired, true)
     }
 
     /// Checks that lock is not acquired when already in use
@@ -395,10 +402,10 @@ mod cache_lock_try_acquire_tests {
 
         // Acquire lock a second time
         // Should return false indicating lock is already in use
-        let result = esi_client.oauth2().cache_lock_try_acquire();
+        let lock_acquired = esi_client.oauth2().cache_lock_try_acquire();
 
         // Assert
-        assert_eq!(result, false)
+        assert_eq!(lock_acquired, false)
     }
 }
 

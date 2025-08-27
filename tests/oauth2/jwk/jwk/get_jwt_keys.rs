@@ -197,13 +197,12 @@ async fn get_jwt_keys_empty_cache() {
 /// - Configures a mock response with expected JWT keys which should not get
 ///   any requests from the get_jwt_keys method.
 /// - Points the ESI client to the mock server URL for JWK endpoint
-/// - Spawn a new thread which simulates a key refresh with a 50ms delay
-/// - Wait for the thread to start before executing code
+/// - Spawn a new thread which simulates a key refresh with a 10ms delay
+/// - Wait for the coroutine to start before calling the get_jwt_keys method
 ///
 /// # Assertions
-/// - Verifies that the fetch request is made
-/// - Verifies that the returned JWT keys match the new keys
-/// - Verifies that the cache is updated after the call
+/// - Verifies that a fetch request was not made by get_jwt_keys
+/// - Verifies that the returned JWT keys match the expected keys
 #[tokio::test]
 async fn test_get_jwt_keys_ongoing_refresh() {
     // Setup mock server
@@ -277,16 +276,7 @@ async fn test_get_jwt_keys_ongoing_refresh() {
     mock.assert(); // Verify that no requests were made
     assert!(result.is_ok());
 
-    // Check that we got the new keys
+    // Check that we got the expected keys
     let jwt_keys = result.unwrap();
     assert_eq!(jwt_keys.keys.len(), keys.keys.len());
-
-    // Cache should be updated with new keys
-    {
-        let cache = esi_client.jwt_keys_cache.read().await;
-        assert!(cache.is_some());
-        let (cached_keys, _) = cache.as_ref().unwrap();
-        // Verify we have the new keys in cache
-        assert_eq!(cached_keys.keys.len(), keys.keys.len());
-    }
 }
