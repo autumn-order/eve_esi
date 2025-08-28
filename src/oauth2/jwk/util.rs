@@ -147,12 +147,6 @@ impl<'a> OAuth2Api<'a> {
     /// # Returns
     /// - `true` if the elapsed time has reached or exceeded the TTL
     /// - `false` if the cache is still within its valid period
-    ///
-    /// # Related Methods
-    ///
-    /// ## Utility
-    /// - [`Self::is_approaching_expiry`]: Checks if the cache is nearing expiration
-    ///   but hasn't fully expired yet
     pub(super) fn is_cache_expired(&self, elapsed_seconds: u64) -> bool {
         let is_expired = elapsed_seconds >= self.client.jwt_keys_cache_ttl;
 

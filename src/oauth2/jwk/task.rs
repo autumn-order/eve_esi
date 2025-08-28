@@ -51,20 +51,6 @@ impl<'a> OAuth2Api<'a> {
     /// # Returns
     /// - `Ok(`[`EveJwtKeys`]`)` if keys were successfully fetched and cached
     /// - `Err(`[`EsiError`]`)` if all retry attempts failed
-    ///
-    /// # Related Methods
-    ///
-    /// ## High-Level
-    /// - [`Self::get_jwt_keys`]: Public-facing method that calls this function if
-    ///   the cache is empty or expired
-    ///
-    /// ## Task
-    /// - [`Self::trigger_background_jwt_refresh`]: Non-blocking alternative
-    /// - [`Self::fetch_and_update_cache`]: Called internally to perform the actual refresh
-    ///
-    /// ## Cache
-    /// - [`Self::cache_lock_release_and_notify`]: Used to release the lock and notify
-    ///   waiting threads of the refresh completion
     pub(super) async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
 
@@ -179,22 +165,6 @@ impl<'a> OAuth2Api<'a> {
     /// - Ok([`EveJwtKeys`]) if the refresh was successful and keys are now in the cache
     /// - Err([`EsiError`]) if the refresh attempt failed or timed out after
     ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
-    ///
-    /// # Related Methods
-    ///
-    /// ## High-Level
-    /// - [`Self::get_jwt_keys`]: Public-facing method that might trigger the waiting process
-    ///
-    /// ## Task
-    /// - [`Self::refresh_jwt_keys_with_retry`]: Performs the actual refresh with retry logic
-    /// - [`Self::check_cache_and_trigger_background_refresh`]: Used to check cache and
-    ///   potentially trigger a background refresh that other threads may wait for
-    ///
-    /// ## Cache
-    /// - [`Self::cache_lock_try_acquire`]: Used to determine if a thread should
-    /// - [`Self::cache_lock_release_and_notify`]: Called by the refreshing thread to
-    ///   wake up all waiting threads when the refresh operation completes
-    ///   initiate a refresh or wait for another thread's refresh
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
         #[cfg(not(tarpaulin_include))]
         debug!("Waiting for another thread to refresh JWT keys");
@@ -285,23 +255,6 @@ impl<'a> OAuth2Api<'a> {
     /// # Returns
     /// - `Some(`[`EveJwtKeys`]`)` if valid keys are found in the cache (may trigger refresh in background)
     /// - [`None`] if keys are not found in the cache or are expired
-    ///
-    /// # Related Methods
-    ///
-    /// ## High-Level
-    /// - [`Self::get_jwt_keys`]: Public-facing method that calls this function
-    ///
-    /// ## Task
-    /// - [`Self::trigger_background_jwt_refresh`]: Performs the actual background refresh
-    ///
-    /// ## Cache
-    /// - [`Self::cache_lock_try_acquire`]: Attempts to acquire lock for refresh operation
-    /// - [`Self::is_cache_expired`]: Determines if keys are fully expired
-    ///
-    /// ## Utility
-    /// - [`Self::wait_for_ongoing_refresh`]: Used by other methods when refresh is in progress
-    /// - [`Self::should_respect_backoff`]: Checks if we should delay refresh after failure
-    /// - [`Self::is_approaching_expiry`]: Determines if keys are nearing expiration
     pub(super) async fn check_cache_and_trigger_background_refresh(&self) -> Option<EveJwtKeys> {
         let esi_client = self.client;
 
@@ -378,16 +331,6 @@ impl<'a> OAuth2Api<'a> {
     /// This method is thread-safe and designed to be called from concurrent contexts.
     /// The spawned task operates independently from the caller, ensuring non-blocking behavior
     /// while maintaining proper synchronization through atomic operations and locks.
-    ///
-    /// # Related Methods
-    ///
-    /// ## Task
-    /// - [`Self::refresh_jwt_keys_with_retry`]: Alternative that blocks until completion with retries
-    /// - [`Self::check_cache_and_trigger_background_refresh`]: Conditionally calls this method
-    ///
-    /// ## Cache
-    /// - [`Self::cache_lock_try_acquire`]: Should be called before this function
-    /// - [`Self::cache_lock_release_and_notify`]: Releases lock and notifies waiting threads
     pub(super) async fn trigger_background_jwt_refresh(&self) {
         #[cfg(not(tarpaulin_include))]
         debug!("Triggering background JWT refresh task");

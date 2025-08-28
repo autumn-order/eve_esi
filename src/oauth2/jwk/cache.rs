@@ -45,19 +45,6 @@ impl<'a> OAuth2Api<'a> {
     /// - Some([`EveJwtKeys`]) if keys are present in the cache (valid or not)
     /// - [`None`] if the cache is empty (no keys have been fetched yet). This typically
     ///   triggers a fetch operation with retry logic when called from higher-level methods.
-    ///
-    /// # Related Methods
-    /// High-Level
-    /// - [`Self::get_jwt_keys`]: Public-facing method that uses this utility method
-    /// - [`Self::fetch_and_update_cache`]: Updates the cache that this method reads from
-    ///
-    /// Task
-    /// - [`Self::check_cache_and_trigger_background_refresh`]: Higher-level method that checks
-    ///   expiration and may trigger background refresh
-    ///
-    /// Utility
-    /// - [`Self::wait_for_ongoing_refresh`]: Used after detecting an ongoing refresh operation
-    /// - [`Self::is_cache_expired`]: Can be used alongside this method to check validity
     pub(super) async fn cache_get_keys(&self) -> Option<(EveJwtKeys, std::time::Instant)> {
         #[cfg(not(tarpaulin_include))]
         trace!("Attempting to retrieve JWT keys from cache");
@@ -105,12 +92,6 @@ impl<'a> OAuth2Api<'a> {
     ///
     /// # Parameters
     /// - `keys`: The EVE JWT keys to store in the cache
-    ///
-    /// # Related Methods
-    ///
-    /// High-Level
-    /// - [`Self::get_jwt_keys`]: Public-facing method that relies on this method for cache updates
-    /// - [`Self::fetch_and_update_cache`]: Uses this method to update the cache with freshly fetched keys
     pub(super) async fn cache_update_keys(&self, keys: EveJwtKeys) {
         #[cfg(not(tarpaulin_include))]
         debug!(
