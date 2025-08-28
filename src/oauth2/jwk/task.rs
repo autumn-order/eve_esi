@@ -390,7 +390,7 @@ impl<'a> OAuth2Api<'a> {
         let reqwest_client = esi_client.reqwest_client.clone();
         let jwt_keys_cache = esi_client.jwt_keys_cache.clone();
         let jwk_url = esi_client.jwk_url.clone();
-        let refresh_in_progress = esi_client.jwt_key_refresh_in_progress.clone();
+        let refresh_lock = esi_client.jwt_key_refresh_lock.clone();
         let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
         let jwt_keys_last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
 
@@ -454,7 +454,7 @@ impl<'a> OAuth2Api<'a> {
             #[cfg(not(tarpaulin_include))]
             debug!("Releasing JWT key refresh lock");
 
-            refresh_in_progress.store(false, Ordering::Release);
+            refresh_lock.store(false, Ordering::Release);
 
             // Notify waiting threads that the cache has been updated
             jwt_key_refresh_notifier.notify_waiters();

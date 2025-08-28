@@ -158,7 +158,7 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::cache_lock_release_and_notify`]: Releases the lock acquired by this method
     pub(super) fn jwk_refresh_lock_try_acquire(&self) -> bool {
         let esi_client = self.client;
-        let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
+        let refresh_lock = &esi_client.jwt_key_refresh_lock;
 
         // Attempt to acquire a lock
         let lock_acquired = refresh_lock.compare_exchange(
@@ -216,7 +216,7 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::wait_for_ongoing_refresh`]: Method used by threads waiting for notification
     pub(super) fn jwk_refresh_lock_release_and_notify(&self) {
         let esi_client = self.client;
-        let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
+        let refresh_lock = &esi_client.jwt_key_refresh_lock;
 
         // Release the lock
         #[cfg(not(tarpaulin_include))]
@@ -442,7 +442,7 @@ mod cache_lock_release_and_notify_tests {
 
         // Acquire a lock
         let lock = !esi_client
-            .jwt_key_refresh_in_progress
+            .jwt_key_refresh_lock
             .compare_exchange(
                 false,
                 true,
@@ -477,7 +477,7 @@ mod cache_lock_release_and_notify_tests {
 
         // Assert that lock has been released and can be acquired again
         let lock = !esi_client
-            .jwt_key_refresh_in_progress
+            .jwt_key_refresh_lock
             .compare_exchange(
                 false,
                 true,

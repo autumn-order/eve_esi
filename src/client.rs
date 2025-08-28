@@ -59,8 +59,8 @@ pub struct EsiClient {
     /// automatically refresh them when expired.
     /// Direct modification of this field is typically only for testing purposes.
     pub jwt_keys_cache: JwtKeyCache,
-    /// Flag indicating whether a JWT key refresh is currently in progress to prevent concurrent refreshes.
-    pub jwt_key_refresh_in_progress: Arc<AtomicBool>,
+    /// Lock indicating whether a JWT key refresh is currently in progress to prevent concurrent refreshes.
+    pub jwt_key_refresh_lock: Arc<AtomicBool>,
     /// Notifier for JWT key refresh completion.
     pub jwt_key_refresh_notifier: Arc<Notify>,
     /// Timestamp of the last failed JWT key refresh attempt.

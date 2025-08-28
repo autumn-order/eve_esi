@@ -93,7 +93,7 @@ async fn test_background_refresh_success() {
     mock.assert();
 
     // Assert refresh lock has been released
-    let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
+    let refresh_lock = &esi_client.jwt_key_refresh_lock;
     let lock_acquired = refresh_lock.compare_exchange(
         false,
         true,
@@ -188,7 +188,7 @@ async fn test_background_refresh_failure() {
     mock.assert();
 
     // Assert refresh lock has been released
-    let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
+    let refresh_lock = &esi_client.jwt_key_refresh_lock;
     let lock_acquired = refresh_lock.compare_exchange(
         false,
         true,
@@ -335,7 +335,7 @@ async fn test_background_refresh_already_in_progress() {
     esi_client.jwt_keys_cache = Arc::new(RwLock::new(Some((keys, expiration))));
 
     // Acquire a refresh lock
-    let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
+    let refresh_lock = &esi_client.jwt_key_refresh_lock;
     let lock_acquired = refresh_lock.compare_exchange(
         false,
         true,

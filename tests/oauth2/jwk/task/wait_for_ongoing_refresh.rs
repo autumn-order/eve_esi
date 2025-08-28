@@ -46,7 +46,7 @@ async fn test_wait_for_refresh_success() {
 
     // Acquire a refresh lock
     let lock = !esi_client
-        .jwt_key_refresh_in_progress
+        .jwt_key_refresh_lock
         .compare_exchange(
             false,
             true,
@@ -66,7 +66,7 @@ async fn test_wait_for_refresh_success() {
 
     let keys_clone = keys.clone();
     let jwt_keys_cache = esi_client.jwt_keys_cache.clone();
-    let jwt_key_refresh_lock = esi_client.jwt_key_refresh_in_progress.clone();
+    let jwt_key_refresh_lock = esi_client.jwt_key_refresh_lock.clone();
     let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
     tokio::spawn(async move {
         // Signal that refresh is about to start
@@ -144,7 +144,7 @@ async fn test_wait_for_refresh_failure() {
 
     // Acquire a refresh lock
     let lock = !esi_client
-        .jwt_key_refresh_in_progress
+        .jwt_key_refresh_lock
         .compare_exchange(
             false,
             true,
@@ -160,7 +160,7 @@ async fn test_wait_for_refresh_failure() {
     let (tx, rx) = tokio::sync::oneshot::channel();
 
     // Spawn a coroutine to perform the background refresh
-    let jwt_key_refresh_lock = esi_client.jwt_key_refresh_in_progress.clone();
+    let jwt_key_refresh_lock = esi_client.jwt_key_refresh_lock.clone();
     let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
     tokio::spawn(async move {
         // Signal that refresh is about to start
@@ -236,7 +236,7 @@ async fn test_wait_for_refresh_timeout() {
 
     // Acquire a refresh lock
     let lock = !esi_client
-        .jwt_key_refresh_in_progress
+        .jwt_key_refresh_lock
         .compare_exchange(
             false,
             true,
