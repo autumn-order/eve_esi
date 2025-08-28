@@ -201,7 +201,6 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
 
-        // Wait for the notification or a timeout (as fallback)
         let refresh_timeout = Duration::from_secs(DEFAULT_JWK_REFRESH_TIMEOUT);
         let refresh_success = tokio::select! {
             _ = notify_future => {true}
@@ -312,6 +311,7 @@ impl<'a> OAuth2Api<'a> {
             if is_approaching_expiry {
                 #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
+
                 // Check if we should respect a backoff period due to previous failure
                 let should_respect_backoff = self.should_respect_backoff().await;
 

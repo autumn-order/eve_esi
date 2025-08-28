@@ -1,2 +1,3 @@
+mod check_cache_and_trigger_background_refresh;
 mod refresh_jwt_keys_with_retry;
 mod wait_for_ongoing_refresh;

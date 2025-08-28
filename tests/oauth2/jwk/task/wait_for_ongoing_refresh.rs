@@ -88,7 +88,7 @@ async fn test_wait_for_refresh_success() {
     // Wait for coroutine to begin refresh
     rx.await.expect("Failed to receive ready signal");
 
-    // Call the get_jwt_keys method
+    // Use get_jwt_keys as entry point since function being tested is private
     let result = esi_client.oauth2().get_jwt_keys().await;
 
     // Assert mock server received 0 requests
@@ -180,7 +180,7 @@ async fn test_wait_for_refresh_failure() {
     // Wait for coroutine to begin refresh
     rx.await.expect("Failed to receive ready signal");
 
-    // Call the get_jwt_keys method
+    // Use get_jwt_keys as entry point since function being tested is private
     let result = esi_client.oauth2().get_jwt_keys().await;
 
     // Assert mock server received 0 requests
@@ -251,8 +251,7 @@ async fn test_wait_for_refresh_timeout() {
     // Don't attempt any cache updates and don't release the lock which
     // should cause a timeout error.
 
-    // Use get_jwt_keys as entry point since wait_for_ongoing_refresh
-    // is private
+    // Use get_jwt_keys as entry point since function being tested is private
     let result = esi_client.oauth2().get_jwt_keys().await;
 
     // Assert mock server received 0 requests
