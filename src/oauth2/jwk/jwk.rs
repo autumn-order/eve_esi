@@ -47,7 +47,7 @@ impl<'a> OAuth2Api<'a> {
 
         // If we got here, JWT key cache is missing or expired
         // Check if the keys are already being refreshed on another thread
-        if !self.cache_lock_try_acquire() {
+        if !self.jwk_refresh_lock_try_acquire() {
             // Wait for the key refresh to complete and then return the keys or an
             // error if the refresh times out (5 seconds)
             return self.wait_for_ongoing_refresh().await;

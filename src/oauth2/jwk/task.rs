@@ -318,7 +318,7 @@ impl<'a> OAuth2Api<'a> {
                 if should_respect_backoff {
                     #[cfg(not(tarpaulin_include))]
                     debug!("Respecting backoff period, delaying JWT key refresh");
-                } else if self.cache_lock_try_acquire() {
+                } else if self.jwk_refresh_lock_try_acquire() {
                     #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys approaching expiry, triggering background refresh");
 
