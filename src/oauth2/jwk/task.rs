@@ -22,6 +22,7 @@ use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
+use super::util::{is_cache_approaching_expiry, is_cache_expired, should_respect_backoff};
 use super::util_refresh::{jwk_refresh_lock_release_and_notify, jwk_refresh_lock_try_acquire};
 
 impl<'a> OAuth2Api<'a> {
@@ -267,14 +268,16 @@ impl<'a> OAuth2Api<'a> {
         if let Some((keys, timestamp)) = keys {
             // Check if we should run a background refresh task
             let elapsed_seconds = timestamp.elapsed().as_secs();
-            let is_approaching_expiry = self.is_cache_approaching_expiry(elapsed_seconds);
+            let is_approaching_expiry =
+                is_cache_approaching_expiry(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
 
             if is_approaching_expiry {
                 #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
                 // Check if we should respect a backoff period due to previous failure
-                let should_respect_backoff = self.should_respect_backoff().await;
+                let should_respect_backoff =
+                    should_respect_backoff(&esi_client.jwt_keys_last_refresh_failure).await;
 
                 if should_respect_backoff {
                     #[cfg(not(tarpaulin_include))]
@@ -294,7 +297,10 @@ impl<'a> OAuth2Api<'a> {
             }
 
             // Return keys if cache is not expired
-            if !self.is_cache_expired(timestamp.elapsed().as_secs()) {
+            if !is_cache_expired(
+                &&esi_client.jwt_keys_cache_ttl,
+                timestamp.elapsed().as_secs(),
+            ) {
                 #[cfg(not(tarpaulin_include))]
                 debug!("Using cached JWT keys containing {} keys", keys.keys.len());
 
