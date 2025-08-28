@@ -10,7 +10,6 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use std::sync::atomic::Ordering;
 use std::time::Instant;
 
 use ::tokio::time::Duration;
@@ -22,6 +21,8 @@ use crate::constant::{
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
+
+use super::util_refresh::{jwk_refresh_lock_release_and_notify, jwk_refresh_lock_try_acquire};
 
 impl<'a> OAuth2Api<'a> {
     /// Refreshes JWT keys with retry logic
@@ -65,6 +66,8 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::cache_lock_release_and_notify`]: Used to release the lock and notify
     ///   waiting threads of the refresh completion
     pub(super) async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
+        let esi_client = self.client;
+
         #[cfg(not(tarpaulin_include))]
         info!("Starting JWT keys refresh operation");
 
@@ -112,7 +115,10 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // Always release the lock
-        self.jwk_refresh_lock_release_and_notify();
+        jwk_refresh_lock_release_and_notify(
+            &esi_client.jwt_key_refresh_lock,
+            &esi_client.jwt_key_refresh_notifier,
+        );
 
         // Return the result or error
         match result {
@@ -297,6 +303,8 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Self::should_respect_backoff`]: Checks if we should delay refresh after failure
     /// - [`Self::is_approaching_expiry`]: Determines if keys are nearing expiration
     pub(super) async fn check_cache_and_trigger_background_refresh(&self) -> Option<EveJwtKeys> {
+        let esi_client = self.client;
+
         #[cfg(not(tarpaulin_include))]
         debug!("Checking JWT keys cache state");
 
@@ -318,7 +326,7 @@ impl<'a> OAuth2Api<'a> {
                 if should_respect_backoff {
                     #[cfg(not(tarpaulin_include))]
                     debug!("Respecting backoff period, delaying JWT key refresh");
-                } else if self.jwk_refresh_lock_try_acquire() {
+                } else if jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock) {
                     #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys approaching expiry, triggering background refresh");
 
@@ -391,8 +399,8 @@ impl<'a> OAuth2Api<'a> {
         let jwt_keys_cache = esi_client.jwt_key_cache.clone();
         let jwk_url = esi_client.jwk_url.clone();
         let refresh_lock = esi_client.jwt_key_refresh_lock.clone();
-        let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
-        let jwt_keys_last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
+        let refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
+        let last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
 
         #[cfg(not(tarpaulin_include))]
         debug!(
@@ -451,13 +459,7 @@ impl<'a> OAuth2Api<'a> {
             .await;
 
             // Always release the lock
-            #[cfg(not(tarpaulin_include))]
-            debug!("Releasing JWT key refresh lock");
-
-            refresh_lock.store(false, Ordering::Release);
-
-            // Notify waiting threads that the cache has been updated
-            jwt_key_refresh_notifier.notify_waiters();
+            jwk_refresh_lock_release_and_notify(&refresh_lock, &refresh_notifier);
 
             let elapsed = start_time.elapsed();
             match result {
@@ -469,7 +471,7 @@ impl<'a> OAuth2Api<'a> {
                     );
 
                     // Clear any previous failure on success
-                    let mut last_failure = jwt_keys_last_refresh_failure.write().await;
+                    let mut last_failure = last_refresh_failure.write().await;
                     *last_failure = None;
 
                     #[cfg(not(tarpaulin_include))]
@@ -484,7 +486,7 @@ impl<'a> OAuth2Api<'a> {
                     );
 
                     // Record the failure time
-                    let mut last_failure = jwt_keys_last_refresh_failure.write().await;
+                    let mut last_failure = last_refresh_failure.write().await;
                     *last_failure = Some(Instant::now());
 
                     #[cfg(not(tarpaulin_include))]

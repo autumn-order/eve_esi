@@ -12,6 +12,8 @@
 //! - **Cache Management** [`cache`]: Handles the storage and retrieval of JWT keys
 //! - **Task Management** [`task`]: Implements background refresh tasks and retry logic
 //! - **Utilities** [`util`]: Contains helper functions for cache expiry, backoff, etc.
+//! - **Refresh Utilities** [`util_refresh`]: Contains helper functions for managing
+//!   JWT key refresh lock & update notifications.
 //!
 //! # Key Features
 //!
@@ -36,7 +38,10 @@
 //! - Atomic flags for refresh coordination
 //! - Notification mechanisms for efficient waiting
 
-mod cache;
 pub mod jwk;
+
+mod cache;
 mod task;
+
 mod util;
+mod util_refresh;

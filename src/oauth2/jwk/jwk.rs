@@ -16,6 +16,8 @@ use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
+use super::util_refresh::jwk_refresh_lock_try_acquire;
+
 impl<'a> OAuth2Api<'a> {
     /// Gets JWT keys with caching support & background refreshing.
     ///
@@ -33,6 +35,8 @@ impl<'a> OAuth2Api<'a> {
     /// # Errors
     /// - Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
+        let esi_client = self.client;
+
         #[cfg(not(tarpaulin_include))]
         debug!("Retrieving JWT keys");
 
@@ -47,7 +51,7 @@ impl<'a> OAuth2Api<'a> {
 
         // If we got here, JWT key cache is missing or expired
         // Check if the keys are already being refreshed on another thread
-        if !self.jwk_refresh_lock_try_acquire() {
+        if !jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock) {
             // Wait for the key refresh to complete and then return the keys or an
             // error if the refresh times out (5 seconds)
             return self.wait_for_ongoing_refresh().await;
@@ -67,7 +71,7 @@ impl<'a> OAuth2Api<'a> {
     /// - Result containing the JWT keys in successful, or an error if the fetch failed.
     ///
     /// # Errors
-    /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
+    /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
     pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, EsiError> {
         #[cfg(not(tarpaulin_include))]
         debug!("Fetching fresh JWT keys and updating cache");
@@ -119,7 +123,7 @@ impl<'a> OAuth2Api<'a> {
     /// A Result containing the JWT keys in successful, or an error if the fetch failed.
     ///
     /// # Errors
-    /// - `EsiError::ReqwestError`: If the request to fetch JWT keys fails.
+    /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         #[cfg(not(tarpaulin_include))]
         debug!(
