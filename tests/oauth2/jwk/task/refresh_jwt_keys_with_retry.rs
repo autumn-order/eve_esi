@@ -64,7 +64,7 @@ async fn test_refresh_keys_success() {
     assert_eq!(jwt_keys.keys.len(), expected_keys.keys.len());
 
     // Assert cache has been properly updated
-    let cache = esi_client.jwt_keys_cache.read().await;
+    let cache = esi_client.jwt_key_cache.read().await;
 
     assert!(*&cache.is_some())
 }
@@ -202,7 +202,7 @@ async fn test_refresh_keys_retry() {
     assert_eq!(jwt_keys.keys.len(), expected_keys.keys.len());
 
     // Assert cache has been properly updated
-    let cache = esi_client.jwt_keys_cache.read().await;
+    let cache = esi_client.jwt_key_cache.read().await;
 
     assert!(*&cache.is_some())
 }

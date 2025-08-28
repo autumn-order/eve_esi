@@ -45,7 +45,7 @@ async fn test_fetch_and_update_cache_success() {
     assert!(result.is_ok());
 
     // Ensure cache has been updated
-    let cache = esi_client.jwt_keys_cache.read().await;
+    let cache = esi_client.jwt_key_cache.read().await;
     let keys = match &*cache {
         Some((keys, timestamp)) => Some((keys.clone(), timestamp.clone())),
         None => None,

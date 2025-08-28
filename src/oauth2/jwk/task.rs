@@ -388,7 +388,7 @@ impl<'a> OAuth2Api<'a> {
 
         // Clone the required components
         let reqwest_client = esi_client.reqwest_client.clone();
-        let jwt_keys_cache = esi_client.jwt_keys_cache.clone();
+        let jwt_keys_cache = esi_client.jwt_key_cache.clone();
         let jwk_url = esi_client.jwk_url.clone();
         let refresh_lock = esi_client.jwt_key_refresh_lock.clone();
         let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();

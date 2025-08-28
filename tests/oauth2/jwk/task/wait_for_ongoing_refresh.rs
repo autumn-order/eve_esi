@@ -65,7 +65,7 @@ async fn test_wait_for_refresh_success() {
     let keys = EveJwtKeys::create_mock_keys();
 
     let keys_clone = keys.clone();
-    let jwt_keys_cache = esi_client.jwt_keys_cache.clone();
+    let jwt_keys_cache = esi_client.jwt_key_cache.clone();
     let jwt_key_refresh_lock = esi_client.jwt_key_refresh_lock.clone();
     let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
     tokio::spawn(async move {

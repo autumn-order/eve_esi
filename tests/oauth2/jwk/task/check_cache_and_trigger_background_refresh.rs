@@ -68,7 +68,7 @@ async fn test_background_refresh_success() {
     // Populate JWT key cache with keys past 80% expiration
     let keys = EveJwtKeys::create_mock_keys();
     let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_keys_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
+    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
 
     // Use get_jwt_keys as entry point since function being tested is private
     let result_keys = esi_client.oauth2().get_jwt_keys().await;
@@ -104,7 +104,7 @@ async fn test_background_refresh_success() {
     assert!(!lock_acquired.is_err());
 
     // Assert cache has been properly updated
-    let cache = esi_client.jwt_keys_cache.read().await;
+    let cache = esi_client.jwt_key_cache.read().await;
 
     if let Some((_, timestamp)) = &*cache {
         // Ensure timestamp is not past default 2880 second nearing expiration mark
@@ -163,7 +163,7 @@ async fn test_background_refresh_failure() {
     // Populate JWT key cache with keys past 80% expiration
     let keys = EveJwtKeys::create_mock_keys();
     let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_keys_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
+    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
 
     // Use get_jwt_keys as entry point since function being tested is private
     let result_keys = esi_client.oauth2().get_jwt_keys().await;
@@ -203,7 +203,7 @@ async fn test_background_refresh_failure() {
     assert!(last_refresh_failure.is_some());
 
     // Assert cache still contains expired keys
-    let cache = esi_client.jwt_keys_cache.read().await;
+    let cache = esi_client.jwt_key_cache.read().await;
 
     if let Some((_, timestamp)) = &*cache {
         // Ensure timestamp is past default 2880 second nearing expiration mark
@@ -259,7 +259,7 @@ async fn test_background_refresh_backoff() {
     // Populate JWT key cache with keys past 80% expiration
     let keys = EveJwtKeys::create_mock_keys();
     let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_keys_cache = Arc::new(RwLock::new(Some((keys, expiration))));
+    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, expiration))));
 
     // Set last failure within backoff period of last 100 ms (failed 50 ms ago)
     let last_failure = std::time::Instant::now() - std::time::Duration::from_millis(50);
@@ -332,7 +332,7 @@ async fn test_background_refresh_already_in_progress() {
     // Populate JWT key cache with keys past 80% expiration
     let keys = EveJwtKeys::create_mock_keys();
     let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_keys_cache = Arc::new(RwLock::new(Some((keys, expiration))));
+    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, expiration))));
 
     // Acquire a refresh lock
     let refresh_lock = &esi_client.jwt_key_refresh_lock;

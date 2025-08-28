@@ -42,7 +42,7 @@ async fn get_jwt_keys_valid_cache() {
 
     // Pre-populate the cache
     {
-        let mut cache = esi_client.jwt_keys_cache.write().await;
+        let mut cache = esi_client.jwt_key_cache.write().await;
         *cache = Some((cached_keys.clone(), Instant::now()));
     }
 
@@ -104,7 +104,7 @@ async fn get_jwt_keys_expired_cache() {
 
     // Pre-populate the cache with old data
     {
-        let mut cache = esi_client.jwt_keys_cache.write().await;
+        let mut cache = esi_client.jwt_key_cache.write().await;
         *cache = Some((old_cached_keys.clone(), Instant::now()));
     }
 
@@ -121,7 +121,7 @@ async fn get_jwt_keys_expired_cache() {
 
     // Cache should be updated with new keys
     {
-        let cache = esi_client.jwt_keys_cache.read().await;
+        let cache = esi_client.jwt_key_cache.read().await;
         assert!(cache.is_some());
         let (cached_keys, _) = cache.as_ref().unwrap();
         // Verify we have the new keys in cache
@@ -177,7 +177,7 @@ async fn get_jwt_keys_empty_cache() {
 
     // Cache should be updated with new keys
     {
-        let cache = esi_client.jwt_keys_cache.read().await;
+        let cache = esi_client.jwt_key_cache.read().await;
         assert!(cache.is_some());
         let (cached_keys, _) = cache.as_ref().unwrap();
         // Verify we have the new keys in cache

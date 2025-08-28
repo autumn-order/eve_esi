@@ -61,7 +61,7 @@ impl<'a> OAuth2Api<'a> {
         trace!("Attempting to retrieve JWT keys from cache");
 
         // Retrieve the cache
-        let cache = self.client.jwt_keys_cache.read().await;
+        let cache = self.client.jwt_key_cache.read().await;
 
         // Check if the cache has keys stored
         if let Some((keys, timestamp)) = &*cache {
@@ -116,7 +116,7 @@ impl<'a> OAuth2Api<'a> {
             self.client.jwt_keys_cache_ttl
         );
 
-        let mut cache = self.client.jwt_keys_cache.write().await;
+        let mut cache = self.client.jwt_key_cache.write().await;
         *cache = Some((keys, std::time::Instant::now()));
 
         #[cfg(not(tarpaulin_include))]
@@ -265,7 +265,7 @@ mod cache_get_keys_tests {
         // Set JWT key cache
         let keys = (EveJwtKeys::create_mock_keys(), std::time::Instant::now());
         let cache = Arc::new(RwLock::new(Some(keys)));
-        esi_client.jwt_keys_cache = cache;
+        esi_client.jwt_key_cache = cache;
 
         // Test function
         let result = esi_client.oauth2().cache_get_keys().await;
@@ -333,7 +333,7 @@ mod cache_update_keys_tests {
         esi_client.oauth2().cache_update_keys(mock_keys).await;
 
         // Assert some
-        let cache = esi_client.jwt_keys_cache.read().await;
+        let cache = esi_client.jwt_key_cache.read().await;
         let result = &*cache;
 
         assert!(result.is_some())

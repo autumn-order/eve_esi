@@ -108,7 +108,7 @@ impl EsiClientBuilder {
             esi_url: builder.esi_url,
             jwk_url: builder.jwk_url,
             jwt_keys_cache_ttl: DEFAULT_JWK_CACHE_TTL,
-            jwt_keys_cache: Arc::new(RwLock::new(None)),
+            jwt_key_cache: Arc::new(RwLock::new(None)),
             jwt_key_refresh_lock: Arc::new(AtomicBool::new(false)),
             jwt_key_refresh_notifier: Arc::new(Notify::new()),
             jwt_keys_last_refresh_failure: Arc::new(RwLock::new(None)),

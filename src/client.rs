@@ -58,7 +58,7 @@ pub struct EsiClient {
     /// Consider using the [`get_jwt_keys`] method to retrieve the keys from the cache &
     /// automatically refresh them when expired.
     /// Direct modification of this field is typically only for testing purposes.
-    pub jwt_keys_cache: JwtKeyCache,
+    pub jwt_key_cache: JwtKeyCache,
     /// Lock indicating whether a JWT key refresh is currently in progress to prevent concurrent refreshes.
     pub jwt_key_refresh_lock: Arc<AtomicBool>,
     /// Notifier for JWT key refresh completion.
