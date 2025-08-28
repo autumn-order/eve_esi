@@ -33,12 +33,14 @@ use eve_esi::EsiClient;
 ///   or timeout if background refresh takes too long.
 ///
 /// # Assertions
+/// - Assert keys were returned from cache regardless of background
+///   refresh success
 /// - Assert a notification has been received of completed refresh
 /// - Assert 1 request has been made to mock server
 /// - Assert refresh lock has been released
 /// - Assert cache has been properly updated with keys not nearing expiration
 #[tokio::test]
-async fn test_background_refresh_approaching_expiry() {
+async fn test_background_refresh_success() {
     // Setup mock server
     let mut mock_server = Server::new_async().await;
     let mock_server_url = mock_server.url();
@@ -69,7 +71,12 @@ async fn test_background_refresh_approaching_expiry() {
     esi_client.jwt_keys_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let _ = esi_client.oauth2().get_jwt_keys().await;
+    let result_keys = esi_client.oauth2().get_jwt_keys().await;
+
+    // Assert keys have been returned regardless of success since
+    // cache contains keys which are nearing expired but not yet fully
+    assert!(result_keys.is_ok());
+    assert_eq!(result_keys.unwrap().keys.len(), 2);
 
     // Wait for refresh notification or timeout if never completes
     let notify_future = esi_client.jwt_key_refresh_notifier.notified();
@@ -108,6 +115,105 @@ async fn test_background_refresh_approaching_expiry() {
     }
 }
 
+/// Tests to ensure failure is handled properly by background refresh
+///
+/// When the JWT keys present in cache are approaching expiry,
+/// being past 80% expired by default, the function should
+/// trigger a background refresh. If the function fails to refresh
+/// the keys, a failure attempt should be logged which helps
+/// determine if the next attempt is within the backoff period.
+///
+/// # Test Setup
+/// - Create a mock server which shouldn't get any requests
+/// - Configures a server response returning error 500
+/// - Point the ESI client to the mock server URL for JWK endpoint
+/// - Call the function & wait for a refresh complete notification
+///   or timeout if background refresh takes too long.
+///
+/// # Assertions
+/// - Assert keys were returned from cache regardless of background
+///   refresh success
+/// - Assert a notification has been received of completed refresh
+/// - Assert 1 request has been made to mock server
+/// - Assert refresh lock has been released
+/// - Assert the failure attempt has been logged
+/// - Assert the cache still contains keys nearing expiry
+#[tokio::test]
+async fn test_background_refresh_failure() {
+    // Setup mock server
+    let mut mock_server = Server::new_async().await;
+    let mock_server_url = mock_server.url();
+
+    // Create mock response returning error 500
+    let mock = mock_server
+        .mock("GET", "/oauth/jwks")
+        .with_status(500)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error": "Internal Server Error"}"#)
+        .expect(1)
+        .create();
+
+    // Create ESI client with mock JWK endpoint
+    let mut esi_client = EsiClient::builder()
+        .user_agent("MyApp/1.0 (contact@example.com)")
+        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
+        .build()
+        .expect("Failed to build EsiClient");
+
+    // Populate JWT key cache with keys past 80% expiration
+    let keys = EveJwtKeys::create_mock_keys();
+    let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+    esi_client.jwt_keys_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
+
+    // Use get_jwt_keys as entry point since function being tested is private
+    let result_keys = esi_client.oauth2().get_jwt_keys().await;
+
+    // Assert keys have been returned regardless of success since
+    // cache contains keys which are nearing expired but not yet fully
+    assert!(result_keys.is_ok());
+    assert_eq!(result_keys.unwrap().keys.len(), 2);
+
+    // Wait for refresh notification or timeout if never completes
+    let notify_future = esi_client.jwt_key_refresh_notifier.notified();
+    let notify_timeout = Duration::from_millis(100);
+    let notified = tokio::select! {
+        _ = notify_future => {true}
+        _ = tokio::time::sleep(notify_timeout) => {false}
+    };
+
+    // Assert notification has been received
+    assert_eq!(notified, true);
+
+    // Assert 1 request has been made to mock server
+    mock.assert();
+
+    // Assert refresh lock has been released
+    let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
+    let lock_acquired = refresh_lock.compare_exchange(
+        false,
+        true,
+        std::sync::atomic::Ordering::Acquire,
+        std::sync::atomic::Ordering::Relaxed,
+    );
+
+    assert!(!lock_acquired.is_err());
+
+    // Assert last refresh failure has been logged
+    let last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.read().await;
+    assert!(last_refresh_failure.is_some());
+
+    // Assert cache still contains expired keys
+    let cache = esi_client.jwt_keys_cache.read().await;
+
+    if let Some((_, timestamp)) = &*cache {
+        // Ensure timestamp is past default 2880 second nearing expiration mark
+        let nearing_expired = timestamp.elapsed() > std::time::Duration::from_secs(2880);
+        assert!(nearing_expired)
+    } else {
+        panic!("JWT keys cache is none, expected some keys present")
+    }
+}
+
 /// Tests the background refresh is keys are approaching expiry but backoff is present
 ///
 /// When the JWT keys present in cache are approaching expiry,
@@ -123,6 +229,8 @@ async fn test_background_refresh_approaching_expiry() {
 /// - Point the ESI client to the mock server URL for JWK endpoint
 ///
 /// # Assertions
+/// - Assert keys were returned from cache regardless of background
+///   refresh success
 /// - Assert timed out waiting for background refresh as it should
 ///   not have been started
 /// - Assert 0 requests have been made to mock server
@@ -158,7 +266,12 @@ async fn test_background_refresh_backoff() {
     esi_client.jwt_keys_last_refresh_failure = Arc::new(RwLock::new(Some(last_failure)));
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let _ = esi_client.oauth2().get_jwt_keys().await;
+    let result_keys = esi_client.oauth2().get_jwt_keys().await;
+
+    // Assert keys have been returned regardless of success since
+    // cache contains keys which are nearing expired but not yet fully
+    assert!(result_keys.is_ok());
+    assert_eq!(result_keys.unwrap().keys.len(), 2);
 
     // Wait for notification to timeout
     let notify_future = esi_client.jwt_key_refresh_notifier.notified();
@@ -189,8 +302,10 @@ async fn test_background_refresh_backoff() {
 /// - Acquire a refresh lock to simulate another thread handling the refresh
 ///
 /// # Assertions
+/// - Assert keys were returned from cache regardless of background
+///   refresh success
 /// - Assert timed out waiting for background refresh as it should
-///   not have been started.
+///   not have been started
 /// - Assert 0 requests have been made to mock server
 #[tokio::test]
 async fn test_background_refresh_already_in_progress() {
@@ -232,7 +347,12 @@ async fn test_background_refresh_already_in_progress() {
     assert!(!lock_acquired.is_err());
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let _ = esi_client.oauth2().get_jwt_keys().await;
+    let result_keys = esi_client.oauth2().get_jwt_keys().await;
+
+    // Assert keys have been returned regardless of success since
+    // cache contains keys which are nearing expired but not yet fully
+    assert!(result_keys.is_ok());
+    assert_eq!(result_keys.unwrap().keys.len(), 2);
 
     // Wait for notification to timeout
     let notify_future = esi_client.jwt_key_refresh_notifier.notified();

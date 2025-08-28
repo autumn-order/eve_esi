@@ -400,6 +400,14 @@ impl<'a> OAuth2Api<'a> {
             jwk_url
         );
 
+        // Ignore tarpaulin code coverage reports on this function
+        //
+        // There are a significant amount of inaccuracies in tarpualin reporting
+        // on this function, namely it keeps reporting `#[cfg(not(tarpaulin_include))]` itself
+        // as an uncovered line. This may be related to the usage of `tokio::spawn`.
+        //
+        // It may be possible to refactor so that this code segment properly works with tarpaulin.
+        #[cfg(not(tarpaulin_include))]
         tokio::spawn(async move {
             #[cfg(not(tarpaulin_include))]
             debug!("Background JWT key refresh task started");
