@@ -22,6 +22,7 @@ use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
+use super::jwk::fetch_jwt_keys;
 use super::util::{is_cache_approaching_expiry, is_cache_expired, should_respect_backoff};
 use super::util_cache::cache_get_keys;
 use super::util_refresh::{jwk_refresh_lock_release_and_notify, jwk_refresh_lock_try_acquire};
@@ -372,22 +373,11 @@ impl<'a> OAuth2Api<'a> {
             let result = async {
                 use crate::oauth2::jwk::util_cache::cache_update_keys;
 
+                // Fetch fresh keys from EVE's OAuth2 API
                 #[cfg(not(tarpaulin_include))]
                 debug!("Fetching fresh keys from JWK URL: {}", jwk_url);
 
-                // Fetch fresh keys from EVE's OAuth2 API
-                let response = reqwest_client.get(jwk_url.to_string()).send().await?;
-
-                #[cfg(not(tarpaulin_include))]
-                debug!("JWK response received, status: {}", response.status());
-
-                let keys = response.json::<EveJwtKeys>().await?;
-
-                #[cfg(not(tarpaulin_include))]
-                debug!(
-                    "Successfully parsed JWT keys response with {} keys",
-                    keys.keys.len()
-                );
+                let keys = fetch_jwt_keys(&reqwest_client, &jwk_url).await?;
 
                 // Update the cache with the new keys
                 #[cfg(not(tarpaulin_include))]

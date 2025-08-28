@@ -65,8 +65,12 @@ impl<'a> OAuth2Api<'a> {
 
     /// Retrieves JWT keys from EVE's OAuth2 API and updates the cache with the new keys
     ///
-    /// Note: This method does not handle the jwt_key_refresh_in_progress flag itself.
-    /// Use get_jwt_keys() instead for automatic handling of concurrent refresh attempts.
+    /// This method fetches JWT keys from EVE's OAuth2 API and immediately updates the
+    /// cache & returns the keys if successful.
+    ///
+    /// This function does not implement measures to prevent concurrent JWT key fetch
+    /// attempts, you should use [`Self::get_jwt_keys`] if you do not wish to implement
+    /// these mechanics yourself.
     ///
     /// # Returns
     /// - Result containing the JWT keys in successful, or an error if the fetch failed.
@@ -119,89 +123,108 @@ impl<'a> OAuth2Api<'a> {
         }
     }
 
-    /// Fetches JWT keys from EVE's OAuth2 API regardless of the JWT key cache state.
+    /// Fetches JWT keys from EVE's OAuth2 API
+    ///
+    /// Fetches JWT keys from EVE's OAuth2 API and returns the keys if
+    /// successful or a reqwest error if not.
+    ///
+    /// This function does not implement measures to prevent concurrent JWT key fetch
+    /// attempts, you should use [`Self::get_jwt_keys`] if you do not wish to implement
+    /// these mechanics yourself.
     ///
     /// # Returns
-    /// A Result containing the JWT keys in successful, or an error if the fetch failed.
+    /// - [`EveJwtKeys`]: a struct containing the JWT keys if successful
     ///
     /// # Errors
     /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
-        #[cfg(not(tarpaulin_include))]
-        debug!(
-            "Fetching JWT keys from EVE OAuth2 API: {}",
-            self.client.jwk_url
-        );
-
-        let start_time = Instant::now();
-
         let esi_client = self.client;
-        let reqwest_client = &esi_client.reqwest_client;
 
-        // Fetch fresh keys from EVE's OAuth2 API
-        let response = match reqwest_client
-            .get(self.client.jwk_url.to_string())
-            .send()
-            .await
-        {
-            Ok(resp) => {
-                #[cfg(not(tarpaulin_include))]
-                debug!(
-                    "Received response from JWT keys endpoint, status: {}",
-                    resp.status()
-                );
-
-                // If server response status code is an error, return an error
-                if let Err(err) = resp.error_for_status_ref() {
-                    return Err(err.into());
-                }
-
-                resp
-            }
-            // Typically connection/request related errors
-            Err(e) => {
-                let elapsed = start_time.elapsed();
-
-                #[cfg(not(tarpaulin_include))]
-                error!(
-                    "Failed to connect to JWT keys endpoint after {}ms: {:?}",
-                    elapsed.as_millis(),
-                    e
-                );
-
-                return Err(e.into());
-            }
-        };
-
-        // Convert response body into EveJwtKeys struct
-        let jwt_keys = match response.json::<EveJwtKeys>().await {
-            Ok(keys) => {
-                let elapsed = start_time.elapsed();
-
-                #[cfg(not(tarpaulin_include))]
-                debug!(
-                    "Successfully parsed JWT keys response with {} keys (took {}ms)",
-                    keys.keys.len(),
-                    elapsed.as_millis()
-                );
-
-                keys
-            }
-            // Error related to parsing the body to the EveJwtKeys struct
-            Err(e) => {
-                let elapsed = start_time.elapsed();
-
-                #[cfg(not(tarpaulin_include))]
-                error!(
-                    "Failed to parse JWT keys response after {}ms: {:?}",
-                    elapsed.as_millis(),
-                    e
-                );
-
-                return Err(e.into());
-            }
-        };
-
-        Ok(jwt_keys)
+        fetch_jwt_keys(&esi_client.reqwest_client, &esi_client.jwk_url).await
     }
+}
+
+/// Utility function for fetching jwt key
+///
+/// Fetches JWT keys from EVE's OAuth2 API and returns the keys if
+/// successful or a reqwest error if not.
+///
+/// See [`crate::oauth2::OAuth2Api::fetch_jwt_keys`] for public facing
+/// method for fetching JWT keys.
+///
+/// # Returns
+/// - [`EveJwtKeys`]: a struct containing the JWT keys if successful
+///
+/// # Errors
+/// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
+pub(super) async fn fetch_jwt_keys(
+    reqwest_client: &reqwest::Client,
+    jwk_url: &str,
+) -> Result<EveJwtKeys, EsiError> {
+    #[cfg(not(tarpaulin_include))]
+    debug!("Fetching JWT keys from EVE OAuth2 API: {}", jwk_url);
+
+    let start_time = Instant::now();
+
+    // Fetch fresh keys from EVE's OAuth2 API
+    let response = match reqwest_client.get(jwk_url.to_string()).send().await {
+        Ok(resp) => {
+            #[cfg(not(tarpaulin_include))]
+            debug!(
+                "Received response from JWT keys endpoint, status: {}",
+                resp.status()
+            );
+
+            // If server response status code is an error, return an error
+            if let Err(err) = resp.error_for_status_ref() {
+                return Err(err.into());
+            }
+
+            resp
+        }
+        // Typically connection/request related errors
+        Err(e) => {
+            let elapsed = start_time.elapsed();
+
+            #[cfg(not(tarpaulin_include))]
+            error!(
+                "Failed to connect to JWT keys endpoint after {}ms: {:?}",
+                elapsed.as_millis(),
+                e
+            );
+
+            return Err(e.into());
+        }
+    };
+
+    // Convert response body into EveJwtKeys struct
+    let jwt_keys = match response.json::<EveJwtKeys>().await {
+        Ok(keys) => {
+            let elapsed = start_time.elapsed();
+
+            #[cfg(not(tarpaulin_include))]
+            debug!(
+                "Successfully parsed JWT keys response with {} keys (took {}ms)",
+                keys.keys.len(),
+                elapsed.as_millis()
+            );
+
+            keys
+        }
+        // Error related to parsing the body to the EveJwtKeys struct
+        Err(e) => {
+            let elapsed = start_time.elapsed();
+
+            #[cfg(not(tarpaulin_include))]
+            error!(
+                "Failed to parse JWT keys response after {}ms: {:?}",
+                elapsed.as_millis(),
+                e
+            );
+
+            return Err(e.into());
+        }
+    };
+
+    Ok(jwt_keys)
 }
