@@ -36,7 +36,7 @@ use crate::builder::EsiClientBuilder;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::client::OAuth2Client;
 
-type JwtKeyCache = Arc<RwLock<Option<(EveJwtKeys, std::time::Instant)>>>;
+pub(crate) type JwtKeyCache = Arc<RwLock<Option<(EveJwtKeys, std::time::Instant)>>>;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///

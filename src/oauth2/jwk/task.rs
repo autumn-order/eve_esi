@@ -23,6 +23,7 @@ use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
 use super::util::{is_cache_approaching_expiry, is_cache_expired, should_respect_backoff};
+use super::util_cache::cache_get_keys;
 use super::util_refresh::{jwk_refresh_lock_release_and_notify, jwk_refresh_lock_try_acquire};
 
 impl<'a> OAuth2Api<'a> {
@@ -171,6 +172,7 @@ impl<'a> OAuth2Api<'a> {
         debug!("Waiting for another thread to refresh JWT keys");
 
         let start_time = Instant::now();
+        let esi_client = self.client;
 
         // Create a future that waits for the notification
         let notify_future = self.client.jwt_key_refresh_notifier.notified();
@@ -202,7 +204,7 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // Attempt to retrieve keys from cache
-        if let Some((keys, _)) = self.cache_get_keys().await {
+        if let Some((keys, _)) = cache_get_keys(&esi_client.jwt_key_cache).await {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
@@ -257,29 +259,24 @@ impl<'a> OAuth2Api<'a> {
     /// - `Some(`[`EveJwtKeys`]`)` if valid keys are found in the cache (may trigger refresh in background)
     /// - [`None`] if keys are not found in the cache or are expired
     pub(super) async fn check_cache_and_trigger_background_refresh(&self) -> Option<EveJwtKeys> {
-        let esi_client = self.client;
-
         #[cfg(not(tarpaulin_include))]
         debug!("Checking JWT keys cache state");
 
+        let esi_client = self.client;
+
         // Retrieve keys from cache
-        let keys = self.cache_get_keys().await;
+        let keys = cache_get_keys(&esi_client.jwt_key_cache).await;
 
         if let Some((keys, timestamp)) = keys {
             // Check if we should run a background refresh task
             let elapsed_seconds = timestamp.elapsed().as_secs();
-            let is_approaching_expiry =
-                is_cache_approaching_expiry(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
 
-            if is_approaching_expiry {
+            if is_cache_approaching_expiry(&esi_client.jwt_keys_cache_ttl, elapsed_seconds) {
                 #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
                 // Check if we should respect a backoff period due to previous failure
-                let should_respect_backoff =
-                    should_respect_backoff(&esi_client.jwt_keys_last_refresh_failure).await;
-
-                if should_respect_backoff {
+                if should_respect_backoff(&esi_client.jwt_keys_last_refresh_failure).await {
                     #[cfg(not(tarpaulin_include))]
                     debug!("Respecting backoff period, delaying JWT key refresh");
                 } else if jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock) {
@@ -345,7 +342,7 @@ impl<'a> OAuth2Api<'a> {
 
         // Clone the required components
         let reqwest_client = esi_client.reqwest_client.clone();
-        let jwt_keys_cache = esi_client.jwt_key_cache.clone();
+        let jwt_key_cache = esi_client.jwt_key_cache.clone();
         let jwk_url = esi_client.jwk_url.clone();
         let refresh_lock = esi_client.jwt_key_refresh_lock.clone();
         let refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
@@ -373,6 +370,8 @@ impl<'a> OAuth2Api<'a> {
             let start_time = std::time::Instant::now();
 
             let result = async {
+                use crate::oauth2::jwk::util_cache::cache_update_keys;
+
                 #[cfg(not(tarpaulin_include))]
                 debug!("Fetching fresh keys from JWK URL: {}", jwk_url);
 
@@ -382,26 +381,19 @@ impl<'a> OAuth2Api<'a> {
                 #[cfg(not(tarpaulin_include))]
                 debug!("JWK response received, status: {}", response.status());
 
-                let fresh_keys = response.json::<EveJwtKeys>().await?;
+                let keys = response.json::<EveJwtKeys>().await?;
 
                 #[cfg(not(tarpaulin_include))]
                 debug!(
                     "Successfully parsed JWT keys response with {} keys",
-                    fresh_keys.keys.len()
+                    keys.keys.len()
                 );
 
                 // Update the cache with the new keys
                 #[cfg(not(tarpaulin_include))]
                 debug!("Acquiring write lock for JWT keys cache update");
 
-                {
-                    let mut cache = jwt_keys_cache.write().await;
-                    let keys_count = fresh_keys.keys.len();
-                    *cache = Some((fresh_keys, Instant::now()));
-
-                    #[cfg(not(tarpaulin_include))]
-                    debug!("JWT keys cache updated with {} keys", keys_count);
-                }
+                cache_update_keys(&jwt_key_cache, keys).await;
 
                 Ok::<_, EsiError>(())
             }

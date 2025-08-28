@@ -16,6 +16,7 @@ use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
+use super::util_cache::cache_update_keys;
 use super::util_refresh::jwk_refresh_lock_try_acquire;
 
 impl<'a> OAuth2Api<'a> {
@@ -76,6 +77,7 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         debug!("Fetching fresh JWT keys and updating cache");
 
+        let esi_client = self.client;
         let start_time = Instant::now();
 
         // Fetch fresh keys from EVE's OAuth2 API
@@ -90,7 +92,7 @@ impl<'a> OAuth2Api<'a> {
                 );
 
                 // Update the cache with the new keys
-                self.cache_update_keys(fresh_keys.clone()).await;
+                cache_update_keys(&esi_client.jwt_key_cache, fresh_keys.clone()).await;
 
                 let elapsed = start_time.elapsed();
 
