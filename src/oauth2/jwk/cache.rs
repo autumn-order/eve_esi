@@ -214,7 +214,7 @@ impl<'a> OAuth2Api<'a> {
     ///
     /// ## Utility
     /// - [`Self::wait_for_ongoing_refresh`]: Method used by threads waiting for notification
-    pub(super) fn cache_lock_release_and_notify(&self) {
+    pub(super) fn jwk_refresh_lock_release_and_notify(&self) {
         let esi_client = self.client;
         let refresh_lock = &esi_client.jwt_key_refresh_in_progress;
 
@@ -433,7 +433,7 @@ mod cache_lock_release_and_notify_tests {
     /// - Assert that lock release notification was received
     /// - Assert that lock has been properly released
     #[tokio::test]
-    async fn test_cache_lock_release_and_notify_success() {
+    async fn test_jwk_refresh_lock_release_and_notify_success() {
         // Setup basic EsiClient
         let esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
@@ -459,7 +459,7 @@ mod cache_lock_release_and_notify_tests {
         let timeout = tokio::time::sleep(Duration::from_millis(50));
 
         // Release and notify
-        esi_client.oauth2().cache_lock_release_and_notify();
+        esi_client.oauth2().jwk_refresh_lock_release_and_notify();
 
         let notified = tokio::select! {
             _ = notification => {

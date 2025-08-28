@@ -112,7 +112,7 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // Always release the lock
-        self.cache_lock_release_and_notify();
+        self.jwk_refresh_lock_release_and_notify();
 
         // Return the result or error
         match result {
