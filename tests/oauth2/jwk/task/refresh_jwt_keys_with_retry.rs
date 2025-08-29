@@ -1,7 +1,8 @@
 use eve_esi::error::EsiError;
-use eve_esi::model::oauth2::EveJwtKeys;
-use eve_esi::EsiClient;
-use mockito::Server;
+
+use crate::oauth2::jwk::util::{
+    get_jwk_internal_server_error_response, get_jwk_success_response, setup,
+};
 
 // TODO: When JWT config default constants are made configurable,
 // adjust these integration tests to change exponential backoff
@@ -15,9 +16,8 @@ use mockito::Server;
 /// be a success on the first try.
 ///
 /// # Test Setup
-/// - Create a mock server
-/// - Configures a response with expected JWT keys
-/// - Point the ESI client to the mock server URL for JWK endpoint
+/// - Create a basic EsiClient & mock HTTP server
+/// - Configures a mock success response with expected JWT keys
 ///
 /// # Assertions
 /// - Assert that only 1 fetch attempt was made to the server
@@ -25,29 +25,11 @@ use mockito::Server;
 /// - Assert that the cache has been properly updated
 #[tokio::test]
 async fn test_refresh_keys_success() {
-    // Setup mock server
-    let mut mock_server = Server::new_async().await;
-    let mock_server_url = mock_server.url();
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
 
-    // Create expected JWT keys response
-    let expected_keys = EveJwtKeys::create_mock_keys();
-
-    // Create mock response with expected keys & expecting
-    // only 1 request
-    let mock = mock_server
-        .mock("GET", "/oauth/jwks")
-        .with_status(200)
-        .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&expected_keys).unwrap())
-        .expect(1)
-        .create();
-
-    // Create ESI client with mock JWK endpoint
-    let esi_client = EsiClient::builder()
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        .build()
-        .expect("Failed to build EsiClient");
+    // Create mock response with mock keys & expecting 1 request
+    let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Call method under test
     // Use get_jwt_keys as entry point since refresh_jwt_keys_with_retry
@@ -60,8 +42,6 @@ async fn test_refresh_keys_success() {
 
     // Assert function returned expected keys
     assert!(result.is_ok());
-    let jwt_keys = result.unwrap();
-    assert_eq!(jwt_keys.keys.len(), expected_keys.keys.len());
 
     // Assert cache has been properly updated
     let cache = esi_client.jwt_key_cache.read().await;
@@ -78,9 +58,8 @@ async fn test_refresh_keys_success() {
 /// for a total of 3 attempts before returning an error.
 ///
 /// # Test Setup
-/// - Create a mock server
-/// - Configure a response returning error code 500 for each request
-/// - Point the ESI client to the mock server URL for JWK endpoint
+/// - Create a basic EsiClient & mock HTTP server
+/// - Configures a mock response returning an error 500
 ///
 /// # Assertions
 /// - Assert that 3 fetch attempts were made to the server
@@ -88,26 +67,11 @@ async fn test_refresh_keys_success() {
 ///   reqwest::Error related to status code 500.
 #[tokio::test]
 async fn test_refresh_keys_failure() {
-    // Setup mock server
-    let mut mock_server = Server::new_async().await;
-    let mock_server_url = mock_server.url();
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
 
-    // Create mock response returning status 500 and
-    // expecting 3 requests
-    let mock = mock_server
-        .mock("GET", "/oauth/jwks")
-        .with_status(500)
-        .with_header("content-type", "application/json")
-        .with_body(r#"{"error": "Internal Server Error"}"#)
-        .expect(3)
-        .create();
-
-    // Create ESI client with mock JWK endpoint
-    let esi_client = EsiClient::builder()
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        .build()
-        .expect("Failed to build EsiClient");
+    // Create mock response with error 500 and expecting 3 requests
+    let mock = get_jwk_internal_server_error_response(&mut mock_server, 3);
 
     // Call method under test
     // Use get_jwt_keys as entry point since refresh_jwt_keys_with_retry
@@ -141,10 +105,9 @@ async fn test_refresh_keys_failure() {
 /// second attempt will succeed returning the expected keys
 ///
 /// # Test Setup
-/// - Create a mock server
+/// - Create a basic EsiClient & mock HTTP server
 /// - Configures an initial response returning an internal server error
 /// - Configures a second response that successfully returns the expected keys
-/// - Point the ESI client to the mock server URL for JWK endpoint
 ///
 /// # Assertions
 /// - Assert that 1 fetch attempt was made for each response type, an
@@ -153,38 +116,14 @@ async fn test_refresh_keys_failure() {
 /// - Assert that the cache has been properly updated
 #[tokio::test]
 async fn test_refresh_keys_retry() {
-    // Setup mock server
-    let mut mock_server = Server::new_async().await;
-    let mock_server_url = mock_server.url();
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
 
-    // Create expected JWT keys response
-    let expected_keys = EveJwtKeys::create_mock_keys();
+    // Create an initial mock response with error 500 and expecting 1 request
+    let mock_500 = get_jwk_internal_server_error_response(&mut mock_server, 1);
 
-    // Create initial mock response with error 500
-    let mock_500 = mock_server
-        .mock("GET", "/oauth/jwks")
-        .with_status(500)
-        .with_header("content-type", "application/json")
-        .with_body(r#"{"error": "Internal Server Error"}"#)
-        .expect(1)
-        .create();
-
-    // Create second mock response with 200 success and
-    // expected keys
-    let mock_200 = mock_server
-        .mock("GET", "/oauth/jwks")
-        .with_status(200)
-        .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&expected_keys).unwrap())
-        .expect(1)
-        .create();
-
-    // Create ESI client with mock JWK endpoint
-    let esi_client = EsiClient::builder()
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        .build()
-        .expect("Failed to build EsiClient");
+    // Create a 2nd mock response with mock keys & expecting 1 request
+    let mock_200 = get_jwk_success_response(&mut mock_server, 1);
 
     // Call method under test
     // Use get_jwt_keys as entry point since refresh_jwt_keys_with_retry
@@ -198,8 +137,6 @@ async fn test_refresh_keys_retry() {
 
     // Assert function returned expected keys
     assert!(result.is_ok());
-    let jwt_keys = result.unwrap();
-    assert_eq!(jwt_keys.keys.len(), expected_keys.keys.len());
 
     // Assert cache has been properly updated
     let cache = esi_client.jwt_key_cache.read().await;

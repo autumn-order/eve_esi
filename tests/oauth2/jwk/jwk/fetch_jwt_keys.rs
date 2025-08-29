@@ -59,7 +59,7 @@ async fn fetch_jwt_keys_success() {
 ///
 /// # Test Setup
 /// - Create a basic EsiClient & mock HTTP server
-/// - Configures a mock response returning an error 500
+/// - Configures a mock response returning an error 500 and expecting 1 request
 ///
 /// # Assertions
 /// - Assert mock server received 1 expected request
