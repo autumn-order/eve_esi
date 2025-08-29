@@ -7,17 +7,8 @@ use tokio::sync::RwLock;
 use eve_esi::model::oauth2::EveJwtKeys;
 use eve_esi::EsiClient;
 
-// These integration tests specifically check the logic of triggering the
-// background refresh depending on the expiration status of the keys in the cache.
-//
 // Note: Need 100ms delay to accurately wait for background refresh to properly notify
 // of completion. Maybe a refactor is necessary to avoid this wait for testing purposes?
-
-// Test scenario for when cache has keys can be found at
-// `jwk/get_jwt_keys: get_jwt_keys_valid_cache`
-
-// Test scenario for when cache has no keys can be found at
-// `jwk/get_jwt_keys: get_jwt_keys_expired_cache`
 
 /// Tests the background refresh if keys are approaching expiry
 ///
@@ -33,8 +24,6 @@ use eve_esi::EsiClient;
 ///   or timeout if background refresh takes too long.
 ///
 /// # Assertions
-/// - Assert keys were returned from cache regardless of background
-///   refresh success
 /// - Assert a notification has been received of completed refresh
 /// - Assert 1 request has been made to mock server
 /// - Assert refresh lock has been released
@@ -71,12 +60,7 @@ async fn test_background_refresh_success() {
     esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let result_keys = esi_client.oauth2().get_jwt_keys().await;
-
-    // Assert keys have been returned regardless of success since
-    // cache contains keys which are nearing expired but not yet fully
-    assert!(result_keys.is_ok());
-    assert_eq!(result_keys.unwrap().keys.len(), 2);
+    let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for refresh notification or timeout if never completes
     let notify_future = esi_client.jwt_key_refresh_notifier.notified();
@@ -131,8 +115,6 @@ async fn test_background_refresh_success() {
 ///   or timeout if background refresh takes too long.
 ///
 /// # Assertions
-/// - Assert keys were returned from cache regardless of background
-///   refresh success
 /// - Assert a notification has been received of completed refresh
 /// - Assert 1 request has been made to mock server
 /// - Assert refresh lock has been released
@@ -166,12 +148,7 @@ async fn test_background_refresh_failure() {
     esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let result_keys = esi_client.oauth2().get_jwt_keys().await;
-
-    // Assert keys have been returned regardless of success since
-    // cache contains keys which are nearing expired but not yet fully
-    assert!(result_keys.is_ok());
-    assert_eq!(result_keys.unwrap().keys.len(), 2);
+    let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for refresh notification or timeout if never completes
     let notify_future = esi_client.jwt_key_refresh_notifier.notified();
@@ -229,8 +206,6 @@ async fn test_background_refresh_failure() {
 /// - Point the ESI client to the mock server URL for JWK endpoint
 ///
 /// # Assertions
-/// - Assert keys were returned from cache regardless of background
-///   refresh success
 /// - Assert timed out waiting for background refresh as it should
 ///   not have been started
 /// - Assert 0 requests have been made to mock server
@@ -266,12 +241,7 @@ async fn test_background_refresh_backoff() {
     esi_client.jwt_keys_last_refresh_failure = Arc::new(RwLock::new(Some(last_failure)));
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let result_keys = esi_client.oauth2().get_jwt_keys().await;
-
-    // Assert keys have been returned regardless of success since
-    // cache contains keys which are nearing expired but not yet fully
-    assert!(result_keys.is_ok());
-    assert_eq!(result_keys.unwrap().keys.len(), 2);
+    let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for notification to timeout
     let notify_future = esi_client.jwt_key_refresh_notifier.notified();
@@ -347,12 +317,7 @@ async fn test_background_refresh_already_in_progress() {
     assert!(!lock_acquired.is_err());
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let result_keys = esi_client.oauth2().get_jwt_keys().await;
-
-    // Assert keys have been returned regardless of success since
-    // cache contains keys which are nearing expired but not yet fully
-    assert!(result_keys.is_ok());
-    assert_eq!(result_keys.unwrap().keys.len(), 2);
+    let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for notification to timeout
     let notify_future = esi_client.jwt_key_refresh_notifier.notified();

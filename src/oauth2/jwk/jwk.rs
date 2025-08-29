@@ -14,6 +14,8 @@ use std::time::Instant;
 
 use crate::error::EsiError;
 use crate::model::oauth2::EveJwtKeys;
+use crate::oauth2::jwk::util::{is_cache_approaching_expiry, is_cache_expired};
+use crate::oauth2::jwk::util_cache::cache_get_keys;
 use crate::oauth2::OAuth2Api;
 
 use super::util_cache::cache_update_keys;
@@ -25,30 +27,71 @@ impl<'a> OAuth2Api<'a> {
     /// This method returns JWT keys from the cache if available and not expired,
     /// otherwise it fetches fresh keys from EVE's OAuth2 API and updates the cache.
     ///
-    /// If the cache is 80% to expiration, it will start a background task to refresh the keys
-    /// proactively. This method prevents multiple concurrent refresh attempts by using an atomic
+    /// If the cache is 80% to expiration by default, it will start a background task to refresh the
+    /// keys proactively. This method prevents multiple concurrent refresh attempts by using an atomic
     /// flag. If a refresh is already in progress when this method is called, it will wait
     /// briefly and retry getting the keys from cache.
     ///
+    /// # Implementation Details
+    /// - Uses a read lock on the cache to check current state without blocking other readers
+    /// - Implements the "refresh ahead" pattern to update cache before key expiry
+    /// - If keys are expired, attempts to acquire a lock to refresh the keys
+    /// - If a refresh lock is already in place, waits for notification of a completed
+    ///   refresh and then returns the keys from the cache if successful.
+    ///
+    /// # Thread Safety
+    /// This method is thread-safe and can be called concurrently by multiple threads.
+    /// It uses appropriate locking to ensure consistency when reading the cache while
+    /// preventing multiple simultaneous refresh operations.
+    ///
     /// # Returns
-    /// - A Result containing the JWT keys in successful, or an error if the fetch failed.
+    /// - [`EveJwtKeys`]: A Result containing the JWT keys if successful
     ///
     /// # Errors
-    /// - Returns an error if the JWT key cache is empty and new keys could not be fetched.
+    /// - [`EsiError]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
 
-        #[cfg(not(tarpaulin_include))]
-        debug!("Retrieving JWT keys");
-
         // Check if we have valid keys in the cache
-        // If the cache is (80% to expiration) out of (1 hour), start a background task to refresh the keys
-        if let Some(keys) = self.check_cache_and_trigger_background_refresh().await {
-            return Ok(keys);
-        }
-
         #[cfg(not(tarpaulin_include))]
-        debug!("JWT keys not available in cache or expired");
+        debug!("Checking JWT keys cache state");
+
+        if let Some((keys, timestamp)) = cache_get_keys(&esi_client.jwt_key_cache).await {
+            let elapsed_seconds = timestamp.elapsed().as_secs();
+            let cache_ttl = &esi_client.jwt_keys_cache_ttl;
+
+            // If the cache is not expired return the keys
+            if !is_cache_expired(cache_ttl, elapsed_seconds) {
+                // If the cache is approaching expiry, trigger a background refresh
+                if is_cache_approaching_expiry(cache_ttl, elapsed_seconds) {
+                    #[cfg(not(tarpaulin_include))]
+                    debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
+
+                    // If the cache is 80% to expiration out of 1 hour, start a refresh
+                    // This function will also check:
+                    // - If a refresh failure occurred recently within backoff period of 100ms
+                    // - If a refresh is already progress, if so it won't spawn another refresh task
+                    let _ = self.trigger_background_jwt_refresh().await;
+                }
+
+                #[cfg(not(tarpaulin_include))]
+                debug!(
+                    "JWT keys still valid, using keys from cache (age: {}s)",
+                    elapsed_seconds
+                );
+
+                return Ok(keys);
+            } else {
+                #[cfg(not(tarpaulin_include))]
+                debug!(
+                    "JWT key cache expired (age: {}s)",
+                    timestamp.elapsed().as_secs()
+                );
+            }
+        } else {
+            #[cfg(not(tarpaulin_include))]
+            debug!("JWT key cache is currently empty");
+        };
 
         // If we got here, JWT key cache is missing or expired
         // Check if the keys are already being refreshed on another thread
