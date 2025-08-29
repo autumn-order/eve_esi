@@ -1,55 +1,44 @@
 use eve_esi::error::EsiError;
-use eve_esi::model::oauth2::{EveJwtKey, EveJwtKeys};
+use eve_esi::model::oauth2::EveJwtKey;
 use eve_esi::EsiClient;
-use mockito::Server;
+
+use crate::oauth2::jwk::util::{
+    get_jwk_internal_server_error_response, get_jwk_success_response, setup,
+};
 
 /// Tests the successful retrieval of JWT keys from a mock EVE SSO server.
 ///
 /// # Test Setup
-/// - Creates a mock server to simulate the EVE JWK endpoint
-/// - Configures a mock response with expected JWT keys
-/// - Point the ESI client to the mock server URL for JWK endpoint
+/// - Create a basic EsiClient & mock HTTP server
+/// - Configures a mock success response with expected JWT keys
 ///
 /// # Assertions
-/// - Verifies that fetch request was made
-/// - Verifies that the returned JWT keys match the expected keys
+/// - Assert that 1 fetch request was made to mock server
+/// - Assert result is Ok
+/// - Assert response returned expected mock keys
+/// - Assert we have at least 1 key of expected type
 #[tokio::test]
 async fn fetch_jwt_keys_success() {
-    // Setup mock server
-    let mut mock_server = Server::new_async().await;
-    let mock_server_url = mock_server.url();
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
 
-    // Create expected JWT keys response
-    let expected_keys = EveJwtKeys::create_mock_keys();
-
-    // Create mock response
-    let mock = mock_server
-        .mock("GET", "/oauth/jwks")
-        .with_status(200)
-        .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&expected_keys).unwrap())
-        .create();
-
-    // Create ESI client with mock JWK endpoint
-    let esi_client = EsiClient::builder()
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        .build()
-        .expect("Failed to build EsiClient");
+    // Create mock response with mock keys & expecting 1 request
+    let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Call the fetch_jwt_keys method
     let result = esi_client.oauth2().fetch_jwt_keys().await;
 
-    // Assert
+    // Assert mock server received 1 expected fetch request
     mock.assert();
+
+    // Assert result is Ok
     assert!(result.is_ok());
 
+    // Assert response returned expected mock keys
     let jwt_keys = result.unwrap();
-    assert_eq!(
-        jwt_keys.skip_unresolved_json_web_keys,
-        expected_keys.skip_unresolved_json_web_keys
-    );
-    assert_eq!(jwt_keys.keys.len(), expected_keys.keys.len());
+
+    assert_eq!(jwt_keys.skip_unresolved_json_web_keys, false);
+    assert_eq!(jwt_keys.keys.len(), 2);
 
     // Check if we have at least one key of each type
     let has_rs256 = jwt_keys
@@ -61,6 +50,7 @@ async fn fetch_jwt_keys_success() {
         .iter()
         .any(|key| matches!(key, EveJwtKey::ES256 { .. }));
 
+    // Assert we have 1 of each expected key type
     assert!(has_rs256, "Expected at least one RS256 key");
     assert!(has_es256, "Expected at least one ES256 key");
 }
@@ -68,44 +58,33 @@ async fn fetch_jwt_keys_success() {
 /// Tests error handling when retrieving JWT keys from a failing EVE SSO server.
 ///
 /// # Test Setup
-/// - Creates a mock server to simulate the EVE JWK endpoint
-/// - Configures a mock response with a 500 server error
-/// - Points the ESI client to the mock server URL for JWK endpoint
+/// - Create a basic EsiClient & mock HTTP server
+/// - Configures a mock response returning an error 500
 ///
 /// # Assertions
-/// - Verifies that the returned error is of type ReqwestError
-///   and is related to a status code 500 error.
+/// - Assert mock server received 1 expected request
+/// - Assert result is error
+/// - Assert error is of type [`reqwest::StatusCode::INTERNAL_SERVER_ERROR`]
 #[tokio::test]
 async fn fetch_jwt_keys_server_error() {
-    // Setup mock server
-    let mut mock_server = Server::new_async().await;
-    let mock_server_url = mock_server.url();
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
 
-    // Create mock response with error
-    let mock = mock_server
-        .mock("GET", "/oauth/jwks")
-        .with_status(500)
-        .with_header("content-type", "application/json")
-        .with_body(r#"{"error": "Internal Server Error"}"#)
-        .create();
-
-    // Create ESI client with mock JWK endpoint
-    let esi_client = EsiClient::builder()
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        .build()
-        .expect("Failed to build EsiClient");
+    // Create mock response with error 500 and expecting 1 request
+    let mock = get_jwk_internal_server_error_response(&mut mock_server, 1);
 
     // Call the fetch_jwt_keys method
     let result = esi_client.oauth2().fetch_jwt_keys().await;
 
-    // Assert
+    // Assert mock server received 1 expected fetch request
     mock.assert();
+
+    // Assert result is error
     assert!(result.is_err());
 
     match result {
         Err(EsiError::ReqwestError(err)) => {
-            // Ensure reqwest error is of type 500 server error
+            // Assert error is reqwest error of type 500 internal server error
             assert!(err.is_status());
             assert_eq!(
                 err.status(),
@@ -122,14 +101,13 @@ async fn fetch_jwt_keys_server_error() {
 /// - Create an ESI client with a JWK url set to an invalid endpoint
 ///
 /// # Assertions
-/// - Verifies that the returned error is of type ReqwestError
-///   and is related to a connection issue.
+/// - Assert result is error
+/// - Assert error is related to a reqwest connection issue
 #[tokio::test]
 async fn fetch_jwt_keys_network_error() {
-    // Create ESI client with mock JWK endpoint
+    // Create ESI client with invalid mock JWK endpoint
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
-        // Set JWK url to an invalid endpoint
         .jwk_url(&format!("http://127.0.0.1"))
         .build()
         .expect("Failed to build EsiClient");
@@ -137,12 +115,12 @@ async fn fetch_jwt_keys_network_error() {
     // Call the fetch_jwt_keys method
     let result = esi_client.oauth2().fetch_jwt_keys().await;
 
-    // Assert
+    // Assert result is error
     assert!(result.is_err());
 
     match result {
         Err(EsiError::ReqwestError(err)) => {
-            // Ensure reqwest error is related to a connection issue
+            // Assert reqwest error is related to a connection issue
             assert!(err.is_connect())
         }
         _ => panic!("Expected ReqwestError, got different error type"),
@@ -152,21 +130,19 @@ async fn fetch_jwt_keys_network_error() {
 /// Tests error handling when server returns an invalid response body
 ///
 /// # Test Setup
-/// - Creates a mock server to simulate the EVE JWK endpoint
-/// - Configures a mock response with an unexpected response body
-/// - Points the ESI client to the mock server URL for JWK endpoint
+/// - Create a basic EsiClient & mock HTTP server
+/// - Configures a mock success response with an unexpected response body
 ///
 /// # Assertions
-/// - Verifies that fetch request was made
-/// - Verifies that the returned error is of type ReqwestError
-///   and is related to a decoding issue.
+/// - Assert mock server received 1 expected fetch request
+/// - Assert fetch result is error
+/// - Assert error is of type [`reqwest::error::Kind::Decode`]
 #[tokio::test]
 async fn fetch_jwt_keys_parse_error() {
-    // Setup mock server
-    let mut mock_server = Server::new_async().await;
-    let mock_server_url = mock_server.url();
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
 
-    // Create mock response with error
+    // Create mock success response with unexpected body
     let mock = mock_server
         .mock("GET", "/oauth/jwks")
         .with_status(200)
@@ -174,23 +150,18 @@ async fn fetch_jwt_keys_parse_error() {
         .with_body(r#"{"message": "Unexpected response body"}"#)
         .create();
 
-    // Create ESI client with mock JWK endpoint
-    let esi_client = EsiClient::builder()
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        .build()
-        .expect("Failed to build EsiClient");
-
     // Call the fetch_jwt_keys method
     let result = esi_client.oauth2().fetch_jwt_keys().await;
 
-    // Assert
+    // Assert mock server received 1 expected fetch request
     mock.assert();
+
+    // Assert result is error
     assert!(result.is_err());
 
     match result {
         Err(EsiError::ReqwestError(err)) => {
-            // Ensure reqwest error is related to decoding the body
+            // Assert reqwest error is related to decoding the body
             assert!(err.is_decode())
         }
         _ => panic!("Expected ReqwestError, got different error type"),
