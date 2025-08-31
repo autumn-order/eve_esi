@@ -34,8 +34,9 @@ use tokio::sync::{Notify, RwLock};
 
 use crate::builder::EsiClientBuilder;
 use crate::model::oauth2::EveJwtKeys;
-use crate::oauth2::client::OAuth2Client;
-use crate::oauth2::config::OAuth2Config;
+
+use crate::oauth2::config::client::OAuth2Client;
+use crate::oauth2::OAuth2Config;
 
 pub(crate) type JwtKeyCache = RwLock<Option<(EveJwtKeys, std::time::Instant)>>;
 

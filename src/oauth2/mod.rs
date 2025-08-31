@@ -8,9 +8,12 @@
 //!
 //! # Modules
 //!
-//! - [`auth`](crate::endpoints::auth)
-//! - [`scope`](crate::endpoints::scope)
-//! - [`token`](crate::endpoints::token)
+//! - [`login`]: Methods to begin the OAuth2 login process
+//! - [`token`]: Methods to retrieve, validate, & refresh OAuth2 tokens
+//! - [`scope`]: Builder to create scopes to request during the login process
+//! - [`config`]: Config to override default OAuth2 behavior
+//! - [`jwk`]: Methods to handle JSON web keys used to validate authentication tokens
+//! - [`error`]: Error enum for any OAuth2 related errors.
 //!
 //! # Example
 //! ```
@@ -40,9 +43,7 @@ pub mod login;
 pub mod scope;
 pub mod token;
 
-pub(crate) mod client;
-
-pub use config::OAuth2Config;
+pub use config::config::OAuth2Config;
 pub use scope::ScopeBuilder;
 
 use crate::EsiClient;
