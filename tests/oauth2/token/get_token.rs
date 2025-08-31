@@ -1,16 +1,19 @@
 use mockito::Server;
 use oauth2::RequestTokenError;
 
-use super::util::create_mock_token;
 use eve_esi::error::{EsiError, OAuthError};
+use eve_esi::oauth2::OAuth2Config;
 use eve_esi::EsiClient;
+
+use super::util::create_mock_token;
 
 /// Tests the successful retrieval of an OAuth2 token
 ///
 /// # Setup
 /// - Creates a mock server to simulate the OAuth2 token endpoint
 /// - Configures a mock response with a successful token response
-/// - Points the ESI client to the mock server URL for JWK endpoint
+/// - Create an [`OAuth2Config`] with the `token_url` set to the mock server
+/// - Create an EsiClient using the custom [`OAuth2Config`]
 ///
 /// # Assertions
 /// - Verifies that a request has been made to the mock server
@@ -30,13 +33,18 @@ pub async fn test_get_token_success() {
         .with_body(serde_json::to_string(&mock_token).unwrap())
         .create();
 
+    // Create an OAuth2 config using the mock token endpoint
+    let config = OAuth2Config::builder()
+        .token_url(&format!("{}/v2/oauth/token", mock_server_url))
+        .build();
+
     // Create ESI client with mock token endpoint
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
         .client_id("client_id")
         .client_secret("client_secret")
         .callback_url("http://localhost:8000/callback")
-        .token_url(&format!("{}/v2/oauth/token", mock_server_url))
+        .oauth2_config(config)
         .build()
         .expect("Failed to build EsiClient");
 
@@ -71,13 +79,18 @@ pub async fn test_get_token_error() {
         .with_body(r#"{"error": "invalid_request"}"#)
         .create();
 
+    // Create an OAuth2 config using the mock token endpoint
+    let config = OAuth2Config::builder()
+        .token_url(&format!("{}/v2/oauth/token", mock_server_url))
+        .build();
+
     // Create ESI client with mock token endpoint
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
         .client_id("client_id")
         .client_secret("client_secret")
         .callback_url("http://localhost:8000/callback")
-        .token_url(&format!("{}/v2/oauth/token", mock_server_url))
+        .oauth2_config(config)
         .build()
         .expect("Failed to build EsiClient");
 
@@ -119,10 +132,15 @@ pub async fn test_get_token_oauth_client_missing() {
         .with_body(serde_json::to_string(&mock_token).unwrap())
         .create();
 
+    // Create an OAuth2 config using the mock token endpoint
+    let config = OAuth2Config::builder()
+        .token_url(&format!("{}/v2/oauth/token", mock_server_url))
+        .build();
+
     // Create ESI client with mock token endpoint
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
-        .token_url(&format!("{}/v2/oauth/token", mock_server_url))
+        .oauth2_config(config)
         .build()
         .expect("Failed to build EsiClient");
 

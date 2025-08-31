@@ -35,30 +35,34 @@ use tokio::sync::{Notify, RwLock};
 use crate::builder::EsiClientBuilder;
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::client::OAuth2Client;
+use crate::oauth2::config::OAuth2Config;
 
-pub(crate) type JwtKeyCache = Arc<RwLock<Option<(EveJwtKeys, std::time::Instant)>>>;
+pub(crate) type JwtKeyCache = RwLock<Option<(EveJwtKeys, std::time::Instant)>>;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
-/// Use this struct to configure authentication and make requests to ESI endpoints.
+/// Use this struct to configure OAuth2 authentication and make requests to ESI endpoints.
+///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
     pub(crate) reqwest_client: reqwest::Client,
-    pub(crate) oauth_client: Option<OAuth2Client>,
     pub(crate) esi_url: String,
-    pub(crate) jwk_url: String,
-    /// Cache TTL for JWT keys in seconds.
-    pub jwt_keys_cache_ttl: u64,
 
+    // OAuth2
+    pub(crate) oauth_client: Option<OAuth2Client>,
+    pub(crate) oauth2_config: OAuth2Config,
+
+    // OAuth2 JWT key cache
+    //
     // Use an Arc to share the cache & refresh status between threads
     // This is necessary for the background JWT key refresh task spawned when calling the
     // `get_jwt_keys` method in `oauth2/jwk.rs`.
     /// Cache for JWT keys used to validate tokens from EVE Online's OAuth2 API.
     ///
-    /// Consider using the [`get_jwt_keys`] method to retrieve the keys from the cache &
+    /// Consider using the [`crate::oauth2::OAuth2Api::get_jwt_keys`] method to retrieve the keys from the cache &
     /// automatically refresh them when expired.
     /// Direct modification of this field is typically only for testing purposes.
-    pub jwt_key_cache: JwtKeyCache,
+    pub jwt_key_cache: Arc<JwtKeyCache>,
     /// Lock indicating whether a JWT key refresh is currently in progress to prevent concurrent refreshes.
     pub jwt_key_refresh_lock: Arc<AtomicBool>,
     /// Notifier for JWT key refresh completion.
@@ -78,7 +82,7 @@ impl EsiClient {
 
 #[cfg(test)]
 mod tests {
-    use crate::constant::{DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL};
+    use crate::constant::DEFAULT_ESI_URL;
 
     use super::*;
 
@@ -97,9 +101,6 @@ mod tests {
 
         // Verify the builder has expected default values
         assert_eq!(builder.esi_url, DEFAULT_ESI_URL);
-        assert_eq!(builder.auth_url, DEFAULT_AUTH_URL);
-        assert_eq!(builder.token_url, DEFAULT_TOKEN_URL);
-        assert_eq!(builder.jwk_url, DEFAULT_JWK_URL);
         assert!(builder.user_agent.is_none());
         assert!(builder.client_id.is_none());
         assert!(builder.client_secret.is_none());

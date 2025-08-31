@@ -1,6 +1,6 @@
-use eve_esi::error::EsiError;
 use eve_esi::model::oauth2::EveJwtKey;
 use eve_esi::EsiClient;
+use eve_esi::{error::EsiError, oauth2::OAuth2Config};
 
 use crate::oauth2::jwk::util::{
     get_jwk_internal_server_error_response, get_jwk_success_response, setup,
@@ -98,17 +98,23 @@ async fn fetch_jwt_keys_server_error() {
 /// Tests error handling when a network error occurs requesting JWT keys.
 ///
 /// # Test Setup
-/// - Create an ESI client with a JWK url set to an invalid endpoint
+/// - Create a custom OAuth2 config with the JWK URL set to an invalid endpoint
+/// - Create an EsiClient with the custom OAuth2 config
 ///
 /// # Assertions
 /// - Assert result is error
 /// - Assert error is related to a reqwest connection issue
 #[tokio::test]
 async fn fetch_jwt_keys_network_error() {
-    // Create ESI client with invalid mock JWK endpoint
+    // Create OAuth2 config with an invalid JWK URL
+    let config = OAuth2Config::builder()
+        .jwk_url(&format!("http://127.0.0.1"))
+        .build();
+
+    // Create ESI client with the custom OAuth2 config
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("http://127.0.0.1"))
+        .oauth2_config(config)
         .build()
         .expect("Failed to build EsiClient");
 

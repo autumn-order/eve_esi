@@ -308,7 +308,8 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result =
+            is_cache_approaching_expiry(&esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -338,7 +339,8 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result =
+            is_cache_approaching_expiry(&esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
 
         // Assert false
         assert_eq!(result, false)
@@ -374,7 +376,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -404,7 +406,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, false)

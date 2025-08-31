@@ -58,7 +58,7 @@ impl<'a> OAuth2Api<'a> {
 
         if let Some((keys, timestamp)) = cache_get_keys(&esi_client.jwt_key_cache).await {
             let elapsed_seconds = timestamp.elapsed().as_secs();
-            let cache_ttl = &esi_client.jwt_keys_cache_ttl;
+            let cache_ttl = &esi_client.oauth2_config.jwk_cache_ttl;
 
             // If the cache is not expired return the keys
             if !is_cache_expired(cache_ttl, elapsed_seconds) {
@@ -183,7 +183,11 @@ impl<'a> OAuth2Api<'a> {
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
 
-        fetch_jwt_keys(&esi_client.reqwest_client, &esi_client.jwk_url).await
+        fetch_jwt_keys(
+            &esi_client.reqwest_client,
+            &esi_client.oauth2_config.jwk_url,
+        )
+        .await
     }
 }
 

@@ -8,24 +8,22 @@
 //! - Handles OAuth2 authentication with EVE Online SSO
 //!
 //! ## Builder Methods
-//! | Method         | Purpose                                 |
-//! | -------------- | --------------------------------------- |
-//! | `builder`      | Create a builder for the EsiClient      |
-//! | `build`        | Build the EsiClient                     |
-//! | `user_agent`   | Set the HTTP user agent                 |
-//! | `client_id`    | Set OAuth2 client ID                    |
-//! | `client_secret`| Set OAuth2 client secret                |
-//! | `callback_url` | Set OAuth2 callback URL                 |
-//! | `esi_url`      | Set a custom URL for the ESI API        |
-//! | `auth_url`     | Set a custom URL for EVE OAuth2         |
-//! | `token_url`    | Set a custom URL for EVE OAuth2 token   |
-//! | `jwk_url`      | Set a custom URL for EVE OAuth2 JWKS    |
+//! | Method          | Purpose                                 |
+//! | --------------- | --------------------------------------- |
+//! | `new`           | Create a builder for the EsiClient      |
+//! | `build`         | Build the EsiClient                     |
+//! | `user_agent`    | User agent to identify HTTP requests    |
+//! | `client_id`     | EVE OAuth2 client ID                    |
+//! | `client_secret` | EVE OAuth2 client secret                |
+//! | `callback_url`  | EVE OAuth2 callback URL                 |
+//! | `esi_url`       | ESI API URL                             |
+//! | `oauth2_config` | OAuth2 related configuration settings   |
 //!
 //! ## References
 //! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 //!
-//! ## Example
+//! ## Usage
 //! ```
 //! use eve_esi::EsiClient;
 //!
@@ -44,26 +42,25 @@ use std::sync::Arc;
 
 use tokio::sync::{Notify, RwLock};
 
-use crate::constant::{
-    DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWK_CACHE_TTL, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
-};
+use crate::constant::DEFAULT_ESI_URL;
 use crate::error::EsiError;
 use crate::oauth2::client::OAuth2Client;
+use crate::oauth2::config::OAuth2Config;
 use crate::EsiClient;
 
 /// Builder for configuring and constructing an `EsiClient`.
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClientBuilder {
-    pub(crate) oauth_client: Option<OAuth2Client>,
     pub(crate) user_agent: Option<String>,
+    pub(crate) esi_url: String,
+
+    // OAuth2
     pub(crate) client_id: Option<String>,
     pub(crate) client_secret: Option<String>,
     pub(crate) callback_url: Option<String>,
-    pub(crate) esi_url: String,
-    pub(crate) auth_url: String,
-    pub(crate) token_url: String,
-    pub(crate) jwk_url: String,
+    pub(crate) oauth_client: Option<OAuth2Client>,
+    pub(crate) oauth2_config: OAuth2Config,
 }
 
 impl EsiClientBuilder {
@@ -72,15 +69,15 @@ impl EsiClientBuilder {
     /// For a full overview, features, and usage examples, see the [module-level documentation](self).
     pub fn new() -> Self {
         Self {
-            oauth_client: None,
             user_agent: None,
+            esi_url: DEFAULT_ESI_URL.to_string(),
+
+            // OAuth2
             client_id: None,
             client_secret: None,
             callback_url: None,
-            esi_url: DEFAULT_ESI_URL.to_string(),
-            auth_url: DEFAULT_AUTH_URL.to_string(),
-            token_url: DEFAULT_TOKEN_URL.to_string(),
-            jwk_url: DEFAULT_JWK_URL.to_string(),
+            oauth_client: None,
+            oauth2_config: OAuth2Config::default(),
         }
     }
 
@@ -104,10 +101,13 @@ impl EsiClientBuilder {
 
         Ok(EsiClient {
             reqwest_client,
-            oauth_client: builder.oauth_client,
             esi_url: builder.esi_url,
-            jwk_url: builder.jwk_url,
-            jwt_keys_cache_ttl: DEFAULT_JWK_CACHE_TTL,
+
+            // OAuth2
+            oauth_client: builder.oauth_client,
+            oauth2_config: builder.oauth2_config,
+
+            // OAuth2 JWT key cache
             jwt_key_cache: Arc::new(RwLock::new(None)),
             jwt_key_refresh_lock: Arc::new(AtomicBool::new(false)),
             jwt_key_refresh_notifier: Arc::new(Notify::new()),
@@ -269,84 +269,24 @@ impl EsiClientBuilder {
         self
     }
 
-    /// Sets the EVE Online oauth2 authorize URL to a custom URL.
+    /// Changes OAuth2 config to a custom one to override default OAuth2 settings
     ///
-    /// This method configures the authorize URL for EVE Online oauth2.
-    /// This is generally used for tests using a mock server with crates such as
-    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    /// This method allows for overriding the default EVE OAuth2 settings using
+    /// a [`OAuth2Config`] struct to set custom values.
     ///
-    /// # Arguments
-    /// - `auth_url` - The EVE Online oauth2 authorize URL.
+    /// This is used for overriding the EVE OAuth2 API endpoint URLs
+    /// for testing purposes or for more precise control over how the JWT keys
+    /// used to validate tokens are cached and fetched.
     ///
-    /// # Returns
-    /// The `EsiClientBuilder` instance with updated EVE Online oauth2 authorize URL configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .esi_url("https://login.eveonline.com/v2/oauth/authorize")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    pub fn auth_url(mut self, auth_url: &str) -> Self {
-        self.auth_url = auth_url.to_string();
-        self
-    }
-
-    /// Sets the EVE Online oauth2 token URL to a custom URL.
-    ///
-    /// This method configures the token URL for EVE Online oauth2 to a custom URL.
-    /// This is generally used for tests using a mock server with crates such as
-    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    /// See [OAuth2 Config module docs](`crate::oauth2::config`) for usage & details.
     ///
     /// # Arguments
-    /// - `token_url` - The EVE Online oauth2 token URL.
+    /// - config ([`OAuth2Config`]): A struct representing OAuth2 configuration settings
     ///
     /// # Returns
-    /// The `EsiClientBuilder` instance with updated EVE Online oauth2 token URL configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .token_url("https://login.eveonline.com/v2/oauth/token")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    pub fn token_url(mut self, token_url: &str) -> Self {
-        self.token_url = token_url.to_string();
-        self
-    }
-
-    /// Sets the EVE Online JWK URI to a custom URL.
-    ///
-    /// This method configures the JWK URI for EVE Online OAuth2 to a custom URL.
-    /// This is generally used for tests using a mock server with crates such as
-    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
-    ///
-    /// # Arguments
-    /// - `jwk_url` - The EVE Online JWK URI.
-    ///
-    /// # Returns
-    /// The `EsiClientBuilder` instance with updated EVE Online JWK URI configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .jwk_url("https://login.eveonline.com/oauth/jwks")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    pub fn jwk_url(mut self, jwk_url: &str) -> Self {
-        self.jwk_url = jwk_url.to_string();
+    /// - [EsiClientBuilder]: Instance with updated OAuth2 config
+    pub fn oauth2_config(mut self, config: OAuth2Config) -> Self {
+        self.oauth2_config = config;
         self
     }
 }
@@ -369,9 +309,6 @@ mod tests {
 
         // Check default values
         assert_eq!(builder.esi_url, DEFAULT_ESI_URL);
-        assert_eq!(builder.auth_url, DEFAULT_AUTH_URL);
-        assert_eq!(builder.token_url, DEFAULT_TOKEN_URL);
-        assert_eq!(builder.jwk_url, DEFAULT_JWK_URL);
         assert!(builder.user_agent.is_none());
         assert!(builder.client_id.is_none());
         assert!(builder.client_secret.is_none());
@@ -390,9 +327,6 @@ mod tests {
     fn test_builder_setter_methods() {
         let builder = EsiClientBuilder::new()
             .esi_url("https://example.com")
-            .auth_url("https://auth.example.com")
-            .token_url("https://token.example.com")
-            .jwk_url("https://jwk.example.com")
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
             .client_secret("client_secret")
@@ -400,9 +334,6 @@ mod tests {
 
         // Check updated values
         assert_eq!(builder.esi_url, "https://example.com");
-        assert_eq!(builder.auth_url, "https://auth.example.com");
-        assert_eq!(builder.token_url, "https://token.example.com");
-        assert_eq!(builder.jwk_url, "https://jwk.example.com");
         assert_eq!(
             builder.user_agent,
             Some("MyApp/1.0 (contact@example.com)".to_string())
@@ -506,17 +437,14 @@ mod tests {
     #[test]
     fn test_builder_to_client_configuration_transfer() {
         let custom_esi_url = "https://custom-esi.example.com";
-        let custom_jwk_url = "https://custom-jwk.example.com";
 
         let client = EsiClientBuilder::new()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .esi_url(custom_esi_url)
-            .jwk_url(custom_jwk_url)
             .build()
             .expect("Failed to build client");
 
         // Verify the client received the configured values from the builder
         assert_eq!(client.esi_url, custom_esi_url);
-        assert_eq!(client.jwk_url, custom_jwk_url);
     }
 }

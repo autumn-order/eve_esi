@@ -33,6 +33,7 @@
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```
 
+pub mod config;
 pub mod error;
 pub mod jwk;
 pub mod login;
@@ -41,6 +42,7 @@ pub mod token;
 
 pub(crate) mod client;
 
+pub use config::OAuth2Config;
 pub use scope::ScopeBuilder;
 
 use crate::EsiClient;
