@@ -3,6 +3,10 @@
 //! This module provides methods for initiating and managing the EVE Online OAuth2 authentication process
 //! It includes functionality for generating login URLs to initiate the authentication process, building scopes for authorization, and managing tokens.
 //!
+//! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or
+//! the endpoints used for EVE OAuth2 can be overridden using the
+//! [`OAuth2Config`](crate::oauth2::OAuth2Config).
+//!
 //! # References
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 //!
