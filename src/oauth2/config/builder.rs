@@ -1,7 +1,7 @@
 //! # EVE Online OAuth2 Config Builder
 //!
-//! Provides methods to modify the default settings for the eve_esi crate regarding the
-//! EVE OAuth2 API endpoint URLs or the logic of how JWT (JSON web token) key caching and refreshing is
+//! Provides methods to override the default OAuth2 settings for the eve_esi crate. This allows the
+//! modification of OAuth2 endpoint URLs or the logic of how JWT (JSON web token) key caching and refreshing is
 //! handled which are used to validate tokens for user authentication.
 //!
 //! - See [module-level] documentation for a higher level overview and usage example
@@ -30,13 +30,20 @@
 //! | `jwk_background_refresh_cooldown` | How long to wait between background refresh attempts |
 //! | `jwk_background_refresh_threshold_percent` | Percentage at which cache is refreshed proactively |
 
-use super::config::OAuth2Config;
-use crate::constant::{
-    DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN,
-    DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
-    DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
-    DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
+use oauth2::{AuthUrl, TokenUrl};
+
+use crate::{
+    constant::{
+        DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN,
+        DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
+        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
+        DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
+    },
+    error::EsiError,
+    oauth2::error::OAuthConfigError,
 };
+
+use super::config::OAuth2Config;
 
 /// Builder struct for configuring & constructing an [`OAuth2Config`]
 ///
@@ -106,11 +113,42 @@ impl OAuth2ConfigBuilder {
     ///
     /// # Returns
     /// - [`OAuth2Config`]: instance with the settings configured on the builder
-    pub fn build(self) -> OAuth2Config {
-        OAuth2Config {
+    ///
+    /// # Errors
+    /// - [`EsiError`]: If jwk background refresh threshold percent, auth_url, or token_url is
+    ///   configured incorrectly.
+    pub fn build(self) -> Result<OAuth2Config, EsiError> {
+        // Ensure background refresh percentage is set properly
+        if !(self.jwk_background_refresh_threshold_percent > 0) {
+            return Err(EsiError::OAuthConfigError(
+                OAuthConfigError::InvalidBackgroundRefreshThreshold,
+            ));
+        }
+        if !(self.jwk_background_refresh_threshold_percent < 100) {
+            return Err(EsiError::OAuthConfigError(
+                OAuthConfigError::InvalidBackgroundRefreshThreshold,
+            ));
+        }
+
+        // OAuth2 Client URL overrides
+        let auth_url = match AuthUrl::new(self.auth_url) {
+            Ok(url) => url,
+            Err(_) => return Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)),
+        };
+        let token_url = match TokenUrl::new(self.token_url) {
+            Ok(url) => url,
+            Err(_) => {
+                return Err(EsiError::OAuthConfigError(
+                    OAuthConfigError::InvalidTokenUrl,
+                ))
+            }
+        };
+
+        // Return built config
+        Ok(OAuth2Config {
             // EVE OAuth2 API URL overrides
-            auth_url: self.auth_url,
-            token_url: self.token_url,
+            auth_url: auth_url,
+            token_url: token_url,
             jwk_url: self.jwk_url,
 
             // JWT key cache settings
@@ -123,7 +161,7 @@ impl OAuth2ConfigBuilder {
             jwk_background_refresh_enabled: self.jwk_background_refresh_enabled,
             jwk_background_refresh_cooldown: self.jwk_background_refresh_cooldown,
             jwk_background_refresh_threshold_percent: self.jwk_background_refresh_threshold_percent,
-        }
+        })
     }
 
     /// Sets the EVE Online oauth2 authorize URL to a custom URL.
@@ -352,12 +390,16 @@ mod tests {
             // JWT key cache background refresh settings
             .jwk_background_refresh_enabled(false)
             .jwk_background_refresh_cooldown(0)
-            .jwk_background_refresh_threshold_percent(0)
-            .build();
+            .jwk_background_refresh_threshold_percent(1)
+            .build()
+            .expect("Failed to build OAuth2 config");
 
         // Assert URLs were set
-        assert_eq!(config.auth_url, "https://example.com");
-        assert_eq!(config.token_url, "https://example.com");
+        let auth_url = AuthUrl::new("https://example.com".to_string()).unwrap();
+        let token_url = TokenUrl::new("https://example.com".to_string()).unwrap();
+
+        assert_eq!(config.auth_url, auth_url);
+        assert_eq!(config.token_url, token_url);
         assert_eq!(config.jwk_url, "https://example.com");
 
         // Assert JWT key cache settings were set
@@ -369,6 +411,104 @@ mod tests {
         // Assert JWT key cache background refresh settings were set
         assert_eq!(config.jwk_background_refresh_enabled, false);
         assert_eq!(config.jwk_background_refresh_cooldown, 0);
-        assert_eq!(config.jwk_background_refresh_threshold_percent, 0);
+        assert_eq!(config.jwk_background_refresh_threshold_percent, 1);
+    }
+
+    /// Expect an error setting the jwk background refresh threshold percent to 0
+    ///
+    /// # Test Setup
+    /// - Attempt to build an OAuth2 config with the jwk_background_refresh_percent to 0
+    ///
+    /// # Assertions
+    /// - Assert result is an error
+    /// - Assert error is of type OAuthConfigError::InvalidBackgroundRefreshThreshold
+    #[test]
+    fn test_invalid_background_refresh_threshold_0() {
+        // Create an OAuth2 config with invalid auth_url
+        let result = OAuth2Config::builder()
+            .jwk_background_refresh_threshold_percent(0)
+            .build();
+
+        // Assert result is error
+        assert!(result.is_err());
+
+        // Assert error is of type OAuthConfigError::InvalidBackgroundRefreshThreshold
+        assert!(matches!(
+            result,
+            Err(EsiError::OAuthConfigError(
+                OAuthConfigError::InvalidBackgroundRefreshThreshold
+            ))
+        ))
+    }
+
+    /// Expect an error setting the jwk background refresh threshold percent to 100
+    ///
+    /// # Test Setup
+    /// - Attempt to build an OAuth2 config with the jwk_background_refresh_percent to 100
+    ///
+    /// # Assertions
+    /// - Assert result is an error
+    /// - Assert error is of type OAuthConfigError::InvalidBackgroundRefreshThreshold
+    #[test]
+    fn test_invalid_background_refresh_threshold_100() {
+        // Create an OAuth2 config with invalid auth_url
+        let result = OAuth2Config::builder()
+            .jwk_background_refresh_threshold_percent(100)
+            .build();
+
+        // Assert result is error
+        assert!(result.is_err());
+
+        // Assert error is of type OAuthConfigError::InvalidBackgroundRefreshThreshold
+        assert!(matches!(
+            result,
+            Err(EsiError::OAuthConfigError(
+                OAuthConfigError::InvalidBackgroundRefreshThreshold
+            ))
+        ))
+    }
+
+    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid auth_url
+    ///
+    /// # Test Setup
+    /// - Attempt to build an OAuth2 config with the auth_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidAuthUrl)
+    #[test]
+    fn test_invalid_auth_url() {
+        // Create an OAuth2 config with invalid auth_url
+        let result = OAuth2Config::builder().auth_url("invalid_url").build();
+
+        // Assert result is an Error
+        assert!(result.is_err());
+
+        match result {
+            // Assert error is of the OAuthConfigError:InvalidAuthUrl variant
+            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)) => {}
+            _ => panic!("Expected InvalidAuthUrl error"),
+        }
+    }
+
+    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid token_url
+    ///
+    /// # Test Setup
+    /// - Attempt to build an OAuth2 config with the token_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidTokenUrl)
+    #[test]
+    fn test_invalid_token_url() {
+        // Create an OAuth2 config with invalid token_url
+        let result = OAuth2Config::builder().token_url("invalid_url").build();
+
+        // Assert result is an Error
+        assert!(result.is_err());
+
+        match result {
+            // Assert error is of the OAuthConfigError:InvalidTokenUrl variant
+            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidTokenUrl)) => {}
+            _ => panic!("Expected InvalidTokenUrl error"),
+        }
     }
 }

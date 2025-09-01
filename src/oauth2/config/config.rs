@@ -13,6 +13,10 @@
 //! ## Config Creation
 //! The config is created using the builder pattern: [`OAuth2Config::builder`];
 
+use oauth2::{AuthUrl, TokenUrl};
+
+use crate::error::EsiError;
+
 use super::builder::OAuth2ConfigBuilder;
 
 /// Configuration for modifying OAuth2 related settings for the EsiClient
@@ -25,9 +29,17 @@ use super::builder::OAuth2ConfigBuilder;
 pub struct OAuth2Config {
     // EVE OAuth2 API URL overrides
     /// Authentication URL endpoint for the EVE Online OAuth2 login flow
-    pub(crate) auth_url: String,
+    ///
+    /// Uses the AuthUrl type from the [`oauth2`] crate in order to return
+    /// an error when building the config instead of during runtime
+    /// if the URL is incorrectly formatted.
+    pub(crate) auth_url: AuthUrl,
     /// Token URL endpoint used to retrieve tokens to authenticate users
-    pub(crate) token_url: String,
+    ///
+    /// Uses the TokenUrl type from the [`oauth2`] crate in order to return
+    /// an error when building the config instead of during runtime
+    /// if the URL is incorrectly formatted.
+    pub(crate) token_url: TokenUrl,
     /// JSON web token key URL that provides keys used to validate tokens
     pub(crate) jwk_url: String,
 
@@ -73,7 +85,7 @@ impl OAuth2Config {
     ///
     /// # Returns
     /// - [`OAuth2Config`]: Instance configured with the default values
-    pub fn default() -> OAuth2Config {
+    pub fn default() -> Result<OAuth2Config, EsiError> {
         OAuth2ConfigBuilder::new().build()
     }
 }
@@ -81,6 +93,13 @@ impl OAuth2Config {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::constant::{
+        DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN,
+        DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
+        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
+        DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
+    };
 
     /// Ensures that all defaults for the [`OAuth2Config::default`] method are set as expected
     ///
@@ -93,17 +112,14 @@ mod tests {
     /// - Assert all JWT key cache background refresh settings are the expected defaults
     #[test]
     fn test_config_default_values() {
-        let config = OAuth2Config::default();
-        use crate::constant::{
-            DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN,
-            DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
-            DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES,
-            DEFAULT_JWK_REFRESH_TIMEOUT, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
-        };
+        let config = OAuth2Config::default().expect("Failed to build OAuth2Config");
 
         // Assert URLs are expected defaults
-        assert_eq!(config.auth_url, DEFAULT_AUTH_URL);
-        assert_eq!(config.token_url, DEFAULT_TOKEN_URL);
+        let auth_url = AuthUrl::new(DEFAULT_AUTH_URL.to_string()).unwrap();
+        let token_url = TokenUrl::new(DEFAULT_TOKEN_URL.to_string()).unwrap();
+
+        assert_eq!(config.auth_url, auth_url);
+        assert_eq!(config.token_url, token_url);
         assert_eq!(config.jwk_url, DEFAULT_JWK_URL);
 
         // Assert JWT key settings are expected defaults

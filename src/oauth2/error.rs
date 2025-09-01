@@ -261,29 +261,6 @@ pub enum OAuthConfigError {
     )]
     InvalidTokenUrl,
 
-    /// EVE OAuth2 JWK URL is invalid.
-    ///
-    /// This error occurs when the jwk url is changed from the default URL
-    /// using [`super::OAuth2Config`] and is not correctly formatted.
-    ///
-    /// # Resolution
-    /// To fix this:
-    /// - Use the default URL provided by the default config
-    /// - Validate the url set using [`super::OAuth2Config`]
-    ///   is using a url that is correctly formatted.
-    ///
-    ///   e.g. `https://login.eveonline.com/v2/oauth/token`
-    #[error(
-        "Invalid EVE OAuth2 token URL:\n\
-        \n\
-        To fix this:\n\
-          - Use the default URL provided by the default config\n\
-          - Validate the url set using [`super::OAuth2Config`]\n\
-            is using a url that is correctly formatted\n\
-            e.g. https://login.eveonline.com/v2/oauth/token"
-    )]
-    InvalidJwkUrl,
-
     /// JWT key cache background refresh threshold percentage is not between 0 and 100
     ///
     /// This error occurs when the background refresh threshold percentage used to

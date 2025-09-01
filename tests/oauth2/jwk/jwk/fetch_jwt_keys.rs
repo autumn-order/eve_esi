@@ -106,10 +106,15 @@ async fn fetch_jwt_keys_server_error() {
 /// - Assert error is related to a reqwest connection issue
 #[tokio::test]
 async fn fetch_jwt_keys_network_error() {
-    // Create OAuth2 config with an invalid JWK URL
+    // Create OAuth2 config with a JWK URL that won't respond
     let config = OAuth2Config::builder()
-        .jwk_url(&format!("http://127.0.0.1"))
-        .build();
+        // TODO: Swap to .jwk_url("http://10.255.255.1") // RFC 5735 TEST‑NET‑2 range
+        //
+        // Need to implement a way to manually config reqwest client timeout setting for EsiClient first
+        // otherwise test runs for a very long time (30 seconds approx)
+        .jwk_url("http://127.0.0.1")
+        .build()
+        .expect("Failed to build oauth2 config");
 
     // Create ESI client with the custom OAuth2 config
     let esi_client = EsiClient::builder()

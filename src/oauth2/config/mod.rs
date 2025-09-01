@@ -25,7 +25,9 @@
 //!
 //! // Set 2 hour JWT key cache lifetime in seconds
 //! let config = OAuth2Config::builder()
-//!     .jwk_cache_ttl(7200).build();
+//!     .jwk_cache_ttl(7200)
+//!     .build()
+//!     .expect("Failed to build OAuth2Config");
 //!
 //! // Setup EsiClient with OAuth2 settings and custom OAuth2 config
 //! let esi_client = EsiClient::builder()

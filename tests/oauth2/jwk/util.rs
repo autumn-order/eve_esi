@@ -22,7 +22,8 @@ pub(super) async fn setup() -> (EsiClient, ServerGuard) {
     // Create an OAuth2 config using the mock JWK endpoint
     let config = OAuth2Config::builder()
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        .build();
+        .build()
+        .expect("Failed to build oauth2 config");
 
     // Create ESI client with mock JWK endpoint
     let esi_client = EsiClient::builder()

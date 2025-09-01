@@ -60,13 +60,20 @@ pub struct EsiClientBuilder {
     pub(crate) client_secret: Option<String>,
     pub(crate) callback_url: Option<String>,
     pub(crate) oauth_client: Option<OAuth2Client>,
-    pub(crate) oauth2_config: OAuth2Config,
+    pub(crate) oauth2_config: Option<OAuth2Config>,
 }
 
 impl EsiClientBuilder {
     /// Creates a new EsiClientBuilder
     ///
     /// For a full overview, features, and usage examples, see the [module-level documentation](self).
+    ///
+    /// # Returns
+    /// - [`EsiClientBuilder`]: Instance to modify EsiClient setting using setter methods
+    ///
+    /// # Error
+    /// - [`EsiError`]: If the default [`OAuth2Config`] cannot be initialized which would be an internal
+    ///   error with the eve_esi crate regarding improperly formatted default OAuth2 URLs.
     pub fn new() -> Self {
         Self {
             user_agent: None,
@@ -77,35 +84,57 @@ impl EsiClientBuilder {
             client_secret: None,
             callback_url: None,
             oauth_client: None,
-            oauth2_config: OAuth2Config::default(),
+            oauth2_config: None,
         }
     }
 
     /// Builds the EsiClient
     ///
     /// For a full overview, features, and usage examples, see the [module-level documentation](self).
+    ///
+    /// # Returns
+    /// - [`EsiClient`]: Instance to interface with EVE Online ESI & OAuth2 endpoints.
+    ///
+    /// # Error
+    /// - [`EsiError`]: If there is an issue building a [`reqwest::Client`],
+    ///   [`oauth2::Client`], or there is an internal error building the default
+    ///   [`OAuth2Config`].
     pub fn build(self) -> Result<EsiClient, EsiError> {
+        // Setup a reqwest client
         let mut client_builder = reqwest::Client::builder();
         if let Some(ref user_agent) = self.user_agent {
             client_builder = client_builder.user_agent(user_agent.clone());
         }
+
         let reqwest_client = client_builder.build()?;
 
+        // Initialize default OAuth2 config if none is set
         let mut builder = self;
+
+        let oauth2_config = match builder.oauth2_config.take() {
+            Some(config) => config,
+            None => OAuth2Config::default()?,
+        };
+
+        // Build an OAuth2 client if any OAuth2 settings are configured
+        //
+        // setup_oauth_client return an error if one setting is configured but another
+        // is not as all 3 are required for OAuth2.
         if builder.client_id.is_some()
             || builder.client_secret.is_some()
             || builder.callback_url.is_some()
         {
-            builder = builder.setup_oauth_client()?;
+            builder = builder.setup_oauth_client(&oauth2_config)?;
         }
 
+        // Build EsiClient
         Ok(EsiClient {
             reqwest_client,
             esi_url: builder.esi_url,
 
-            // OAuth2
+            // OAuth2oauth2_config
             oauth_client: builder.oauth_client,
-            oauth2_config: builder.oauth2_config,
+            oauth2_config: oauth2_config,
 
             // OAuth2 JWT key cache
             jwt_key_cache: Arc::new(RwLock::new(None)),
@@ -286,7 +315,7 @@ impl EsiClientBuilder {
     /// # Returns
     /// - [EsiClientBuilder]: Instance with updated OAuth2 config
     pub fn oauth2_config(mut self, config: OAuth2Config) -> Self {
-        self.oauth2_config = config;
+        self.oauth2_config = Some(config);
         self
     }
 }
