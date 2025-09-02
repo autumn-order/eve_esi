@@ -21,8 +21,6 @@ use crate::oauth2::OAuth2Api;
 
 use super::jwk::fetch_jwt_keys;
 use super::util::check_refresh_cooldown;
-use super::util_cache::cache_get_keys;
-use super::util_refresh::{jwk_refresh_lock_release_and_notify, jwk_refresh_lock_try_acquire};
 
 impl<'a> OAuth2Api<'a> {
     /// Refreshes JWT keys with retry logic
@@ -109,10 +107,7 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // Always release the lock
-        jwk_refresh_lock_release_and_notify(
-            &jwt_key_cache.refresh_lock,
-            &jwt_key_cache.refresh_notifier,
-        );
+        jwt_key_cache.refresh_lock_release_and_notify();
 
         // Return the result or error
         match result {
@@ -215,7 +210,7 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // Attempt to retrieve keys from cache
-        if let Some((keys, _)) = cache_get_keys(&esi_client.jwt_key_cache).await {
+        if let Some((keys, _)) = jwt_key_cache.get_keys().await {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
@@ -273,8 +268,9 @@ impl<'a> OAuth2Api<'a> {
     pub(super) async fn trigger_background_jwt_refresh(&self) -> bool {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.jwt_key_cache;
+        let oauth2_config = &esi_client.oauth2_config;
 
-        let jwk_refresh_cooldown = esi_client.oauth2_config.jwk_refresh_cooldown;
+        let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
         let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
 
         // Check if we are still in cooldown due to fetch failure within cooldown period
@@ -289,7 +285,7 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // Attempt to acquire a lock to perform the refresh
-        if !jwk_refresh_lock_try_acquire(&jwt_key_cache.refresh_lock) {
+        if !jwt_key_cache.refresh_lock_try_acquire() {
             #[cfg(not(tarpaulin_include))]
             debug!("JWT key refresh already in progress");
 
@@ -303,7 +299,6 @@ impl<'a> OAuth2Api<'a> {
         let reqwest_client = esi_client.reqwest_client.clone();
         let jwt_key_cache = esi_client.jwt_key_cache.clone();
         let jwk_url = esi_client.oauth2_config.jwk_url.clone();
-
         #[cfg(not(tarpaulin_include))]
         debug!(
             "Preparing background refresh task with JWK URL: {}",
@@ -325,11 +320,9 @@ impl<'a> OAuth2Api<'a> {
             // Track operation timing for performance monitoring
             let start_time = std::time::Instant::now();
 
-            use crate::oauth2::jwk::util_cache::cache_update_keys;
-
             // Fetch fresh keys from EVE's OAuth2 API
             #[cfg(not(tarpaulin_include))]
-            debug!("Fetching fresh keys from JWK URL: {}", jwk_url);
+            debug!("Fetching fresh keys from JWK URL: {}", &jwk_url);
 
             let result = fetch_jwt_keys(&reqwest_client, &jwk_url).await;
             let elapsed = start_time.elapsed();
@@ -341,7 +334,7 @@ impl<'a> OAuth2Api<'a> {
                     #[cfg(not(tarpaulin_include))]
                     debug!("Acquiring write lock for JWT keys cache update");
 
-                    cache_update_keys(&jwt_key_cache, keys).await;
+                    jwt_key_cache.update_keys(keys).await;
 
                     #[cfg(not(tarpaulin_include))]
                     info!(
@@ -350,7 +343,7 @@ impl<'a> OAuth2Api<'a> {
                     );
 
                     // Clear any previous failure on success
-                    let mut last_failure = last_refresh_failure.write().await;
+                    let mut last_failure = jwt_key_cache.last_refresh_failure.write().await;
                     *last_failure = None;
 
                     #[cfg(not(tarpaulin_include))]
@@ -366,7 +359,7 @@ impl<'a> OAuth2Api<'a> {
                     );
 
                     // Record the failure time
-                    let mut last_failure = last_refresh_failure.write().await;
+                    let mut last_failure = jwt_key_cache.last_refresh_failure.write().await;
                     *last_failure = Some(Instant::now());
 
                     #[cfg(not(tarpaulin_include))]
@@ -375,10 +368,7 @@ impl<'a> OAuth2Api<'a> {
             };
 
             // Release lock regardless of success
-            jwk_refresh_lock_release_and_notify(
-                &jwt_key_cache.refresh_lock,
-                &jwt_key_cache.refresh_notifier,
-            );
+            jwt_key_cache.refresh_lock_release_and_notify();
         });
 
         #[cfg(not(tarpaulin_include))]

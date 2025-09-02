@@ -17,11 +17,7 @@ use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::jwk::util::{
     check_refresh_cooldown, is_cache_approaching_expiry, is_cache_expired,
 };
-use crate::oauth2::jwk::util_cache::cache_get_keys;
 use crate::oauth2::OAuth2Api;
-
-use super::util_cache::cache_update_keys;
-use super::util_refresh::jwk_refresh_lock_try_acquire;
 
 impl<'a> OAuth2Api<'a> {
     /// Gets JWT keys with caching support & background refreshing.
@@ -54,8 +50,8 @@ impl<'a> OAuth2Api<'a> {
     /// - [`EsiError]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
-        let oauth2_config = &esi_client.oauth2_config;
         let jwt_key_cache = &esi_client.jwt_key_cache;
+        let oauth2_config = &esi_client.oauth2_config;
 
         let jwk_cache_ttl = oauth2_config.jwk_cache_ttl;
         let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
@@ -66,7 +62,7 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         debug!("Checking JWT keys cache state");
 
-        if let Some((keys, timestamp)) = cache_get_keys(&esi_client.jwt_key_cache).await {
+        if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
             let elapsed_seconds = timestamp.elapsed().as_secs();
 
             // If the cache is not expired return the keys
@@ -130,7 +126,7 @@ impl<'a> OAuth2Api<'a> {
 
         // If we got here, JWT key cache is missing or expired
         // Check if the keys are already being refreshed on another thread
-        if !jwk_refresh_lock_try_acquire(&jwt_key_cache.refresh_lock) {
+        if !jwt_key_cache.refresh_lock_try_acquire() {
             // Wait for the key refresh to complete and then return the keys or an
             // error if the refresh times out (5 seconds)
             return self.wait_for_ongoing_refresh().await;
@@ -160,6 +156,8 @@ impl<'a> OAuth2Api<'a> {
         debug!("Fetching fresh JWT keys and updating cache");
 
         let esi_client = self.client;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
         let start_time = Instant::now();
 
         // Fetch fresh keys from EVE's OAuth2 API
@@ -174,7 +172,7 @@ impl<'a> OAuth2Api<'a> {
                 );
 
                 // Update the cache with the new keys
-                cache_update_keys(&esi_client.jwt_key_cache, fresh_keys.clone()).await;
+                jwt_key_cache.update_keys(fresh_keys.clone()).await;
 
                 let elapsed = start_time.elapsed();
 
