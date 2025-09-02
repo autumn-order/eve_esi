@@ -37,14 +37,12 @@
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
-
-use tokio::sync::{Notify, RwLock};
 
 use crate::constant::DEFAULT_ESI_URL;
 use crate::error::EsiError;
 use crate::oauth2::config::client::OAuth2Client;
+use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::oauth2::OAuth2Config;
 use crate::EsiClient;
 
@@ -137,10 +135,7 @@ impl EsiClientBuilder {
             oauth2_config: oauth2_config,
 
             // OAuth2 JWT key cache
-            jwt_key_cache: Arc::new(RwLock::new(None)),
-            jwt_key_refresh_lock: Arc::new(AtomicBool::new(false)),
-            jwt_key_refresh_notifier: Arc::new(Notify::new()),
-            jwt_key_last_refresh_failure: Arc::new(RwLock::new(None)),
+            jwt_key_cache: Arc::new(JwtKeyCache::new()),
         })
     }
 

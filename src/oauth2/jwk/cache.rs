@@ -32,13 +32,32 @@ use crate::model::oauth2::EveJwtKeys;
 /// - `jwt_key_refresh_lock` ([`AtomicBool`]): AtomicBool indicating whether a JWT key refresh is currently in progress
 /// - `jwt_key_refresh_notifier` ([`Notify`]): Notifier for when a JWT key refresh is completed
 /// - `jwt_key_last_refresh_failure` (RwLock<Option<[`Instant`]>): RwLock with a timestamp of last failed set of JWT key refresh attemmpts
-struct JwtKeyCache {
+pub struct JwtKeyCache {
     /// RwLock with a tuple containing JWT keys and timestamp of when keys were updated
-    cache: RwLock<Option<(EveJwtKeys, Instant)>>,
+    pub cache: RwLock<Option<(EveJwtKeys, Instant)>>,
     /// AtomicBool indicating whether a JWT key refresh is currently in progress
-    refresh_lock: AtomicBool,
+    pub refresh_lock: AtomicBool,
     /// Notifier for when a JWT key refresh is completed
-    refresh_notifier: Notify,
+    pub refresh_notifier: Notify,
     /// RwLock with a timestamp of last failed set of JWT key refresh attemmpts
-    last_refresh_failure: RwLock<Option<Instant>>,
+    pub last_refresh_failure: RwLock<Option<Instant>>,
+}
+
+impl JwtKeyCache {
+    /// Creates a new instance of [`JwtKeyCache`]
+    ///
+    /// The cache will start empty and will need to be updated using one of the update
+    /// methods such as [`get_jwt_keys`](crate::oauth2::OAuth2Api::get_jwt_keys)
+    /// or [`fetch_and_update_cache`](crate::oauth2::OAuth2Api::fetch_and_update_cache).
+    ///
+    /// # Returns
+    /// - [`JwtKeyCache`]: Default cache instance that contains no keys initially
+    pub fn new() -> Self {
+        Self {
+            cache: RwLock::new(None),
+            refresh_lock: AtomicBool::new(false),
+            refresh_notifier: Notify::new(),
+            last_refresh_failure: RwLock::new(None),
+        }
+    }
 }

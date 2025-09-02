@@ -56,10 +56,11 @@ impl<'a> OAuth2Api<'a> {
     pub(super) async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
         let oauth2_config = &esi_client.oauth2_config;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
 
         let max_retries = oauth2_config.jwk_refresh_max_retries;
         let refresh_backoff = oauth2_config.jwk_refresh_backoff;
-        let last_refresh_failure = &esi_client.jwt_key_last_refresh_failure;
+        let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
 
         #[cfg(not(tarpaulin_include))]
         info!("Starting JWT keys refresh operation");
@@ -109,8 +110,8 @@ impl<'a> OAuth2Api<'a> {
 
         // Always release the lock
         jwk_refresh_lock_release_and_notify(
-            &esi_client.jwt_key_refresh_lock,
-            &esi_client.jwt_key_refresh_notifier,
+            &jwt_key_cache.refresh_lock,
+            &jwt_key_cache.refresh_notifier,
         );
 
         // Return the result or error
@@ -175,6 +176,7 @@ impl<'a> OAuth2Api<'a> {
     ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
 
         let jwk_refresh_timeout = esi_client.oauth2_config.jwk_refresh_timeout;
 
@@ -184,7 +186,7 @@ impl<'a> OAuth2Api<'a> {
         debug!("Waiting for another thread to refresh JWT keys");
 
         // Create a future that waits for the notification
-        let notify_future = self.client.jwt_key_refresh_notifier.notified();
+        let notify_future = jwt_key_cache.refresh_notifier.notified();
 
         #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
@@ -270,9 +272,10 @@ impl<'a> OAuth2Api<'a> {
     /// - `bool` indicating whether or not a background refresh was triggered
     pub(super) async fn trigger_background_jwt_refresh(&self) -> bool {
         let esi_client = self.client;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
 
         let jwk_refresh_cooldown = esi_client.oauth2_config.jwk_refresh_cooldown;
-        let last_refresh_failure = &esi_client.jwt_key_last_refresh_failure;
+        let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
 
         // Check if we are still in cooldown due to fetch failure within cooldown period
         if check_refresh_cooldown(jwk_refresh_cooldown, last_refresh_failure)
@@ -286,7 +289,7 @@ impl<'a> OAuth2Api<'a> {
         }
 
         // Attempt to acquire a lock to perform the refresh
-        if !jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock) {
+        if !jwk_refresh_lock_try_acquire(&jwt_key_cache.refresh_lock) {
             #[cfg(not(tarpaulin_include))]
             debug!("JWT key refresh already in progress");
 
@@ -299,9 +302,6 @@ impl<'a> OAuth2Api<'a> {
         // Clone the required components
         let reqwest_client = esi_client.reqwest_client.clone();
         let jwt_key_cache = esi_client.jwt_key_cache.clone();
-        let refresh_lock = esi_client.jwt_key_refresh_lock.clone();
-        let refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
-        let last_refresh_failure = esi_client.jwt_key_last_refresh_failure.clone();
         let jwk_url = esi_client.oauth2_config.jwk_url.clone();
 
         #[cfg(not(tarpaulin_include))]
@@ -375,8 +375,12 @@ impl<'a> OAuth2Api<'a> {
             };
 
             // Release lock regardless of success
-            jwk_refresh_lock_release_and_notify(&refresh_lock, &refresh_notifier);
+            jwk_refresh_lock_release_and_notify(
+                &jwt_key_cache.refresh_lock,
+                &jwt_key_cache.refresh_notifier,
+            );
         });
+
         #[cfg(not(tarpaulin_include))]
         debug!("Background JWT key refresh task spawned successfully");
 

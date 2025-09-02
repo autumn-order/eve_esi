@@ -55,6 +55,7 @@ impl<'a> OAuth2Api<'a> {
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
         let oauth2_config = &esi_client.oauth2_config;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
 
         let jwk_cache_ttl = oauth2_config.jwk_cache_ttl;
         let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
@@ -111,11 +112,8 @@ impl<'a> OAuth2Api<'a> {
         //
         // If a recent attempt to refresh keys was made and all retries failed, a 60
         // second cooldown period will be active until the next set of attempts.
-        if let Some(cooldown_remaining) = check_refresh_cooldown(
-            jwk_refresh_cooldown,
-            &esi_client.jwt_key_last_refresh_failure,
-        )
-        .await
+        if let Some(cooldown_remaining) =
+            check_refresh_cooldown(jwk_refresh_cooldown, &jwt_key_cache.last_refresh_failure).await
         {
             #[cfg(not(tarpaulin_include))]
             let error_message = format!(
@@ -132,7 +130,7 @@ impl<'a> OAuth2Api<'a> {
 
         // If we got here, JWT key cache is missing or expired
         // Check if the keys are already being refreshed on another thread
-        if !jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock) {
+        if !jwk_refresh_lock_try_acquire(&jwt_key_cache.refresh_lock) {
             // Wait for the key refresh to complete and then return the keys or an
             // error if the refresh times out (5 seconds)
             return self.wait_for_ongoing_refresh().await;

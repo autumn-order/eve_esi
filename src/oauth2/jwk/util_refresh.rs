@@ -6,7 +6,6 @@
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
 use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
 
 use log::{debug, trace};
 use tokio::sync::Notify;
@@ -33,7 +32,7 @@ use tokio::sync::Notify;
 /// # Returns
 /// - [`true`] if the lock is acquired successfully,
 /// - [`false`] if the lock is already held by another thread
-pub(super) fn jwk_refresh_lock_try_acquire(refresh_lock: &Arc<AtomicBool>) -> bool {
+pub(super) fn jwk_refresh_lock_try_acquire(refresh_lock: &AtomicBool) -> bool {
     // Attempt to acquire a lock
     let lock_acquired = refresh_lock.compare_exchange(
         false,
@@ -75,8 +74,8 @@ pub(super) fn jwk_refresh_lock_try_acquire(refresh_lock: &Arc<AtomicBool>) -> bo
 /// all memory operations performed during the refresh are visible to threads
 /// that subsequently acquire the lock or are notified.
 pub(super) fn jwk_refresh_lock_release_and_notify(
-    refresh_lock: &Arc<AtomicBool>,
-    refresh_notifier: &Arc<Notify>,
+    refresh_lock: &AtomicBool,
+    refresh_notifier: &Notify,
 ) {
     // Release the lock
     #[cfg(not(tarpaulin_include))]
@@ -120,7 +119,9 @@ mod jwk_refresh_lock_try_acquire_tests {
             .expect("Failed to build EsiClient");
 
         // Attempt to acquire lock
-        let lock_acquired = jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock);
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        let lock_acquired = jwk_refresh_lock_try_acquire(&jwt_key_cache.refresh_lock);
 
         // Assert
         assert_eq!(lock_acquired, true)
@@ -149,7 +150,9 @@ mod jwk_refresh_lock_try_acquire_tests {
             .expect("Failed to build EsiClient");
 
         // Acquire a lock initially
-        let lock = jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock);
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        let lock = jwk_refresh_lock_try_acquire(&jwt_key_cache.refresh_lock);
 
         if !lock {
             panic!("Failed to acquire initial lock")
@@ -157,7 +160,9 @@ mod jwk_refresh_lock_try_acquire_tests {
 
         // Acquire lock a second time
         // Should return false indicating lock is already in use
-        let lock_acquired = jwk_refresh_lock_try_acquire(&esi_client.jwt_key_refresh_lock);
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        let lock_acquired = jwk_refresh_lock_try_acquire(&jwt_key_cache.refresh_lock);
 
         // Assert
         assert_eq!(lock_acquired, false)
@@ -198,8 +203,10 @@ mod jwk_lock_release_and_notify_tests {
             .expect("Failed to build EsiClient");
 
         // Acquire a lock
-        let lock = !esi_client
-            .jwt_key_refresh_lock
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        let lock = !jwt_key_cache
+            .refresh_lock
             .compare_exchange(
                 false,
                 true,
@@ -212,13 +219,13 @@ mod jwk_lock_release_and_notify_tests {
         assert_eq!(lock, true);
 
         // Create the notification future BEFORE triggering release
-        let notification = esi_client.jwt_key_refresh_notifier.notified();
+        let notification = jwt_key_cache.refresh_notifier.notified();
         let timeout = tokio::time::sleep(Duration::from_millis(50));
 
         // Release and notify
         jwk_refresh_lock_release_and_notify(
-            &esi_client.jwt_key_refresh_lock,
-            &esi_client.jwt_key_refresh_notifier,
+            &jwt_key_cache.refresh_lock,
+            &jwt_key_cache.refresh_notifier,
         );
 
         let notified = tokio::select! {
@@ -236,8 +243,8 @@ mod jwk_lock_release_and_notify_tests {
         assert_eq!(notified, true);
 
         // Assert that lock has been released and can be acquired again
-        let lock = !esi_client
-            .jwt_key_refresh_lock
+        let lock = !jwt_key_cache
+            .refresh_lock
             .compare_exchange(
                 false,
                 true,

@@ -13,8 +13,8 @@
 
 use log::{debug, trace};
 
-use crate::client::JwtKeyCache;
 use crate::model::oauth2::EveJwtKeys;
+use crate::oauth2::jwk::cache::JwtKeyCache;
 
 /// Retrieves JWT keys directly from cache without validation or refresh attempts
 ///
@@ -51,7 +51,7 @@ pub(super) async fn cache_get_keys(
     trace!("Attempting to retrieve JWT keys from cache");
 
     // Retrieve the cache
-    let cache = jwt_key_cache.read().await;
+    let cache = jwt_key_cache.cache.read().await;
 
     // Check if the cache has keys stored
     if let Some((keys, timestamp)) = &*cache {
@@ -97,7 +97,7 @@ pub(super) async fn cache_update_keys(jwt_key_cache: &JwtKeyCache, keys: EveJwtK
     #[cfg(not(tarpaulin_include))]
     debug!("Updating JWT keys cache with {} keys", keys.keys.len());
 
-    let mut cache = jwt_key_cache.write().await;
+    let mut cache = jwt_key_cache.cache.write().await;
     *cache = Some((keys, std::time::Instant::now()));
 
     #[cfg(not(tarpaulin_include))]
@@ -106,10 +106,6 @@ pub(super) async fn cache_update_keys(jwt_key_cache: &JwtKeyCache, keys: EveJwtK
 
 #[cfg(test)]
 mod cache_get_keys_tests {
-    use std::sync::Arc;
-
-    use tokio::sync::RwLock;
-
     use crate::{model::oauth2::EveJwtKeys, EsiClient};
 
     use super::cache_get_keys;
@@ -128,18 +124,20 @@ mod cache_get_keys_tests {
     #[tokio::test]
     async fn test_cache_get_keys_some() {
         // Setup basic EsiClient
-        let mut esi_client = EsiClient::builder()
+        let esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
             .expect("Failed to build EsiClient");
 
+        let jwt_key_cache = esi_client.jwt_key_cache;
+
         // Set JWT key cache
         let keys = (EveJwtKeys::create_mock_keys(), std::time::Instant::now());
-        let cache = Arc::new(RwLock::new(Some(keys)));
-        esi_client.jwt_key_cache = cache;
+        let mut cache = jwt_key_cache.cache.write().await;
+        *cache = Some(keys);
 
         // Test function
-        let result = cache_get_keys(&esi_client.jwt_key_cache).await;
+        let result = cache_get_keys(&jwt_key_cache).await;
 
         // Assert Some
         assert!(result.is_some())
@@ -199,14 +197,16 @@ mod cache_update_keys_tests {
             .build()
             .expect("Failed to build EsiClient");
 
+        let jwt_key_cache = esi_client.jwt_key_cache;
+
         // Create mock keys
         let mock_keys = EveJwtKeys::create_mock_keys();
 
         // Test function
-        cache_update_keys(&esi_client.jwt_key_cache, mock_keys).await;
+        cache_update_keys(&jwt_key_cache, mock_keys).await;
 
         // Assert some
-        let cache = esi_client.jwt_key_cache.read().await;
+        let cache = jwt_key_cache.cache.read().await;
         let result = &*cache;
 
         assert!(result.is_some())
