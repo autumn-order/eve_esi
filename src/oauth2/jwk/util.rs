@@ -11,8 +11,11 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
+use std::sync::Arc;
+
 use log::{debug, trace};
-use tokio::sync::RwLock;
+
+use crate::oauth2::jwk::cache::JwtKeyCache;
 
 /// Checks if refresh is still in cooldown due to recent failure.
 ///
@@ -38,11 +41,12 @@ use tokio::sync::RwLock;
 /// - Some([`u64`]): Indicating the JWT key refresh cooldown remaining
 /// - None: If there is no remaining JWT key refresh cooldown.
 pub(super) async fn check_refresh_cooldown(
+    jwt_key_cache: &Arc<JwtKeyCache>,
     jwk_refresh_cooldown: u64,
-    jwt_key_last_refresh_failure: &RwLock<Option<std::time::Instant>>,
 ) -> Option<u64> {
     // Check for last background refresh failure
-    let last_refresh_failure = jwt_key_last_refresh_failure;
+    let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
+
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
@@ -219,8 +223,8 @@ mod is_refresh_cooldown_tests {
 
         // Run function
         let cooldown = check_refresh_cooldown(
+            &jwt_key_cache,
             esi_client.oauth2_config.jwk_refresh_cooldown,
-            &jwt_key_cache.last_refresh_failure,
         )
         .await;
 
@@ -261,8 +265,8 @@ mod is_refresh_cooldown_tests {
 
         // Run function
         let cooldown = check_refresh_cooldown(
+            &jwt_key_cache,
             esi_client.oauth2_config.jwk_refresh_cooldown,
-            &jwt_key_cache.last_refresh_failure,
         )
         .await;
 
@@ -294,8 +298,8 @@ mod is_refresh_cooldown_tests {
 
         // Run function
         let cooldown = check_refresh_cooldown(
+            &jwt_key_cache,
             esi_client.oauth2_config.jwk_refresh_cooldown,
-            &jwt_key_cache.last_refresh_failure,
         )
         .await;
 

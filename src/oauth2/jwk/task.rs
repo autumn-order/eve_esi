@@ -280,10 +280,9 @@ impl<'a> OAuth2Api<'a> {
         let oauth2_config = &esi_client.oauth2_config;
 
         let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
-        let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
 
         // Check if we are still in cooldown due to fetch failure within cooldown period
-        if check_refresh_cooldown(jwk_refresh_cooldown, last_refresh_failure)
+        if check_refresh_cooldown(jwt_key_cache, jwk_refresh_cooldown)
             .await
             .is_some()
         {
