@@ -37,12 +37,12 @@ use tokio::sync::RwLock;
 ///   field representing the last failed JWT key refresh attempt.
 ///
 /// # Returns
-/// - `true` if we are still within the cooldown period and should not attempt another background refresh
-/// - `false` if either no previous failure exists or the cooldown period has elapsed
-pub(super) async fn is_refresh_cooldown(
+/// - Some([`u64`]): Indicating the JWT key refresh cooldown remaining
+/// - None: If there is no remaining JWT key refresh cooldown.
+pub(super) async fn check_refresh_cooldown(
     jwk_refresh_cooldown: u64,
     jwt_key_last_refresh_failure: &Arc<RwLock<Option<std::time::Instant>>>,
-) -> bool {
+) -> Option<u64> {
     // Check for last background refresh failure
     let last_refresh_failure = jwt_key_last_refresh_failure;
     if let Some(last_failure) = *last_refresh_failure.read().await {
@@ -57,8 +57,10 @@ pub(super) async fn is_refresh_cooldown(
                 elapsed_secs, jwk_refresh_cooldown
             );
 
-            // Return true if refresh failure is still within backoff period
-            return true;
+            // Return Some with the remaining cooldown in seconds
+            let remaining_cooldown = jwk_refresh_cooldown - elapsed_secs;
+
+            return Some(remaining_cooldown);
         } else {
             #[cfg(not(tarpaulin_include))]
             trace!(
@@ -67,15 +69,16 @@ pub(super) async fn is_refresh_cooldown(
                 jwk_refresh_cooldown
             );
 
-            // Return false if refresh failure is not within backoff period
-            return false;
+            // Return None indicating there is no active cooldown
+            return None;
         }
     }
 
     // No previous JWT key refresh failure
     trace!("No previous JWT key refresh failures recorded, no backoff needed");
 
-    false
+    // Return None indicating there is no active cooldown
+    return None;
 }
 
 /// Determines if the cache is approaching expiry based on elapsed time
@@ -189,9 +192,9 @@ mod is_refresh_cooldown_tests {
 
     use crate::EsiClient;
 
-    use super::is_refresh_cooldown;
+    use super::check_refresh_cooldown;
 
-    /// Refresh cooldown should be true due to recent failure
+    /// Refresh cooldown should be active due to recent failure
     ///
     /// When there is a refresh failure within the default of the past (60 seconds),
     /// assert that the function returns true, indicating that we should not attempt
@@ -202,29 +205,34 @@ mod is_refresh_cooldown_tests {
     /// - Set last refresh failure within default cooldown period of past 60 seconds
     ///
     /// # Assertions
-    /// - Assert function returns true indicating we are still in cooldown
+    /// - Assert function returns Some indicating we are still in cooldown
+    /// - Assert 30 seconds remain in cooldown period
     #[tokio::test]
-    async fn test_is_refresh_cooldown_true() {
+    async fn test_check_refresh_cooldown_within_cooldown() {
         // Setup EsiClient
         let mut esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
             .expect("Failed to build EsiClient");
 
-        // Set the backoff period to within default of (60 seconds)
+        // Set the recent failure within cooldown period default of 60 seconds
         esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(
             std::time::Instant::now() - std::time::Duration::from_secs(30),
         )));
 
         // Run function
-        let refresh_cooldown = is_refresh_cooldown(
-            esi_client.oauth2_config.jwk_background_refresh_cooldown,
+        let cooldown = check_refresh_cooldown(
+            esi_client.oauth2_config.jwk_refresh_cooldown,
             &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
-        // Assert true
-        assert_eq!(refresh_cooldown, true);
+        // Assert cooldown is some
+        assert!(cooldown.is_some());
+        let remaining_cooldown = cooldown.unwrap();
+
+        // Assert cooldown returns expected 30 seconds remaining
+        assert_eq!(remaining_cooldown, 30);
     }
 
     /// Refresh cooldown should be false due to not being in cooldown
@@ -237,29 +245,29 @@ mod is_refresh_cooldown_tests {
     /// - Set last refresh failure beyond default cooldown period of past 60 seconds
     ///
     /// # Assertions
-    /// - Assert function returns false indicating we are not in cooldown
+    /// - Assert cooldown is None indicating we are not in the cooldown period
     #[tokio::test]
-    async fn test_is_refresh_cooldown_backoff_false() {
+    async fn test_check_refresh_cooldown_recent_failure() {
         // Setup EsiClient
         let mut esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
             .expect("Failed to build EsiClient");
 
-        // Set the back off period greater than default of (60 seconds)
+        // Set the last refresh failure greater than default of cooldown period of 60 seconds
         esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(
             std::time::Instant::now() - std::time::Duration::from_secs(61),
         )));
 
         // Run function
-        let refresh_cooldown = is_refresh_cooldown(
-            esi_client.oauth2_config.jwk_background_refresh_cooldown,
+        let cooldown = check_refresh_cooldown(
+            esi_client.oauth2_config.jwk_refresh_cooldown,
             &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
-        // Assert false
-        assert_eq!(refresh_cooldown, false);
+        // Assert cooldown is None
+        assert!(cooldown.is_none());
     }
 
     /// Refresh cooldown should be false due to no past failures recorded
@@ -272,9 +280,9 @@ mod is_refresh_cooldown_tests {
     /// - Do not set the [`EsiClient::jwt_key_last_refresh_failure`]
     ///
     /// # Assertions
-    /// - Assert function returns false indicating we are not in cooldown
+    /// - Assert cooldown is None indicating we are not in the cooldown period
     #[tokio::test]
-    async fn test_should_respect_backoff_no_failure() {
+    async fn test_check_refresh_cooldown_no_failure() {
         // Setup EsiClient
         // Don't set back off period
         let esi_client = EsiClient::builder()
@@ -283,14 +291,14 @@ mod is_refresh_cooldown_tests {
             .expect("Failed to build EsiClient");
 
         // Run function
-        let refresh_cooldown = is_refresh_cooldown(
-            esi_client.oauth2_config.jwk_background_refresh_cooldown,
+        let cooldown = check_refresh_cooldown(
+            esi_client.oauth2_config.jwk_refresh_cooldown,
             &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
-        // Assert false
-        assert_eq!(refresh_cooldown, false);
+        // Assert cooldown is None
+        assert!(cooldown.is_none());
     }
 }
 

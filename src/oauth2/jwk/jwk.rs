@@ -12,9 +12,11 @@
 use log::{debug, error};
 use std::time::Instant;
 
-use crate::error::EsiError;
+use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
-use crate::oauth2::jwk::util::{is_cache_approaching_expiry, is_cache_expired};
+use crate::oauth2::jwk::util::{
+    check_refresh_cooldown, is_cache_approaching_expiry, is_cache_expired,
+};
 use crate::oauth2::jwk::util_cache::cache_get_keys;
 use crate::oauth2::OAuth2Api;
 
@@ -35,7 +37,8 @@ impl<'a> OAuth2Api<'a> {
     /// # Implementation Details
     /// - Uses a read lock on the cache to check current state without blocking other readers
     /// - Implements the "refresh ahead" pattern to update cache before key expiry
-    /// - If keys are expired, attempts to acquire a lock to refresh the keys
+    /// - If keys are expired, ensures no refresh failure occurred within the last 60 seconds
+    ///   before attempting to acquire a lock to refresh the keys.
     /// - If a refresh lock is already in place, waits for notification of a completed
     ///   refresh and then returns the keys from the cache if successful.
     ///
@@ -54,6 +57,7 @@ impl<'a> OAuth2Api<'a> {
         let oauth2_config = &esi_client.oauth2_config;
 
         let jwk_cache_ttl = oauth2_config.jwk_cache_ttl;
+        let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
         let background_refresh_enabled = oauth2_config.jwk_background_refresh_enabled;
         let background_refresh_threshold = oauth2_config.jwk_background_refresh_threshold_percent;
 
@@ -102,6 +106,29 @@ impl<'a> OAuth2Api<'a> {
             #[cfg(not(tarpaulin_include))]
             debug!("JWT key cache is currently empty");
         };
+
+        // Return error if JWT key refresh is still within 60 second cooldown period
+        //
+        // If a recent attempt to refresh keys was made and all retries failed, a 60
+        // second cooldown period will be active until the next set of attempts.
+        if let Some(cooldown_remaining) = check_refresh_cooldown(
+            jwk_refresh_cooldown,
+            &esi_client.jwt_key_last_refresh_failure,
+        )
+        .await
+        {
+            #[cfg(not(tarpaulin_include))]
+            let error_message = format!(
+                "JWT key refresh cooldown still active due to recent refresh failure during last {} seconds. Cooldown remaining: {} seconds.", jwk_refresh_cooldown, cooldown_remaining
+            );
+
+            #[cfg(not(tarpaulin_include))]
+            error!("{}", error_message);
+
+            return Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshCooldown(
+                error_message,
+            )));
+        }
 
         // If we got here, JWT key cache is missing or expired
         // Check if the keys are already being refreshed on another thread

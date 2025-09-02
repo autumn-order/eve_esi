@@ -1,6 +1,11 @@
+use std::sync::Arc;
 use std::time::Instant;
 
-use eve_esi::model::oauth2::EveJwtKeys;
+use eve_esi::{
+    error::{EsiError, OAuthError},
+    model::oauth2::EveJwtKeys,
+};
+use tokio::sync::RwLock;
 
 use crate::oauth2::jwk::util::{
     get_jwk_internal_server_error_response, get_jwk_success_response, setup,
@@ -138,5 +143,45 @@ async fn get_jwt_keys_empty_cache() {
 
         // Assert cache is no longer empty
         assert!(cache.is_some());
+    }
+}
+
+/// An error will be returned due to refresh cooldown still being active
+///
+/// # Test Setup
+/// - Create a basic EsiClient & mock HTTP server
+/// - Set last refresh failure within past 60 seconds
+///
+/// # Assertions
+/// - Assert mock server received 0 expected fetch requests
+/// - Assert result is error
+/// - Assert error is of type OAuthError::JwtKeyRefreshCooldown
+#[tokio::test]
+async fn get_jwt_keys_refresh_cooldown() {
+    // Setup a basic EsiClient & mock HTTP server
+    let (mut esi_client, mut mock_server) = setup().await;
+
+    // Create a mock response expecting 0 requests
+    let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
+
+    // Set the recent failure within cooldown period default of 60 seconds
+    esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(
+        std::time::Instant::now() - std::time::Duration::from_secs(30),
+    )));
+
+    // Call the method under test
+    let result = esi_client.oauth2().get_jwt_keys().await;
+
+    // Assert mock server received 1 expected fetch request
+    mock.assert();
+
+    // Assert result is ok
+    assert!(result.is_err());
+
+    // Assert error is of type OAuthError::JwtKeyRefreshCooldown
+    match result {
+        // Assert error is of the OAuthError:JwtKeyRefreshCooldown variant
+        Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshCooldown(_))) => {}
+        _ => panic!("Expected OAuthError::JwtKeyRefreshCooldown error"),
     }
 }

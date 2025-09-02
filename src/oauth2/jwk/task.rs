@@ -20,7 +20,7 @@ use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
 use super::jwk::fetch_jwt_keys;
-use super::util::is_refresh_cooldown;
+use super::util::check_refresh_cooldown;
 use super::util_cache::cache_get_keys;
 use super::util_refresh::{jwk_refresh_lock_release_and_notify, jwk_refresh_lock_try_acquire};
 
@@ -271,13 +271,16 @@ impl<'a> OAuth2Api<'a> {
     pub(super) async fn trigger_background_jwt_refresh(&self) -> bool {
         let esi_client = self.client;
 
-        let jwk_refresh_cooldown = esi_client.oauth2_config.jwk_background_refresh_cooldown;
+        let jwk_refresh_cooldown = esi_client.oauth2_config.jwk_refresh_cooldown;
         let last_refresh_failure = &esi_client.jwt_key_last_refresh_failure;
 
         // Check if we are still in cooldown due to fetch failure within cooldown period
-        if is_refresh_cooldown(jwk_refresh_cooldown, last_refresh_failure).await {
+        if check_refresh_cooldown(jwk_refresh_cooldown, last_refresh_failure)
+            .await
+            .is_some()
+        {
             #[cfg(not(tarpaulin_include))]
-            debug!("Respecting backoff period, delaying JWT key refresh");
+            debug!("Respecting refresh cooldown, delaying JWT key refresh");
 
             return false;
         }

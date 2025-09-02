@@ -11,7 +11,7 @@
 //! - Adjust expiration times for JWT key cache
 //! - Adjust the timeout for waiting for JWT key refreshes
 //! - Adjust wait time/backoff period beteween refresh and how many retries should be made to fetch JWT keys
-//! - Enable/disable the practive background JWT key refresh
+//! - Enable/disable the proactive background JWT key refresh
 //!
 //! ## Builder Methods
 //!
@@ -26,18 +26,17 @@
 //! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_refresh_backoff`     | How long to wait between retries |
 //! | `jwk_refresh_timeout`     | How long to wait for another thread to refresh |
+//! | `jwk_refresh_cooldown`    | Cooldown between sets of JWT key refresh attempts |
 //! | `jwk_background_refresh_enabled` | Enable/disable background refresh |
-//! | `jwk_background_refresh_cooldown` | How long to wait between background refresh attempts |
 //! | `jwk_background_refresh_threshold_percent` | Percentage at which cache is refreshed proactively |
 
 use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
     constant::{
-        DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN,
-        DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
-        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
-        DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
+        DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
+        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN, DEFAULT_JWK_REFRESH_MAX_RETRIES,
+        DEFAULT_JWK_REFRESH_TIMEOUT, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
     },
     error::EsiError,
     oauth2::error::OAuthConfigError,
@@ -66,12 +65,12 @@ pub struct OAuth2ConfigBuilder {
     pub(crate) jwk_refresh_backoff: u64,
     /// Timeout in seconds when waiting for another thread to refresh JWT key (default 5 seconds)
     pub(crate) jwk_refresh_timeout: u64,
+    /// Cooldown period in seconds after a failed set of JWT key refresh attempts (default 60 seconds)
+    pub(crate) jwk_refresh_cooldown: u64,
 
     // JWT key cache background refresh settings
     /// Determines whether or not a background task is spawned to refresh JWT keys nearing expiration proactively
     pub(crate) jwk_background_refresh_enabled: bool,
-    /// Cooldown period in seconds after a JWT key refresh failure (default 60 seconds)
-    pub(crate) jwk_background_refresh_cooldown: u64,
     /// Percentage of jwk_cache_ttl for when the background JWT key refresh is triggered (default 80%)
     pub(crate) jwk_background_refresh_threshold_percent: u64,
 }
@@ -95,10 +94,10 @@ impl OAuth2ConfigBuilder {
             jwk_refresh_max_retries: DEFAULT_JWK_REFRESH_MAX_RETRIES,
             jwk_refresh_backoff: DEFAULT_JWK_REFRESH_BACKOFF,
             jwk_refresh_timeout: DEFAULT_JWK_REFRESH_TIMEOUT,
+            jwk_refresh_cooldown: DEFAULT_JWK_REFRESH_COOLDOWN,
 
             // JWT key cache background refresh settings
             jwk_background_refresh_enabled: true,
-            jwk_background_refresh_cooldown: DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN,
             jwk_background_refresh_threshold_percent:
                 DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
         }
@@ -156,10 +155,10 @@ impl OAuth2ConfigBuilder {
             jwk_refresh_max_retries: self.jwk_refresh_max_retries,
             jwk_refresh_backoff: self.jwk_refresh_backoff,
             jwk_refresh_timeout: self.jwk_refresh_timeout,
+            jwk_refresh_cooldown: self.jwk_refresh_cooldown,
 
             // JWT key cache background refresh settings
             jwk_background_refresh_enabled: self.jwk_background_refresh_enabled,
-            jwk_background_refresh_cooldown: self.jwk_background_refresh_cooldown,
             jwk_background_refresh_threshold_percent: self.jwk_background_refresh_threshold_percent,
         })
     }
@@ -295,6 +294,21 @@ impl OAuth2ConfigBuilder {
         self
     }
 
+    /// Modifies the cooldown between sets of JWT key cache refresh attempts in the event of failure
+    ///
+    /// By default, when a set of JWT key cache refresh attempts fail there will be a cooldown of 60 seconds
+    /// between the next set of attempts to refresh JWT keys before expiration.
+    ///
+    /// # Arguments
+    /// - `cooldown_seconds` ([`u64`]): Cooldown in seconds between background JWT key cache refresh attempts.
+    ///
+    /// # Returns
+    /// - [`OAuth2Config`]: Instance with the modified background refresh cooldown.
+    pub fn jwk_refresh_cooldown(mut self, cooldown_seconds: u64) -> Self {
+        self.jwk_refresh_cooldown = cooldown_seconds;
+        self
+    }
+
     /// Modifies whether or not the proactive background refresh when JWT keys are almost expired is enabled
     ///
     /// By default, when the JWT key cache is nearing expiration at around 80%, a background refresh task
@@ -318,26 +332,6 @@ impl OAuth2ConfigBuilder {
     /// - [`OAuth2Config`]: Instance with the modified status of whether or not the background refresh is enabled.
     pub fn jwk_background_refresh_enabled(mut self, background_refresh_enabled: bool) -> Self {
         self.jwk_background_refresh_enabled = background_refresh_enabled;
-        self
-    }
-
-    /// Modifies the cooldown between background JWT key cache refresh attempts should the attempt fail
-    ///
-    /// By default, when a background JWT key cache refresh attempt fails there will be a cooldown of 60 seconds
-    /// between the next attempt to proactively refresh JWT keys before expiration.
-    ///
-    /// The proactive refresh is first triggered when 80% of the 3600 JWT key cache lifetime has elapsed,
-    /// this can be modified with the [`Self::jwk_background_refresh_threshold_percent`] method.
-    ///
-    /// Around a dozen attempts will be made by default before the cache fully expires given the default settings.
-    ///
-    /// # Arguments
-    /// - `cooldown_seconds` ([`u64`]): Cooldown in seconds between background JWT key cache refresh attempts.
-    ///
-    /// # Returns
-    /// - [`OAuth2Config`]: Instance with the modified background refresh cooldown.
-    pub fn jwk_background_refresh_cooldown(mut self, cooldown_seconds: u64) -> Self {
-        self.jwk_background_refresh_cooldown = cooldown_seconds;
         self
     }
 
@@ -387,9 +381,9 @@ mod tests {
             .jwk_refresh_max_retries(0)
             .jwk_refresh_backoff(0)
             .jwk_refresh_timeout(0)
+            .jwk_refresh_cooldown(0)
             // JWT key cache background refresh settings
             .jwk_background_refresh_enabled(false)
-            .jwk_background_refresh_cooldown(0)
             .jwk_background_refresh_threshold_percent(1)
             .build()
             .expect("Failed to build OAuth2 config");
@@ -407,10 +401,10 @@ mod tests {
         assert_eq!(config.jwk_refresh_max_retries, 0);
         assert_eq!(config.jwk_refresh_backoff, 0);
         assert_eq!(config.jwk_refresh_timeout, 0);
+        assert_eq!(config.jwk_refresh_cooldown, 0);
 
         // Assert JWT key cache background refresh settings were set
         assert_eq!(config.jwk_background_refresh_enabled, false);
-        assert_eq!(config.jwk_background_refresh_cooldown, 0);
         assert_eq!(config.jwk_background_refresh_threshold_percent, 1);
     }
 

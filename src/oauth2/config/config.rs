@@ -52,12 +52,12 @@ pub struct OAuth2Config {
     pub(crate) jwk_refresh_backoff: u64,
     /// Timeout in seconds when waiting for another thread to refresh JWT key (default 5 seconds)
     pub(crate) jwk_refresh_timeout: u64,
+    /// Cooldown period in seconds after a failed set of JWT key refresh attempts (default 60 seconds)
+    pub(crate) jwk_refresh_cooldown: u64,
 
     // JWT key cache background refresh settings
     /// Determines whether or not a background task is spawned to refresh JWT keys nearing expiration proactively
     pub(crate) jwk_background_refresh_enabled: bool,
-    /// Cooldown period in seconds after a JWT key refresh failure (default 60 seconds)
-    pub(crate) jwk_background_refresh_cooldown: u64,
     /// Percentage of jwk_cache_ttl for when the background JWT key refresh is triggered (default 80%)
     pub(crate) jwk_background_refresh_threshold_percent: u64,
 }
@@ -95,10 +95,9 @@ mod tests {
     use super::*;
 
     use crate::constant::{
-        DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN,
-        DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
-        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
-        DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
+        DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
+        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN, DEFAULT_JWK_REFRESH_MAX_RETRIES,
+        DEFAULT_JWK_REFRESH_TIMEOUT, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
     };
 
     /// Ensures that all defaults for the [`OAuth2Config::default`] method are set as expected
@@ -133,10 +132,7 @@ mod tests {
 
         // Assert JWT key cache background refresh settings are expected defaults
         assert_eq!(config.jwk_background_refresh_enabled, true);
-        assert_eq!(
-            config.jwk_background_refresh_cooldown,
-            DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN
-        );
+        assert_eq!(config.jwk_refresh_cooldown, DEFAULT_JWK_REFRESH_COOLDOWN);
         assert_eq!(
             config.jwk_background_refresh_threshold_percent,
             DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT

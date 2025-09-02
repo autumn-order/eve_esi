@@ -182,6 +182,13 @@ pub enum OAuthError {
     #[error("JWT key cache error: {0}")]
     JwtKeyCacheError(String),
 
+    /// Error when JWT key refresh is still in cooldown
+    ///
+    /// If a recent set of attempts to refresh JWT key cache was made and all retries failed, a 60
+    /// second cooldown period will be active until the next set of attempts.
+    #[error("JWT key cache refresh cooldown still active: {0}")]
+    JwtKeyRefreshCooldown(String),
+
     /// Errors types returned when an OAuth2 token request fails.
     ///
     /// For a more detailed explanation of the error, see the [`RequestTokenError`] enum.
