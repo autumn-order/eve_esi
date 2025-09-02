@@ -60,8 +60,10 @@ async fn test_wait_for_refresh_success() {
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
         // Update keys
-        let mut cache = cache_clone.cache.write().await;
-        *cache = Some((keys_clone, std::time::Instant::now()));
+        {
+            let mut cache = cache_clone.cache.write().await;
+            *cache = Some((keys_clone, std::time::Instant::now()));
+        }
 
         // Release lock & notify waiters
         cache_clone

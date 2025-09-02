@@ -168,8 +168,10 @@ async fn get_jwt_keys_refresh_cooldown() {
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Set the recent failure within cooldown period default of 60 seconds
-    let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
-    *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(30));
+    {
+        let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+        *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(30));
+    }
 
     // Call the method under test
     let result = esi_client.oauth2().get_jwt_keys().await;

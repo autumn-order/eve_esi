@@ -212,8 +212,10 @@ mod is_refresh_cooldown_tests {
         let jwt_key_cache = esi_client.jwt_key_cache;
 
         // Set the recent failure within cooldown period default of 60 seconds
-        let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
-        *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(30));
+        {
+            let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+            *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(30));
+        }
 
         // Run function
         let cooldown = check_refresh_cooldown(
@@ -252,8 +254,10 @@ mod is_refresh_cooldown_tests {
         let jwt_key_cache = esi_client.jwt_key_cache;
 
         // Set the last refresh failure greater than default of cooldown period of 60 seconds
-        let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
-        *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(61));
+        {
+            let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+            *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(61));
+        }
 
         // Run function
         let cooldown = check_refresh_cooldown(

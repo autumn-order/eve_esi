@@ -22,6 +22,10 @@ pub(super) async fn setup() -> (EsiClient, ServerGuard) {
     // Create an OAuth2 config using the mock JWK endpoint
     let config = OAuth2Config::builder()
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
+        // Set expoential backoff between refresh retries to 1 millisecond
+        .jwk_refresh_backoff(1)
+        // Set timeout to 1 second when waiting for another thread to refresh
+        .jwk_refresh_timeout(1)
         .build()
         .expect("Failed to build oauth2 config");
 

@@ -267,9 +267,12 @@ mod cache_get_keys_tests {
         let jwt_key_cache = esi_client.jwt_key_cache;
 
         // Set JWT key cache
-        let keys = (EveJwtKeys::create_mock_keys(), std::time::Instant::now());
-        let mut cache = jwt_key_cache.cache.write().await;
-        *cache = Some(keys);
+        {
+            let keys = (EveJwtKeys::create_mock_keys(), std::time::Instant::now());
+
+            let mut cache = jwt_key_cache.cache.write().await;
+            *cache = Some(keys);
+        }
 
         // Test function
         let result = jwt_key_cache.get_keys().await;

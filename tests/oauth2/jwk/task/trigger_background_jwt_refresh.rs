@@ -37,10 +37,13 @@ async fn test_background_refresh_success() {
     let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    let mut cache = esi_client.jwt_key_cache.cache.write().await;
-    *cache = Some((keys, timestamp));
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, timestamp));
+    }
 
     // Use get_jwt_keys as entry point since function being tested is private
     let _ = esi_client.oauth2().get_jwt_keys().await;
@@ -112,10 +115,13 @@ async fn test_background_refresh_failure() {
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 1);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    let mut cache = esi_client.jwt_key_cache.cache.write().await;
-    *cache = Some((keys, timestamp));
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, timestamp));
+    }
 
     // Use get_jwt_keys as entry point since function being tested is private
     let _ = esi_client.oauth2().get_jwt_keys().await;
@@ -188,16 +194,21 @@ async fn test_background_refresh_backoff() {
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    let mut cache = esi_client.jwt_key_cache.cache.write().await;
-    *cache = Some((keys, expiration));
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, expiration));
+    }
 
     // Set last failure within backoff period of last 100 ms (failed 50 ms ago)
-    let last_failure = std::time::Instant::now() - std::time::Duration::from_millis(50);
+    {
+        let last_failure = std::time::Instant::now() - std::time::Duration::from_millis(50);
 
-    let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
-    *failure_time = Some(last_failure);
+        let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+        *failure_time = Some(last_failure);
+    }
 
     // Use get_jwt_keys as entry point since function being tested is private
     let _ = esi_client.oauth2().get_jwt_keys().await;
@@ -246,11 +257,13 @@ async fn test_background_refresh_already_in_progress() {
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
 
-    let mut cache = esi_client.jwt_key_cache.cache.write().await;
-    *cache = Some((keys, expiration));
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, expiration));
+    }
 
     // Acquire a refresh lock
     let refresh_lock = &jwt_key_cache.refresh_lock;
