@@ -40,10 +40,10 @@ use crate::model::oauth2::EveJwtKeys;
 /// - [`Notify`]: To provide notifications of when the cache has been updated
 ///
 /// # Fields
-/// - `jwt_key_cache` (RwLock<Option<([`EveJwtKeys`], [`Instant`])>>): RwLock with a tuple containing JWT keys and timestamp of when keys were updated
-/// - `jwt_key_refresh_lock` ([`AtomicBool`]): AtomicBool indicating whether a JWT key refresh is currently in progress
-/// - `jwt_key_refresh_notifier` ([`Notify`]): Notifier for when a JWT key refresh is completed
-/// - `jwt_key_last_refresh_failure` (RwLock<Option<[`Instant`]>): RwLock with a timestamp of last failed set of JWT key refresh attemmpts
+/// - `cache` (RwLock<Option<([`EveJwtKeys`], [`Instant`])>>): RwLock with a tuple containing JWT keys and timestamp of when keys were updated
+/// - `refresh_lock` ([`AtomicBool`]): AtomicBool indicating whether a JWT key refresh is currently in progress
+/// - `refresh_notifier` ([`Notify`]): Notifier for when a JWT key refresh is completed
+/// - `last_refresh_failure` (RwLock<Option<[`Instant`]>): RwLock with a timestamp of last failed set of JWT key refresh attemmpts
 pub struct JwtKeyCache {
     /// RwLock with a tuple containing JWT keys and timestamp of when keys were updated
     pub cache: RwLock<Option<(EveJwtKeys, Instant)>>,
