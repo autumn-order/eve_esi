@@ -27,18 +27,12 @@
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-use tokio::sync::{Notify, RwLock};
-
 use crate::builder::EsiClientBuilder;
-use crate::model::oauth2::EveJwtKeys;
-
 use crate::oauth2::config::client::OAuth2Client;
+use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::oauth2::OAuth2Config;
-
-pub(crate) type JwtKeyCache = RwLock<Option<(EveJwtKeys, std::time::Instant)>>;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
@@ -50,26 +44,17 @@ pub struct EsiClient {
     pub(crate) esi_url: String,
 
     // OAuth2
-    pub(crate) oauth_client: Option<OAuth2Client>,
-    pub(crate) oauth2_config: OAuth2Config,
-
-    // OAuth2 JWT key cache
-    //
-    // Use an Arc to share the cache & refresh status between threads
-    // This is necessary for the background JWT key refresh task spawned when calling the
-    // `get_jwt_keys` method in `oauth2/jwk.rs`.
-    /// Cache for JWT keys used to validate tokens from EVE Online's OAuth2 API.
+    /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
     ///
-    /// Consider using the [`crate::oauth2::OAuth2Api::get_jwt_keys`] method to retrieve the keys from the cache &
-    /// automatically refresh them when expired.
-    /// Direct modification of this field is typically only for testing purposes.
+    /// Will be None if client_id, client_secret, and callback_url have not been
+    /// set on the EsiClient.
+    pub(crate) oauth_client: Option<OAuth2Client>,
+    /// Configuration used for overriding default OAuth2 settings regarding caching policies and
+    /// OAuth2 endpoint URLs.
+    pub(crate) oauth2_config: OAuth2Config,
+    /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
+    /// cache usage & refreshes across threads.
     pub jwt_key_cache: Arc<JwtKeyCache>,
-    /// Lock indicating whether a JWT key refresh is currently in progress to prevent concurrent refreshes.
-    pub jwt_key_refresh_lock: Arc<AtomicBool>,
-    /// Notifier for JWT key refresh completion.
-    pub jwt_key_refresh_notifier: Arc<Notify>,
-    /// Timestamp of the last failed JWT key refresh attempt.
-    pub jwt_key_last_refresh_failure: Arc<RwLock<Option<std::time::Instant>>>,
 }
 
 impl EsiClient {

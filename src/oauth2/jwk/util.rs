@@ -14,7 +14,8 @@
 use std::sync::Arc;
 
 use log::{debug, trace};
-use tokio::sync::RwLock;
+
+use crate::oauth2::jwk::cache::JwtKeyCache;
 
 /// Checks if refresh is still in cooldown due to recent failure.
 ///
@@ -40,11 +41,12 @@ use tokio::sync::RwLock;
 /// - Some([`u64`]): Indicating the JWT key refresh cooldown remaining
 /// - None: If there is no remaining JWT key refresh cooldown.
 pub(super) async fn check_refresh_cooldown(
+    jwt_key_cache: &Arc<JwtKeyCache>,
     jwk_refresh_cooldown: u64,
-    jwt_key_last_refresh_failure: &Arc<RwLock<Option<std::time::Instant>>>,
 ) -> Option<u64> {
     // Check for last background refresh failure
-    let last_refresh_failure = jwt_key_last_refresh_failure;
+    let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
+
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
@@ -186,10 +188,6 @@ pub(super) fn is_cache_expired(jwt_key_cache_ttl: u64, elapsed_seconds: u64) -> 
 
 #[cfg(test)]
 mod is_refresh_cooldown_tests {
-    use std::sync::Arc;
-
-    use tokio::sync::RwLock;
-
     use crate::EsiClient;
 
     use super::check_refresh_cooldown;
@@ -210,20 +208,23 @@ mod is_refresh_cooldown_tests {
     #[tokio::test]
     async fn test_check_refresh_cooldown_within_cooldown() {
         // Setup EsiClient
-        let mut esi_client = EsiClient::builder()
+        let esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
             .expect("Failed to build EsiClient");
 
+        let jwt_key_cache = esi_client.jwt_key_cache;
+
         // Set the recent failure within cooldown period default of 60 seconds
-        esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(
-            std::time::Instant::now() - std::time::Duration::from_secs(30),
-        )));
+        {
+            let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+            *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(30));
+        }
 
         // Run function
         let cooldown = check_refresh_cooldown(
+            &jwt_key_cache,
             esi_client.oauth2_config.jwk_refresh_cooldown,
-            &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
@@ -249,20 +250,23 @@ mod is_refresh_cooldown_tests {
     #[tokio::test]
     async fn test_check_refresh_cooldown_recent_failure() {
         // Setup EsiClient
-        let mut esi_client = EsiClient::builder()
+        let esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
             .expect("Failed to build EsiClient");
 
+        let jwt_key_cache = esi_client.jwt_key_cache;
+
         // Set the last refresh failure greater than default of cooldown period of 60 seconds
-        esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(
-            std::time::Instant::now() - std::time::Duration::from_secs(61),
-        )));
+        {
+            let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+            *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(61));
+        }
 
         // Run function
         let cooldown = check_refresh_cooldown(
+            &jwt_key_cache,
             esi_client.oauth2_config.jwk_refresh_cooldown,
-            &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
@@ -290,10 +294,12 @@ mod is_refresh_cooldown_tests {
             .build()
             .expect("Failed to build EsiClient");
 
+        let jwt_key_cache = esi_client.jwt_key_cache;
+
         // Run function
         let cooldown = check_refresh_cooldown(
+            &jwt_key_cache,
             esi_client.oauth2_config.jwk_refresh_cooldown,
-            &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 

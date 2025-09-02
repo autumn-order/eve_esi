@@ -1,7 +1,4 @@
-use std::sync::Arc;
 use std::time::Duration;
-
-use tokio::sync::RwLock;
 
 use eve_esi::model::oauth2::EveJwtKeys;
 
@@ -33,21 +30,26 @@ use crate::oauth2::jwk::util::{
 #[tokio::test]
 async fn test_background_refresh_success() {
     // Setup a basic EsiClient & mock HTTP server
-    let (mut esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, timestamp));
+    }
 
     // Use get_jwt_keys as entry point since function being tested is private
     let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for refresh notification or timeout if never completes
-    let notify_future = esi_client.jwt_key_refresh_notifier.notified();
+    let notify_future = jwt_key_cache.refresh_notifier.notified();
     let notify_timeout = Duration::from_millis(100);
     let notified = tokio::select! {
         _ = notify_future => {true}
@@ -61,8 +63,7 @@ async fn test_background_refresh_success() {
     mock.assert();
 
     // Assert refresh lock has been released
-    let refresh_lock = &esi_client.jwt_key_refresh_lock;
-    let lock_acquired = refresh_lock.compare_exchange(
+    let lock_acquired = jwt_key_cache.refresh_lock.compare_exchange(
         false,
         true,
         std::sync::atomic::Ordering::Acquire,
@@ -72,7 +73,7 @@ async fn test_background_refresh_success() {
     assert!(!lock_acquired.is_err());
 
     // Assert cache has been properly updated
-    let cache = esi_client.jwt_key_cache.read().await;
+    let cache = jwt_key_cache.cache.read().await;
 
     if let Some((_, timestamp)) = &*cache {
         // Ensure timestamp is not past default 2880 second nearing expiration mark
@@ -107,21 +108,26 @@ async fn test_background_refresh_success() {
 #[tokio::test]
 async fn test_background_refresh_failure() {
     // Setup a basic EsiClient & mock HTTP server
-    let (mut esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with error 500 and expecting 1 request
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 1);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, timestamp))));
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, timestamp));
+    }
 
     // Use get_jwt_keys as entry point since function being tested is private
     let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for refresh notification or timeout if never completes
-    let notify_future = esi_client.jwt_key_refresh_notifier.notified();
+    let notify_future = jwt_key_cache.refresh_notifier.notified();
     let notify_timeout = Duration::from_millis(100);
     let notified = tokio::select! {
         _ = notify_future => {true}
@@ -135,8 +141,7 @@ async fn test_background_refresh_failure() {
     mock.assert();
 
     // Assert refresh lock has been released
-    let refresh_lock = &esi_client.jwt_key_refresh_lock;
-    let lock_acquired = refresh_lock.compare_exchange(
+    let lock_acquired = jwt_key_cache.refresh_lock.compare_exchange(
         false,
         true,
         std::sync::atomic::Ordering::Acquire,
@@ -146,11 +151,11 @@ async fn test_background_refresh_failure() {
     assert!(!lock_acquired.is_err());
 
     // Assert last refresh failure has been logged
-    let last_refresh_failure = esi_client.jwt_key_last_refresh_failure.read().await;
+    let last_refresh_failure = jwt_key_cache.last_refresh_failure.read().await;
     assert!(last_refresh_failure.is_some());
 
     // Assert cache still contains expired keys
-    let cache = esi_client.jwt_key_cache.read().await;
+    let cache = jwt_key_cache.cache.read().await;
 
     if let Some((_, timestamp)) = &*cache {
         // Ensure timestamp is past default 2880 second nearing expiration mark
@@ -182,25 +187,34 @@ async fn test_background_refresh_failure() {
 #[tokio::test]
 async fn test_background_refresh_backoff() {
     // Setup a basic EsiClient & mock HTTP server
-    let (mut esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with error 500 and expecting 0 requests
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, expiration))));
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, expiration));
+    }
 
     // Set last failure within backoff period of last 100 ms (failed 50 ms ago)
-    let last_failure = std::time::Instant::now() - std::time::Duration::from_millis(50);
-    esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(last_failure)));
+    {
+        let last_failure = std::time::Instant::now() - std::time::Duration::from_millis(50);
+
+        let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+        *failure_time = Some(last_failure);
+    }
 
     // Use get_jwt_keys as entry point since function being tested is private
     let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for notification to timeout
-    let notify_future = esi_client.jwt_key_refresh_notifier.notified();
+    let notify_future = jwt_key_cache.refresh_notifier.notified();
     let notify_timeout = Duration::from_millis(100);
     let notified = tokio::select! {
         _ = notify_future => {true}
@@ -236,18 +250,23 @@ async fn test_background_refresh_backoff() {
 #[tokio::test]
 async fn test_background_refresh_already_in_progress() {
     // Setup a basic EsiClient & mock HTTP server
-    let (mut esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with error 500 and expecting 0 requests
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Populate JWT key cache with keys past 80% expiration
-    let keys = EveJwtKeys::create_mock_keys();
-    let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-    esi_client.jwt_key_cache = Arc::new(RwLock::new(Some((keys, expiration))));
+    {
+        let keys = EveJwtKeys::create_mock_keys();
+        let expiration = std::time::Instant::now() - std::time::Duration::from_secs(2881);
+
+        let mut cache = esi_client.jwt_key_cache.cache.write().await;
+        *cache = Some((keys, expiration));
+    }
 
     // Acquire a refresh lock
-    let refresh_lock = &esi_client.jwt_key_refresh_lock;
+    let refresh_lock = &jwt_key_cache.refresh_lock;
     let lock_acquired = refresh_lock.compare_exchange(
         false,
         true,
@@ -262,7 +281,7 @@ async fn test_background_refresh_already_in_progress() {
     let _ = esi_client.oauth2().get_jwt_keys().await;
 
     // Wait for notification to timeout
-    let notify_future = esi_client.jwt_key_refresh_notifier.notified();
+    let notify_future = jwt_key_cache.refresh_notifier.notified();
     let notify_timeout = Duration::from_millis(100);
     let notified = tokio::select! {
         _ = notify_future => {true}
