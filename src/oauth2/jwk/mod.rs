@@ -4,6 +4,10 @@
 //! used in OAuth2 authentication with EVE Online's ESI API. It handles fetching, caching,
 //! validation, and automatic background refreshing of JWT keys with thread-safe operations.
 //!
+//! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or
+//! the endpoints used for EVE OAuth2 can be overridden using the
+//! [`OAuth2Config`](crate::oauth2::OAuth2Config).
+//!
 //! # Submodules
 //!
 //! The JWT key management is divided into several components:

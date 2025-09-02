@@ -13,13 +13,8 @@
 
 use std::sync::Arc;
 
-use tokio::sync::RwLock;
-
 use log::{debug, trace};
-
-use crate::constant::{
-    DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
-};
+use tokio::sync::RwLock;
 
 /// Checks if we should respect backoff period due to previous failure
 ///
@@ -28,19 +23,24 @@ use crate::constant::{
 /// simple backoff mechanism to prevent excessive API calls when the
 /// authentication service is experiencing issues.
 ///
-/// # Implementation Details
-/// - Reads from the shared [`crate::EsiClient::jwt_keys_last_refresh_failure`] timestamp
-/// - Uses [`DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN`] (60 seconds) as the minimum wait time
-///   between refresh attempts after a failure
-///
 /// # Thread Safety
 /// This method acquires a read lock on the failure timestamp, allowing
 /// multiple threads to check the backoff status concurrently.
+/// - Reads from the shared [`EsiClient::jwt_keys_last_refresh_failure`](crate::EsiClient::jwt_keys_last_refresh_failure)
+///   timestamp
+///
+/// # Arguments
+/// - `background_refresh_cooldown` ([`u64`]): Cooldown in seconds between background refresh
+///   attempts as defined by the [`OAuthConfig::jwk_background_refresh_cooldown`](crate::oauth2::OAuth2Config::jwk_background_refresh_cooldown)
+///   field used by the [`EsiClient`](crate::EsiClient). By default this is 60 seconds.
+/// - `jwt_key_last_refresh_failure` ([`EsiClient::jwt_keys_last_refresh_failure`](crate::EsiClient::jwt_keys_last_refresh_failure)):
+///   field representing the last failed JWT key refresh attempt.
 ///
 /// # Returns
 /// - `true` if we are still within the backoff period and should not attempt another refresh
 /// - `false` if either no previous failure exists or the backoff period has elapsed
 pub(super) async fn should_respect_backoff(
+    background_refresh_cooldown: u64,
     jwt_key_last_refresh_failure: &Arc<RwLock<Option<std::time::Instant>>>,
 ) -> bool {
     // Check for last refresh failure
@@ -48,13 +48,13 @@ pub(super) async fn should_respect_backoff(
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
-        let should_backoff = elapsed_secs < DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN;
+        let should_backoff = elapsed_secs < background_refresh_cooldown;
 
         if should_backoff {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "Respecting backoff period: {}s elapsed of {}s required",
-                elapsed_secs, DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN
+                elapsed_secs, background_refresh_cooldown
             );
 
             // Return true if refresh failure is still within backoff period
@@ -64,7 +64,7 @@ pub(super) async fn should_respect_backoff(
             trace!(
                 "Backoff period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
-                DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN
+                background_refresh_cooldown
             );
 
             // Return false if refresh failure is not within backoff period
@@ -81,28 +81,36 @@ pub(super) async fn should_respect_backoff(
 /// Determines if the cache is approaching expiry based on elapsed time
 ///
 /// Checks whether the elapsed time since the last cache update has crossed
-/// the threshold percentage of the total TTL, indicating that a proactive
+/// the nearing expiration threshold percentage of the cache lifetime, indicating that a proactive
 /// refresh should be triggered.
 ///
-/// # Implementation Details
-/// The threshold is defined by [`DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT`] (80%),
-/// which represents the percentage of the total TTL after which we consider
-/// the cache to be approaching expiry.
-///
 /// # Parameters
-/// - `elapsed_seconds`: Number of seconds since the cache was last updated
+/// - `jwt_key_cache_ttl` ([`u64`]): Lifetime in seconds before cache is considered expired which
+///   is defined by the [`OAuthConfig::jwk_cache_ttl`](crate::oauth2::OAuth2Config::jwk_cache_ttl)
+///   field used by the [`EsiClient`](crate::EsiClient). By default this 3600 seconds
+///   representing 1 hour.
+/// - `background_refresh_threshold` ([`u64`]): Number representing % when cache is considered
+///   nearing expiry which is defined by the
+///   [`OAuthConfig::jwk_background_refresh_threshold_percent`](crate::oauth2::OAuth2Config::jwk_background_refresh_threshold_percent)
+///   field used by the [`EsiClient`](crate::EsiClient) which represents the percentage of the total
+///   TTL after which we consider the cache to be approaching expiry. By default this is 80%.
+/// - `elapsed_seconds` ([`u64`]): Number of seconds since the cache was last updated
 ///
 /// # Returns
 /// - `true` if the elapsed time exceeds the threshold percentage of the TTL
 /// - `false` if the cache is still well within its valid period
-pub(super) fn is_cache_approaching_expiry(jwt_key_cache_ttl: &u64, elapsed_seconds: u64) -> bool {
+pub(super) fn is_cache_approaching_expiry(
+    jwt_key_cache_ttl: u64,
+    background_refresh_threshold: u64,
+    elapsed_seconds: u64,
+) -> bool {
     // Retrieve cache TTL, this determines how many seconds it takes for the keys to expire
     // By default, it is 3600 seconds (1 hour)
     let jwt_cache_ttl = jwt_key_cache_ttl;
 
     // Determine how many seconds need to pass for the keys to be considered nearing expiration
     // By default, 80% of 3600 seconds must have elapsed, 2880 seconds.
-    let threshold_percentage = DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT / 100;
+    let threshold_percentage = background_refresh_threshold / 100;
     let threshold_seconds = jwt_cache_ttl * threshold_percentage;
 
     // By default, if more than 2880 seconds have elapsed then the keys are nearing expiration.
@@ -112,10 +120,7 @@ pub(super) fn is_cache_approaching_expiry(jwt_key_cache_ttl: &u64, elapsed_secon
         #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
-            elapsed_seconds,
-            threshold_seconds,
-            DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
-            jwt_key_cache_ttl
+            elapsed_seconds, threshold_seconds, background_refresh_threshold, jwt_key_cache_ttl
         );
 
         // Return true if cache is approaching expiry
@@ -126,7 +131,7 @@ pub(super) fn is_cache_approaching_expiry(jwt_key_cache_ttl: &u64, elapsed_secon
                 "JWT keys cache not yet approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
                 elapsed_seconds,
                 threshold_seconds,
-                DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
+                background_refresh_threshold,
                 jwt_key_cache_ttl
             );
 
@@ -138,17 +143,21 @@ pub(super) fn is_cache_approaching_expiry(jwt_key_cache_ttl: &u64, elapsed_secon
 /// Determines if the cache has completely expired based on elapsed time
 ///
 /// Checks if the elapsed time since the last cache update has reached or
-/// exceeded the configured TTL (default: 3600 seconds/1 hour), indicating
-/// that the cached keys should no longer be used.
+/// exceeded the configured JWT key cache lifetime which indicates expiration.
 ///
 /// # Parameters
-/// - `elapsed_seconds`: Number of seconds since the cache was last updated
+/// - `jwt_key_cache_ttl` ([`u64`]): Lifetime in seconds before cache is considered expired
+///   which is defined by the
+///   [`OAuthConfig::jwk_cache_ttl`](crate::oauth2::OAuth2Config::jwk_cache_ttl)
+///   field used by [`EsiClient`](crate::EsiClient). By default this is 3600 seconds
+///   representing 1 hour.
+/// - `elapsed_seconds` ([`u64`]): Number of seconds since the cache was last updated
 ///
 /// # Returns
 /// - `true` if the elapsed time has reached or exceeded the TTL
 /// - `false` if the cache is still within its valid period
-pub(super) fn is_cache_expired(jwt_key_cache_ttl: &u64, elapsed_seconds: u64) -> bool {
-    let is_expired = elapsed_seconds >= *jwt_key_cache_ttl;
+pub(super) fn is_cache_expired(jwt_key_cache_ttl: u64, elapsed_seconds: u64) -> bool {
+    let is_expired = elapsed_seconds >= jwt_key_cache_ttl;
 
     if is_expired {
         #[cfg(not(tarpaulin_include))]
@@ -209,8 +218,11 @@ mod should_respect_backoff_tests {
         )));
 
         // Run function
-        let should_backoff =
-            should_respect_backoff(&esi_client.jwt_keys_last_refresh_failure).await;
+        let should_backoff = should_respect_backoff(
+            esi_client.oauth2_config.jwk_background_refresh_cooldown,
+            &esi_client.jwt_keys_last_refresh_failure,
+        )
+        .await;
 
         // Assert true
         assert_eq!(should_backoff, true);
@@ -241,8 +253,11 @@ mod should_respect_backoff_tests {
         )));
 
         // Run function
-        let should_backoff =
-            should_respect_backoff(&esi_client.jwt_keys_last_refresh_failure).await;
+        let should_backoff = should_respect_backoff(
+            esi_client.oauth2_config.jwk_background_refresh_cooldown,
+            &esi_client.jwt_keys_last_refresh_failure,
+        )
+        .await;
 
         // Assert false
         assert_eq!(should_backoff, false);
@@ -269,8 +284,11 @@ mod should_respect_backoff_tests {
             .expect("Failed to build EsiClient");
 
         // Run function
-        let should_backoff =
-            should_respect_backoff(&esi_client.jwt_keys_last_refresh_failure).await;
+        let should_backoff = should_respect_backoff(
+            esi_client.oauth2_config.jwk_background_refresh_cooldown,
+            &esi_client.jwt_keys_last_refresh_failure,
+        )
+        .await;
 
         // Assert false
         assert_eq!(should_backoff, false);
@@ -308,7 +326,13 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result = is_cache_approaching_expiry(
+            esi_client.oauth2_config.jwk_cache_ttl,
+            esi_client
+                .oauth2_config
+                .jwk_background_refresh_threshold_percent,
+            elapsed_seconds,
+        );
 
         // Assert true
         assert_eq!(result, true)
@@ -338,7 +362,13 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result = is_cache_approaching_expiry(
+            esi_client.oauth2_config.jwk_cache_ttl,
+            esi_client
+                .oauth2_config
+                .jwk_background_refresh_threshold_percent,
+            elapsed_seconds,
+        );
 
         // Assert false
         assert_eq!(result, false)
@@ -374,7 +404,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -404,7 +434,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.jwt_keys_cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, false)

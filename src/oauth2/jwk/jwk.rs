@@ -51,6 +51,11 @@ impl<'a> OAuth2Api<'a> {
     /// - [`EsiError]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
+        let oauth2_config = &esi_client.oauth2_config;
+
+        let jwk_cache_ttl = oauth2_config.jwk_cache_ttl;
+        let background_refresh_enabled = oauth2_config.jwk_background_refresh_enabled;
+        let background_refresh_threshold = oauth2_config.jwk_background_refresh_threshold_percent;
 
         // Check if we have valid keys in the cache
         #[cfg(not(tarpaulin_include))]
@@ -58,18 +63,23 @@ impl<'a> OAuth2Api<'a> {
 
         if let Some((keys, timestamp)) = cache_get_keys(&esi_client.jwt_key_cache).await {
             let elapsed_seconds = timestamp.elapsed().as_secs();
-            let cache_ttl = &esi_client.jwt_keys_cache_ttl;
 
             // If the cache is not expired return the keys
-            if !is_cache_expired(cache_ttl, elapsed_seconds) {
-                // If the cache is approaching expiry, trigger a background refresh
-                if is_cache_approaching_expiry(cache_ttl, elapsed_seconds) {
+            if !is_cache_expired(jwk_cache_ttl, elapsed_seconds) {
+                // If background refresh is enabled & the cache is approaching expiry, trigger a background refresh
+                if background_refresh_enabled
+                    && is_cache_approaching_expiry(
+                        jwk_cache_ttl,
+                        background_refresh_threshold,
+                        elapsed_seconds,
+                    )
+                {
                     #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
                     // If the cache is 80% to expiration out of 1 hour, start a refresh
                     // This function will also check:
-                    // - If a refresh failure occurred recently within backoff period of 100ms
+                    // - If a refresh failure occurred recently within cooldown period of 60 seconds
                     // - If a refresh is already progress, if so it won't spawn another refresh task
                     let _ = self.trigger_background_jwt_refresh().await;
                 }
@@ -183,7 +193,11 @@ impl<'a> OAuth2Api<'a> {
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
 
-        fetch_jwt_keys(&esi_client.reqwest_client, &esi_client.jwk_url).await
+        fetch_jwt_keys(
+            &esi_client.reqwest_client,
+            &esi_client.oauth2_config.jwk_url,
+        )
+        .await
     }
 }
 

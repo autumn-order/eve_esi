@@ -28,6 +28,8 @@
 //!     .public_data()
 //!     .build();
 //! let result = esi_client.oauth2().initiate_oauth_login(scopes);
+//!
+//! // Handle error types
 //! match result {
 //!     Ok(_) => { /* ... */ }
 //!     Err(EsiError::OAuthError(auth_err)) => {
@@ -38,6 +40,8 @@
 //!         // Handle HTTP errors
 //!         println!("HTTP error: {http_err}");
 //!     }
+//!     // Additional EsiError types
+//!     _ => todo!()
 //! }
 //! ```
 //!
@@ -45,6 +49,7 @@
 
 use thiserror::Error;
 
+use crate::oauth2::error::OAuthConfigError;
 pub use crate::oauth2::error::OAuthError;
 
 /// Errors that can occur when using the EVE ESI client.
@@ -63,14 +68,19 @@ pub use crate::oauth2::error::OAuthError;
 /// See the [module-level documentation](self) for an overview and usage example.
 #[derive(Error, Debug)]
 pub enum EsiError {
-    /// Errors that occur in relation to the EVE Online OAuth2 authentication process.
+    /// Runtime errors related to the EVE Online OAuth2 authentication process.
     ///
-    /// For a more detailed description, see `OAuthError`.
+    /// For a more detailed description, see [`OAuthError`].
     #[error(transparent)]
     OAuthError(OAuthError),
+    /// Config errors related to building a [OAuth2Config](crate::oauth2::OAuth2Config)
+    ///
+    /// For a more detailed description, see [`OAuthConfigError`]
+    #[error(transparent)]
+    OAuthConfigError(OAuthConfigError),
     /// Errors that occur during HTTP requests.
     ///
-    /// For a more detailed description, see `ReqwestError`.
+    /// For a more detailed description, see [`ReqwestError`].
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
 }

@@ -15,9 +15,6 @@ use std::time::Instant;
 use ::tokio::time::Duration;
 use log::{debug, error, info, trace, warn};
 
-use crate::constant::{
-    DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT,
-};
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
@@ -32,10 +29,12 @@ impl<'a> OAuth2Api<'a> {
     ///
     /// This method implements a blocking refresh operation with exponential backoff retry:
     /// 1. Attempts to fetch and update JWT keys from the EVE OAuth2 API
-    /// 2. If initial attempt fails, retries with exponential backoff delay,
-    ///    see [`DEFAULT_JWK_REFRESH_BACKOFF`] (100ms)
-    /// 3. Continues retrying until success or maximum retry count is reached,
-    ///    see [`DEFAULT_JWK_REFRESH_MAX_RETRIES`] (2 retries)
+    /// 2. If initial attempt fails, retries with exponential backoff delay defined by the
+    ///    [`OAuthConfig::jwk_refresh_backoff`](crate::oauth2::OAuth2Config::jwk_refresh_backoff)
+    ///    field used by the [`EsiClient`](crate::EsiClient). By default this is 100ms.
+    /// 3. Continues retrying until success or maximum retry count is reached defined by the
+    ///    [`OAuthConfig::jwk_refresh_max_retries`](crate::oauth2::OAuth2Config::jwk_refresh_max_retries)
+    ///    field used by the [`EsiClient`](crate::EsiClient). By default this is 2 retries.
     /// 4. Releases the refresh lock and notifies waiting threads upon completion
     /// 5. Records refresh failures for backoff management
     ///
@@ -56,6 +55,11 @@ impl<'a> OAuth2Api<'a> {
     /// - `Err(`[`EsiError`]`)` if all retry attempts failed
     pub(super) async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
+        let oauth2_config = &esi_client.oauth2_config;
+
+        let max_retries = oauth2_config.jwk_refresh_max_retries;
+        let refresh_backoff = oauth2_config.jwk_refresh_backoff;
+        let last_refresh_failure = &esi_client.jwt_keys_last_refresh_failure;
 
         #[cfg(not(tarpaulin_include))]
         info!("Starting JWT keys refresh operation");
@@ -73,19 +77,19 @@ impl<'a> OAuth2Api<'a> {
         let mut result = self.fetch_and_update_cache().await;
 
         // Retry logic - attempt retries if the initial fetch failed
-        while result.is_err() && retry_attempts < DEFAULT_JWK_REFRESH_MAX_RETRIES {
+        while result.is_err() && retry_attempts < max_retries {
             let backoff_duration = Duration::from_millis(
                 // Calculate exponential backoff duration:
-                // Initial backoff (DEFAULT_JWK_REFRESH_BACKOFF) multiplied by 2^retry_attempts
+                // Initial backoff (100ms default) multiplied by 2^retry_attempts
                 // This causes wait time to double with each retry attempt
-                DEFAULT_JWK_REFRESH_BACKOFF * 2u64.pow(retry_attempts as u32),
+                refresh_backoff * 2u64.pow(retry_attempts as u32),
             );
 
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "JWT key fetch failed. Retrying ({}/{}) after {}ms",
                 retry_attempts + 1,
-                DEFAULT_JWK_REFRESH_MAX_RETRIES,
+                max_retries,
                 backoff_duration.as_millis()
             );
 
@@ -124,19 +128,19 @@ impl<'a> OAuth2Api<'a> {
                 debug!("JWT keys cache refreshed with {} keys", keys.keys.len());
 
                 // Clear any previous failure on success
-                let mut last_failure = self.client.jwt_keys_last_refresh_failure.write().await;
+                let mut last_failure = last_refresh_failure.write().await;
                 *last_failure = None;
 
                 Ok(keys)
             }
             Err(err) => {
                 let elapsed = start_time.elapsed();
-                let mut failure_time = self.client.jwt_keys_last_refresh_failure.write().await;
+                let mut failure_time = last_refresh_failure.write().await;
                 *failure_time = Some(std::time::Instant::now());
 
                 #[cfg(not(tarpaulin_include))]
                 error!("JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
-                    elapsed.as_millis(), retry_attempts, DEFAULT_JWK_REFRESH_BACKOFF, err);
+                    elapsed.as_millis(), retry_attempts, refresh_backoff, err);
 
                 // Return Error of type EsiError::ReqwestError
                 Err(err.into())
@@ -154,7 +158,8 @@ impl<'a> OAuth2Api<'a> {
     /// # Implementation Details
     /// - Uses the async notification pattern via [`tokio::sync::Notify`]
     /// - Waits for either a notification from the refreshing thread or times out after
-    ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
+    ///   the timeout defined by the [`OAuthConfig::jwk_refresh_timeout`](crate::oauth2::OAuth2Config::jwk_refresh_timeout)
+    ///   field used by the [`EsiClient`](crate::EsiClient). By default this is 5 seconds.
     /// - After the wait completes (either via notification or timeout), attempts to
     ///   retrieve the keys from the cache one more time
     /// - If keys are still not available after waiting, returns a descriptive error
@@ -169,11 +174,14 @@ impl<'a> OAuth2Api<'a> {
     /// - Err([`EsiError`]) if the refresh attempt failed or timed out after
     ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
-        #[cfg(not(tarpaulin_include))]
-        debug!("Waiting for another thread to refresh JWT keys");
+        let esi_client = self.client;
+
+        let jwk_refresh_timeout = esi_client.oauth2_config.jwk_refresh_timeout;
 
         let start_time = Instant::now();
-        let esi_client = self.client;
+
+        #[cfg(not(tarpaulin_include))]
+        debug!("Waiting for another thread to refresh JWT keys");
 
         // Create a future that waits for the notification
         let notify_future = self.client.jwt_key_refresh_notifier.notified();
@@ -181,7 +189,7 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
 
-        let refresh_timeout = Duration::from_secs(DEFAULT_JWK_REFRESH_TIMEOUT);
+        let refresh_timeout = Duration::from_secs(jwk_refresh_timeout);
         let refresh_success = tokio::select! {
             _ = notify_future => {true}
             _ = tokio::time::sleep(refresh_timeout) => {false}
@@ -263,8 +271,11 @@ impl<'a> OAuth2Api<'a> {
     pub(super) async fn trigger_background_jwt_refresh(&self) -> bool {
         let esi_client = self.client;
 
+        let background_refresh_cooldown = esi_client.oauth2_config.jwk_background_refresh_cooldown;
+        let last_refresh_failure = &esi_client.jwt_keys_last_refresh_failure;
+
         // Check if we should respect a backoff period due to previous failure
-        if should_respect_backoff(&esi_client.jwt_keys_last_refresh_failure).await {
+        if should_respect_backoff(background_refresh_cooldown, last_refresh_failure).await {
             #[cfg(not(tarpaulin_include))]
             debug!("Respecting backoff period, delaying JWT key refresh");
 
@@ -285,10 +296,10 @@ impl<'a> OAuth2Api<'a> {
         // Clone the required components
         let reqwest_client = esi_client.reqwest_client.clone();
         let jwt_key_cache = esi_client.jwt_key_cache.clone();
-        let jwk_url = esi_client.jwk_url.clone();
         let refresh_lock = esi_client.jwt_key_refresh_lock.clone();
         let refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
         let last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
+        let jwk_url = esi_client.oauth2_config.jwk_url.clone();
 
         #[cfg(not(tarpaulin_include))]
         debug!(

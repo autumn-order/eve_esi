@@ -9,7 +9,7 @@ pub static DEFAULT_TOKEN_URL: &str = "https://login.eveonline.com/v2/oauth/token
 pub static DEFAULT_JWK_URL: &str = "https://login.eveonline.com/oauth/jwks";
 
 // Default JWT key cache settings
-/// Default JWT key cache TTL in seconds (1 hour)
+/// Default JWT key cache lifetime before expiration in seconds (3600 seconds representing 1 hour)
 pub static DEFAULT_JWK_CACHE_TTL: u64 = 3600;
 // Default JWT key cache empty or expired cache settings
 /// Default maximum number of retries for JWT key refresh when cache is empty or expired (2 retries)
@@ -18,6 +18,7 @@ pub static DEFAULT_JWK_REFRESH_MAX_RETRIES: u64 = 2;
 pub static DEFAULT_JWK_REFRESH_BACKOFF: u64 = 100;
 /// Default timeout in seconds when waiting for another thread to refresh JWT key (5 seconds)
 pub static DEFAULT_JWK_REFRESH_TIMEOUT: u64 = 5;
+
 // Default JWT key cache background refresh settings
 /// Default cooldown period in seconds after a JWT key refresh failure (60 seconds)
 pub static DEFAULT_JWK_BACKGROUND_REFRESH_COOLDOWN: u64 = 60;

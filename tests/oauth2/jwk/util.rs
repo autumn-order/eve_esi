@@ -1,8 +1,14 @@
 use eve_esi::model::oauth2::EveJwtKeys;
+use eve_esi::oauth2::OAuth2Config;
 use eve_esi::EsiClient;
 use mockito::{Mock, Server, ServerGuard};
 
 /// Utility function to create initial test setup for all jwk integration tests
+///
+/// # Setup
+/// - Create a mock server using the [`mockito`] crate to handle HTTP requests at mock endpoints
+/// - Create an [`OAuth2Config`] with the `jwk_url` set to the mock server
+/// - Create an EsiClient using the custom [`OAuth2Config`]
 ///
 /// # Returns
 /// A tuple containing:
@@ -13,10 +19,16 @@ pub(super) async fn setup() -> (EsiClient, ServerGuard) {
     let mock_server = Server::new_async().await;
     let mock_server_url = mock_server.url();
 
+    // Create an OAuth2 config using the mock JWK endpoint
+    let config = OAuth2Config::builder()
+        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
+        .build()
+        .expect("Failed to build oauth2 config");
+
     // Create ESI client with mock JWK endpoint
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
+        .oauth2_config(config)
         .build()
         .expect("Failed to build EsiClient");
 

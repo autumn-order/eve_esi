@@ -3,14 +3,21 @@
 //! This module provides methods for initiating and managing the EVE Online OAuth2 authentication process
 //! It includes functionality for generating login URLs to initiate the authentication process, building scopes for authorization, and managing tokens.
 //!
+//! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or
+//! the endpoints used for EVE OAuth2 can be overridden using the
+//! [`OAuth2Config`](crate::oauth2::OAuth2Config).
+//!
 //! # References
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 //!
 //! # Modules
 //!
-//! - [`auth`](crate::endpoints::auth)
-//! - [`scope`](crate::endpoints::scope)
-//! - [`token`](crate::endpoints::token)
+//! - [`login`]: Methods to begin the OAuth2 login process
+//! - [`token`]: Methods to retrieve, validate, & refresh OAuth2 tokens
+//! - [`scope`]: Builder to create scopes to request during the login process
+//! - [`config`]: Config to override default OAuth2 behavior
+//! - [`jwk`]: Methods to handle JSON web keys used to validate authentication tokens
+//! - [`error`]: Error enum for any OAuth2 related errors.
 //!
 //! # Example
 //! ```
@@ -33,14 +40,14 @@
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```
 
+pub mod config;
 pub mod error;
 pub mod jwk;
 pub mod login;
 pub mod scope;
 pub mod token;
 
-pub(crate) mod client;
-
+pub use config::config::OAuth2Config;
 pub use scope::ScopeBuilder;
 
 use crate::EsiClient;
