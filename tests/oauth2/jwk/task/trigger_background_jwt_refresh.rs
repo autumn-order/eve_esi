@@ -146,7 +146,7 @@ async fn test_background_refresh_failure() {
     assert!(!lock_acquired.is_err());
 
     // Assert last refresh failure has been logged
-    let last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.read().await;
+    let last_refresh_failure = esi_client.jwt_key_last_refresh_failure.read().await;
     assert!(last_refresh_failure.is_some());
 
     // Assert cache still contains expired keys
@@ -194,7 +194,7 @@ async fn test_background_refresh_backoff() {
 
     // Set last failure within backoff period of last 100 ms (failed 50 ms ago)
     let last_failure = std::time::Instant::now() - std::time::Duration::from_millis(50);
-    esi_client.jwt_keys_last_refresh_failure = Arc::new(RwLock::new(Some(last_failure)));
+    esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(last_failure)));
 
     // Use get_jwt_keys as entry point since function being tested is private
     let _ = esi_client.oauth2().get_jwt_keys().await;

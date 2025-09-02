@@ -16,7 +16,7 @@ use std::sync::Arc;
 use log::{debug, trace};
 use tokio::sync::RwLock;
 
-/// Checks if we should respect backoff period due to previous failure
+/// Checks if refresh is still in cooldown due to recent failure.
 ///
 /// This method determines whether enough time has passed since the last
 /// JWT key refresh failure to attempt another refresh. It implements a
@@ -30,31 +30,31 @@ use tokio::sync::RwLock;
 ///   timestamp
 ///
 /// # Arguments
-/// - `background_refresh_cooldown` ([`u64`]): Cooldown in seconds between background refresh
-///   attempts as defined by the [`OAuthConfig::jwk_background_refresh_cooldown`](crate::oauth2::OAuth2Config::jwk_background_refresh_cooldown)
+/// - `jwk_refresh_cooldown` ([`u64`]): Cooldown in seconds between background refresh
+///   attempts as defined by the [`OAuthConfig::jwk_refresh_cooldown`](crate::oauth2::OAuth2Config::jwk_refresh_cooldown)
 ///   field used by the [`EsiClient`](crate::EsiClient). By default this is 60 seconds.
 /// - `jwt_key_last_refresh_failure` ([`EsiClient::jwt_keys_last_refresh_failure`](crate::EsiClient::jwt_keys_last_refresh_failure)):
 ///   field representing the last failed JWT key refresh attempt.
 ///
 /// # Returns
-/// - `true` if we are still within the backoff period and should not attempt another refresh
-/// - `false` if either no previous failure exists or the backoff period has elapsed
-pub(super) async fn should_respect_backoff(
-    background_refresh_cooldown: u64,
+/// - `true` if we are still within the cooldown period and should not attempt another background refresh
+/// - `false` if either no previous failure exists or the cooldown period has elapsed
+pub(super) async fn is_refresh_cooldown(
+    jwk_refresh_cooldown: u64,
     jwt_key_last_refresh_failure: &Arc<RwLock<Option<std::time::Instant>>>,
 ) -> bool {
-    // Check for last refresh failure
+    // Check for last background refresh failure
     let last_refresh_failure = jwt_key_last_refresh_failure;
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
-        let should_backoff = elapsed_secs < background_refresh_cooldown;
+        let is_cooldown = elapsed_secs < jwk_refresh_cooldown;
 
-        if should_backoff {
+        if is_cooldown {
             #[cfg(not(tarpaulin_include))]
             debug!(
-                "Respecting backoff period: {}s elapsed of {}s required",
-                elapsed_secs, background_refresh_cooldown
+                "Respecting background refresh cooldown: {}s elapsed of {}s required",
+                elapsed_secs, jwk_refresh_cooldown
             );
 
             // Return true if refresh failure is still within backoff period
@@ -62,9 +62,9 @@ pub(super) async fn should_respect_backoff(
         } else {
             #[cfg(not(tarpaulin_include))]
             trace!(
-                "Backoff period elapsed: {}s passed (required {}s)",
+                "Background cooldown period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
-                background_refresh_cooldown
+                jwk_refresh_cooldown
             );
 
             // Return false if refresh failure is not within backoff period
@@ -182,30 +182,29 @@ pub(super) fn is_cache_expired(jwt_key_cache_ttl: u64, elapsed_seconds: u64) -> 
 }
 
 #[cfg(test)]
-mod should_respect_backoff_tests {
+mod is_refresh_cooldown_tests {
     use std::sync::Arc;
 
     use tokio::sync::RwLock;
 
     use crate::EsiClient;
 
-    use super::should_respect_backoff;
+    use super::is_refresh_cooldown;
 
-    /// Validate backoff period is respected correctly
+    /// Refresh cooldown should be true due to recent failure
     ///
-    /// When there is a backoff period within the default of the past (60 seconds),
+    /// When there is a refresh failure within the default of the past (60 seconds),
     /// assert that the function returns true, indicating that we should not attempt
-    /// a refresh.
+    /// a refresh due to cooldown period.
     ///
     /// # Test Setup
     /// - Create a basic EsiClient
-    /// - Set the backoff period to within the default of 60 seconds
+    /// - Set last refresh failure within default cooldown period of past 60 seconds
     ///
     /// # Assertions
-    /// - Verifies that the function returns true, indicating that we should respect the backoff
-    ///   period and not attempt a refresh.
+    /// - Assert function returns true indicating we are still in cooldown
     #[tokio::test]
-    async fn test_should_respect_backoff_recent_failure() {
+    async fn test_is_refresh_cooldown_true() {
         // Setup EsiClient
         let mut esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
@@ -213,34 +212,34 @@ mod should_respect_backoff_tests {
             .expect("Failed to build EsiClient");
 
         // Set the backoff period to within default of (60 seconds)
-        esi_client.jwt_keys_last_refresh_failure = Arc::new(RwLock::new(Some(
+        esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(
             std::time::Instant::now() - std::time::Duration::from_secs(30),
         )));
 
         // Run function
-        let should_backoff = should_respect_backoff(
+        let refresh_cooldown = is_refresh_cooldown(
             esi_client.oauth2_config.jwk_background_refresh_cooldown,
-            &esi_client.jwt_keys_last_refresh_failure,
+            &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
         // Assert true
-        assert_eq!(should_backoff, true);
+        assert_eq!(refresh_cooldown, true);
     }
 
-    /// Validate that the backoff period is respected correctly when a past failure exists
+    /// Refresh cooldown should be false due to not being in cooldown
     ///
     /// When the back off period is greater than the default of 60 seconds,
     /// assert that the function returns false, indicating that we can attempt a refresh.
     ///
     /// # Test Setup
     /// - Create a basic EsiClient
-    /// - Set the backoff period to greater than the default of 60 seconds
+    /// - Set last refresh failure beyond default cooldown period of past 60 seconds
     ///
     /// # Assertions
-    /// - Verifies that the function returns false, indicating that we can attempt a refresh.
+    /// - Assert function returns false indicating we are not in cooldown
     #[tokio::test]
-    async fn test_should_respect_backoff_past_backoff() {
+    async fn test_is_refresh_cooldown_backoff_false() {
         // Setup EsiClient
         let mut esi_client = EsiClient::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
@@ -248,32 +247,32 @@ mod should_respect_backoff_tests {
             .expect("Failed to build EsiClient");
 
         // Set the back off period greater than default of (60 seconds)
-        esi_client.jwt_keys_last_refresh_failure = Arc::new(RwLock::new(Some(
+        esi_client.jwt_key_last_refresh_failure = Arc::new(RwLock::new(Some(
             std::time::Instant::now() - std::time::Duration::from_secs(61),
         )));
 
         // Run function
-        let should_backoff = should_respect_backoff(
+        let refresh_cooldown = is_refresh_cooldown(
             esi_client.oauth2_config.jwk_background_refresh_cooldown,
-            &esi_client.jwt_keys_last_refresh_failure,
+            &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
         // Assert false
-        assert_eq!(should_backoff, false);
+        assert_eq!(refresh_cooldown, false);
     }
 
-    /// Validate that no backoff is needed when no past failure exists
+    /// Refresh cooldown should be false due to no past failures recorded
     ///
     /// When there is no previous failure recorded, the function should return false,
-    /// indicating that we can attempt a refresh without any backoff period.
+    /// indicating that we can attempt a refresh.
     ///
     /// # Test Setup
     /// - Create a basic EsiClient
-    /// - Do not set any backoff period
+    /// - Do not set the [`EsiClient::jwt_key_last_refresh_failure`]
     ///
     /// # Assertions
-    /// - Verifies that the function returns false, indicating that we can attempt a refresh.
+    /// - Assert function returns false indicating we are not in cooldown
     #[tokio::test]
     async fn test_should_respect_backoff_no_failure() {
         // Setup EsiClient
@@ -284,14 +283,14 @@ mod should_respect_backoff_tests {
             .expect("Failed to build EsiClient");
 
         // Run function
-        let should_backoff = should_respect_backoff(
+        let refresh_cooldown = is_refresh_cooldown(
             esi_client.oauth2_config.jwk_background_refresh_cooldown,
-            &esi_client.jwt_keys_last_refresh_failure,
+            &esi_client.jwt_key_last_refresh_failure,
         )
         .await;
 
         // Assert false
-        assert_eq!(should_backoff, false);
+        assert_eq!(refresh_cooldown, false);
     }
 }
 

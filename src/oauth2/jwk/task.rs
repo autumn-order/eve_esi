@@ -20,7 +20,7 @@ use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::OAuth2Api;
 
 use super::jwk::fetch_jwt_keys;
-use super::util::should_respect_backoff;
+use super::util::is_refresh_cooldown;
 use super::util_cache::cache_get_keys;
 use super::util_refresh::{jwk_refresh_lock_release_and_notify, jwk_refresh_lock_try_acquire};
 
@@ -59,7 +59,7 @@ impl<'a> OAuth2Api<'a> {
 
         let max_retries = oauth2_config.jwk_refresh_max_retries;
         let refresh_backoff = oauth2_config.jwk_refresh_backoff;
-        let last_refresh_failure = &esi_client.jwt_keys_last_refresh_failure;
+        let last_refresh_failure = &esi_client.jwt_key_last_refresh_failure;
 
         #[cfg(not(tarpaulin_include))]
         info!("Starting JWT keys refresh operation");
@@ -271,11 +271,11 @@ impl<'a> OAuth2Api<'a> {
     pub(super) async fn trigger_background_jwt_refresh(&self) -> bool {
         let esi_client = self.client;
 
-        let background_refresh_cooldown = esi_client.oauth2_config.jwk_background_refresh_cooldown;
-        let last_refresh_failure = &esi_client.jwt_keys_last_refresh_failure;
+        let jwk_refresh_cooldown = esi_client.oauth2_config.jwk_background_refresh_cooldown;
+        let last_refresh_failure = &esi_client.jwt_key_last_refresh_failure;
 
-        // Check if we should respect a backoff period due to previous failure
-        if should_respect_backoff(background_refresh_cooldown, last_refresh_failure).await {
+        // Check if we are still in cooldown due to fetch failure within cooldown period
+        if is_refresh_cooldown(jwk_refresh_cooldown, last_refresh_failure).await {
             #[cfg(not(tarpaulin_include))]
             debug!("Respecting backoff period, delaying JWT key refresh");
 
@@ -298,7 +298,7 @@ impl<'a> OAuth2Api<'a> {
         let jwt_key_cache = esi_client.jwt_key_cache.clone();
         let refresh_lock = esi_client.jwt_key_refresh_lock.clone();
         let refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
-        let last_refresh_failure = esi_client.jwt_keys_last_refresh_failure.clone();
+        let last_refresh_failure = esi_client.jwt_key_last_refresh_failure.clone();
         let jwk_url = esi_client.oauth2_config.jwk_url.clone();
 
         #[cfg(not(tarpaulin_include))]

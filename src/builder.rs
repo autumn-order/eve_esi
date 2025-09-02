@@ -140,7 +140,7 @@ impl EsiClientBuilder {
             jwt_key_cache: Arc::new(RwLock::new(None)),
             jwt_key_refresh_lock: Arc::new(AtomicBool::new(false)),
             jwt_key_refresh_notifier: Arc::new(Notify::new()),
-            jwt_keys_last_refresh_failure: Arc::new(RwLock::new(None)),
+            jwt_key_last_refresh_failure: Arc::new(RwLock::new(None)),
         })
     }
 
