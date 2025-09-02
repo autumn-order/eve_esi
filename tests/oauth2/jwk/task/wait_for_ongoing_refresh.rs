@@ -24,13 +24,14 @@ use crate::oauth2::jwk::util::{get_jwk_internal_server_error_response, setup};
 async fn test_wait_for_refresh_success() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with error 500 and expecting 0 requests
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Acquire a refresh lock
-    let lock = !esi_client
-        .jwt_key_refresh_lock
+    let lock = !jwt_key_cache
+        .refresh_lock
         .compare_exchange(
             false,
             true,
@@ -49,9 +50,8 @@ async fn test_wait_for_refresh_success() {
     let keys = EveJwtKeys::create_mock_keys();
 
     let keys_clone = keys.clone();
-    let jwt_keys_cache = esi_client.jwt_key_cache.clone();
-    let jwt_key_refresh_lock = esi_client.jwt_key_refresh_lock.clone();
-    let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
+    let cache_clone = esi_client.jwt_key_cache.clone();
+
     tokio::spawn(async move {
         // Signal that refresh is about to start
         let _ = tx.send(());
@@ -60,13 +60,15 @@ async fn test_wait_for_refresh_success() {
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
         // Update keys
-        let mut cache = jwt_keys_cache.write().await;
+        let mut cache = cache_clone.cache.write().await;
         *cache = Some((keys_clone, std::time::Instant::now()));
 
         // Release lock & notify waiters
-        jwt_key_refresh_lock.store(false, std::sync::atomic::Ordering::Release);
+        cache_clone
+            .refresh_lock
+            .store(false, std::sync::atomic::Ordering::Release);
 
-        jwt_key_refresh_notifier.notify_waiters();
+        cache_clone.refresh_notifier.notify_waiters();
     });
 
     // Wait for coroutine to begin refresh
@@ -106,13 +108,14 @@ async fn test_wait_for_refresh_success() {
 async fn test_wait_for_refresh_failure() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with error 500 and expecting 0 requests
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Acquire a refresh lock
-    let lock = !esi_client
-        .jwt_key_refresh_lock
+    let lock = !jwt_key_cache
+        .refresh_lock
         .compare_exchange(
             false,
             true,
@@ -128,8 +131,8 @@ async fn test_wait_for_refresh_failure() {
     let (tx, rx) = tokio::sync::oneshot::channel();
 
     // Spawn a coroutine to perform the background refresh
-    let jwt_key_refresh_lock = esi_client.jwt_key_refresh_lock.clone();
-    let jwt_key_refresh_notifier = esi_client.jwt_key_refresh_notifier.clone();
+    let cache_clone = jwt_key_cache.clone();
+
     tokio::spawn(async move {
         // Signal that refresh is about to start
         let _ = tx.send(());
@@ -140,9 +143,11 @@ async fn test_wait_for_refresh_failure() {
         // Don't update the cache with keys to represent a failure
 
         // Release lock & notify waiters regardless of success
-        jwt_key_refresh_lock.store(false, std::sync::atomic::Ordering::Release);
+        cache_clone
+            .refresh_lock
+            .store(false, std::sync::atomic::Ordering::Release);
 
-        jwt_key_refresh_notifier.notify_waiters();
+        cache_clone.refresh_notifier.notify_waiters();
     });
 
     // Wait for coroutine to begin refresh
@@ -182,13 +187,14 @@ async fn test_wait_for_refresh_failure() {
 async fn test_wait_for_refresh_timeout() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with error 500 and expecting 0 requests
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
 
     // Acquire a refresh lock
-    let lock = !esi_client
-        .jwt_key_refresh_lock
+    let lock = !jwt_key_cache
+        .refresh_lock
         .compare_exchange(
             false,
             true,

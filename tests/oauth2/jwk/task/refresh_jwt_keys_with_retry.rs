@@ -27,6 +27,7 @@ use crate::oauth2::jwk::util::{
 async fn test_refresh_keys_success() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -44,7 +45,7 @@ async fn test_refresh_keys_success() {
     assert!(result.is_ok());
 
     // Assert cache has been properly updated
-    let cache = esi_client.jwt_key_cache.read().await;
+    let cache = jwt_key_cache.cache.read().await;
 
     assert!(*&cache.is_some())
 }
@@ -118,6 +119,7 @@ async fn test_refresh_keys_failure() {
 async fn test_refresh_keys_retry() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create an initial mock response with error 500 and expecting 1 request
     let mock_500 = get_jwk_internal_server_error_response(&mut mock_server, 1);
@@ -139,7 +141,7 @@ async fn test_refresh_keys_retry() {
     assert!(result.is_ok());
 
     // Assert cache has been properly updated
-    let cache = esi_client.jwt_key_cache.read().await;
+    let cache = jwt_key_cache.cache.read().await;
 
     assert!(*&cache.is_some())
 }

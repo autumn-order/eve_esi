@@ -17,6 +17,7 @@ use super::super::util::setup;
 async fn test_fetch_and_update_cache_success() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
+    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -31,7 +32,7 @@ async fn test_fetch_and_update_cache_success() {
     assert!(result.is_ok());
 
     // Ensure cache has been updated
-    let cache = esi_client.jwt_key_cache.read().await;
+    let cache = jwt_key_cache.cache.read().await;
     let keys = match &*cache {
         Some((keys, timestamp)) => Some((keys.clone(), timestamp.clone())),
         None => None,
