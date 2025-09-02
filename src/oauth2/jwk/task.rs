@@ -58,7 +58,6 @@ impl<'a> OAuth2Api<'a> {
 
         let max_retries = oauth2_config.jwk_refresh_max_retries;
         let refresh_backoff = oauth2_config.jwk_refresh_backoff;
-        let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
 
         #[cfg(not(tarpaulin_include))]
         info!("Starting JWT keys refresh operation");
@@ -123,20 +122,30 @@ impl<'a> OAuth2Api<'a> {
                 #[cfg(not(tarpaulin_include))]
                 debug!("JWT keys cache refreshed with {} keys", keys.keys.len());
 
-                // Clear any previous failure on success
-                let mut last_failure = last_refresh_failure.write().await;
-                *last_failure = None;
+                // Clear any previous refresh failure on success
+                jwt_key_cache.set_refresh_failure(None).await;
 
+                #[cfg(not(tarpaulin_include))]
+                debug!("Cleared previous JWT key refresh failure timestamp");
+
+                // Return JWT keys
                 Ok(keys)
             }
             Err(err) => {
                 let elapsed = start_time.elapsed();
-                let mut failure_time = last_refresh_failure.write().await;
-                *failure_time = Some(std::time::Instant::now());
 
                 #[cfg(not(tarpaulin_include))]
                 error!("JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
                     elapsed.as_millis(), retry_attempts, refresh_backoff, err);
+
+                // Set the refresh failure time to prevent another refresh attempt within the
+                // default 60 second cooldown period
+                jwt_key_cache
+                    .set_refresh_failure(Some(std::time::Instant::now()))
+                    .await;
+
+                #[cfg(not(tarpaulin_include))]
+                debug!("Recorded JWT key refresh failure timestamp");
 
                 // Return Error of type EsiError::ReqwestError
                 Err(err.into())
@@ -342,12 +351,11 @@ impl<'a> OAuth2Api<'a> {
                         elapsed.as_millis()
                     );
 
-                    // Clear any previous failure on success
-                    let mut last_failure = jwt_key_cache.last_refresh_failure.write().await;
-                    *last_failure = None;
+                    // Clear any previous refresh failure on success
+                    jwt_key_cache.set_refresh_failure(None).await;
 
                     #[cfg(not(tarpaulin_include))]
-                    debug!("Cleared previous JWT refresh failure timestamp");
+                    debug!("Cleared previous JWT key refresh failure timestamp");
                 }
                 // Fetch attempt for JWT keys failed
                 Err(err) => {
@@ -358,12 +366,14 @@ impl<'a> OAuth2Api<'a> {
                         err
                     );
 
-                    // Record the failure time
-                    let mut last_failure = jwt_key_cache.last_refresh_failure.write().await;
-                    *last_failure = Some(Instant::now());
+                    // Set the refresh failure time to prevent another refresh attempt within the
+                    // default 60 second cooldown period
+                    jwt_key_cache
+                        .set_refresh_failure(Some(std::time::Instant::now()))
+                        .await;
 
                     #[cfg(not(tarpaulin_include))]
-                    debug!("Recorded JWT refresh failure timestamp");
+                    debug!("Recorded JWT key refresh failure timestamp");
                 }
             };
 

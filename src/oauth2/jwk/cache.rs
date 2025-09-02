@@ -239,6 +239,25 @@ impl JwtKeyCache {
         #[cfg(not(tarpaulin_include))]
         debug!("JWT key refresh lock released and waiters notified");
     }
+
+    /// Sets the last JWT key cache refresh failure time
+    ///
+    /// Updates the last failure time for a JWT key cache refresh which is used to determine
+    /// if a refresh failure recently occurred within the 60 second cooldown period.
+    ///
+    /// The [`check_refresh_cooldown`](super::util::check_refresh_cooldown) utility function
+    /// can be used check the remaining time on the cooldown period if applicable.
+    ///
+    /// # Implementation Details
+    /// - Acquires a write lock on the [`JwtKeyCache::last_refresh_failure`] field
+    ///   and updates with the provided timestamp or None.
+    ///
+    /// # Arguments
+    /// - `failure_timestamp` (Option<[`Instant`]>): Option representing the last refresh failure time
+    pub(super) async fn set_refresh_failure(self: &Self, failure_timstamp: Option<Instant>) {
+        let mut failure_time = self.last_refresh_failure.write().await;
+        *failure_time = failure_timstamp;
+    }
 }
 
 #[cfg(test)]
@@ -506,5 +525,74 @@ mod jwk_lock_release_and_notify_tests {
             .is_err();
 
         assert_eq!(lock, true)
+    }
+}
+
+#[cfg(test)]
+mod set_refresh_failure_tests {
+    use crate::EsiClient;
+
+    /// Set the last refresh failure timestamp
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    ///
+    /// # Assertions
+    /// - Assert last refresh failure is Some
+    /// - Assert failure time matches timestamp set
+    #[tokio::test]
+    async fn test_set_refresh_failure_some() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        // Call function
+        let timestamp = std::time::Instant::now();
+        jwt_key_cache.set_refresh_failure(Some(timestamp)).await;
+
+        // Assert last refresh failure is Some
+        let result = jwt_key_cache.last_refresh_failure.read().await;
+        assert!(result.is_some());
+
+        // Assert failure time matches timestamp set
+        let failure_time = result.unwrap();
+        assert_eq!(failure_time, timestamp)
+    }
+
+    /// Set the last refresh failure timestamp to none
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient
+    /// - Set a refresh failure timestamp
+    ///
+    /// # Assertions
+    /// - Assert last refresh failure is None
+    #[tokio::test]
+    async fn test_set_refresh_failure_none() {
+        // Setup basic EsiClient
+        let esi_client = EsiClient::builder()
+            .user_agent("MyApp/1.0 (contact@example.com)")
+            .build()
+            .expect("Failed to build EsiClient");
+
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        // Set a refresh failure_timestamp
+        {
+            let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+            *failure_time = Some(std::time::Instant::now())
+        }
+
+        // Call function
+        jwt_key_cache.set_refresh_failure(None).await;
+
+        // Assert last refresh failure is None
+        let failure_time = jwt_key_cache.last_refresh_failure.read().await;
+
+        assert!(failure_time.is_none())
     }
 }
