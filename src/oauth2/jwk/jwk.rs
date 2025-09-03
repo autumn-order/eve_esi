@@ -14,7 +14,7 @@ use std::time::Instant;
 
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
-use crate::oauth2::jwk::task::refresh_jwt_keys;
+use crate::oauth2::jwk::refresh::refresh_jwt_keys;
 use crate::oauth2::jwk::util::{
     check_refresh_cooldown, is_cache_approaching_expiry, is_cache_expired,
 };
