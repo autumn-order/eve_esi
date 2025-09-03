@@ -48,7 +48,7 @@ impl<'a> OAuth2Api<'a> {
         &self,
         code: &str,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, EsiError> {
-        let client = match &self.client.oauth_client {
+        let client = match &self.client.oauth2_client {
             Some(client) => client,
             None => return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)),
         };

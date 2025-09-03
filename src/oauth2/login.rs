@@ -55,7 +55,7 @@ impl<'a> OAuth2Api<'a> {
         &self,
         scopes: Vec<String>,
     ) -> Result<AuthenticationData, EsiError> {
-        let client = match &self.client.oauth_client {
+        let client = match &self.client.oauth2_client {
             Some(client) => client,
             None => return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)),
         };

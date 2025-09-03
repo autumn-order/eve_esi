@@ -48,7 +48,7 @@ pub struct EsiClient {
     ///
     /// Will be None if client_id, client_secret, and callback_url have not been
     /// set on the EsiClient.
-    pub(crate) oauth_client: Option<OAuth2Client>,
+    pub(crate) oauth2_client: Option<OAuth2Client>,
     /// Configuration used for overriding default OAuth2 settings regarding caching policies and
     /// OAuth2 endpoint URLs.
     pub(crate) oauth2_config: OAuth2Config,

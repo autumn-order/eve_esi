@@ -131,7 +131,7 @@ impl EsiClientBuilder {
             esi_url: builder.esi_url,
 
             // OAuth2oauth2_config
-            oauth_client: builder.oauth_client,
+            oauth2_client: builder.oauth_client,
             oauth2_config: oauth2_config,
 
             // OAuth2 JWT key cache
@@ -404,7 +404,7 @@ mod tests {
         assert!(result.is_ok());
         let client = result.unwrap();
         assert_eq!(client.esi_url, DEFAULT_ESI_URL);
-        assert!(client.oauth_client.is_none());
+        assert!(client.oauth2_client.is_none());
     }
 
     /// Test successful build with OAuth configuration.
@@ -426,7 +426,7 @@ mod tests {
 
         assert!(result.is_ok());
         let client = result.unwrap();
-        assert!(client.oauth_client.is_some());
+        assert!(client.oauth2_client.is_some());
     }
 
     /// Test failed build due to partial OAuth configuration.
