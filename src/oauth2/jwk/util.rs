@@ -46,7 +46,6 @@ pub(super) async fn check_refresh_cooldown(
 ) -> Option<u64> {
     // Check for last background refresh failure
     let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
-
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
@@ -109,14 +108,10 @@ pub(super) fn is_cache_approaching_expiry(
     background_refresh_threshold: u64,
     elapsed_seconds: u64,
 ) -> bool {
-    // Retrieve cache TTL, this determines how many seconds it takes for the keys to expire
-    // By default, it is 3600 seconds (1 hour)
-    let jwt_cache_ttl = jwt_key_cache_ttl;
-
     // Determine how many seconds need to pass for the keys to be considered nearing expiration
-    // By default, 80% of 3600 seconds must have elapsed, 2880 seconds.
+    // By default, 80% of 3600 second TTL must have elapsed, 2880 seconds.
     let threshold_percentage = background_refresh_threshold / 100;
-    let threshold_seconds = jwt_cache_ttl * threshold_percentage;
+    let threshold_seconds = jwt_key_cache_ttl * threshold_percentage;
 
     // By default, if more than 2880 seconds have elapsed then the keys are nearing expiration.
     let is_approaching_expiry = elapsed_seconds > threshold_seconds;

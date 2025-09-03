@@ -51,9 +51,8 @@ impl<'a> OAuth2Api<'a> {
     ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
+        let oauth2_confg = &esi_client.oauth2_config;
         let jwt_key_cache = &esi_client.jwt_key_cache;
-
-        let jwk_refresh_timeout = esi_client.oauth2_config.jwk_refresh_timeout;
 
         let start_time = Instant::now();
 
@@ -66,7 +65,7 @@ impl<'a> OAuth2Api<'a> {
         #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
 
-        let refresh_timeout = Duration::from_secs(jwk_refresh_timeout);
+        let refresh_timeout = Duration::from_secs(oauth2_confg.jwk_refresh_timeout);
         let refresh_success = tokio::select! {
             _ = notify_future => {true}
             _ = tokio::time::sleep(refresh_timeout) => {false}
@@ -150,10 +149,8 @@ impl<'a> OAuth2Api<'a> {
         let jwt_key_cache = &esi_client.jwt_key_cache;
         let oauth2_config = &esi_client.oauth2_config;
 
-        let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
-
         // Check if we are still in cooldown due to fetch failure within cooldown period
-        if check_refresh_cooldown(&jwt_key_cache, jwk_refresh_cooldown)
+        if check_refresh_cooldown(&jwt_key_cache, oauth2_config.jwk_refresh_cooldown)
             .await
             .is_some()
         {
@@ -175,8 +172,8 @@ impl<'a> OAuth2Api<'a> {
         debug!("Triggering background JWT refresh task");
 
         // Clone the required components
-        let jwt_key_cache = esi_client.jwt_key_cache.clone();
         let reqwest_client = esi_client.reqwest_client.clone();
+        let jwt_key_cache = esi_client.jwt_key_cache.clone();
         let jwk_url = oauth2_config.jwk_url.clone();
         let backoff = oauth2_config.jwk_refresh_backoff.clone();
 
