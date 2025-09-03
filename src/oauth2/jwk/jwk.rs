@@ -114,11 +114,11 @@ impl<'a> OAuth2Api<'a> {
         //
         // If a recent attempt to refresh keys was made and all retries failed, a 60
         // second cooldown period will be active until the next set of attempts.
-        if let Some(cooldown_remaining) =
-            check_refresh_cooldown(&jwt_key_cache, jwk_refresh_cooldown).await
-        {
+        let cooldown = check_refresh_cooldown(&jwt_key_cache, jwk_refresh_cooldown).await;
+        if let Some(cooldown_remaining) = cooldown {
             let error_message = format!(
-                "JWT key refresh cooldown still active due to recent refresh failure during last {} seconds. Cooldown remaining: {} seconds.", jwk_refresh_cooldown, cooldown_remaining
+                "JWT key refresh cooldown still active due to recent refresh failure during last {} seconds. Cooldown remaining: {} seconds.",
+                &jwk_refresh_cooldown, &cooldown_remaining
             );
 
             #[cfg(not(tarpaulin_include))]
@@ -143,8 +143,8 @@ impl<'a> OAuth2Api<'a> {
             &reqwest_client,
             &jwt_key_cache,
             &jwk_url,
-            &jwk_refresh_backoff,
-            &jwk_refresh_max_retries,
+            jwk_refresh_backoff,
+            jwk_refresh_max_retries,
         )
         .await
     }

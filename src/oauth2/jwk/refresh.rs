@@ -183,7 +183,7 @@ impl<'a> OAuth2Api<'a> {
         tokio::spawn(async move {
             // Make no retries as the background refresh
             // utilizes a 60 second cooldown between attempts instead.
-            refresh_jwt_keys(&reqwest_client, &jwt_key_cache, &jwk_url, &backoff, &0).await
+            refresh_jwt_keys(&reqwest_client, &jwt_key_cache, &jwk_url, backoff, 0).await
         });
 
         #[cfg(not(tarpaulin_include))]
@@ -231,8 +231,8 @@ pub(super) async fn refresh_jwt_keys(
     reqwest_client: &reqwest::Client,
     jwt_key_cache: &JwtKeyCache,
     jwk_url: &str,
-    retry_backoff: &u64,
-    max_retries: &u64,
+    retry_backoff: u64,
+    max_retries: u64,
 ) -> Result<EveJwtKeys, EsiError> {
     // Track operation timing for performance monitoring
     let start_time = std::time::Instant::now();
@@ -245,7 +245,7 @@ pub(super) async fn refresh_jwt_keys(
 
     // Retry logic - attempt retries if the initial fetch failed
     let mut retry_attempts = 0;
-    while result.is_err() && retry_attempts < *max_retries {
+    while result.is_err() && retry_attempts < max_retries {
         let backoff_duration = Duration::from_millis(
             // Calculate exponential backoff duration:
             // Initial backoff (100ms default) multiplied by 2^retry_attempts
