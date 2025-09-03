@@ -13,146 +13,17 @@
 use std::time::Instant;
 
 use ::tokio::time::Duration;
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, trace};
 
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
+use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::oauth2::OAuth2Api;
 
 use super::jwk::fetch_jwt_keys;
 use super::util::check_refresh_cooldown;
 
 impl<'a> OAuth2Api<'a> {
-    /// Refreshes JWT keys with retry logic
-    ///
-    /// This method implements a blocking refresh operation with exponential backoff retry:
-    /// 1. Attempts to fetch and update JWT keys from the EVE OAuth2 API
-    /// 2. If initial attempt fails, retries with exponential backoff delay defined by the
-    ///    [`OAuthConfig::jwk_refresh_backoff`](crate::oauth2::OAuth2Config::jwk_refresh_backoff)
-    ///    field used by the [`EsiClient`](crate::EsiClient). By default this is 100ms.
-    /// 3. Continues retrying until success or maximum retry count is reached defined by the
-    ///    [`OAuthConfig::jwk_refresh_max_retries`](crate::oauth2::OAuth2Config::jwk_refresh_max_retries)
-    ///    field used by the [`EsiClient`](crate::EsiClient). By default this is 2 retries.
-    /// 4. Releases the refresh lock and notifies waiting threads upon completion
-    /// 5. Records refresh failures for backoff management
-    ///
-    /// # Implementation Details
-    /// - Uses exponential backoff to gracefully handle temporary service issues
-    /// - Assumes the refresh lock is already acquired before being called
-    /// - Always releases the lock upon completion (success or failure)
-    /// - Updates the cache on successful refresh
-    /// - Records failure information for future backoff decisions
-    ///
-    /// # Thread Safety
-    /// This method is thread-safe and designed to be called only when the refresh lock
-    /// has been acquired. It properly releases the lock when done, ensuring other
-    /// threads can proceed with their operations.
-    ///
-    /// # Returns
-    /// - `Ok(`[`EveJwtKeys`]`)` if keys were successfully fetched and cached
-    /// - `Err(`[`EsiError`]`)` if all retry attempts failed
-    pub(super) async fn refresh_jwt_keys_with_retry(&self) -> Result<EveJwtKeys, EsiError> {
-        let esi_client = self.client;
-        let oauth2_config = &esi_client.oauth2_config;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
-
-        let max_retries = oauth2_config.jwk_refresh_max_retries;
-        let refresh_backoff = oauth2_config.jwk_refresh_backoff;
-
-        #[cfg(not(tarpaulin_include))]
-        info!("Starting JWT keys refresh operation");
-
-        // Track operation timing for performance monitoring
-        let start_time = std::time::Instant::now();
-
-        // We have the lock, so refresh the cache
-        // Retry up to DEFAULT_JWK_REFRESH_MAX_RETRIES times with exponential backoff
-        let mut retry_attempts = 0;
-
-        #[cfg(not(tarpaulin_include))]
-        debug!("Attempting initial JWT key fetch");
-
-        let mut result = self.fetch_and_update_cache().await;
-
-        // Retry logic - attempt retries if the initial fetch failed
-        while result.is_err() && retry_attempts < max_retries {
-            let backoff_duration = Duration::from_millis(
-                // Calculate exponential backoff duration:
-                // Initial backoff (100ms default) multiplied by 2^retry_attempts
-                // This causes wait time to double with each retry attempt
-                refresh_backoff * 2u64.pow(retry_attempts as u32),
-            );
-
-            #[cfg(not(tarpaulin_include))]
-            debug!(
-                "JWT key fetch failed. Retrying ({}/{}) after {}ms",
-                retry_attempts + 1,
-                max_retries,
-                backoff_duration.as_millis()
-            );
-
-            // Wait before retrying
-            tokio::time::sleep(backoff_duration).await;
-
-            // Try to fetch again
-            #[cfg(not(tarpaulin_include))]
-            debug!(
-                "Retry attempt # {}: fetching JWT keys after backoff",
-                retry_attempts + 1
-            );
-
-            result = self.fetch_and_update_cache().await;
-            retry_attempts += 1;
-        }
-
-        // Always release the lock
-        jwt_key_cache.refresh_lock_release_and_notify();
-
-        // Return the result or error
-        match result {
-            Ok(keys) => {
-                let elapsed = start_time.elapsed();
-
-                #[cfg(not(tarpaulin_include))]
-                info!(
-                    "Successfully fetched and cached fresh JWT keys (took {}ms)",
-                    elapsed.as_millis()
-                );
-
-                #[cfg(not(tarpaulin_include))]
-                debug!("JWT keys cache refreshed with {} keys", keys.keys.len());
-
-                // Clear any previous refresh failure on success
-                jwt_key_cache.set_refresh_failure(None).await;
-
-                #[cfg(not(tarpaulin_include))]
-                debug!("Cleared previous JWT key refresh failure timestamp");
-
-                // Return JWT keys
-                Ok(keys)
-            }
-            Err(err) => {
-                let elapsed = start_time.elapsed();
-
-                #[cfg(not(tarpaulin_include))]
-                error!("JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
-                    elapsed.as_millis(), retry_attempts, refresh_backoff, err);
-
-                // Set the refresh failure time to prevent another refresh attempt within the
-                // default 60 second cooldown period
-                jwt_key_cache
-                    .set_refresh_failure(Some(std::time::Instant::now()))
-                    .await;
-
-                #[cfg(not(tarpaulin_include))]
-                debug!("Recorded JWT key refresh failure timestamp");
-
-                // Return Error of type EsiError::ReqwestError
-                Err(err.into())
-            }
-        }
-    }
-
     /// Waits for an ongoing JWT key cache refresh operation to complete and returns the result
     ///
     /// This method is designed to be called when a thread detects that another thread
@@ -282,7 +153,7 @@ impl<'a> OAuth2Api<'a> {
         let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
 
         // Check if we are still in cooldown due to fetch failure within cooldown period
-        if check_refresh_cooldown(jwt_key_cache, jwk_refresh_cooldown)
+        if check_refresh_cooldown(&jwt_key_cache, jwk_refresh_cooldown)
             .await
             .is_some()
         {
@@ -304,85 +175,155 @@ impl<'a> OAuth2Api<'a> {
         debug!("Triggering background JWT refresh task");
 
         // Clone the required components
-        let reqwest_client = esi_client.reqwest_client.clone();
         let jwt_key_cache = esi_client.jwt_key_cache.clone();
-        let jwk_url = esi_client.oauth2_config.jwk_url.clone();
-        #[cfg(not(tarpaulin_include))]
-        debug!(
-            "Preparing background refresh task with JWK URL: {}",
-            jwk_url
-        );
+        let reqwest_client = esi_client.reqwest_client.clone();
+        let jwk_url = oauth2_config.jwk_url.clone();
+        let backoff = oauth2_config.jwk_refresh_backoff.clone();
 
-        // Ignore tarpaulin code coverage reports on this function
-        //
-        // There are a significant amount of inaccuracies in tarpualin reporting
-        // on this function, namely it keeps reporting `#[cfg(not(tarpaulin_include))]` itself
-        // as an uncovered line. This may be related to the usage of `tokio::spawn`.
-        //
-        // It may be possible to refactor so that this code segment properly works with tarpaulin.
-        #[cfg(not(tarpaulin_include))]
         tokio::spawn(async move {
-            #[cfg(not(tarpaulin_include))]
-            debug!("Background JWT key refresh task started");
-
-            // Track operation timing for performance monitoring
-            let start_time = std::time::Instant::now();
-
-            // Fetch fresh keys from EVE's OAuth2 API
-            #[cfg(not(tarpaulin_include))]
-            debug!("Fetching fresh keys from JWK URL: {}", &jwk_url);
-
-            let result = fetch_jwt_keys(&reqwest_client, &jwk_url).await;
-            let elapsed = start_time.elapsed();
-
-            match result {
-                // Fetch attempt was successful, JWT keys retrieved
-                Ok(keys) => {
-                    // Update the cache with the new keys
-                    #[cfg(not(tarpaulin_include))]
-                    debug!("Acquiring write lock for JWT keys cache update");
-
-                    jwt_key_cache.update_keys(keys).await;
-
-                    #[cfg(not(tarpaulin_include))]
-                    info!(
-                        "Background JWT key refresh task completed successfully in {}ms",
-                        elapsed.as_millis()
-                    );
-
-                    // Clear any previous refresh failure on success
-                    jwt_key_cache.set_refresh_failure(None).await;
-
-                    #[cfg(not(tarpaulin_include))]
-                    debug!("Cleared previous JWT key refresh failure timestamp");
-                }
-                // Fetch attempt for JWT keys failed
-                Err(err) => {
-                    #[cfg(not(tarpaulin_include))]
-                    warn!(
-                        "Background JWT key refresh failed after {}ms: {:?}",
-                        elapsed.as_millis(),
-                        err
-                    );
-
-                    // Set the refresh failure time to prevent another refresh attempt within the
-                    // default 60 second cooldown period
-                    jwt_key_cache
-                        .set_refresh_failure(Some(std::time::Instant::now()))
-                        .await;
-
-                    #[cfg(not(tarpaulin_include))]
-                    debug!("Recorded JWT key refresh failure timestamp");
-                }
-            };
-
-            // Release lock regardless of success
-            jwt_key_cache.refresh_lock_release_and_notify();
+            // Make no retries as the background refresh
+            // utilizes a 60 second cooldown between attempts instead.
+            refresh_jwt_keys(&reqwest_client, &jwt_key_cache, &jwk_url, &backoff, &0).await
         });
 
         #[cfg(not(tarpaulin_include))]
-        debug!("Background JWT key refresh task spawned successfully");
+        debug!("Background JWT key refresh task started");
 
         true
+    }
+}
+
+/// Refreshes JWT keys with retry logic
+///
+/// This method implements a blocking refresh operation with exponential backoff retry:
+/// 1. Attempts to fetch JWT keys from the EVE OAuth2 API
+/// 2. If initial attempt fails, retries with exponential backoff delay defined by the
+///    [`OAuthConfig::jwk_refresh_backoff`](crate::oauth2::OAuth2Config::jwk_refresh_backoff)
+///    field used by the [`EsiClient`](crate::EsiClient). By default this is 100ms.
+/// 3. Continues retrying until success or maximum retry count provided is reached.
+/// 4. Updates the JWT key cache is successful
+/// 5. Releases the refresh lock and notifies waiting threads upon completion regardless of success.
+/// 6. Records refresh failures for a cooldown between a set of refresh attempts
+///
+/// # Implementation Details
+/// - Uses exponential backoff to gracefully handle temporary service issues
+/// - Assumes the refresh lock is already acquired before being called
+/// - Always releases the lock upon completion (success or failure)
+/// - Updates the cache on successful refresh
+/// - Records failure information for future cooldown decisions
+///
+/// # Thread Safety
+/// This method is thread-safe and designed to be called only when the refresh lock
+/// has been acquired. It properly releases the lock when done, ensuring other
+/// threads can proceed with their operations.
+///
+/// # Arguments
+/// - `reqwest_client` (&[`reqwest::Client`]): Client used for making HTTP requests
+/// - `jwt_key_cache` (&[`JwtKeyCache`]): Cache providing methods to get, update, and coordinate JWT key refreshes
+/// - `jwk_url` (&[`str`]): URL endpoint to retrieve the JWT keys from
+/// - `backoff` ([`u64`]): The exponential backoff in ms between request attempts
+/// - `max_retries` ([`u64`]): The amount of retries to make if the first attempt fails
+///
+/// # Returns
+/// - `Ok(`[`EveJwtKeys`]`)` if keys were successfully fetched and cached
+/// - `Err(`[`EsiError`]`)` if all request attempts failed
+pub(super) async fn refresh_jwt_keys(
+    reqwest_client: &reqwest::Client,
+    jwt_key_cache: &JwtKeyCache,
+    jwk_url: &str,
+    retry_backoff: &u64,
+    max_retries: &u64,
+) -> Result<EveJwtKeys, EsiError> {
+    // Track operation timing for performance monitoring
+    let start_time = std::time::Instant::now();
+
+    // Attempt inital JWT key refresh
+    #[cfg(not(tarpaulin_include))]
+    debug!("Fetching JWT keys from JWK URL: {}", &jwk_url);
+
+    let mut result = fetch_jwt_keys(&reqwest_client, &jwk_url).await;
+
+    // Retry logic - attempt retries if the initial fetch failed
+    let mut retry_attempts = 0;
+    while result.is_err() && retry_attempts < *max_retries {
+        let backoff_duration = Duration::from_millis(
+            // Calculate exponential backoff duration:
+            // Initial backoff (100ms default) multiplied by 2^retry_attempts
+            // This causes wait time to double with each retry attempt
+            retry_backoff * 2u64.pow(retry_attempts as u32),
+        );
+
+        #[cfg(not(tarpaulin_include))]
+        debug!(
+            "JWT key fetch failed. Retrying ({}/{}) after {}ms",
+            retry_attempts + 1,
+            max_retries,
+            backoff_duration.as_millis()
+        );
+
+        // Wait before retrying
+        tokio::time::sleep(backoff_duration).await;
+
+        // Try to fetch again
+        #[cfg(not(tarpaulin_include))]
+        debug!(
+            "Retry attempt # {}: fetching JWT keys after backoff",
+            retry_attempts + 1
+        );
+
+        result = fetch_jwt_keys(&reqwest_client, &jwk_url).await;
+        retry_attempts += 1;
+    }
+
+    // Update cache if successful
+    if let Ok(ref keys) = result {
+        jwt_key_cache.update_keys(keys.clone()).await
+    }
+
+    // Always release the lock
+    jwt_key_cache.refresh_lock_release_and_notify();
+
+    // Return the result or error
+    let elapsed = start_time.elapsed();
+    match result {
+        Ok(keys) => {
+            #[cfg(not(tarpaulin_include))]
+            info!(
+                "Successfully fetched and cached {} JWT keys (took {}ms)",
+                keys.keys.len(),
+                elapsed.as_millis()
+            );
+
+            // Clear any previous refresh failure on success
+            jwt_key_cache.set_refresh_failure(None).await;
+
+            #[cfg(not(tarpaulin_include))]
+            debug!("Cleared previous JWT key refresh failure timestamp");
+
+            // Return JWT keys
+            Ok(keys)
+        }
+        Err(err) => {
+            #[cfg(not(tarpaulin_include))]
+            error!(
+                "JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
+                elapsed.as_millis(),
+                retry_attempts,
+                retry_backoff,
+                err
+            );
+
+            // Set the refresh failure time to prevent another refresh attempt within the
+            // default 60 second cooldown period
+            jwt_key_cache
+                .set_refresh_failure(Some(std::time::Instant::now()))
+                .await;
+
+            #[cfg(not(tarpaulin_include))]
+            debug!("Recorded JWT key refresh failure timestamp");
+
+            // Return Error of type EsiError::ReqwestError
+            Err(err.into())
+        }
     }
 }

@@ -14,6 +14,7 @@ use std::time::Instant;
 
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
+use crate::oauth2::jwk::task::refresh_jwt_keys;
 use crate::oauth2::jwk::util::{
     check_refresh_cooldown, is_cache_approaching_expiry, is_cache_expired,
 };
@@ -50,11 +51,16 @@ impl<'a> OAuth2Api<'a> {
     /// - [`EsiError]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
+        let reqwest_client = &esi_client.reqwest_client;
         let jwt_key_cache = &esi_client.jwt_key_cache;
         let oauth2_config = &esi_client.oauth2_config;
 
+        let jwk_url = &oauth2_config.jwk_url;
         let jwk_cache_ttl = oauth2_config.jwk_cache_ttl;
+        let jwk_refresh_backoff = oauth2_config.jwk_refresh_backoff;
         let jwk_refresh_cooldown = oauth2_config.jwk_refresh_cooldown;
+        let jwk_refresh_max_retries = oauth2_config.jwk_refresh_max_retries;
+
         let background_refresh_enabled = oauth2_config.jwk_background_refresh_enabled;
         let background_refresh_threshold = oauth2_config.jwk_background_refresh_threshold_percent;
 
@@ -133,7 +139,14 @@ impl<'a> OAuth2Api<'a> {
 
         // We have the lock, so refresh the cache
         // Attempt up to (2 retries) with an exponential (100 ms) backoff
-        self.refresh_jwt_keys_with_retry().await
+        refresh_jwt_keys(
+            &reqwest_client,
+            &jwt_key_cache,
+            &jwk_url,
+            &jwk_refresh_backoff,
+            &jwk_refresh_max_retries,
+        )
+        .await
     }
 
     /// Retrieves JWT keys from EVE's OAuth2 API and updates the cache with the new keys
