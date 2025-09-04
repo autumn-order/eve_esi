@@ -20,7 +20,7 @@ use std::time::Instant;
 use log::{debug, trace};
 use tokio::sync::{Notify, RwLock};
 
-use crate::model::oauth2::EveJwtKeys;
+use crate::{error::EsiError, model::oauth2::EveJwtKeys, oauth2::jwk::builder::JwtKeyCacheBuilder};
 
 /// OAuth2 JWT key cache
 ///
@@ -53,6 +53,28 @@ pub struct JwtKeyCache {
     pub refresh_notifier: Notify,
     /// RwLock with a timestamp of last failed set of JWT key refresh attemmpts
     pub last_refresh_failure: RwLock<Option<Instant>>,
+
+    // Cache Settings
+    /// JWT key cache lifetime before expiration in seconds (3600 seconds representing 1 hour)
+    pub(crate) cache_ttl: u64,
+
+    // Refresh Settings
+    /// JSON web token key URL that provides keys used to validate tokens
+    pub(crate) jwk_url: String,
+    /// Maximum number of retries for JWT key refresh when cache is empty or expired (default 2 retries)
+    pub(crate) refresh_max_retries: u64,
+    /// Backoff period in seconds after a JWT key refresh failure when cache is empty or expired (default 100 milliseconds)
+    pub(crate) refresh_backoff: u64,
+    /// Timeout in seconds when waiting for another thread to refresh JWT key (default 5 seconds)
+    pub(crate) refresh_timeout: u64,
+    /// Cooldown period in seconds after a failed set of JWT key refresh attempts (default 60 seconds)
+    pub(crate) refresh_cooldown: u64,
+
+    // Background Refresh Settings
+    /// Determines whether or not a background task is spawned to refresh JWT keys nearing expiration proactively
+    pub(crate) background_refresh_enabled: bool,
+    /// Percentage of jwk_cache_ttl for when the background JWT key refresh is triggered (default 80%)
+    pub(crate) background_refresh_threshold: u64,
 }
 
 impl JwtKeyCache {
@@ -64,13 +86,22 @@ impl JwtKeyCache {
     ///
     /// # Returns
     /// - [`JwtKeyCache`]: Default cache instance that contains no keys initially
-    pub fn new() -> Self {
-        Self {
-            cache: RwLock::new(None),
-            refresh_lock: AtomicBool::new(false),
-            refresh_notifier: Notify::new(),
-            last_refresh_failure: RwLock::new(None),
-        }
+    ///
+    /// # Errors
+    /// - [`EsiError`]: If the `background_refresh_threshold` is configured incorrectly.
+    pub fn new() -> Result<Self, EsiError> {
+        JwtKeyCacheBuilder::new().build()
+    }
+
+    /// Returns a [`JwtKeyCacheBuilder`] instance used to configure JWT key related settings
+    ///
+    /// Allows for the configuration of the [`JwtKeyCache`] using the [`JwtKeyCacheBuilder`] methods
+    /// to override the default configuration to custom values using the setter methods.
+    ///
+    /// # Returns
+    /// - [`JwtKeyCacheBuilder`]: Instance with the default settings that can be overridden with setter methods.
+    pub fn builder() -> JwtKeyCacheBuilder {
+        JwtKeyCacheBuilder::new()
     }
 
     /// Retrieves JWT keys directly from cache without validation or refresh attempts

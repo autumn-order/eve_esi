@@ -136,7 +136,7 @@ impl EsiClientBuilder {
             oauth2_config: oauth2_config,
 
             // OAuth2 JWT key cache
-            jwt_key_cache: Arc::new(JwtKeyCache::new()),
+            jwt_key_cache: Arc::new(JwtKeyCache::new()?),
         })
     }
 
