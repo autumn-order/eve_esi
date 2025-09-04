@@ -61,6 +61,7 @@ pub struct EsiClientBuilder {
     pub(crate) client_secret: Option<String>,
     pub(crate) callback_url: Option<String>,
     pub(crate) oauth_client: Option<OAuth2Client>,
+    pub(crate) jwt_key_cache: Option<JwtKeyCache>,
     pub(crate) oauth2_config: Option<OAuth2Config>,
 }
 
@@ -86,6 +87,7 @@ impl EsiClientBuilder {
             client_secret: None,
             callback_url: None,
             oauth_client: None,
+            jwt_key_cache: None,
             oauth2_config: None,
         }
     }
@@ -126,6 +128,12 @@ impl EsiClientBuilder {
             builder = builder.setup_oauth_client(&oauth2_config)?;
         }
 
+        // Setup JWT key cache
+        let jwt_key_cache = match builder.jwt_key_cache.take() {
+            Some(cache) => cache,
+            None => JwtKeyCache::new()?,
+        };
+
         // Build EsiClient
         Ok(EsiClient {
             reqwest_client,
@@ -136,7 +144,7 @@ impl EsiClientBuilder {
             oauth2_config: oauth2_config,
 
             // OAuth2 JWT key cache
-            jwt_key_cache: Arc::new(JwtKeyCache::new()?),
+            jwt_key_cache: Arc::new(jwt_key_cache),
         })
     }
 
@@ -320,6 +328,8 @@ impl EsiClientBuilder {
     /// Use this to configure the HTTP client used by [`EsiClient`] with your
     /// own preferred settings.
     ///
+    /// You can create and configure a reqwest client using the [`reqwest::Client::builder()`] method.
+    ///
     /// # Warning
     /// The [`EsiClientBuilder::user_agent`] method will not be applied in the
     /// event that a custom reqwest client is provided, instead you should
@@ -331,9 +341,29 @@ impl EsiClientBuilder {
     ///   EVE Online's API endpoints.
     ///
     /// # Returns
-    /// - [EsiClientBuilder]: Instance with updated reqwest Client
+    /// - [EsiClientBuilder]: Instance with the configured reqwest client
     pub fn reqwest_client(mut self, client: reqwest::Client) -> Self {
         self.reqwest_client = Some(client);
+        self
+    }
+
+    /// Override the default [`JwtKeyCache`] used by [`EsiClient`]
+    ///
+    /// This allows for the custom configuration of JWT key related settings
+    /// which are used to validate OAuth2 tokens. This allows for the override
+    /// of the JWT key endpoint URL, the logic of how refreshing is handled, and
+    /// how long keys are cached for.
+    ///
+    /// You can create and configure a cache using the [`JwtKeyCache::builder()`] method.
+    ///
+    /// # Arguments
+    /// - `cache` ([`JwtKeyCache`]): Cache for storing and coordinating the
+    /// refresh of JWT keys used to validate OAuth2 tokens.
+    ///
+    /// # Returns
+    /// - [EsiClientBuilder]: Instance with the configured JwtKeyCache
+    pub fn jwt_key_cache(mut self, cache: JwtKeyCache) -> Self {
+        self.jwt_key_cache = Some(cache);
         self
     }
 }
@@ -417,6 +447,7 @@ mod tests {
     #[test]
     fn test_builder_setter_methods() {
         let custom_reqwest_client = reqwest::Client::new();
+        let custom_jwt_cache = JwtKeyCache::new().unwrap();
 
         let builder = EsiClientBuilder::new()
             .esi_url("https://example.com")
@@ -424,7 +455,8 @@ mod tests {
             .client_id("client_id")
             .client_secret("client_secret")
             .callback_url("http://localhost:8000/callback")
-            .reqwest_client(custom_reqwest_client);
+            .reqwest_client(custom_reqwest_client)
+            .jwt_key_cache(custom_jwt_cache);
 
         // Check updated values
         assert_eq!(builder.esi_url, "https://example.com");
