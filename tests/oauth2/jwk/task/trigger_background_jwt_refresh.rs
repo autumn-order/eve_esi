@@ -46,7 +46,7 @@ async fn test_background_refresh_success() {
     }
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let _ = esi_client.oauth2().get_jwt_keys().await;
+    let _ = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Wait for refresh notification or timeout if never completes
     let notify_future = jwt_key_cache.refresh_notifier.notified();
@@ -124,7 +124,7 @@ async fn test_background_refresh_failure() {
     }
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let _ = esi_client.oauth2().get_jwt_keys().await;
+    let _ = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Wait for refresh notification or timeout if never completes
     let notify_future = jwt_key_cache.refresh_notifier.notified();
@@ -211,7 +211,7 @@ async fn test_background_refresh_backoff() {
     }
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let _ = esi_client.oauth2().get_jwt_keys().await;
+    let _ = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Wait for notification to timeout
     let notify_future = jwt_key_cache.refresh_notifier.notified();
@@ -278,7 +278,7 @@ async fn test_background_refresh_already_in_progress() {
     assert!(!lock_acquired.is_err());
 
     // Use get_jwt_keys as entry point since function being tested is private
-    let _ = esi_client.oauth2().get_jwt_keys().await;
+    let _ = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Wait for notification to timeout
     let notify_future = jwt_key_cache.refresh_notifier.notified();

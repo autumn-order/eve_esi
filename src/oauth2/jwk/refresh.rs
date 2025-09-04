@@ -18,12 +18,11 @@ use log::{debug, error, info, trace};
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::jwk::cache::JwtKeyCache;
-use crate::oauth2::OAuth2Api;
 
-use super::jwk::fetch_and_update_cache;
+use super::jwk::{fetch_and_update_cache, JwkApi};
 use super::util::check_refresh_cooldown;
 
-impl<'a> OAuth2Api<'a> {
+impl<'a> JwkApi<'a> {
     /// Waits for an ongoing JWT key cache refresh operation to complete and returns the result
     ///
     /// This method is designed to be called when a thread detects that another thread

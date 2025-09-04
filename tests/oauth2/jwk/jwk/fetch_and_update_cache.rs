@@ -23,7 +23,7 @@ async fn test_fetch_and_update_cache_success() {
     let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Call the fetch_and_update_cache method
-    let result = esi_client.oauth2().fetch_and_update_cache().await;
+    let result = esi_client.oauth2().jwk().fetch_and_update_cache().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();
@@ -60,7 +60,7 @@ async fn test_fetch_and_update_cache_request_error() {
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 1);
 
     // Call the fetch_and_update_cache method
-    let result = esi_client.oauth2().fetch_and_update_cache().await;
+    let result = esi_client.oauth2().jwk().fetch_and_update_cache().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();

@@ -21,7 +21,8 @@ impl<'a> OAuth2Api<'a> {
     /// Creates a new instance of [`OAuth2Api`]
     ///
     /// # Arguments
-    /// - `client: The [`EsiClient`] used for making HTTP requests to the ESI endpoints.
+    /// - `client` (&'a [`EsiClient`]) used for making HTTP requests to EVE Online API endpoints
+    ///   and providing the JWT key cache.
     ///
     /// # Returns
     /// - `Self`: A new instance of [`OAuth2Api`].

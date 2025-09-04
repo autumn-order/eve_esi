@@ -26,7 +26,7 @@ async fn fetch_jwt_keys_success() {
     let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Call the fetch_jwt_keys method
-    let result = esi_client.oauth2().fetch_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().fetch_jwt_keys().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();
@@ -74,7 +74,7 @@ async fn fetch_jwt_keys_server_error() {
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 1);
 
     // Call the fetch_jwt_keys method
-    let result = esi_client.oauth2().fetch_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().fetch_jwt_keys().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();
@@ -124,7 +124,7 @@ async fn fetch_jwt_keys_network_error() {
         .expect("Failed to build EsiClient");
 
     // Call the fetch_jwt_keys method
-    let result = esi_client.oauth2().fetch_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().fetch_jwt_keys().await;
 
     // Assert result is error
     assert!(result.is_err());
@@ -162,7 +162,7 @@ async fn fetch_jwt_keys_parse_error() {
         .create();
 
     // Call the fetch_jwt_keys method
-    let result = esi_client.oauth2().fetch_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().fetch_jwt_keys().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();

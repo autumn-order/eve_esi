@@ -40,7 +40,7 @@ async fn get_jwt_keys_valid_cache() {
     }
 
     // Call the method under test
-    let result = esi_client.oauth2().get_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Assert no fetch requests were made
     mock.assert();
@@ -82,7 +82,7 @@ async fn get_jwt_keys_expired_cache() {
     }
 
     // Call the method under test
-    let result = esi_client.oauth2().get_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();
@@ -131,7 +131,7 @@ async fn get_jwt_keys_empty_cache() {
     let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Call the method under test
-    let result = esi_client.oauth2().get_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();
@@ -174,7 +174,7 @@ async fn get_jwt_keys_refresh_cooldown() {
     }
 
     // Call the method under test
-    let result = esi_client.oauth2().get_jwt_keys().await;
+    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();

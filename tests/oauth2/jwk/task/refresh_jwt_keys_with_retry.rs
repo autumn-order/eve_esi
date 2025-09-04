@@ -36,7 +36,7 @@ async fn test_refresh_keys_success() {
     // Use get_jwt_keys as entry point since refresh_jwt_keys_with_retry
     // is private
     let oauth2 = esi_client.oauth2();
-    let result = oauth2.get_jwt_keys().await;
+    let result = oauth2.jwk().get_jwt_keys().await;
 
     // Assert we received only 1 expected request
     mock.assert();
@@ -78,7 +78,7 @@ async fn test_refresh_keys_failure() {
     // Use get_jwt_keys as entry point since refresh_jwt_keys_with_retry
     // is private
     let oauth2 = esi_client.oauth2();
-    let result = oauth2.get_jwt_keys().await;
+    let result = oauth2.jwk().get_jwt_keys().await;
 
     // Assert we received only 3 expected requests
     mock.assert();
@@ -131,7 +131,7 @@ async fn test_refresh_keys_retry() {
     // Use get_jwt_keys as entry point since refresh_jwt_keys_with_retry
     // is private
     let oauth2 = esi_client.oauth2();
-    let result = oauth2.get_jwt_keys().await;
+    let result = oauth2.jwk().get_jwt_keys().await;
 
     // Assert we received only 1 expected request per response type
     mock_500.assert();
