@@ -99,7 +99,8 @@ async fn fetch_jwt_keys_server_error() {
 ///
 /// # Test Setup
 /// - Create a custom OAuth2 config with the JWK URL set to an invalid endpoint
-/// - Create an EsiClient with the custom OAuth2 config
+/// - Create a reqwest client with reduced timeout
+/// - Create an EsiClient with the custom OAuth2 config and reqwest client
 ///
 /// # Assertions
 /// - Assert result is error
@@ -108,18 +109,22 @@ async fn fetch_jwt_keys_server_error() {
 async fn fetch_jwt_keys_network_error() {
     // Create OAuth2 config with a JWK URL that won't respond
     let config = OAuth2Config::builder()
-        // TODO: Swap to .jwk_url("http://10.255.255.1") // RFC 5735 TEST‑NET‑2 range
-        //
-        // Need to implement a way to manually config reqwest client timeout setting for EsiClient first
-        // otherwise test runs for a very long time (30 seconds approx)
-        .jwk_url("http://127.0.0.1")
+        .jwk_url("http://10.255.255.1") // RFC 5735 TEST‑NET‑2 range
         .build()
         .expect("Failed to build oauth2 config");
+
+    // Create reqwest::Client with reduced connect timeout
+    let timeout = std::time::Duration::from_millis(100);
+    let reqwest_client = reqwest::Client::builder()
+        .connect_timeout(timeout)
+        .build()
+        .expect("Failed to build reqwest Client");
 
     // Create ESI client with the custom OAuth2 config
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
         .oauth2_config(config)
+        .reqwest_client(reqwest_client)
         .build()
         .expect("Failed to build EsiClient");
 
