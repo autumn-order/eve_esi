@@ -40,10 +40,12 @@
 use std::sync::Arc;
 
 use log::warn;
+use oauth2::{AuthUrl, TokenUrl};
 
-use crate::constant::DEFAULT_ESI_URL;
+use crate::constant::{DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_TOKEN_URL};
 use crate::error::EsiError;
 use crate::oauth2::config::client::OAuth2Client;
+use crate::oauth2::error::OAuthConfigError;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::oauth2::OAuth2Config;
 use crate::EsiClient;
@@ -52,16 +54,31 @@ use crate::EsiClient;
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClientBuilder {
+    // Base Settings
     pub(crate) esi_url: String,
     pub(crate) user_agent: Option<String>,
     pub(crate) reqwest_client: Option<reqwest::Client>,
 
     // OAuth2
+    /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
+    ///
+    /// Will be None if client_id, client_secret, and callback_url have not been
+    /// set on the EsiClient.
+    pub(crate) oauth_client: Option<OAuth2Client>,
     pub(crate) client_id: Option<String>,
     pub(crate) client_secret: Option<String>,
     pub(crate) callback_url: Option<String>,
-    pub(crate) oauth_client: Option<OAuth2Client>,
+
+    // OAuth2 Overrides
+    /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
+    /// cache usage & refreshes across threads
     pub(crate) jwt_key_cache: Option<JwtKeyCache>,
+    /// Authentication URL endpoint for the EVE Online OAuth2 login flow
+    pub(crate) auth_url: String,
+    /// Token URL endpoint used to retrieve tokens to authenticate users
+    pub(crate) token_url: String,
+    /// Configuration used for overriding default OAuth2 settings regarding caching policies and
+    /// OAuth2 endpoint URLs.
     pub(crate) oauth2_config: Option<OAuth2Config>,
 }
 
@@ -88,6 +105,8 @@ impl EsiClientBuilder {
             callback_url: None,
             oauth_client: None,
             jwt_key_cache: None,
+            auth_url: DEFAULT_AUTH_URL.to_string(),
+            token_url: DEFAULT_TOKEN_URL.to_string(),
             oauth2_config: None,
         }
     }
@@ -134,17 +153,31 @@ impl EsiClientBuilder {
             None => JwtKeyCache::new()?,
         };
 
+        // OAuth2 Client URL overrides
+        let auth_url = match AuthUrl::new(builder.auth_url) {
+            Ok(url) => url,
+            Err(_) => return Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)),
+        };
+        let token_url = match TokenUrl::new(builder.token_url) {
+            Ok(url) => url,
+            Err(_) => {
+                return Err(EsiError::OAuthConfigError(
+                    OAuthConfigError::InvalidTokenUrl,
+                ));
+            }
+        };
+
         // Build EsiClient
         Ok(EsiClient {
             reqwest_client,
             esi_url: builder.esi_url,
 
-            // OAuth2oauth2_config
+            // OAuth2
             oauth2_client: builder.oauth_client,
-            oauth2_config: oauth2_config,
-
-            // OAuth2 JWT key cache
             jwt_key_cache: Arc::new(jwt_key_cache),
+            oauth2_config: oauth2_config,
+            auth_url: auth_url,
+            token_url: token_url,
         })
     }
 
@@ -366,6 +399,41 @@ impl EsiClientBuilder {
         self.jwt_key_cache = Some(cache);
         self
     }
+
+    /// Sets the EVE Online oauth2 authorize URL to a custom URL.
+    ///
+    /// This method configures the authorize URL for EVE Online oauth2.
+    /// This is generally used for tests using a mock server with crates such as
+    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    ///
+    /// # Arguments
+    /// - `auth_url` (&[`str`]): The EVE Online oauth2 authorize URL.
+    ///
+    /// # Returns
+    /// - [`OAuth2Config`]: Instance with updated EVE Online oauth2 authorize URL configuration.
+    pub fn auth_url(mut self, auth_url: &str) -> Self {
+        self.auth_url = auth_url.to_string();
+        self
+    }
+    ///
+    /// Will be None if client_id, client_secret, and callback_url have not been
+    /// set on the EsiClient.
+
+    /// Sets the EVE Online oauth2 token URL to a custom URL.
+    ///
+    /// This method configures the token URL for EVE Online oauth2 to a custom URL.
+    /// This is generally used for tests using a mock server with crates such as
+    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    ///
+    /// # Arguments
+    /// - `token_url` (&[`str`]): The EVE Online oauth2 token URL.
+    ///
+    /// # Returns
+    /// - [`OAuth2Config`]: Instance with updated EVE Online oauth2 token URL configuration.
+    pub fn token_url(mut self, token_url: &str) -> Self {
+        self.token_url = token_url.to_string();
+        self
+    }
 }
 
 /// Utility function that creates a default [`reqwest::Client`] if no client is provided
@@ -440,36 +508,51 @@ mod tests {
     /// Test setter methods of the `EsiClientBuilder`.
     ///
     /// # Setup
-    /// - Creates an ESI client with all values modified
+    /// - Create a custom reqwest::Client
+    /// - Create a custom JwtKeyCache
+    /// - Creates an EsiClient with all setter methods used
     ///
     /// # Assertions
-    /// - Checks that all setter methods were set correctly
+    /// - Assert base settings are set as expected
+    /// - Assert OAuth2 settings are set as expected
+    /// - Assert OAuth2 overrides are set as expected
     #[test]
     fn test_builder_setter_methods() {
         let custom_reqwest_client = reqwest::Client::new();
         let custom_jwt_cache = JwtKeyCache::new().unwrap();
 
         let builder = EsiClientBuilder::new()
+            // Base settings
             .esi_url("https://example.com")
             .user_agent("MyApp/1.0 (contact@example.com)")
+            .reqwest_client(custom_reqwest_client)
+            // OAuth2 settings
             .client_id("client_id")
             .client_secret("client_secret")
             .callback_url("http://localhost:8000/callback")
-            .reqwest_client(custom_reqwest_client)
-            .jwt_key_cache(custom_jwt_cache);
+            // OAuth2 overrides
+            .jwt_key_cache(custom_jwt_cache)
+            .auth_url("https://example.com")
+            .token_url("https://example.com");
 
-        // Check updated values
+        // Assert base values are set
         assert_eq!(builder.esi_url, "https://example.com");
         assert_eq!(
             builder.user_agent,
             Some("MyApp/1.0 (contact@example.com)".to_string())
         );
+
+        // Assert OAuth2 values are set
         assert_eq!(builder.client_id, Some("client_id".to_string()));
         assert_eq!(builder.client_secret, Some("client_secret".to_string()));
         assert_eq!(
             builder.callback_url,
             Some("http://localhost:8000/callback".to_string())
         );
+
+        // Assert OAuth2 overrides are set
+        assert_eq!(builder.auth_url, "https://example.com");
+        assert_eq!(builder.token_url, "https://example.com");
     }
 
     /// Test build without user agent.
@@ -550,6 +633,50 @@ mod tests {
         match result {
             Err(EsiError::OAuthError(OAuthError::MissingClientSecret)) => {}
             _ => panic!("Expected MissingClientSecret error"),
+        }
+    }
+
+    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid auth_url
+    ///
+    /// # Test Setup
+    /// - Attempt to build an OAuth2 config with the auth_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidAuthUrl)
+    #[test]
+    fn test_invalid_auth_url() {
+        // Create an OAuth2 config with invalid auth_url
+        let result = OAuth2Config::builder().auth_url("invalid_url").build();
+
+        // Assert result is an Error
+        assert!(result.is_err());
+
+        match result {
+            // Assert error is of the OAuthConfigError:InvalidAuthUrl variant
+            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)) => {}
+            _ => panic!("Expected InvalidAuthUrl error"),
+        }
+    }
+
+    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid token_url
+    ///
+    /// # Test Setup
+    /// - Attempt to build an OAuth2 config with the token_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidTokenUrl)
+    #[test]
+    fn test_invalid_token_url() {
+        // Create an OAuth2 config with invalid token_url
+        let result = OAuth2Config::builder().token_url("invalid_url").build();
+
+        // Assert result is an Error
+        assert!(result.is_err());
+
+        match result {
+            // Assert error is of the OAuthConfigError:InvalidTokenUrl variant
+            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidTokenUrl)) => {}
+            _ => panic!("Expected InvalidTokenUrl error"),
         }
     }
 }

@@ -29,6 +29,8 @@
 
 use std::sync::Arc;
 
+use oauth2::{AuthUrl, TokenUrl};
+
 use crate::builder::EsiClientBuilder;
 use crate::oauth2::config::client::OAuth2Client;
 use crate::oauth2::jwk::cache::JwtKeyCache;
@@ -40,21 +42,34 @@ use crate::oauth2::OAuth2Config;
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
-    pub(crate) reqwest_client: reqwest::Client,
+    // Base settings
     pub(crate) esi_url: String,
+    pub(crate) reqwest_client: reqwest::Client,
 
-    // OAuth2
+    // OAuth2 Settings
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
     ///
     /// Will be None if client_id, client_secret, and callback_url have not been
     /// set on the EsiClient.
     pub(crate) oauth2_client: Option<OAuth2Client>,
-    /// Configuration used for overriding default OAuth2 settings regarding caching policies and
-    /// OAuth2 endpoint URLs.
-    pub(crate) oauth2_config: OAuth2Config,
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.
     pub jwt_key_cache: Arc<JwtKeyCache>,
+    /// Configuration used for overriding default OAuth2 settings regarding caching policies and
+    /// OAuth2 endpoint URLs.
+    pub(crate) oauth2_config: OAuth2Config,
+    /// Authentication URL endpoint for the EVE Online OAuth2 login flow
+    ///
+    /// Uses the AuthUrl type from the [`oauth2`] crate in order to return
+    /// an error when building the config instead of during runtime
+    /// if the URL is incorrectly formatted.
+    pub(crate) auth_url: AuthUrl,
+    /// Token URL endpoint used to retrieve tokens to authenticate users
+    ///
+    /// Uses the TokenUrl type from the [`oauth2`] crate in order to return
+    /// an error when building the config instead of during runtime
+    /// if the URL is incorrectly formatted.
+    pub(crate) token_url: TokenUrl,
 }
 
 impl EsiClient {
