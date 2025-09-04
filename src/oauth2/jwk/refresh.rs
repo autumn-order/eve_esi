@@ -82,27 +82,30 @@ impl<'a> JwkApi<'a> {
             debug!("{}", error_message);
 
             // Return error indicating function timed out waiting JWT key refresh
-            return Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
+            return Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshTimeout(
                 error_message,
             )));
         }
 
         // Attempt to retrieve keys from cache
-        if let Some((keys, _)) = jwt_key_cache.get_keys().await {
-            #[cfg(not(tarpaulin_include))]
-            debug!(
-                "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
-                elapsed.as_millis()
-            );
+        if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
+            // Ensure keys are not expired
+            let elapsed_seconds = timestamp.elapsed().as_secs();
+            if elapsed_seconds < oauth2_confg.jwk_cache_ttl {
+                #[cfg(not(tarpaulin_include))]
+                debug!(
+                    "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
+                    elapsed.as_millis()
+                );
 
-            // Return keys if successfully retrieved from cache
-            return Ok(keys);
+                // Return keys if successfully retrieved from cache & not expired
+                return Ok(keys);
+            }
         }
 
         // If the refresh request failed then no keys will be found in the cache
         let error_message = format!(
-            "Failed to retrieve JWT keys from cache after waiting {}ms for refresh.
-                    Likely due to a failure to refresh the keys.",
+            "JWT key cache still empty of expired after waiting {}ms for refresh. Likely due to a failure to refresh the keys.",
             elapsed.as_millis()
         );
 
@@ -110,7 +113,7 @@ impl<'a> JwkApi<'a> {
         debug!("{}", error_message);
 
         // Return an error indicating no keys were found in cache
-        Err(EsiError::OAuthError(OAuthError::JwtKeyCacheError(
+        Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshFailure(
             error_message,
         )))
     }

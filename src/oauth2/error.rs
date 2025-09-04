@@ -175,12 +175,20 @@ pub enum OAuthError {
     )]
     InvalidCallbackUrl,
 
-    /// Error updating JWT key cache to validate tokens
+    /// Error when waiting for another thread to refresh cache times out
     ///
-    /// Occurs when the JWT key cache for [`EsiClient`](crate::EsiClient) either is empty or
-    /// contains expired keys and the attempt fetch new JWT keys fails.
-    #[error("JWT key cache error: {0}")]
-    JwtKeyCacheError(String),
+    /// Occurs when waiting for another thread to refresh the JWT key cache but wait time is over
+    /// 5 seconds, causing a timeout error.
+    #[error("JWT key refresh timeout: {0}")]
+    JwtKeyRefreshTimeout(String),
+
+    /// Error when waiting for another thread to refresh cache fails
+    ///
+    /// Occurs when waiting for another thread to refresh the JWT key cache but after receiving
+    /// a notification that a refresh was completed but the cache is still empty or expired
+    /// which means the fetch attempt likely failed.
+    #[error("JWT key refresh failure: {0}")]
+    JwtKeyRefreshFailure(String),
 
     /// Error when JWT key refresh is still in cooldown
     ///
