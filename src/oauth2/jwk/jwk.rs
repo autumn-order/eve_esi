@@ -14,6 +14,7 @@ use std::time::Instant;
 
 use crate::error::{EsiError, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
+use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::oauth2::jwk::refresh::refresh_jwt_keys;
 use crate::oauth2::jwk::util::{
     check_refresh_cooldown, is_cache_approaching_expiry, is_cache_expired,
@@ -150,56 +151,19 @@ impl<'a> OAuth2Api<'a> {
     /// these mechanics yourself.
     ///
     /// # Returns
-    /// - Result containing the JWT keys in successful, or an error if the fetch failed.
+    /// - [`EveJwtKeys`]: Struct representing JWT keys returned from the EVE OAuth2 JWK endpoint.
     ///
     /// # Errors
     /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
     pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, EsiError> {
-        #[cfg(not(tarpaulin_include))]
-        debug!("Fetching fresh JWT keys and updating cache");
-
         let esi_client = self.client;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
 
-        let start_time = Instant::now();
-
-        // Fetch fresh keys from EVE's OAuth2 API
-        let fetch_result = self.fetch_jwt_keys().await;
-
-        match fetch_result {
-            Ok(fresh_keys) => {
-                #[cfg(not(tarpaulin_include))]
-                debug!(
-                    "Successfully fetched {} JWT keys, updating cache",
-                    fresh_keys.keys.len()
-                );
-
-                // Update the cache with the new keys
-                jwt_key_cache.update_keys(fresh_keys.clone()).await;
-
-                let elapsed = start_time.elapsed();
-
-                #[cfg(not(tarpaulin_include))]
-                debug!(
-                    "JWT keys cache updated successfully (took {}ms)",
-                    elapsed.as_millis()
-                );
-
-                Ok(fresh_keys)
-            }
-            Err(e) => {
-                let elapsed = start_time.elapsed();
-
-                #[cfg(not(tarpaulin_include))]
-                error!(
-                    "Failed to fetch JWT keys after {}ms: {:?}",
-                    elapsed.as_millis(),
-                    e
-                );
-
-                Err(e)
-            }
-        }
+        fetch_and_update_cache(
+            &esi_client.reqwest_client,
+            &esi_client.oauth2_config.jwk_url,
+            &esi_client.jwt_key_cache,
+        )
+        .await
     }
 
     /// Fetches JWT keys from EVE's OAuth2 API
@@ -212,7 +176,7 @@ impl<'a> OAuth2Api<'a> {
     /// these mechanics yourself.
     ///
     /// # Returns
-    /// - [`EveJwtKeys`]: a struct containing the JWT keys if successful
+    /// - [`EveJwtKeys`]: Struct representing JWT keys returned from the EVE OAuth2 JWK endpoint.
     ///
     /// # Errors
     /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
@@ -234,6 +198,10 @@ impl<'a> OAuth2Api<'a> {
 ///
 /// See [`crate::oauth2::OAuth2Api::fetch_jwt_keys`] for public facing
 /// method for fetching JWT keys.
+///
+/// # Arguments
+/// - `reqwest_client` (&[`reqwest::Client`]): HTTP client used to make requests
+/// - `jwk_url` (&[`str`]): String representing the JWK endpoint for EVE's OAuth2 API
 ///
 /// # Returns
 /// - [`EveJwtKeys`]: a struct containing the JWT keys if successful
@@ -310,4 +278,72 @@ pub(super) async fn fetch_jwt_keys(
     };
 
     Ok(jwt_keys)
+}
+
+/// Utility function for fetching jwt keys & updating cache
+///
+/// Fetches JWT keys from EVE's OAuth2 API and updates the JWT key cache
+/// if successful, returns the resulting keys or error.
+///
+/// See [`crate::oauth2::OAuth2Api::fetch_and_update_cache`] for public facing
+/// method for fetching JWT keys.
+///
+/// # Arguments
+/// - `reqwest_client` (&[`reqwest::Client`]): HTTP client used to make requests
+/// - `jwk_url` (&[`str`]): String representing the JWK endpoint for EVE's OAuth2 API
+/// - `jwt_key_cache` (&[`JwtKeyCache`]): JWT Key cache struct with methods to get & update keys
+///   and coordinate concurrent refresh attempts.
+///
+/// # Returns
+/// - [`EveJwtKeys`]: a struct containing the JWT keys if successful
+///
+/// # Errors
+/// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
+pub(super) async fn fetch_and_update_cache(
+    reqwest_client: &reqwest::Client,
+    jwk_url: &str,
+    jwt_key_cache: &JwtKeyCache,
+) -> Result<EveJwtKeys, EsiError> {
+    #[cfg(not(tarpaulin_include))]
+    debug!("Fetching fresh JWT keys and updating cache");
+
+    let start_time = Instant::now();
+
+    // Fetch fresh keys from EVE's OAuth2 API
+    let fetch_result = fetch_jwt_keys(reqwest_client, jwk_url).await;
+
+    match fetch_result {
+        Ok(fresh_keys) => {
+            #[cfg(not(tarpaulin_include))]
+            debug!(
+                "Successfully fetched {} JWT keys, updating cache",
+                fresh_keys.keys.len()
+            );
+
+            // Update the cache with the new keys
+            jwt_key_cache.update_keys(fresh_keys.clone()).await;
+
+            let elapsed = start_time.elapsed();
+
+            #[cfg(not(tarpaulin_include))]
+            debug!(
+                "JWT keys cache updated successfully (took {}ms)",
+                elapsed.as_millis()
+            );
+
+            Ok(fresh_keys)
+        }
+        Err(e) => {
+            let elapsed = start_time.elapsed();
+
+            #[cfg(not(tarpaulin_include))]
+            error!(
+                "Failed to fetch JWT keys after {}ms: {:?}",
+                elapsed.as_millis(),
+                e
+            );
+
+            Err(e)
+        }
+    }
 }

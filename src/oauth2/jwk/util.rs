@@ -11,8 +11,6 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use std::sync::Arc;
-
 use log::{debug, trace};
 
 use crate::oauth2::jwk::cache::JwtKeyCache;
@@ -41,7 +39,7 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// - Some([`u64`]): Indicating the JWT key refresh cooldown remaining
 /// - None: If there is no remaining JWT key refresh cooldown.
 pub(super) async fn check_refresh_cooldown(
-    jwt_key_cache: &Arc<JwtKeyCache>,
+    jwt_key_cache: &JwtKeyCache,
     jwk_refresh_cooldown: u64,
 ) -> Option<u64> {
     // Check for last background refresh failure

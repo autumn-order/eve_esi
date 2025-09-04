@@ -20,7 +20,7 @@ use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::oauth2::OAuth2Api;
 
-use super::jwk::fetch_jwt_keys;
+use super::jwk::fetch_and_update_cache;
 use super::util::check_refresh_cooldown;
 
 impl<'a> OAuth2Api<'a> {
@@ -149,7 +149,7 @@ impl<'a> OAuth2Api<'a> {
         let jwt_key_cache = &esi_client.jwt_key_cache;
         let oauth2_config = &esi_client.oauth2_config;
 
-        // Check if we are still in cooldown due to fetch failure within cooldown period
+        // Check if we are still in cooldown due to fetch failure within 60 second cooldown period
         if check_refresh_cooldown(&jwt_key_cache, oauth2_config.jwk_refresh_cooldown)
             .await
             .is_some()
@@ -178,8 +178,7 @@ impl<'a> OAuth2Api<'a> {
         let backoff = oauth2_config.jwk_refresh_backoff.clone();
 
         tokio::spawn(async move {
-            // Make no retries as the background refresh
-            // utilizes a 60 second cooldown between attempts instead.
+            // Make no retries as the background refresh utilizes a 60 second cooldown between attempts instead.
             refresh_jwt_keys(&reqwest_client, &jwt_key_cache, &jwk_url, backoff, 0).await
         });
 
@@ -193,14 +192,13 @@ impl<'a> OAuth2Api<'a> {
 /// Refreshes JWT keys with retry logic
 ///
 /// This method implements a blocking refresh operation with exponential backoff retry:
-/// 1. Attempts to fetch JWT keys from the EVE OAuth2 API
+/// 1. Attempts to fetch JWT keys from the EVE OAuth2 API & update the cache
 /// 2. If initial attempt fails, retries with exponential backoff delay defined by the
 ///    [`OAuthConfig::jwk_refresh_backoff`](crate::oauth2::OAuth2Config::jwk_refresh_backoff)
 ///    field used by the [`EsiClient`](crate::EsiClient). By default this is 100ms.
 /// 3. Continues retrying until success or maximum retry count provided is reached.
-/// 4. Updates the JWT key cache is successful
-/// 5. Releases the refresh lock and notifies waiting threads upon completion regardless of success.
-/// 6. Records refresh failures for a cooldown between a set of refresh attempts
+/// 4. Releases the refresh lock and notifies waiting threads upon completion regardless of success.
+/// 5. Records refresh failures for a cooldown between a set of refresh attempts
 ///
 /// # Implementation Details
 /// - Uses exponential backoff to gracefully handle temporary service issues
@@ -238,7 +236,7 @@ pub(super) async fn refresh_jwt_keys(
     #[cfg(not(tarpaulin_include))]
     debug!("Fetching JWT keys from JWK URL: {}", &jwk_url);
 
-    let mut result = fetch_jwt_keys(&reqwest_client, &jwk_url).await;
+    let mut result = fetch_and_update_cache(&reqwest_client, &jwk_url, &jwt_key_cache).await;
 
     // Retry logic - attempt retries if the initial fetch failed
     let mut retry_attempts = 0;
@@ -268,13 +266,8 @@ pub(super) async fn refresh_jwt_keys(
             retry_attempts + 1
         );
 
-        result = fetch_jwt_keys(&reqwest_client, &jwk_url).await;
+        result = fetch_and_update_cache(&reqwest_client, &jwk_url, &jwt_key_cache).await;
         retry_attempts += 1;
-    }
-
-    // Update cache if successful
-    if let Ok(ref keys) = result {
-        jwt_key_cache.update_keys(keys.clone()).await
     }
 
     // Always release the lock
