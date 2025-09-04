@@ -39,6 +39,8 @@
 
 use std::sync::Arc;
 
+use log::warn;
+
 use crate::constant::DEFAULT_ESI_URL;
 use crate::error::EsiError;
 use crate::oauth2::config::client::OAuth2Client;
@@ -50,8 +52,9 @@ use crate::EsiClient;
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClientBuilder {
-    pub(crate) user_agent: Option<String>,
     pub(crate) esi_url: String,
+    pub(crate) user_agent: Option<String>,
+    pub(crate) reqwest_client: Option<reqwest::Client>,
 
     // OAuth2
     pub(crate) client_id: Option<String>,
@@ -74,8 +77,9 @@ impl EsiClientBuilder {
     ///   error with the eve_esi crate regarding improperly formatted default OAuth2 URLs.
     pub fn new() -> Self {
         Self {
-            user_agent: None,
             esi_url: DEFAULT_ESI_URL.to_string(),
+            user_agent: None,
+            reqwest_client: None,
 
             // OAuth2
             client_id: None,
@@ -98,17 +102,14 @@ impl EsiClientBuilder {
     ///   [`oauth2::Client`], or there is an internal error building the default
     ///   [`OAuth2Config`].
     pub fn build(self) -> Result<EsiClient, EsiError> {
-        // Setup a reqwest client
-        let mut client_builder = reqwest::Client::builder();
-        if let Some(ref user_agent) = self.user_agent {
-            client_builder = client_builder.user_agent(user_agent.clone());
-        }
-
-        let reqwest_client = client_builder.build()?;
-
-        // Initialize default OAuth2 config if none is set
         let mut builder = self;
 
+        // Setup a reqwest client
+        // Will create a reqwest client with default settings & provided user_agent if builder.reqwest_client is none
+        let reqwest_client =
+            get_or_default_reqwest_client(builder.reqwest_client.take(), &builder.user_agent)?;
+
+        // Initialize default OAuth2 config if none is set
         let oauth2_config = match builder.oauth2_config.take() {
             Some(config) => config,
             None => OAuth2Config::default()?,
@@ -305,13 +306,79 @@ impl EsiClientBuilder {
     /// See [OAuth2 Config module docs](`crate::oauth2::config`) for usage & details.
     ///
     /// # Arguments
-    /// - config ([`OAuth2Config`]): A struct representing OAuth2 configuration settings
+    /// - `config` ([`OAuth2Config`]): A struct representing OAuth2 configuration settings
     ///
     /// # Returns
     /// - [EsiClientBuilder]: Instance with updated OAuth2 config
     pub fn oauth2_config(mut self, config: OAuth2Config) -> Self {
         self.oauth2_config = Some(config);
         self
+    }
+
+    /// Override the default [`reqwest::Client`] used by [`EsiClient`]
+    ///
+    /// Use this to configure the HTTP client used by [`EsiClient`] with your
+    /// own preferred settings.
+    ///
+    /// # Warning
+    /// The [`EsiClientBuilder::user_agent`] method will not be applied in the
+    /// event that a custom reqwest client is provided, instead you should
+    /// set the user agent on the provided [`reqwest::Client`] prior to calling
+    /// this method.
+    ///
+    /// # Arguments
+    /// - `client` ([`reqwest::Client`]): An HTTP client used to make requests to
+    ///   EVE Online's API endpoints.
+    ///
+    /// # Returns
+    /// - [EsiClientBuilder]: Instance with updated reqwest Client
+    pub fn reqwest_client(mut self, client: reqwest::Client) -> Self {
+        self.reqwest_client = Some(client);
+        self
+    }
+}
+
+/// Utility function that creates a default [`reqwest::Client`] if no client is provided
+///
+/// Used with the [`EsiClientBuilder::build`] method to create a default [`reqwest::Client`] with
+/// provided user agent if a custom client has not been provided.
+///
+/// Provides a warning if both a custom agent and user agent has been provided as the user agent
+/// cannot be set on the provided client, the user agent should be set on the provided client prior
+/// instead.
+///
+/// # Arguments
+/// - `client` (Option<[`reqwest::Client`]): Option of a reqwest::Client to determine if a default one
+///   should be created and returned.
+/// - `user_agent` (&Option<[`reqwest::Client`]): Option of a user agent that will be applied to the
+///   default reqwest::Client if no `client` is provided.
+///
+/// # Returns
+/// - [`reqwest::Client`]: Either a default client or the provided one.
+///
+/// # Errors
+/// - [`EsiError`]: If the default [`reqwest::Client`] fails to build
+fn get_or_default_reqwest_client(
+    client: Option<reqwest::Client>,
+    user_agent: &Option<String>,
+) -> Result<reqwest::Client, EsiError> {
+    match client {
+        Some(client) => {
+            if user_agent.is_some() {
+                #[cfg(not(tarpaulin_include))]
+                warn!("user_agent is set on `EsiClientBuilder` but so is reqwest_client, as a result the user_agent will not be applied and should be instead applied to the provided reqwest client if not done so already.");
+            }
+
+            Ok(client)
+        }
+        None => {
+            let mut client_builder = reqwest::Client::builder();
+            if let Some(agent) = user_agent {
+                client_builder = client_builder.user_agent(agent.clone());
+            }
+
+            Ok(client_builder.build()?)
+        }
     }
 }
 
@@ -349,12 +416,15 @@ mod tests {
     /// - Checks that all setter methods were set correctly
     #[test]
     fn test_builder_setter_methods() {
+        let custom_reqwest_client = reqwest::Client::new();
+
         let builder = EsiClientBuilder::new()
             .esi_url("https://example.com")
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
             .client_secret("client_secret")
-            .callback_url("http://localhost:8000/callback");
+            .callback_url("http://localhost:8000/callback")
+            .reqwest_client(custom_reqwest_client);
 
         // Check updated values
         assert_eq!(builder.esi_url, "https://example.com");
@@ -450,25 +520,55 @@ mod tests {
             _ => panic!("Expected MissingClientSecret error"),
         }
     }
+}
 
-    /// Ensure that the builder correctly transfers configuration to the client.
+#[cfg(test)]
+mod get_or_default_reqwest_client_tests {
+    use crate::builder::get_or_default_reqwest_client;
+
+    /// Ensures a [`reqwest::Client`] is returned when a client & user agent is provided
     ///
-    /// # Setup
-    /// - Creates an ESI client builder with custom ESI and JWK URLs.
+    /// # Test Setup
+    /// - Build a custom reqwest::Client
+    /// - Call function with a custom reqwest::Client and providing a user_agent
     ///
-    /// # Assertions
-    /// - Verifies that the client receives the configured values from the builder.
+    /// # Assert
+    /// - Assert result is Ok indicating a reqwest client was returned without issues
     #[test]
-    fn test_builder_to_client_configuration_transfer() {
-        let custom_esi_url = "https://custom-esi.example.com";
+    fn test_custom_client_and_agent() {
+        let user_agent = "MyApp/1.0 (contact@example.com)".to_string();
+        let timeout = std::time::Duration::from_secs(10);
 
-        let client = EsiClientBuilder::new()
-            .user_agent("MyApp/1.0 (contact@example.com)")
-            .esi_url(custom_esi_url)
+        // Build a reqwest client with custom settings
+        let client = reqwest::Client::builder()
+            // Always set user_agent when providing a custom client to get_or_default_reqwest_client
+            // as the function is unable to modify the provided client further.
+            .user_agent(&user_agent)
+            .timeout(timeout)
             .build()
-            .expect("Failed to build client");
+            .expect("Failed to build reqwest::Client");
 
-        // Verify the client received the configured values from the builder
-        assert_eq!(client.esi_url, custom_esi_url);
+        // Call function
+        //
+        // The provided agent won't be used but we'll add it to make sure the warning execution path is called
+        let result = get_or_default_reqwest_client(Some(client), &Some(user_agent));
+
+        // Assert result is Ok
+        assert!(result.is_ok());
+    }
+
+    /// Ensures a default [`reqwest::Client`] is returned if no client is provided
+    ///
+    /// # Test Setup
+    /// - Call function with reqwest::Client as None and providing a user_agent
+    ///
+    /// # Assert
+    /// - Assert result is Ok indicating a default reqwest client with default settings has been returned
+    #[test]
+    fn test_default_with_agent() {
+        let result = get_or_default_reqwest_client(None, &Some("Agent".to_string()));
+
+        // Assert result is Ok
+        assert!(result.is_ok());
     }
 }
