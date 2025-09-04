@@ -38,26 +38,23 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// # Returns
 /// - Some([`u64`]): Indicating the JWT key refresh cooldown remaining
 /// - None: If there is no remaining JWT key refresh cooldown.
-pub(super) async fn check_refresh_cooldown(
-    jwt_key_cache: &JwtKeyCache,
-    jwk_refresh_cooldown: u64,
-) -> Option<u64> {
+pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Option<u64> {
     // Check for last background refresh failure
     let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
-        let is_cooldown = elapsed_secs < jwk_refresh_cooldown;
+        let is_cooldown = elapsed_secs < jwt_key_cache.refresh_cooldown;
 
         if is_cooldown {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "Respecting background refresh cooldown: {}s elapsed of {}s required",
-                elapsed_secs, jwk_refresh_cooldown
+                elapsed_secs, jwt_key_cache.refresh_cooldown
             );
 
             // Return Some with the remaining cooldown in seconds
-            let remaining_cooldown = jwk_refresh_cooldown - elapsed_secs;
+            let remaining_cooldown = jwt_key_cache.refresh_cooldown - elapsed_secs;
 
             return Some(remaining_cooldown);
         } else {
@@ -65,7 +62,7 @@ pub(super) async fn check_refresh_cooldown(
             trace!(
                 "Background cooldown period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
-                jwk_refresh_cooldown
+                jwt_key_cache.refresh_cooldown
             );
 
             // Return None indicating there is no active cooldown
@@ -215,11 +212,7 @@ mod is_refresh_cooldown_tests {
         }
 
         // Run function
-        let cooldown = check_refresh_cooldown(
-            &jwt_key_cache,
-            esi_client.oauth2_config.jwk_refresh_cooldown,
-        )
-        .await;
+        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
 
         // Assert cooldown is some
         assert!(cooldown.is_some());
@@ -257,11 +250,7 @@ mod is_refresh_cooldown_tests {
         }
 
         // Run function
-        let cooldown = check_refresh_cooldown(
-            &jwt_key_cache,
-            esi_client.oauth2_config.jwk_refresh_cooldown,
-        )
-        .await;
+        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
 
         // Assert cooldown is None
         assert!(cooldown.is_none());
@@ -290,11 +279,7 @@ mod is_refresh_cooldown_tests {
         let jwt_key_cache = esi_client.jwt_key_cache;
 
         // Run function
-        let cooldown = check_refresh_cooldown(
-            &jwt_key_cache,
-            esi_client.oauth2_config.jwk_refresh_cooldown,
-        )
-        .await;
+        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
 
         // Assert cooldown is None
         assert!(cooldown.is_none());
@@ -333,10 +318,8 @@ mod is_cache_approaching_expiry_tests {
 
         // Test function
         let result = is_cache_approaching_expiry(
-            esi_client.oauth2_config.jwk_cache_ttl,
-            esi_client
-                .oauth2_config
-                .jwk_background_refresh_threshold_percent,
+            esi_client.jwt_key_cache.cache_ttl,
+            esi_client.jwt_key_cache.background_refresh_threshold,
             elapsed_seconds,
         );
 
@@ -369,10 +352,8 @@ mod is_cache_approaching_expiry_tests {
 
         // Test function
         let result = is_cache_approaching_expiry(
-            esi_client.oauth2_config.jwk_cache_ttl,
-            esi_client
-                .oauth2_config
-                .jwk_background_refresh_threshold_percent,
+            esi_client.jwt_key_cache.cache_ttl,
+            esi_client.jwt_key_cache.background_refresh_threshold,
             elapsed_seconds,
         );
 
@@ -410,7 +391,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(esi_client.jwt_key_cache.cache_ttl, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -440,7 +421,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(esi_client.oauth2_config.jwk_cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(esi_client.jwt_key_cache.cache_ttl, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, false)
