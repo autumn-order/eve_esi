@@ -29,12 +29,9 @@
 
 use std::sync::Arc;
 
-use oauth2::{AuthUrl, TokenUrl};
-
 use crate::builder::EsiClientBuilder;
-use crate::oauth2::config::client::OAuth2Client;
+use crate::oauth2::client::OAuth2Client;
 use crate::oauth2::jwk::cache::JwtKeyCache;
-use crate::oauth2::OAuth2Config;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
@@ -55,21 +52,6 @@ pub struct EsiClient {
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.
     pub jwt_key_cache: Arc<JwtKeyCache>,
-    /// Configuration used for overriding default OAuth2 settings regarding caching policies and
-    /// OAuth2 endpoint URLs.
-    pub(crate) oauth2_config: OAuth2Config,
-    /// Authentication URL endpoint for the EVE Online OAuth2 login flow
-    ///
-    /// Uses the AuthUrl type from the [`oauth2`] crate in order to return
-    /// an error when building the config instead of during runtime
-    /// if the URL is incorrectly formatted.
-    pub(crate) auth_url: AuthUrl,
-    /// Token URL endpoint used to retrieve tokens to authenticate users
-    ///
-    /// Uses the TokenUrl type from the [`oauth2`] crate in order to return
-    /// an error when building the config instead of during runtime
-    /// if the URL is incorrectly formatted.
-    pub(crate) token_url: TokenUrl,
 }
 
 impl EsiClient {

@@ -40,14 +40,11 @@
 use std::sync::Arc;
 
 use log::warn;
-use oauth2::{AuthUrl, TokenUrl};
 
 use crate::constant::{DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_TOKEN_URL};
 use crate::error::EsiError;
-use crate::oauth2::config::client::OAuth2Client;
-use crate::oauth2::error::OAuthConfigError;
+use crate::oauth2::client::OAuth2Client;
 use crate::oauth2::jwk::cache::JwtKeyCache;
-use crate::oauth2::OAuth2Config;
 use crate::EsiClient;
 
 /// Builder for configuring and constructing an `EsiClient`.
@@ -77,9 +74,6 @@ pub struct EsiClientBuilder {
     pub(crate) auth_url: String,
     /// Token URL endpoint used to retrieve tokens to authenticate users
     pub(crate) token_url: String,
-    /// Configuration used for overriding default OAuth2 settings regarding caching policies and
-    /// OAuth2 endpoint URLs.
-    pub(crate) oauth2_config: Option<OAuth2Config>,
 }
 
 impl EsiClientBuilder {
@@ -107,7 +101,6 @@ impl EsiClientBuilder {
             jwt_key_cache: None,
             auth_url: DEFAULT_AUTH_URL.to_string(),
             token_url: DEFAULT_TOKEN_URL.to_string(),
-            oauth2_config: None,
         }
     }
 
@@ -130,12 +123,6 @@ impl EsiClientBuilder {
         let reqwest_client =
             get_or_default_reqwest_client(builder.reqwest_client.take(), &builder.user_agent)?;
 
-        // Initialize default OAuth2 config if none is set
-        let oauth2_config = match builder.oauth2_config.take() {
-            Some(config) => config,
-            None => OAuth2Config::default()?,
-        };
-
         // Build an OAuth2 client if any OAuth2 settings are configured
         //
         // setup_oauth_client return an error if one setting is configured but another
@@ -144,27 +131,13 @@ impl EsiClientBuilder {
             || builder.client_secret.is_some()
             || builder.callback_url.is_some()
         {
-            builder = builder.setup_oauth_client(&oauth2_config)?;
+            builder = builder.setup_oauth_client()?;
         }
 
         // Setup JWT key cache
         let jwt_key_cache = match builder.jwt_key_cache.take() {
             Some(cache) => cache,
             None => JwtKeyCache::new()?,
-        };
-
-        // OAuth2 Client URL overrides
-        let auth_url = match AuthUrl::new(builder.auth_url) {
-            Ok(url) => url,
-            Err(_) => return Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)),
-        };
-        let token_url = match TokenUrl::new(builder.token_url) {
-            Ok(url) => url,
-            Err(_) => {
-                return Err(EsiError::OAuthConfigError(
-                    OAuthConfigError::InvalidTokenUrl,
-                ));
-            }
         };
 
         // Build EsiClient
@@ -175,9 +148,6 @@ impl EsiClientBuilder {
             // OAuth2
             oauth2_client: builder.oauth_client,
             jwt_key_cache: Arc::new(jwt_key_cache),
-            oauth2_config: oauth2_config,
-            auth_url: auth_url,
-            token_url: token_url,
         })
     }
 
@@ -332,27 +302,6 @@ impl EsiClientBuilder {
     /// ```
     pub fn esi_url(mut self, esi_url: &str) -> Self {
         self.esi_url = esi_url.to_string();
-        self
-    }
-
-    /// Changes OAuth2 config to a custom one to override default OAuth2 settings
-    ///
-    /// This method allows for overriding the default EVE OAuth2 settings using
-    /// a [`OAuth2Config`] struct to set custom values.
-    ///
-    /// This is used for overriding the EVE OAuth2 API endpoint URLs
-    /// for testing purposes or for more precise control over how the JWT keys
-    /// used to validate tokens are cached and fetched.
-    ///
-    /// See [OAuth2 Config module docs](`crate::oauth2::config`) for usage & details.
-    ///
-    /// # Arguments
-    /// - `config` ([`OAuth2Config`]): A struct representing OAuth2 configuration settings
-    ///
-    /// # Returns
-    /// - [EsiClientBuilder]: Instance with updated OAuth2 config
-    pub fn oauth2_config(mut self, config: OAuth2Config) -> Self {
-        self.oauth2_config = Some(config);
         self
     }
 
@@ -633,50 +582,6 @@ mod tests {
         match result {
             Err(EsiError::OAuthError(OAuthError::MissingClientSecret)) => {}
             _ => panic!("Expected MissingClientSecret error"),
-        }
-    }
-
-    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid auth_url
-    ///
-    /// # Test Setup
-    /// - Attempt to build an OAuth2 config with the auth_url set to an invalid URL.
-    ///
-    /// # Assertions
-    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidAuthUrl)
-    #[test]
-    fn test_invalid_auth_url() {
-        // Create an OAuth2 config with invalid auth_url
-        let result = OAuth2Config::builder().auth_url("invalid_url").build();
-
-        // Assert result is an Error
-        assert!(result.is_err());
-
-        match result {
-            // Assert error is of the OAuthConfigError:InvalidAuthUrl variant
-            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)) => {}
-            _ => panic!("Expected InvalidAuthUrl error"),
-        }
-    }
-
-    /// Tests the attempting initialize an EsiClient for oauth2 with an invalid token_url
-    ///
-    /// # Test Setup
-    /// - Attempt to build an OAuth2 config with the token_url set to an invalid URL.
-    ///
-    /// # Assertions
-    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidTokenUrl)
-    #[test]
-    fn test_invalid_token_url() {
-        // Create an OAuth2 config with invalid token_url
-        let result = OAuth2Config::builder().token_url("invalid_url").build();
-
-        // Assert result is an Error
-        assert!(result.is_err());
-
-        match result {
-            // Assert error is of the OAuthConfigError:InvalidTokenUrl variant
-            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidTokenUrl)) => {}
-            _ => panic!("Expected InvalidTokenUrl error"),
         }
     }
 }

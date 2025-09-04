@@ -40,7 +40,7 @@
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```
 
-pub mod config;
+pub mod client;
 pub mod error;
 pub mod jwk;
 pub mod login;
@@ -48,6 +48,5 @@ pub mod oauth2;
 pub mod scope;
 pub mod token;
 
-pub use config::config::OAuth2Config;
 pub use oauth2::OAuth2Api;
 pub use scope::ScopeBuilder;
