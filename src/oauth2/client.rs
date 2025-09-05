@@ -122,7 +122,7 @@ mod tests {
     /// - Assert result is Ok
     #[test]
     fn test_success() {
-        // Create an EsiClient config with invalid token_url
+        // Create an EsiClient config with all oauth client related setter methods
         let result = EsiClient::builder()
             .client_id("client_id")
             .client_secret("client_secret")
