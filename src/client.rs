@@ -40,8 +40,8 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
     // Base settings
-    pub(crate) esi_url: String,
     pub(crate) reqwest_client: reqwest::Client,
+    pub(crate) esi_url: String,
 
     // OAuth2 Settings
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
@@ -65,8 +65,6 @@ impl EsiClient {
 
 #[cfg(test)]
 mod tests {
-    use crate::constant::DEFAULT_ESI_URL;
-
     use super::*;
 
     /// Test the successful minimal build of [`EsiClient::builder`]
@@ -83,7 +81,6 @@ mod tests {
         let builder = EsiClient::builder();
 
         // Verify the builder has expected default values
-        assert_eq!(builder.esi_url, DEFAULT_ESI_URL);
         assert!(builder.user_agent.is_none());
         assert!(builder.client_id.is_none());
         assert!(builder.client_secret.is_none());

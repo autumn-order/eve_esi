@@ -42,7 +42,6 @@
 //! - Atomic flags for refresh coordination
 //! - Notification mechanisms for efficient waiting
 
-pub mod builder;
 pub mod cache;
 pub mod jwk;
 

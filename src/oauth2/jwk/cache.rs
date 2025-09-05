@@ -20,7 +20,7 @@ use std::time::Instant;
 use log::{debug, trace};
 use tokio::sync::{Notify, RwLock};
 
-use crate::{error::EsiError, model::oauth2::EveJwtKeys, oauth2::jwk::builder::JwtKeyCacheBuilder};
+use crate::{config::EsiConfig, model::oauth2::EveJwtKeys};
 
 /// OAuth2 JWT key cache
 ///
@@ -89,19 +89,27 @@ impl JwtKeyCache {
     ///
     /// # Errors
     /// - [`EsiError`]: If the `background_refresh_threshold` is configured incorrectly.
-    pub fn new() -> Result<Self, EsiError> {
-        JwtKeyCacheBuilder::new().build()
-    }
+    pub fn new(config: &EsiConfig) -> Self {
+        Self {
+            cache: RwLock::new(None),
+            refresh_lock: AtomicBool::new(false),
+            refresh_notifier: Notify::new(),
+            last_refresh_failure: RwLock::new(None),
 
-    /// Returns a [`JwtKeyCacheBuilder`] instance used to configure JWT key related settings
-    ///
-    /// Allows for the configuration of the [`JwtKeyCache`] using the [`JwtKeyCacheBuilder`] methods
-    /// to override the default configuration to custom values using the setter methods.
-    ///
-    /// # Returns
-    /// - [`JwtKeyCacheBuilder`]: Instance with the default settings that can be overridden with setter methods.
-    pub fn builder() -> JwtKeyCacheBuilder {
-        JwtKeyCacheBuilder::new()
+            // Cache Settings
+            cache_ttl: config.jwk_cache_ttl,
+
+            // Refresh Settings
+            jwk_url: config.jwk_url.clone(),
+            refresh_max_retries: config.jwk_refresh_max_retries,
+            refresh_backoff: config.jwk_refresh_backoff,
+            refresh_timeout: config.jwk_refresh_timeout,
+            refresh_cooldown: config.jwk_refresh_cooldown,
+
+            // Background Refresh Settings
+            background_refresh_enabled: config.jwk_background_refresh_enabled,
+            background_refresh_threshold: config.jwk_background_refresh_threshold,
+        }
     }
 
     /// Retrieves JWT keys directly from cache without validation or refresh attempts

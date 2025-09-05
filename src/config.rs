@@ -53,9 +53,10 @@ use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
     constant::{
-        DEFAULT_AUTH_URL, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
-        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN, DEFAULT_JWK_REFRESH_MAX_RETRIES,
-        DEFAULT_JWK_REFRESH_TIMEOUT, DEFAULT_JWK_URL, DEFAULT_TOKEN_URL,
+        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
+        DEFAULT_JWK_CACHE_TTL, DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN,
+        DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT, DEFAULT_JWK_URL,
+        DEFAULT_TOKEN_URL,
     },
     error::EsiError,
     oauth2::error::OAuthConfigError,
@@ -66,6 +67,7 @@ use crate::{
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiConfig {
     // URL settings
+    pub(crate) esi_url: String,
     pub(crate) auth_url: AuthUrl,
     pub(crate) token_url: TokenUrl,
     /// JSON web token key URL that provides keys used to validate tokens
@@ -95,6 +97,7 @@ pub struct EsiConfig {
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiConfigBuilder {
     // URL settings
+    pub(crate) esi_url: String,
     pub(crate) auth_url: String,
     pub(crate) token_url: String,
     /// JSON web token key URL that provides keys used to validate tokens
@@ -157,6 +160,7 @@ impl EsiConfigBuilder {
     pub fn new() -> Self {
         Self {
             // URL Settings
+            esi_url: DEFAULT_ESI_URL.to_string(),
             auth_url: DEFAULT_AUTH_URL.to_string(),
             token_url: DEFAULT_TOKEN_URL.to_string(),
             jwk_url: DEFAULT_JWK_URL.to_string(),
@@ -215,6 +219,7 @@ impl EsiConfigBuilder {
 
         Ok(EsiConfig {
             // URL Settings
+            esi_url: self.esi_url,
             auth_url: auth_url,
             token_url: token_url,
             jwk_url: self.jwk_url,
@@ -232,19 +237,19 @@ impl EsiConfigBuilder {
         })
     }
 
-    /// Sets the EVE Online JWT key URL used to fetch keys to validate tokens.
+    /// Sets the EVE Online ESI base URL
     ///
-    /// This method configures the JWT key URL for EVE Online OAuth2 to a custom URL.
+    /// This method configures the base URL for EVE Online ESI.
     /// This is generally used for tests using a mock server with crates such as
     /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
     ///
     /// # Arguments
-    /// - `jwk_url` (&[`str`]): The EVE Online JWK URL.
+    /// - `esi_url` - The EVE Online ESI API base URL.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with updated EVE Online JWK URL configuration.
-    pub fn jwk_url(mut self, jwk_url: &str) -> Self {
-        self.jwk_url = jwk_url.to_string();
+    /// - [`EsiConfig`]: Instance with the updated ESI URL
+    pub fn esi_url(mut self, esi_url: &str) -> Self {
+        self.esi_url = esi_url.to_string();
         self
     }
 
@@ -277,6 +282,22 @@ impl EsiConfigBuilder {
     /// - [`EsiConfig`]: Instance with updated EVE Online OAuth2 token URL.
     pub fn token_url(mut self, token_url: &str) -> Self {
         self.token_url = token_url.to_string();
+        self
+    }
+
+    /// Sets the EVE Online JWT key URL used to fetch keys to validate tokens.
+    ///
+    /// This method configures the JWT key URL for EVE Online OAuth2 to a custom URL.
+    /// This is generally used for tests using a mock server with crates such as
+    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
+    ///
+    /// # Arguments
+    /// - `jwk_url` (&[`str`]): The EVE Online JWK URL.
+    ///
+    /// # Returns
+    /// - [`EsiConfig`]: Instance with updated EVE Online JWK URL configuration.
+    pub fn jwk_url(mut self, jwk_url: &str) -> Self {
+        self.jwk_url = jwk_url.to_string();
         self
     }
 
@@ -532,5 +553,49 @@ mod tests {
                 OAuthConfigError::InvalidBackgroundRefreshThreshold
             ))
         ))
+    }
+
+    /// Tests the attempting initialize an EsiConfig with an invalid auth_url
+    ///
+    /// # Test Setup
+    /// - Attempt to build an EsiConfig with the auth_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidAuthUrl)
+    #[test]
+    fn test_invalid_auth_url() {
+        // Create an EsiConfig with an invalid auth_url
+        let result = EsiConfig::builder().auth_url("invalid_url").build();
+
+        // Assert result is an Error
+        assert!(result.is_err());
+
+        match result {
+            // Assert error is of the OAuthConfigError:InvalidAuthUrl variant
+            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)) => {}
+            _ => panic!("Expected InvalidAuthUrl error"),
+        }
+    }
+
+    /// Tests the attempting initialize an EsiConfig with an invalid token_url
+    ///
+    /// # Test Setup
+    /// - Attempt to build an EsiConfig with the token_url set to an invalid URL.
+    ///
+    /// # Assertions
+    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidTokenUrl)
+    #[test]
+    fn test_invalid_token_url() {
+        // Create an EsiConfig with an invalid token_url
+        let result = EsiConfig::builder().token_url("invalid_url").build();
+
+        // Assert result is an Error
+        assert!(result.is_err());
+
+        match result {
+            // Assert error is of the OAuthConfigError:InvalidTokenUrl variant
+            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidTokenUrl)) => {}
+            _ => panic!("Expected InvalidTokenUrl error"),
+        }
     }
 }
