@@ -7,11 +7,21 @@ use eve_esi::EsiClient;
 
 use super::util::create_mock_token;
 
-/// Provides a config with the token URL shared between tests
+/// Provides an [`EsiClient`] & [`EsiConfig`] with the token URL shared between tests
+///
+/// # Setup
+/// - Create a mock server using the [`mockito`] crate to handle HTTP requests at mock endpoints
+/// - Create [`EsiConfig`] pointing token_url to the mock server
+/// - Create [`EsiClient`] with custom config & oauth configured
+///
+/// # Returns
+/// A tuple containing:
+/// - [`eve_esi::EsiClient`]: A basic EsiClient with token_url set to the mock server
+/// - [`mockito::ServerGuard`]: A mock server for handling http requests for test purposes
 async fn setup() -> Result<(EsiClient, ServerGuard), EsiError> {
     let mock_server = Server::new_async().await;
 
-    // Create config pointing token_url to the mock server
+    // Create EsiConfig pointing token_url to the mock server
     let config = EsiConfig::builder()
         .token_url(&format!("{}/v2/oauth/token", mock_server.url()))
         .build()?;

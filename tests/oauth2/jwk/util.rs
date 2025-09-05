@@ -1,13 +1,14 @@
+use eve_esi::config::EsiConfig;
+use eve_esi::model::oauth2::EveJwtKeys;
 use eve_esi::EsiClient;
-use eve_esi::{model::oauth2::EveJwtKeys, oauth2::jwk::JwtKeyCache};
 use mockito::{Mock, Server, ServerGuard};
 
 /// Utility function to create initial test setup for all jwk integration tests
 ///
 /// # Setup
 /// - Create a mock server using the [`mockito`] crate to handle HTTP requests at mock endpoints
-/// - Create an [`OAuth2Config`] with the `jwk_url` set to the mock server
-/// - Create an EsiClient using the custom [`OAuth2Config`]
+/// - Create an [`EsiConfig`] with the `jwk_url` set to the mock server & reduced wait times
+/// - Create an EsiClient using the custom [`EsiConfig`]
 ///
 /// # Returns
 /// A tuple containing:
@@ -18,20 +19,20 @@ pub(super) async fn setup() -> (EsiClient, ServerGuard) {
     let mock_server = Server::new_async().await;
     let mock_server_url = mock_server.url();
 
-    // Create an OAuth2 cache using the mock JWK endpoint & reduced wait times for testing
-    let cache = JwtKeyCache::builder()
+    // Create a config with mock server JWK URL & reduced wait times
+    let config = EsiConfig::builder()
         .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
         // Set expoential backoff between refresh retries to 1 millisecond
-        .refresh_backoff(1)
+        .jwk_refresh_backoff(1)
         // Set timeout to 1 second when waiting for another thread to refresh
-        .refresh_timeout(1)
+        .jwk_refresh_timeout(1)
         .build()
-        .expect("Failed to build JWT key cache");
+        .expect("Failed to build EsiConfig");
 
-    // Create ESI client with the custom cache config
+    // Create ESI client with the custom config
     let esi_client = EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwt_key_cache(cache)
+        .config(config)
         .build()
         .expect("Failed to build EsiClient");
 

@@ -1,7 +1,6 @@
-use eve_esi::error::EsiError;
 use eve_esi::model::oauth2::EveJwtKey;
-use eve_esi::oauth2::jwk::JwtKeyCache;
 use eve_esi::EsiClient;
+use eve_esi::{config::EsiConfig, error::EsiError};
 
 use crate::oauth2::jwk::util::{
     get_jwk_internal_server_error_response, get_jwk_success_response, setup,
@@ -108,11 +107,11 @@ async fn fetch_jwt_keys_server_error() {
 /// - Assert error is related to a reqwest connection issue
 #[tokio::test]
 async fn fetch_jwt_keys_network_error() {
-    // Create jwt cache with a JWK URL that won't respond
-    let cache = JwtKeyCache::builder()
+    // Create config with a JWK URL that won't respond
+    let config = EsiConfig::builder()
         .jwk_url("http://10.255.255.1") // RFC 5735 TEST‑NET‑2 range
         .build()
-        .expect("Failed to build JWT key cache");
+        .expect("Failed to build EsiConfig cache");
 
     // Create reqwest::Client with reduced connect timeout
     let timeout = std::time::Duration::from_millis(100);
@@ -121,10 +120,10 @@ async fn fetch_jwt_keys_network_error() {
         .build()
         .expect("Failed to build reqwest Client");
 
-    // Create ESI client with the custom cache & reqwest client
+    // Create ESI client with the custom config & reqwest client
     let esi_client = EsiClient::builder()
+        .config(config)
         .user_agent("MyApp/1.0 (contact@example.com)")
-        .jwt_key_cache(cache)
         .reqwest_client(reqwest_client)
         .build()
         .expect("Failed to build EsiClient");
