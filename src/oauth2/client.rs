@@ -113,6 +113,28 @@ mod tests {
     use crate::oauth2::error::OAuthConfigError;
     use crate::EsiClient;
 
+    /// Tests the successful build of the OAuth2 client for the [`EsiClient`]
+    ///
+    /// # Test Setup
+    /// - Build an EsiClient with all OAuth2 client related setter methods set
+    ///
+    /// # Assertions
+    /// - Assert result is Ok
+    #[test]
+    fn test_success() {
+        // Create an EsiClient config with invalid token_url
+        let result = EsiClient::builder()
+            .client_id("client_id")
+            .client_secret("client_secret")
+            .callback_url("http://localhost:8080/callback")
+            .token_url("http://example.com")
+            .auth_url("http://example.com")
+            .build();
+
+        // Assert result is an Ok
+        assert!(result.is_ok())
+    }
+
     /// Tests the attempting to initialize an EsiClient for oauth2 with a missing client ID
     ///
     /// # Test Setup
@@ -225,7 +247,12 @@ mod tests {
     #[test]
     fn test_invalid_auth_url() {
         // Create an EsiClient config with invalid auth_url
-        let result = EsiClient::builder().auth_url("invalid_url").build();
+        let result = EsiClient::builder()
+            .client_id("client_id")
+            .client_secret("client_secret")
+            .callback_url("http://localhost:8080/callback")
+            .auth_url("invalid_url")
+            .build();
 
         // Assert result is an Error
         assert!(result.is_err());
@@ -247,7 +274,12 @@ mod tests {
     #[test]
     fn test_invalid_token_url() {
         // Create an EsiClient config with invalid token_url
-        let result = EsiClient::builder().token_url("invalid_url").build();
+        let result = EsiClient::builder()
+            .client_id("client_id")
+            .client_secret("client_secret")
+            .callback_url("http://localhost:8080/callback")
+            .token_url("invalid_url")
+            .build();
 
         // Assert result is an Error
         assert!(result.is_err());

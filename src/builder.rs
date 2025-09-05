@@ -364,7 +364,7 @@ impl EsiClientBuilder {
         self.auth_url = auth_url.to_string();
         self
     }
-    ///
+
     /// Will be None if client_id, client_secret, and callback_url have not been
     /// set on the EsiClient.
 
