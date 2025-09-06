@@ -1,10 +1,10 @@
 //! # EVE Online ESI Client
 //!
-//! This module provides the [`EsiClient`] struct for interacting with the EVE Online ESI (EVE Stable Infrastructure) API.
+//! This module provides the [`EsiClient`] struct for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 //!
 //! ## Features
 //! - Make authenticated and unauthenticated requests to ESI endpoints
-//! - Handles OAuth2 authentication with EVE Online SSO
+//! - Handle OAuth2 authentication with EVE Online SSO
 //!
 //! ## Client Creation
 //! The client is created using the builder pattern. See the [`builder`](crate::builder) module for configuration options.
@@ -17,6 +17,7 @@
 //! ```
 //! use eve_esi::EsiClient;
 //!
+//! // Set a user agent used to identify the application making ESI requests
 //! let esi_client = EsiClient::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
 //!     .build()
@@ -26,6 +27,8 @@
 //! ## Warning
 //! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
+//!
+//! Example: "MyApp/1.0 (contact@example.com)"
 
 use std::sync::Arc;
 
@@ -49,7 +52,7 @@ pub struct EsiClient {
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
     ///
     /// Will be None if `client_id`, `client_secret`, and `callback_url` have not been
-    /// set on the [`EsiClient`].
+    /// set on the [`EsiClient`] which will result in errors if trying to use OAuth2-related endpoints.
     pub(crate) oauth2_client: Option<OAuth2Client>,
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.

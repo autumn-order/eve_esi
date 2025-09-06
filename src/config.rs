@@ -1,15 +1,16 @@
 //! # EVE Online ESI Client Config
 //!
 //! Provides methods to override defaults for the [`EsiClient`]. This allows the
-//! modification of the OAuth2 endpoint URLs and the logic of how JWT key caching and refreshing is
-//! handled.
+//! modification of the base ESI URL, OAuth2 endpoint URLs and the logic of how JWT
+//! key caching and refreshing is handled.
 //!
 //! ## Features
-//! - Override OAuth2 JWT key, access token, and authorization endpoint URLs
-//! - Adjust expiration times for JWT key cache
+//! - Override the base ESI URL
+//! - Override EVE Online OAuth2 authorization, JWT key, and token endpoint URLs
+//! - Adjust expiration time & threshold for a proactive refresh for the JWT key cache used to validate tokens
 //! - Adjust the timeout between sets of JWT key refresh attempts
 //! - Adjust backoff period (wait time) beteween attempts and how many retries should be made to refresh JWT keys
-//! - Enable/disable the proactive background JWT key refresh & change the threshold at which it triggers
+//! - Enable/disable the proactive background JWT key refresh
 //!
 //! ## Builder Methods
 //!
@@ -17,6 +18,7 @@
 //! | --------------- | ------------------------------------------ |
 //! | `new`           | Create a new [`EsiConfigBuilder`]          |
 //! | `build`         | Build the [`EsiConfig`]                    |
+//! | `esi_url`       | Base URL for ESI endpoints                 |
 //! | `auth_url`      | URL for sign in with EVE Online            |
 //! | `token_url`     | URL to retrieve access tokens for OAuth2   |
 //! | `jwk_url`       | URL for JWT keys to validate tokens        |
@@ -36,15 +38,15 @@
 //!
 //! // Build a config to override defaults
 //! let config = EsiConfig::builder()
-//!     // Set cache lifetime to 7200 seconds representing 2 hours
+//!     // Set JWT key cache lifetime to 7200 seconds representing 2 hours
 //!     .jwk_cache_ttl(7200)
 //!     .build()
 //!     .expect("Failed to build EsiConfig");
 //!
 //! // Apply config settings to EsiClient
 //! let esi_client = EsiClient::builder()
-//!     .user_agent("MyApp/1.0 (contact@example.com")
 //!     .config(config)
+//!     .user_agent("MyApp/1.0 (contact@example.com")
 //!     .build()
 //!     .expect("Failed to build EsiClient");
 //! ```
@@ -62,15 +64,18 @@ use crate::{
     oauth2::error::OAuthConfigError,
 };
 
-/// Configuration settings for the [`EsiClient`]
+/// Configuration settings for the [`EsiClient`](crate::EsiClient)
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiConfig {
     // URL settings
+    /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
+    /// Authorization URL used to login with EVE Online's OAuth2
     pub(crate) auth_url: AuthUrl,
+    /// Token URL which provides an access token for authenticated ESI endpoints
     pub(crate) token_url: TokenUrl,
-    /// JSON web token key URL that provides keys used to validate tokens
+    /// JSON web token (JWT) key URL that provides keys used to validate tokens
     pub(crate) jwk_url: String,
 
     // JWT Key Settings
@@ -86,21 +91,24 @@ pub struct EsiConfig {
     pub(crate) jwk_refresh_cooldown: u64,
 
     // JWT Key Background Refresh Settings
-    /// Determines whether or not a background task is spawned to refresh JWT keys nearing expiration proactively
+    /// Determines whether or not a background task is spawned to refresh JWT keys proactively when cache is nearing expiration
     pub(crate) jwk_background_refresh_enabled: bool,
     /// Percentage of jwk_cache_ttl for when the background JWT key refresh is triggered (default 80%)
     pub(crate) jwk_background_refresh_threshold: u64,
 }
 
-/// Builder struct for configuring & constructing an [`EsiConfig`] to override default settings
+/// Builder struct for configuring & constructing an [`EsiConfig`] to override default [`EsiClient`](crate::EsiClient) settings
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiConfigBuilder {
     // URL settings
+    /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
+    /// Authorization URL used to login with EVE Online's OAuth2
     pub(crate) auth_url: String,
+    /// Token URL which provides an access token for authenticated ESI endpoints
     pub(crate) token_url: String,
-    /// JSON web token key URL that provides keys used to validate tokens
+    /// JSON web token (JWT) key URL that provides keys used to validate tokens
     pub(crate) jwk_url: String,
 
     // JWT Key Settings
@@ -128,10 +136,10 @@ impl EsiConfig {
     /// For details see [module-level documentation](self).
     ///
     /// # Returns
-    /// - [`EsiConfig`]: with default settings
+    /// - [`EsiConfig`]: With the default configuration
     ///
     /// # Errors
-    /// - [`EsiError`]: If the [`EsiConfigBuilder::jwk_background_refresh_threshold`] is configured incorrectly.
+    /// - [`EsiError`]: If the default [`EsiConfigBuilder::jwk_background_refresh_threshold`] is configured incorrectly.
     pub fn new() -> Result<Self, EsiError> {
         EsiConfigBuilder::new().build()
     }
@@ -156,7 +164,7 @@ impl EsiConfigBuilder {
     /// For a full overview, features, and usage example, see the [module-level documentation](self).
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the default settings that can be overridden with setter methods.
+    /// - [`EsiConfigBuilder`]: Instance with the default settings that can be modified with the setter methods.
     pub fn new() -> Self {
         Self {
             // URL Settings
@@ -189,7 +197,10 @@ impl EsiConfigBuilder {
     /// - [`EsiConfig`]: instance with the settings configured on the builder
     ///
     /// # Errors
-    /// - [`EsiError`]: If the [`Self::jwk_background_refresh_threshold`] is configured incorrectly.
+    /// Returns an [`EsiError`] if one of the following occurs:
+    /// - The [`Self::jwk_background_refresh_threshold`] method is given a value less than 1 or over 99
+    /// - The [`Self::auth_url`] method is given an invalid URL
+    /// - The [`Self::token_url`] method is given an invalid URL
     pub fn build(self) -> Result<EsiConfig, EsiError> {
         // Ensure background refresh percentage is set properly
         if !(self.jwk_background_refresh_threshold > 0) {
@@ -244,10 +255,10 @@ impl EsiConfigBuilder {
     /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
     ///
     /// # Arguments
-    /// - `esi_url` - The EVE Online ESI API base URL.
+    /// - `esi_url` (&[`str`]): The EVE Online ESI API base URL.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the updated ESI URL
+    /// - [`EsiConfigBuilder`]: Instance with the updated ESI URL
     pub fn esi_url(mut self, esi_url: &str) -> Self {
         self.esi_url = esi_url.to_string();
         self
@@ -260,10 +271,10 @@ impl EsiConfigBuilder {
     /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
     ///
     /// # Arguments
-    /// - `auth_url` (&[`str`]): The EVE Online oauth2 authorize URL.
+    /// - `auth_url` (&[`str`]): The EVE Online OAuth2 authorization endpoint URL.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with updated EVE Online OAuth2 authorization URL.
+    /// - [`EsiConfigBuilder`]: Instance with updated EVE Online OAuth2 authorization URL.
     pub fn auth_url(mut self, auth_url: &str) -> Self {
         self.auth_url = auth_url.to_string();
         self
@@ -276,10 +287,10 @@ impl EsiConfigBuilder {
     /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
     ///
     /// # Arguments
-    /// - `token_url` (&[`str`]): The EVE Online oauth2 token URL.
+    /// - `token_url` (&[`str`]): The EVE Online OAuth2 token endpoint URL.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with updated EVE Online OAuth2 token URL.
+    /// - [`EsiConfigBuilder`]: Instance with updated EVE Online OAuth2 token URL.
     pub fn token_url(mut self, token_url: &str) -> Self {
         self.token_url = token_url.to_string();
         self
@@ -292,10 +303,10 @@ impl EsiConfigBuilder {
     /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
     ///
     /// # Arguments
-    /// - `jwk_url` (&[`str`]): The EVE Online JWK URL.
+    /// - `jwk_url` (&[`str`]): The EVE Online JWK endpoint URL.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with updated EVE Online JWK URL configuration.
+    /// - [`EsiConfigBuilder`]: Instance with updated EVE Online JWK URL configuration.
     pub fn jwk_url(mut self, jwk_url: &str) -> Self {
         self.jwk_url = jwk_url.to_string();
         self
@@ -316,7 +327,7 @@ impl EsiConfigBuilder {
     /// - `seconds` ([`u64`]): The lifetime in seconds of the JWT keys stored in the cache.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the updated JWT key cache TTL
+    /// - [`EsiConfigBuilder`]: Instance with the updated JWT key cache TTL
     pub fn jwk_cache_ttl(mut self, seconds: u64) -> Self {
         self.jwk_cache_ttl = seconds;
         self
@@ -339,7 +350,7 @@ impl EsiConfigBuilder {
     /// - `retry_attempts` ([`u64`]): The amount of retry attempts if a JWT key fetch fails.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the updated JWK refresh max retries
+    /// - [`EsiConfigBuilder`]: Instance with the updated JWK refresh max retries
     pub fn jwk_refresh_max_retries(mut self, retry_attempts: u64) -> Self {
         self.jwk_refresh_max_retries = retry_attempts;
         self
@@ -363,7 +374,7 @@ impl EsiConfigBuilder {
     /// - `backoff_milliseconds` ([`u64`]): The exponential backoff duration in milliseconds between each attempt.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the updated exponential backoff
+    /// - [`EsiConfigBuilder`]: Instance with the updated exponential backoff
     pub fn jwk_refresh_backoff(mut self, backoff_milliseconds: u64) -> Self {
         self.jwk_refresh_backoff = backoff_milliseconds;
         self
@@ -381,7 +392,7 @@ impl EsiConfigBuilder {
     ///   JWT key refresh.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the modified timeout setting.
+    /// - [`EsiConfigBuilder`]: Instance with the modified timeout setting.
     pub fn jwk_refresh_timeout(mut self, timeout_seconds: u64) -> Self {
         self.jwk_refresh_timeout = timeout_seconds;
         self
@@ -396,7 +407,7 @@ impl EsiConfigBuilder {
     /// - `cooldown_seconds` ([`u64`]): Cooldown in seconds between background JWT key cache refresh attempts.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the modified background refresh cooldown.
+    /// - [`EsiConfigBuilder`]: Instance with the modified background refresh cooldown.
     pub fn jwk_refresh_cooldown(mut self, cooldown_seconds: u64) -> Self {
         self.jwk_refresh_cooldown = cooldown_seconds;
         self
@@ -422,7 +433,7 @@ impl EsiConfigBuilder {
     ///   is enabled.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the modified status of whether or not the background refresh is enabled.
+    /// - [`EsiConfigBuilder`]: Instance with the background refresh is enabled or disabled.
     pub fn jwk_background_refresh_enabled(mut self, background_refresh_enabled: bool) -> Self {
         self.jwk_background_refresh_enabled = background_refresh_enabled;
         self
@@ -441,7 +452,7 @@ impl EsiConfigBuilder {
     /// - `threshold_percent` ([`u64`]): A number representing the percentage of when the refresh should be triggered.
     ///
     /// # Returns
-    /// - [`EsiConfig`]: Instance with the modified proactive background refresh threshold percentage.
+    /// - [`EsiConfigBuilder`]: Instance with the modified proactive background refresh threshold percentage.
     pub fn jwk_background_refresh_threshold(mut self, threshold_percentage: u64) -> Self {
         self.jwk_background_refresh_threshold = threshold_percentage;
         self

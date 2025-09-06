@@ -71,7 +71,7 @@ pub struct JwtKeyCache {
     pub(crate) refresh_cooldown: u64,
 
     // Background Refresh Settings
-    /// Determines whether or not a background task is spawned to refresh JWT keys nearing expiration proactively
+    /// Determines whether or not a background task is spawned to refresh JWT keys proactively when cache is nearing expiration
     pub(crate) background_refresh_enabled: bool,
     /// Percentage of jwk_cache_ttl for when the background JWT key refresh is triggered (default 80%)
     pub(crate) background_refresh_threshold: u64,
