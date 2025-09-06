@@ -139,7 +139,12 @@ async fn fetch_jwt_keys_network_error() {
             // Assert reqwest error is related to a connection issue
             assert!(err.is_connect())
         }
-        _ => panic!("Expected ReqwestError, got different error type"),
+        err => {
+            panic!(
+                "Expected ReqwestError, got different error type: {:#?}",
+                err
+            )
+        }
     }
 }
 
