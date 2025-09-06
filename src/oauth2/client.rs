@@ -6,8 +6,7 @@
 //! This module uses the [`oauth2`](https://crates.io/crates/oauth2) crate to configure
 //! the OAuth2 client for the EsiClient.
 //!
-//!
-//! This client is only used internally by the EsiClient.
+//! This client is only used internally by the [`EsiClient`](crate::EsiClient).
 //!
 //! - See [module-level] documentation for a higher level overview and usage example
 //! - See [EsiClientBuilder docs](crate::builder) for instructions on setting up OAuth2 for the eve_esi crate.
@@ -47,22 +46,21 @@ impl EsiClientBuilder {
     ///
     /// This method configures the OAuth2 client with the provided client ID, client secret, and callback URL.
     ///
+    /// This is intended only for internal use by the [`EsiClient`](crate::EsiClient).
+    ///
+    /// # Arguments
+    /// - `self` ([`EsiClientBuilder`]): Builder used to set the `client_id`, `client_secret`, and `callback_url`
+    /// - `config` (&[`EsiConfig`]): Config used to set the EVE Online OAuth2 endpoint URLs
+    ///
+    /// # Returns
+    /// - [`OAuth2Client`]: Instance with configured settings from [`EsiConfig`]
+    ///
     /// # Errors
     /// - [`OAuthError`]: Error if either the client ID, client secret, or callback URL is missing or
     ///   the callback URL is incorrectly formatted.
     /// - [`OAuthConfigError`]: Error if the auth URL or token URL has been changed from default and
     ///   is incorrectly formatted.
-    ///
-    /// This is intended only for internal use by the [`EsiClient`](crate::EsiClient).
-    ///
-    /// # Returns
-    /// - [`EsiClient`]: Instance with a configured [`oauth2::Client`]
-    ///
-    /// # Errors
-    /// - [`EsiError`]: If the [`oauth2::Client`] is configured incorrectly such as
-    ///   missing client id, client secret, or callback URL or the callback URL is
-    ///   formatted improperly.
-    pub(crate) fn setup_oauth_client(mut self, config: &EsiConfig) -> Result<Self, EsiError> {
+    pub(crate) fn setup_oauth_client(self, config: &EsiConfig) -> Result<OAuth2Client, EsiError> {
         // Get client_id & client_secret
         let client_id = match self.client_id.clone() {
             Some(id) => id.clone(),
@@ -89,9 +87,8 @@ impl EsiClientBuilder {
             .set_auth_uri(config.auth_url.clone())
             .set_token_uri(config.token_url.clone())
             .set_redirect_uri(redirect_url);
-        self.oauth_client = Some(client);
 
-        Ok(self)
+        Ok(client)
     }
 }
 

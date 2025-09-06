@@ -40,14 +40,16 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClient {
     // Base settings
+    /// HTTP client used to make requests to EVE Online's APIs
     pub(crate) reqwest_client: reqwest::Client,
+    /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
 
     // OAuth2 Settings
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
     ///
-    /// Will be None if client_id, client_secret, and callback_url have not been
-    /// set on the EsiClient.
+    /// Will be None if `client_id`, `client_secret`, and `callback_url` have not been
+    /// set on the [`EsiClient`].
     pub(crate) oauth2_client: Option<OAuth2Client>,
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.
@@ -55,7 +57,7 @@ pub struct EsiClient {
 }
 
 impl EsiClient {
-    /// Creates a new EsiClientBuilder
+    /// Creates a new [`EsiClientBuilder`]
     ///
     /// For a full overview, features, and usage examples, see the [module-level documentation](self).
     pub fn builder() -> EsiClientBuilder {
