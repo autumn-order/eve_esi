@@ -20,7 +20,15 @@ use std::time::Instant;
 use log::{debug, trace};
 use tokio::sync::{Notify, RwLock};
 
-use crate::{config::EsiConfig, model::oauth2::EveJwtKeys};
+use crate::{
+    config::EsiConfig,
+    constant::{
+        DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
+        DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN, DEFAULT_JWK_REFRESH_MAX_RETRIES,
+        DEFAULT_JWK_REFRESH_TIMEOUT, DEFAULT_JWK_URL,
+    },
+    model::oauth2::EveJwtKeys,
+};
 
 /// Configuration for JWT key caching and refreshing
 ///
@@ -28,6 +36,7 @@ use crate::{config::EsiConfig, model::oauth2::EveJwtKeys};
 /// the logic behind refresh attempts, and settings the proactive JWT key cache background refresh.
 ///
 /// For an overview regarding the JWT key cache, see the [module-level documentation](self)
+#[derive(Clone)]
 pub(crate) struct JwtKeyCacheConfig {
     // Cache Settings
     /// JWT key cache lifetime before expiration in seconds (3600 seconds representing 1 hour)
@@ -82,22 +91,22 @@ pub struct JwtKeyCache {
 }
 
 impl JwtKeyCacheConfig {
-    /// Initializes a new JWT key cache config based upon the provided [`EsiConfig`] settings
-    pub(self) fn new(config: &EsiConfig) -> Self {
+    /// Initializes a new JWT key cache config with the default settings
+    pub(crate) fn new() -> Self {
         Self {
             // Cache Settings
-            cache_ttl: config.jwk_cache_ttl,
+            cache_ttl: DEFAULT_JWK_CACHE_TTL,
 
             // Refresh Settings
-            jwk_url: config.jwk_url.clone(),
-            refresh_max_retries: config.jwk_refresh_max_retries,
-            refresh_backoff: config.jwk_refresh_backoff,
-            refresh_timeout: config.jwk_refresh_timeout,
-            refresh_cooldown: config.jwk_refresh_cooldown,
+            jwk_url: DEFAULT_JWK_URL.to_string(),
+            refresh_max_retries: DEFAULT_JWK_REFRESH_MAX_RETRIES,
+            refresh_backoff: DEFAULT_JWK_REFRESH_BACKOFF,
+            refresh_timeout: DEFAULT_JWK_REFRESH_TIMEOUT,
+            refresh_cooldown: DEFAULT_JWK_REFRESH_COOLDOWN,
 
             // Background Refresh Settings
-            background_refresh_enabled: config.jwk_background_refresh_enabled,
-            background_refresh_threshold: config.jwk_background_refresh_threshold,
+            background_refresh_enabled: true,
+            background_refresh_threshold: DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
         }
     }
 }
@@ -112,14 +121,12 @@ impl JwtKeyCache {
     /// # Returns
     /// - [`JwtKeyCache`]: Default cache instance that contains no keys initially
     pub(crate) fn new(config: &EsiConfig) -> Self {
-        let config = JwtKeyCacheConfig::new(config);
-
         Self {
             cache: RwLock::new(None),
             refresh_lock: AtomicBool::new(false),
             refresh_notifier: Notify::new(),
             last_refresh_failure: RwLock::new(None),
-            config: config,
+            config: config.jwt_key_cache_config.clone(),
         }
     }
 

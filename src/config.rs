@@ -54,14 +54,9 @@
 use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
-    constant::{
-        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
-        DEFAULT_JWK_CACHE_TTL, DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN,
-        DEFAULT_JWK_REFRESH_MAX_RETRIES, DEFAULT_JWK_REFRESH_TIMEOUT, DEFAULT_JWK_URL,
-        DEFAULT_TOKEN_URL,
-    },
+    constant::{DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_TOKEN_URL},
     error::EsiError,
-    oauth2::error::OAuthConfigError,
+    oauth2::{error::OAuthConfigError, jwk::cache::JwtKeyCacheConfig},
 };
 
 /// Configuration settings for the [`EsiClient`](crate::EsiClient)
@@ -75,26 +70,10 @@ pub struct EsiConfig {
     pub(crate) auth_url: AuthUrl,
     /// Token URL which provides an access token for authenticated ESI endpoints
     pub(crate) token_url: TokenUrl,
-    /// JSON web token (JWT) key URL that provides keys used to validate tokens
-    pub(crate) jwk_url: String,
 
     // JWT Key Settings
-    /// JWT key cache lifetime before expiration in seconds (3600 seconds representing 1 hour)
-    pub(crate) jwk_cache_ttl: u64,
-    /// Maximum number of retries for JWT key refresh when cache is empty or expired (default 2 retries)
-    pub(crate) jwk_refresh_max_retries: u64,
-    /// Backoff period in seconds after a JWT key refresh failure when cache is empty or expired (default 100 milliseconds)
-    pub(crate) jwk_refresh_backoff: u64,
-    /// Timeout in seconds when waiting for another thread to refresh JWT key (default 5 seconds)
-    pub(crate) jwk_refresh_timeout: u64,
-    /// Cooldown period in seconds after a failed set of JWT key refresh attempts (default 60 seconds)
-    pub(crate) jwk_refresh_cooldown: u64,
-
-    // JWT Key Background Refresh Settings
-    /// Determines whether or not a background task is spawned to refresh JWT keys proactively when cache is nearing expiration
-    pub(crate) jwk_background_refresh_enabled: bool,
-    /// Percentage of jwk_cache_ttl for when the background JWT key refresh is triggered (default 80%)
-    pub(crate) jwk_background_refresh_threshold: u64,
+    /// Config for JWT key caching & refreshing
+    pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
 }
 
 /// Builder struct for configuring & constructing an [`EsiConfig`] to override default [`EsiClient`](crate::EsiClient) settings
@@ -108,26 +87,10 @@ pub struct EsiConfigBuilder {
     pub(crate) auth_url: String,
     /// Token URL which provides an access token for authenticated ESI endpoints
     pub(crate) token_url: String,
-    /// JSON web token (JWT) key URL that provides keys used to validate tokens
-    pub(crate) jwk_url: String,
 
-    // JWT Key Settings
-    /// JWT key cache lifetime before expiration in seconds (3600 seconds representing 1 hour)
-    pub(crate) jwk_cache_ttl: u64,
-    /// Maximum number of retries for JWT key refresh when cache is empty or expired (default 2 retries)
-    pub(crate) jwk_refresh_max_retries: u64,
-    /// Backoff period in seconds after a JWT key refresh failure when cache is empty or expired (default 100 milliseconds)
-    pub(crate) jwk_refresh_backoff: u64,
-    /// Timeout in seconds when waiting for another thread to refresh JWT key (default 5 seconds)
-    pub(crate) jwk_refresh_timeout: u64,
-    /// Cooldown period in seconds after a failed set of JWT key refresh attempts (default 60 seconds)
-    pub(crate) jwk_refresh_cooldown: u64,
-
-    // JWT Key Background Refresh Settings
-    /// Determines whether or not a background task is spawned to refresh JWT keys nearing expiration proactively
-    pub(crate) jwk_background_refresh_enabled: bool,
-    /// Percentage of jwk_cache_ttl for when the background JWT key refresh is triggered (default 80%)
-    pub(crate) jwk_background_refresh_threshold: u64,
+    // OAuth2 JWT key config
+    /// Config for OAuth2 JWT key caching & refreshing
+    pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
 }
 
 impl EsiConfig {
@@ -167,22 +130,13 @@ impl EsiConfigBuilder {
     /// - [`EsiConfigBuilder`]: Instance with the default settings that can be modified with the setter methods.
     pub fn new() -> Self {
         Self {
-            // URL Settings
+            // URL settings
             esi_url: DEFAULT_ESI_URL.to_string(),
             auth_url: DEFAULT_AUTH_URL.to_string(),
             token_url: DEFAULT_TOKEN_URL.to_string(),
-            jwk_url: DEFAULT_JWK_URL.to_string(),
 
-            // Refresh Settings
-            jwk_cache_ttl: DEFAULT_JWK_CACHE_TTL,
-            jwk_refresh_max_retries: DEFAULT_JWK_REFRESH_MAX_RETRIES,
-            jwk_refresh_backoff: DEFAULT_JWK_REFRESH_BACKOFF,
-            jwk_refresh_timeout: DEFAULT_JWK_REFRESH_TIMEOUT,
-            jwk_refresh_cooldown: DEFAULT_JWK_REFRESH_COOLDOWN,
-
-            // Background Refresh Settings
-            jwk_background_refresh_enabled: true,
-            jwk_background_refresh_threshold: DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT,
+            // OAuth2 JWT key config
+            jwt_key_cache_config: JwtKeyCacheConfig::new(),
         }
     }
 
@@ -203,12 +157,12 @@ impl EsiConfigBuilder {
     /// - The [`Self::token_url`] method is given an invalid URL
     pub fn build(self) -> Result<EsiConfig, EsiError> {
         // Ensure background refresh percentage is set properly
-        if !(self.jwk_background_refresh_threshold > 0) {
+        if !(self.jwt_key_cache_config.background_refresh_threshold > 0) {
             return Err(EsiError::OAuthConfigError(
                 OAuthConfigError::InvalidBackgroundRefreshThreshold,
             ));
         }
-        if !(self.jwk_background_refresh_threshold < 100) {
+        if !(self.jwt_key_cache_config.background_refresh_threshold < 100) {
             return Err(EsiError::OAuthConfigError(
                 OAuthConfigError::InvalidBackgroundRefreshThreshold,
             ));
@@ -229,22 +183,13 @@ impl EsiConfigBuilder {
         };
 
         Ok(EsiConfig {
-            // URL Settings
+            // URL settings
             esi_url: self.esi_url,
             auth_url: auth_url,
             token_url: token_url,
-            jwk_url: self.jwk_url,
 
-            // JWT Key Settings
-            jwk_cache_ttl: self.jwk_cache_ttl,
-            jwk_refresh_max_retries: self.jwk_refresh_max_retries,
-            jwk_refresh_backoff: self.jwk_refresh_backoff,
-            jwk_refresh_timeout: self.jwk_refresh_timeout,
-            jwk_refresh_cooldown: self.jwk_refresh_cooldown,
-
-            // Background Refresh Settings
-            jwk_background_refresh_enabled: self.jwk_background_refresh_enabled,
-            jwk_background_refresh_threshold: self.jwk_background_refresh_threshold,
+            // JWT key cache settings
+            jwt_key_cache_config: self.jwt_key_cache_config,
         })
     }
 
@@ -308,7 +253,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with updated EVE Online JWK URL configuration.
     pub fn jwk_url(mut self, jwk_url: &str) -> Self {
-        self.jwk_url = jwk_url.to_string();
+        self.jwt_key_cache_config.jwk_url = jwk_url.to_string();
         self
     }
 
@@ -329,7 +274,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the updated JWT key cache TTL
     pub fn jwk_cache_ttl(mut self, seconds: u64) -> Self {
-        self.jwk_cache_ttl = seconds;
+        self.jwt_key_cache_config.cache_ttl = seconds;
         self
     }
 
@@ -352,7 +297,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the updated JWK refresh max retries
     pub fn jwk_refresh_max_retries(mut self, retry_attempts: u64) -> Self {
-        self.jwk_refresh_max_retries = retry_attempts;
+        self.jwt_key_cache_config.refresh_max_retries = retry_attempts;
         self
     }
 
@@ -376,7 +321,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the updated exponential backoff
     pub fn jwk_refresh_backoff(mut self, backoff_milliseconds: u64) -> Self {
-        self.jwk_refresh_backoff = backoff_milliseconds;
+        self.jwt_key_cache_config.refresh_backoff = backoff_milliseconds;
         self
     }
 
@@ -394,7 +339,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the modified timeout setting.
     pub fn jwk_refresh_timeout(mut self, timeout_seconds: u64) -> Self {
-        self.jwk_refresh_timeout = timeout_seconds;
+        self.jwt_key_cache_config.refresh_timeout = timeout_seconds;
         self
     }
 
@@ -409,7 +354,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the modified background refresh cooldown.
     pub fn jwk_refresh_cooldown(mut self, cooldown_seconds: u64) -> Self {
-        self.jwk_refresh_cooldown = cooldown_seconds;
+        self.jwt_key_cache_config.refresh_cooldown = cooldown_seconds;
         self
     }
 
@@ -435,7 +380,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the background refresh is enabled or disabled.
     pub fn jwk_background_refresh_enabled(mut self, background_refresh_enabled: bool) -> Self {
-        self.jwk_background_refresh_enabled = background_refresh_enabled;
+        self.jwt_key_cache_config.background_refresh_enabled = background_refresh_enabled;
         self
     }
 
@@ -454,7 +399,7 @@ impl EsiConfigBuilder {
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the modified proactive background refresh threshold percentage.
     pub fn jwk_background_refresh_threshold(mut self, threshold_percentage: u64) -> Self {
-        self.jwk_background_refresh_threshold = threshold_percentage;
+        self.jwt_key_cache_config.background_refresh_threshold = threshold_percentage;
         self
     }
 }
@@ -498,18 +443,21 @@ mod tests {
 
         assert_eq!(config.auth_url, auth_url);
         assert_eq!(config.token_url, token_url);
-        assert_eq!(config.jwk_url, "https://example.com");
+        assert_eq!(config.jwt_key_cache_config.jwk_url, "https://example.com");
 
         // Assert JWT key settings were set
-        assert_eq!(config.jwk_cache_ttl, 0);
-        assert_eq!(config.jwk_refresh_max_retries, 0);
-        assert_eq!(config.jwk_refresh_backoff, 0);
-        assert_eq!(config.jwk_refresh_timeout, 0);
-        assert_eq!(config.jwk_refresh_cooldown, 0);
+        assert_eq!(config.jwt_key_cache_config.cache_ttl, 0);
+        assert_eq!(config.jwt_key_cache_config.refresh_max_retries, 0);
+        assert_eq!(config.jwt_key_cache_config.refresh_backoff, 0);
+        assert_eq!(config.jwt_key_cache_config.refresh_timeout, 0);
+        assert_eq!(config.jwt_key_cache_config.refresh_cooldown, 0);
 
         // Assert JWT key background refresh settings were set
-        assert_eq!(config.jwk_background_refresh_enabled, false);
-        assert_eq!(config.jwk_background_refresh_threshold, 1);
+        assert_eq!(
+            config.jwt_key_cache_config.background_refresh_enabled,
+            false
+        );
+        assert_eq!(config.jwt_key_cache_config.background_refresh_threshold, 1);
     }
 
     /// Expect an error setting the JWK background refresh threshold to 0
