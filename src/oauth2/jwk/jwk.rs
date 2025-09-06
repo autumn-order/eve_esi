@@ -91,6 +91,7 @@ impl<'a> JwkApi<'a> {
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.jwt_key_cache;
+        let config = &jwt_key_cache.config;
 
         // Check if we have valid keys in the cache
         #[cfg(not(tarpaulin_include))]
@@ -100,14 +101,10 @@ impl<'a> JwkApi<'a> {
             let elapsed_seconds = timestamp.elapsed().as_secs();
 
             // If the cache is not expired return the keys
-            if !is_cache_expired(jwt_key_cache.cache_ttl, elapsed_seconds) {
+            if !is_cache_expired(&jwt_key_cache, elapsed_seconds) {
                 // If background refresh is enabled & the cache is approaching expiry, trigger a background refresh
-                if jwt_key_cache.background_refresh_enabled
-                    && is_cache_approaching_expiry(
-                        jwt_key_cache.cache_ttl,
-                        jwt_key_cache.background_refresh_threshold,
-                        elapsed_seconds,
-                    )
+                if jwt_key_cache.config.background_refresh_enabled
+                    && is_cache_approaching_expiry(&jwt_key_cache, elapsed_seconds)
                 {
                     #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
@@ -146,7 +143,7 @@ impl<'a> JwkApi<'a> {
         if let Some(cooldown_remaining) = cooldown {
             let error_message = format!(
                 "JWT key refresh cooldown still active due to recent refresh failure during last {} seconds. Cooldown remaining: {} seconds.",
-                jwt_key_cache.refresh_cooldown, cooldown_remaining
+                &config.refresh_cooldown, cooldown_remaining
             );
 
             #[cfg(not(tarpaulin_include))]
@@ -170,7 +167,7 @@ impl<'a> JwkApi<'a> {
         refresh_jwt_keys(
             &esi_client.reqwest_client,
             &jwt_key_cache,
-            jwt_key_cache.refresh_max_retries,
+            jwt_key_cache.config.refresh_max_retries,
         )
         .await
     }
@@ -214,7 +211,7 @@ impl<'a> JwkApi<'a> {
 
         fetch_jwt_keys(
             &esi_client.reqwest_client,
-            &esi_client.jwt_key_cache.jwk_url,
+            &esi_client.jwt_key_cache.config.jwk_url,
         )
         .await
     }
@@ -338,7 +335,7 @@ pub(super) async fn fetch_and_update_cache(
     let start_time = Instant::now();
 
     // Fetch fresh keys from EVE's OAuth2 API
-    let fetch_result = fetch_jwt_keys(reqwest_client, &jwt_key_cache.jwk_url).await;
+    let fetch_result = fetch_jwt_keys(reqwest_client, &jwt_key_cache.config.jwk_url).await;
 
     match fetch_result {
         Ok(fresh_keys) => {

@@ -1,4 +1,4 @@
-//! Provides the JwtKeyCache struct for caching JWT keys
+//! OAuth2 JWT key cache
 //!
 //! This module implements the caching mechanisms for JWT keys, including:
 //! - Direct cache access functions
@@ -22,38 +22,13 @@ use tokio::sync::{Notify, RwLock};
 
 use crate::{config::EsiConfig, model::oauth2::EveJwtKeys};
 
-/// OAuth2 JWT key cache
+/// Configuration for JWT key caching and refreshing
 ///
-/// A cache providing a tuple of [`EveJwtKeys`] and an [`Instant`] timestamp of when the keys
-/// were last updated.
+/// Provides fields which determine the JWT key cache TTL, the link JWT keys are fetched from,
+/// the logic behind refresh attempts, and settings the proactive JWT key cache background refresh.
 ///
-/// Used by methods [`get_jwt_keys`](crate::oauth2::OAuth2Api::get_jwt_keys) &
-/// [`fetch_and_update_cache`](crate::oauth2::OAuth2Api::fetch_and_update_cache) to cache & refresh
-/// JWT keys used to validate tokens retrieved from EVE Online's OAuth2 API.
-///
-/// Provides fields used to coordinate concurrency across multiple theads such as simulatenous reads,
-/// acquiring a lock to prevent duplicate refresh attempts, and a notifier for when a refresh completes.
-///
-/// # Concurrency
-/// - [`RwLock`]: To allow for simultaneous reads of the cache and the last refresh failure timestamp
-/// - [`AtomicBool`]: To manage a high volume of simultaneous attempts to acquire a refresh lock
-/// - [`Notify`]: To provide notifications of when the cache has been updated
-///
-/// # Fields
-/// - `cache` (RwLock<Option<([`EveJwtKeys`], [`Instant`])>>): RwLock with a tuple containing JWT keys and timestamp of when keys were updated
-/// - `refresh_lock` ([`AtomicBool`]): AtomicBool indicating whether a JWT key refresh is currently in progress
-/// - `refresh_notifier` ([`Notify`]): Notifier for when a JWT key refresh is completed
-/// - `last_refresh_failure` (RwLock<Option<[`Instant`]>): RwLock with a timestamp of last failed set of JWT key refresh attemmpts
-pub struct JwtKeyCache {
-    /// RwLock with a tuple containing JWT keys and timestamp of when keys were updated
-    pub cache: RwLock<Option<(EveJwtKeys, Instant)>>,
-    /// AtomicBool indicating whether a JWT key refresh is currently in progress
-    pub refresh_lock: AtomicBool,
-    /// Notifier for when a JWT key refresh is completed
-    pub refresh_notifier: Notify,
-    /// RwLock with a timestamp of last failed set of JWT key refresh attemmpts
-    pub last_refresh_failure: RwLock<Option<Instant>>,
-
+/// For an overview regarding the JWT key cache, see the [module-level documentation](self)
+pub(crate) struct JwtKeyCacheConfig {
     // Cache Settings
     /// JWT key cache lifetime before expiration in seconds (3600 seconds representing 1 hour)
     pub(crate) cache_ttl: u64,
@@ -77,25 +52,39 @@ pub struct JwtKeyCache {
     pub(crate) background_refresh_threshold: u64,
 }
 
-impl JwtKeyCache {
-    /// Creates a new instance of [`JwtKeyCache`]
-    ///
-    /// The cache will start empty and will need to be updated using one of the update
-    /// methods such as [`get_jwt_keys`](crate::oauth2::OAuth2Api::get_jwt_keys)
-    /// or [`fetch_and_update_cache`](crate::oauth2::OAuth2Api::fetch_and_update_cache).
-    ///
-    /// # Returns
-    /// - [`JwtKeyCache`]: Default cache instance that contains no keys initially
-    ///
-    /// # Errors
-    /// - [`EsiError`]: If the `background_refresh_threshold` is configured incorrectly.
-    pub fn new(config: &EsiConfig) -> Self {
-        Self {
-            cache: RwLock::new(None),
-            refresh_lock: AtomicBool::new(false),
-            refresh_notifier: Notify::new(),
-            last_refresh_failure: RwLock::new(None),
+/// JWT key cache for caching keys & coordinating refreshes
+///
+/// A cache providing a tuple of [`EveJwtKeys`] and an [`Instant`] timestamp of when the keys
+/// were last updated.
+///
+/// Used by methods [`get_jwt_keys`](crate::oauth2::OAuth2Api::get_jwt_keys) &
+/// [`fetch_and_update_cache`](crate::oauth2::OAuth2Api::fetch_and_update_cache) to cache & refresh
+/// JWT keys used to validate tokens retrieved from EVE Online's OAuth2 API.
+///
+/// Provides fields used to coordinate concurrency across multiple theads such as simulatenous reads,
+/// acquiring a lock to prevent duplicate refresh attempts, and a notifier for when a refresh completes.
+///
+/// # Concurrency
+/// - [`RwLock`]: To allow for simultaneous reads of the cache and the last refresh failure timestamp
+/// - [`AtomicBool`]: To manage a high volume of simultaneous attempts to acquire a refresh lock
+/// - [`Notify`]: To provide notifications of when the cache has been updated
+pub struct JwtKeyCache {
+    /// RwLock with a tuple containing JWT keys and timestamp of when keys were updated
+    pub cache: RwLock<Option<(EveJwtKeys, Instant)>>,
+    /// AtomicBool indicating whether a JWT key refresh is currently in progress
+    pub refresh_lock: AtomicBool,
+    /// Notifier for when a JWT key refresh is completed
+    pub refresh_notifier: Notify,
+    /// RwLock with a timestamp of last failed set of JWT key refresh attemmpts
+    pub last_refresh_failure: RwLock<Option<Instant>>,
+    /// Configuration for JWT key cache & refreshes
+    pub(super) config: JwtKeyCacheConfig,
+}
 
+impl JwtKeyCacheConfig {
+    /// Initializes a new JWT key cache config based upon the provided [`EsiConfig`] settings
+    pub(self) fn new(config: &EsiConfig) -> Self {
+        Self {
             // Cache Settings
             cache_ttl: config.jwk_cache_ttl,
 
@@ -109,6 +98,28 @@ impl JwtKeyCache {
             // Background Refresh Settings
             background_refresh_enabled: config.jwk_background_refresh_enabled,
             background_refresh_threshold: config.jwk_background_refresh_threshold,
+        }
+    }
+}
+
+impl JwtKeyCache {
+    /// Creates a new instance of [`JwtKeyCache`]
+    ///
+    /// The cache will start empty and will need to be updated using one of the update
+    /// methods such as [`get_jwt_keys`](crate::oauth2::OAuth2Api::get_jwt_keys)
+    /// or [`fetch_and_update_cache`](crate::oauth2::OAuth2Api::fetch_and_update_cache).
+    ///
+    /// # Returns
+    /// - [`JwtKeyCache`]: Default cache instance that contains no keys initially
+    pub(crate) fn new(config: &EsiConfig) -> Self {
+        let config = JwtKeyCacheConfig::new(config);
+
+        Self {
+            cache: RwLock::new(None),
+            refresh_lock: AtomicBool::new(false),
+            refresh_notifier: Notify::new(),
+            last_refresh_failure: RwLock::new(None),
+            config: config,
         }
     }
 

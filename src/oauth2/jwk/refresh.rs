@@ -51,6 +51,7 @@ impl<'a> JwkApi<'a> {
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.jwt_key_cache;
+        let config = &jwt_key_cache.config;
 
         let start_time = Instant::now();
 
@@ -63,7 +64,7 @@ impl<'a> JwkApi<'a> {
         #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
 
-        let refresh_timeout = Duration::from_secs(jwt_key_cache.refresh_timeout);
+        let refresh_timeout = Duration::from_secs(config.refresh_timeout);
         let refresh_success = tokio::select! {
             _ = notify_future => {true}
             _ = tokio::time::sleep(refresh_timeout) => {false}
@@ -90,7 +91,7 @@ impl<'a> JwkApi<'a> {
         if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
             // Ensure keys are not expired
             let elapsed_seconds = timestamp.elapsed().as_secs();
-            if elapsed_seconds < jwt_key_cache.cache_ttl {
+            if elapsed_seconds < config.cache_ttl {
                 #[cfg(not(tarpaulin_include))]
                 debug!(
                     "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
@@ -222,12 +223,14 @@ pub(super) async fn refresh_jwt_keys(
     jwt_key_cache: &JwtKeyCache,
     max_retries: u64,
 ) -> Result<EveJwtKeys, EsiError> {
+    let config = &jwt_key_cache.config;
+
     // Track operation timing for performance monitoring
     let start_time = std::time::Instant::now();
 
     // Attempt inital JWT key refresh
     #[cfg(not(tarpaulin_include))]
-    debug!("Fetching JWT keys from JWK URL: {}", &jwt_key_cache.jwk_url);
+    debug!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
 
     let mut result = fetch_and_update_cache(&reqwest_client, &jwt_key_cache).await;
 
@@ -238,14 +241,14 @@ pub(super) async fn refresh_jwt_keys(
             // Calculate exponential backoff duration:
             // Initial backoff (100ms default) multiplied by 2^retry_attempts
             // This causes wait time to double with each retry attempt
-            jwt_key_cache.refresh_backoff * 2u64.pow(retry_attempts as u32),
+            config.refresh_backoff * 2u64.pow(retry_attempts as u32),
         );
 
         #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT key fetch failed. Retrying ({}/{}) after {}ms",
             retry_attempts + 1,
-            jwt_key_cache.refresh_max_retries,
+            config.refresh_max_retries,
             backoff_duration.as_millis()
         );
 
@@ -292,7 +295,7 @@ pub(super) async fn refresh_jwt_keys(
                 "JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
                 elapsed.as_millis(),
                 retry_attempts,
-                jwt_key_cache.refresh_backoff,
+                config.refresh_backoff,
                 err
             );
 

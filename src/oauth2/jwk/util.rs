@@ -39,22 +39,24 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// - Some([`u64`]): Indicating the JWT key refresh cooldown remaining
 /// - None: If there is no remaining JWT key refresh cooldown.
 pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Option<u64> {
+    let config = &jwt_key_cache.config;
+
     // Check for last background refresh failure
     let last_refresh_failure = &jwt_key_cache.last_refresh_failure;
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
-        let is_cooldown = elapsed_secs < jwt_key_cache.refresh_cooldown;
+        let is_cooldown = elapsed_secs < config.refresh_cooldown;
 
         if is_cooldown {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "Respecting background refresh cooldown: {}s elapsed of {}s required",
-                elapsed_secs, jwt_key_cache.refresh_cooldown
+                elapsed_secs, config.refresh_cooldown
             );
 
             // Return Some with the remaining cooldown in seconds
-            let remaining_cooldown = jwt_key_cache.refresh_cooldown - elapsed_secs;
+            let remaining_cooldown = config.refresh_cooldown - elapsed_secs;
 
             return Some(remaining_cooldown);
         } else {
@@ -62,7 +64,7 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
             trace!(
                 "Background cooldown period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
-                jwt_key_cache.refresh_cooldown
+                config.refresh_cooldown
             );
 
             // Return None indicating there is no active cooldown
@@ -99,14 +101,15 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
 /// - `true` if the elapsed time exceeds the threshold percentage of the TTL
 /// - `false` if the cache is still well within its valid period
 pub(super) fn is_cache_approaching_expiry(
-    jwt_key_cache_ttl: u64,
-    background_refresh_threshold: u64,
+    jwt_key_cache: &JwtKeyCache,
     elapsed_seconds: u64,
 ) -> bool {
+    let config = &jwt_key_cache.config;
+
     // Determine how many seconds need to pass for the keys to be considered nearing expiration
     // By default, 80% of 3600 second TTL must have elapsed, 2880 seconds.
-    let threshold_percentage = background_refresh_threshold / 100;
-    let threshold_seconds = jwt_key_cache_ttl * threshold_percentage;
+    let threshold_percentage = config.background_refresh_threshold / 100;
+    let threshold_seconds = config.cache_ttl * threshold_percentage;
 
     // By default, if more than 2880 seconds have elapsed then the keys are nearing expiration.
     let is_approaching_expiry = elapsed_seconds > threshold_seconds;
@@ -115,7 +118,10 @@ pub(super) fn is_cache_approaching_expiry(
         #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
-            elapsed_seconds, threshold_seconds, background_refresh_threshold, jwt_key_cache_ttl
+            elapsed_seconds,
+            threshold_seconds,
+            config.background_refresh_threshold,
+            config.cache_ttl
         );
 
         // Return true if cache is approaching expiry
@@ -126,8 +132,8 @@ pub(super) fn is_cache_approaching_expiry(
                 "JWT keys cache not yet approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
                 elapsed_seconds,
                 threshold_seconds,
-                background_refresh_threshold,
-                jwt_key_cache_ttl
+                config.background_refresh_threshold,
+                config.cache_ttl
             );
 
         // Return false if cache is not yet approaching expiry
@@ -151,14 +157,16 @@ pub(super) fn is_cache_approaching_expiry(
 /// # Returns
 /// - `true` if the elapsed time has reached or exceeded the TTL
 /// - `false` if the cache is still within its valid period
-pub(super) fn is_cache_expired(jwt_key_cache_ttl: u64, elapsed_seconds: u64) -> bool {
-    let is_expired = elapsed_seconds >= jwt_key_cache_ttl;
+pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, elapsed_seconds: u64) -> bool {
+    let cache_ttl = jwt_key_cache.config.cache_ttl;
+
+    let is_expired = elapsed_seconds >= cache_ttl;
 
     if is_expired {
         #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache expired: elapsed={}s, ttl={}s",
-            elapsed_seconds, jwt_key_cache_ttl
+            elapsed_seconds, cache_ttl
         );
 
         // Return true if cache is not yet expired
@@ -168,7 +176,7 @@ pub(super) fn is_cache_expired(jwt_key_cache_ttl: u64, elapsed_seconds: u64) -> 
         trace!(
             "JWT keys cache valid: elapsed={}s, ttl={}s",
             elapsed_seconds,
-            jwt_key_cache_ttl
+            cache_ttl
         );
 
         // Return false if cache is still valid
@@ -317,11 +325,7 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(
-            esi_client.jwt_key_cache.cache_ttl,
-            esi_client.jwt_key_cache.background_refresh_threshold,
-            elapsed_seconds,
-        );
+        let result = is_cache_approaching_expiry(&esi_client.jwt_key_cache, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -351,11 +355,7 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(
-            esi_client.jwt_key_cache.cache_ttl,
-            esi_client.jwt_key_cache.background_refresh_threshold,
-            elapsed_seconds,
-        );
+        let result = is_cache_approaching_expiry(&esi_client.jwt_key_cache, elapsed_seconds);
 
         // Assert false
         assert_eq!(result, false)
@@ -391,7 +391,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(esi_client.jwt_key_cache.cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.jwt_key_cache, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -421,7 +421,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(esi_client.jwt_key_cache.cache_ttl, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.jwt_key_cache, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, false)
