@@ -2,31 +2,35 @@
 //!
 //! This module provides the [`EsiClient`] struct for interacting with the EVE Online ESI (EVE Stable Infrastructure) API.
 //!
-//! ## Features
-//! - Set up user agent, client ID, client secret, and callback URL
-//! - Make authenticated and unauthenticated requests to ESI endpoints
-//! - Handles OAuth2 authentication with EVE Online SSO
-//!
-//! ## Builder Methods
-//! | Method          | Purpose                                 |
-//! | --------------- | --------------------------------------- |
-//! | `new`           | Create a builder for the EsiClient      |
-//! | `build`         | Build the EsiClient                     |
-//! | `user_agent`    | User agent to identify HTTP requests    |
-//! | `client_id`     | EVE OAuth2 client ID                    |
-//! | `client_secret` | EVE OAuth2 client secret                |
-//! | `callback_url`  | EVE OAuth2 callback URL                 |
-//! | `esi_url`       | ESI API URL                             |
-//! | `oauth2_config` | OAuth2 related configuration settings   |
+//! For details on the usage of an [`EsiClient`], see the [client module docs](crate::client).
 //!
 //! ## References
 //! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 //!
+//! ## Features
+//! - Set a user agent
+//! - Configure [`EsiClient`] for OAuth2 using `client_id`, `client_secret`, and `callback_url` methods
+//! - Override the default JWT key cache & refresh settings used to validate OAuth2 tokens & override
+//!   the default endpoint URLs with a custom [`EsiConfig`] using the [`EsiClientBuilder::config`] method.
+//!
+//! ## Builder Methods
+//! | Method           | Purpose                                 |
+//! | ---------------- | --------------------------------------- |
+//! | `new`            | Create a builder for the EsiClient      |
+//! | `build`          | Build the EsiClient                     |
+//! | `config`         | Override the default config             |
+//! | `reqwest_client` | Override default reqwest client         |
+//! | `user_agent`     | User agent to identify HTTP requests    |
+//! | `client_id`      | EVE OAuth2 client ID                    |
+//! | `client_secret`  | EVE OAuth2 client secret                |
+//! | `callback_url`   | EVE OAuth2 callback URL                 |
+//!
 //! ## Usage
 //! ```
 //! use eve_esi::EsiClient;
 //!
+//! // Set a user agent used to identify the application making ESI requests
 //! let esi_client = EsiClient::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
 //!     .build()
@@ -34,59 +38,59 @@
 //! ```
 //!
 //! ## Warning
-//! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+//! EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
+//!
+//! Example: "MyApp/1.0 (contact@example.com)"
 
 use std::sync::Arc;
 
 use log::warn;
 
-use crate::constant::DEFAULT_ESI_URL;
+use crate::config::EsiConfig;
 use crate::error::EsiError;
-use crate::oauth2::config::client::OAuth2Client;
 use crate::oauth2::jwk::cache::JwtKeyCache;
-use crate::oauth2::OAuth2Config;
 use crate::EsiClient;
 
-/// Builder for configuring and constructing an `EsiClient`.
+/// Builder for configuring and constructing an [`EsiClient`].
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiClientBuilder {
-    pub(crate) esi_url: String,
-    pub(crate) user_agent: Option<String>,
+    // Base Settings
+    /// Config used to override default settings
+    pub(crate) config: Option<EsiConfig>,
+    /// Overrides the default reqwest HTTP client if set to Some()
     pub(crate) reqwest_client: Option<reqwest::Client>,
+    /// User agent used for default reqwest client if no client is provided
+    pub(crate) user_agent: Option<String>,
 
-    // OAuth2
+    // OAuth2 Settings
+    /// Client ID used to identify an EVE Online application
     pub(crate) client_id: Option<String>,
+    /// Client secret used to identify an EVE Online application
     pub(crate) client_secret: Option<String>,
+    /// URL users are redirected to after the EVE Online login process
     pub(crate) callback_url: Option<String>,
-    pub(crate) oauth_client: Option<OAuth2Client>,
-    pub(crate) oauth2_config: Option<OAuth2Config>,
 }
 
 impl EsiClientBuilder {
-    /// Creates a new EsiClientBuilder
+    /// Creates a new [`EsiClientBuilder`]
     ///
     /// For a full overview, features, and usage examples, see the [module-level documentation](self).
     ///
     /// # Returns
     /// - [`EsiClientBuilder`]: Instance to modify EsiClient setting using setter methods
-    ///
-    /// # Error
-    /// - [`EsiError`]: If the default [`OAuth2Config`] cannot be initialized which would be an internal
-    ///   error with the eve_esi crate regarding improperly formatted default OAuth2 URLs.
     pub fn new() -> Self {
         Self {
-            esi_url: DEFAULT_ESI_URL.to_string(),
+            // Base settings
+            config: None,
             user_agent: None,
             reqwest_client: None,
 
-            // OAuth2
+            // OAuth2 settings
             client_id: None,
             client_secret: None,
             callback_url: None,
-            oauth_client: None,
-            oauth2_config: None,
         }
     }
 
@@ -98,220 +102,65 @@ impl EsiClientBuilder {
     /// - [`EsiClient`]: Instance to interface with EVE Online ESI & OAuth2 endpoints.
     ///
     /// # Error
-    /// - [`EsiError`]: If there is an issue building a [`reqwest::Client`],
-    ///   [`oauth2::Client`], or there is an internal error building the default
-    ///   [`OAuth2Config`].
+    /// Returns an [`EsiError`] if:
+    /// - There is a user issue related to building an [`oauth2::Client`] usually due to
+    ///   missing OAuth2 settings on [`EsiClientBuilder`] or invalid URLs configured by a custom [`EsiConfig`].
+    /// - There is an internal issue building a default [`reqwest::Client`]
+    /// - There is an internal issue building a default [`EsiConfig`]
     pub fn build(self) -> Result<EsiClient, EsiError> {
         let mut builder = self;
+
+        // Create a default EsiConfig if one is not provided
+        let config = match builder.config.take() {
+            Some(config) => config,
+            None => EsiConfig::new()?,
+        };
 
         // Setup a reqwest client
         // Will create a reqwest client with default settings & provided user_agent if builder.reqwest_client is none
         let reqwest_client =
             get_or_default_reqwest_client(builder.reqwest_client.take(), &builder.user_agent)?;
 
-        // Initialize default OAuth2 config if none is set
-        let oauth2_config = match builder.oauth2_config.take() {
-            Some(config) => config,
-            None => OAuth2Config::default()?,
-        };
-
         // Build an OAuth2 client if any OAuth2 settings are configured
         //
         // setup_oauth_client return an error if one setting is configured but another
         // is not as all 3 are required for OAuth2.
-        if builder.client_id.is_some()
+        let oauth_client = if builder.client_id.is_some()
             || builder.client_secret.is_some()
             || builder.callback_url.is_some()
         {
-            builder = builder.setup_oauth_client(&oauth2_config)?;
-        }
+            Some(builder.setup_oauth_client(&config)?)
+        } else {
+            None
+        };
+
+        // Setup JWT key cache
+        let jwt_key_cache = JwtKeyCache::new(&config);
 
         // Build EsiClient
         Ok(EsiClient {
             reqwest_client,
-            esi_url: builder.esi_url,
+            esi_url: config.esi_url,
 
-            // OAuth2oauth2_config
-            oauth2_client: builder.oauth_client,
-            oauth2_config: oauth2_config,
-
-            // OAuth2 JWT key cache
-            jwt_key_cache: Arc::new(JwtKeyCache::new()),
+            // OAuth2
+            oauth2_client: oauth_client,
+            jwt_key_cache: Arc::new(jwt_key_cache),
         })
     }
 
-    /// Sets the user agent for the EsiClient.
+    /// Overrides the default [`EsiClient`] settings with a custom config
     ///
-    /// This method configures the user agent string used by the reqwest HTTP client.
-    /// The user agent string is used to identify the client making requests to the EVE Online API.
-    /// A proper user agent should include an app name, version, and contact information.
-    /// Example: "MyApp/1.0 (contact@example.com)"
-    ///
-    /// # Arguments
-    /// - `user_agent` - The user agent string to be used by the reqwest HTTP client.
-    ///
-    /// # Returns
-    /// The `EsiClientBuilder` instance with updated user agent configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    ///
-    /// # Warning
-    /// EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
-    ///
-    /// Include application name, version, and contact information.
-    ///
-    /// Example: "MyApp/1.0 (contact@example.com)"
-    pub fn user_agent(mut self, user_agent: &str) -> Self {
-        self.user_agent = Some(user_agent.to_string());
-        self
-    }
-
-    /// Sets the OAuth2 client ID for authentication with EVE Online SSO.
-    ///
-    /// This method configures the client ID required for OAuth2 authentication.
-    /// You must register your application with EVE Online developers to get a client ID.
-    /// https://developers.eveonline.com/applications
+    /// If no config is provided to the [`EsiClientBuilder`], the default settings will be used.
+    /// This method allows one to provide a config to override the default settings, for details
+    /// on usage & options see the [config module documentation](super::config).
     ///
     /// # Arguments
-    /// - `client_id` - The OAuth2 client ID obtained from the EVE Online developer portal.
+    /// - `config` ([`EsiConfig`]): config used to override default [`EsiClient`] settings
     ///
     /// # Returns
-    /// The `EsiClientBuilder` instance with updated client ID configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .client_id("client_id")
-    ///     .client_secret("client_secret")
-    ///     .callback_url("http://localhost:8080/callback")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    ///
-    /// Note: For OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
-    pub fn client_id(mut self, client_id: &str) -> Self {
-        self.client_id = Some(client_id.to_string());
-        self
-    }
-
-    /// Sets the OAuth2 client secret for authentication with EVE Online SSO.
-    ///
-    /// This method configures the client secret required for OAuth2 authentication.
-    /// You must register your application with EVE Online developers to get a client secret.
-    /// https://developers.eveonline.com/applications
-    ///
-    /// # Arguments
-    /// - `client_secret` - The OAuth2 client secret obtained from the EVE Online developer portal.
-    ///
-    /// # Returns
-    /// The `EsiClientBuilder` instance with updated client secret configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .client_id("client_id")
-    ///     .client_secret("client_secret")
-    ///     .callback_url("http://localhost:8080/callback")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    ///
-    /// Note: For OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
-    pub fn client_secret(mut self, client_secret: &str) -> Self {
-        self.client_secret = Some(client_secret.to_string());
-        self
-    }
-
-    /// Sets the callback URL for authentication with EVE Online SSO.
-    ///
-    /// This method configures the callback URL required for OAuth2 authentication when the user is redirected back to your application.
-    /// Ensure that the callback URL matches the one set in your EVE Online developer portal application.
-    /// https://developers.eveonline.com/applications
-    ///
-    /// # Arguments
-    /// - `callback_url` - The callback URL which matches the one set in your EVE Online developer portal application.
-    ///
-    /// # Returns
-    /// The `EsiClient` instance with updated callback URL configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .client_id("client_id")
-    ///     .client_secret("client_secret")
-    ///     .callback_url("http://localhost:8080/callback")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    ///
-    /// Note: For OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
-    pub fn callback_url(mut self, callback_url: &str) -> Self {
-        self.callback_url = Some(callback_url.to_string());
-        self
-    }
-
-    /// Sets the EVE Online ESI base URL to a custom URL.
-    ///
-    /// This method configures the base URL for EVE Online ESI.
-    /// This is generally used for tests using a mock server with crates such as
-    /// [mockito](https://crates.io/crates/mockito) to avoid actual ESI API calls.
-    ///
-    /// # Arguments
-    /// - `esi_url` - The EVE Online API base URL.
-    ///
-    /// # Returns
-    /// The `EsiClientBuilder` instance with updated EVE Online API base URL configuration.
-    ///
-    /// # Example
-    /// ```
-    /// use eve_esi::EsiClient;
-    ///
-    /// let esi_client = EsiClient::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .esi_url("https://esi.evetech.net/latest")
-    ///     .build()
-    ///     .expect("Failed to build EsiClient");
-    /// ```
-    pub fn esi_url(mut self, esi_url: &str) -> Self {
-        self.esi_url = esi_url.to_string();
-        self
-    }
-
-    /// Changes OAuth2 config to a custom one to override default OAuth2 settings
-    ///
-    /// This method allows for overriding the default EVE OAuth2 settings using
-    /// a [`OAuth2Config`] struct to set custom values.
-    ///
-    /// This is used for overriding the EVE OAuth2 API endpoint URLs
-    /// for testing purposes or for more precise control over how the JWT keys
-    /// used to validate tokens are cached and fetched.
-    ///
-    /// See [OAuth2 Config module docs](`crate::oauth2::config`) for usage & details.
-    ///
-    /// # Arguments
-    /// - `config` ([`OAuth2Config`]): A struct representing OAuth2 configuration settings
-    ///
-    /// # Returns
-    /// - [EsiClientBuilder]: Instance with updated OAuth2 config
-    pub fn oauth2_config(mut self, config: OAuth2Config) -> Self {
-        self.oauth2_config = Some(config);
+    /// - [`EsiClientBuilder`]: instance with the updated config
+    pub fn config(mut self, config: EsiConfig) -> Self {
+        self.config = Some(config);
         self
     }
 
@@ -319,6 +168,8 @@ impl EsiClientBuilder {
     ///
     /// Use this to configure the HTTP client used by [`EsiClient`] with your
     /// own preferred settings.
+    ///
+    /// You can create and configure a reqwest client using the [`reqwest::Client::builder`] method.
     ///
     /// # Warning
     /// The [`EsiClientBuilder::user_agent`] method will not be applied in the
@@ -331,9 +182,94 @@ impl EsiClientBuilder {
     ///   EVE Online's API endpoints.
     ///
     /// # Returns
-    /// - [EsiClientBuilder]: Instance with updated reqwest Client
+    /// - [EsiClientBuilder]: Instance with the configured reqwest client
     pub fn reqwest_client(mut self, client: reqwest::Client) -> Self {
         self.reqwest_client = Some(client);
+        self
+    }
+
+    /// Sets the user agent for the EsiClient.
+    ///
+    /// This method configures the user agent string used by the default reqwest HTTP client created by
+    /// the [`EsiClient`] if a custom reqwest client is not provided with the [`Self::reqwest_client`]
+    /// method.
+    ///
+    /// The user agent string is used to identify the client making requests to the EVE Online API.
+    /// A proper user agent should include an app name, version, and contact information.
+    ///
+    /// Example: "MyApp/1.0 (contact@example.com)"
+    ///
+    /// # Warning
+    ///
+    /// The user agent set by this method will not be applied to the reqwest client provided by the
+    /// [`Self::reqwest_client`] method, instead you should set it on the reqwest client you provide prior.
+    ///
+    /// EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+    ///
+    /// # Arguments
+    /// - `user_agent` ([`String`]): user agent string to be used by the reqwest HTTP client.
+    ///
+    /// # Returns
+    /// - [`EsiClientBuilder`]: instance with updated user agent configuration.
+    pub fn user_agent(mut self, user_agent: &str) -> Self {
+        self.user_agent = Some(user_agent.to_string());
+        self
+    }
+
+    /// Sets the OAuth2 client ID for authentication with EVE Online SSO.
+    ///
+    /// This method configures the client ID required for OAuth2 authentication.
+    /// You must register your application with EVE Online developers to get a client ID.
+    /// https://developers.eveonline.com/applications
+    ///
+    /// # Warning
+    /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
+    ///
+    /// # Arguments
+    /// - `client_id` ([`String`]): The OAuth2 client ID obtained from the EVE Online developer portal.
+    ///
+    /// # Returns
+    /// - [`EsiClientBuilder`]: instance with updated client ID configuration.
+    pub fn client_id(mut self, client_id: &str) -> Self {
+        self.client_id = Some(client_id.to_string());
+        self
+    }
+
+    /// Sets the OAuth2 client secret for authentication with EVE Online SSO.
+    ///
+    /// This method configures the client secret required for OAuth2 authentication.
+    /// You must register your application with EVE Online developers to get a client secret.
+    /// https://developers.eveonline.com/applications
+    ///
+    /// # Warning
+    /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
+    ///
+    /// # Arguments
+    /// - `client_secret` ([`String`]): The OAuth2 client secret obtained from the EVE Online developer portal.
+    ///
+    /// # Returns
+    /// - [`EsiClientBuilder`]: instance with updated client secret configuration.
+    pub fn client_secret(mut self, client_secret: &str) -> Self {
+        self.client_secret = Some(client_secret.to_string());
+        self
+    }
+
+    /// Sets the callback URL for authentication with EVE Online SSO.
+    ///
+    /// This method configures the callback URL required for OAuth2 authentication when the user is redirected back to your application.
+    /// Ensure that the callback URL matches the one set in your EVE Online developer portal application.
+    /// https://developers.eveonline.com/applications
+    ///
+    /// # Warning
+    /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
+    ///
+    /// # Arguments
+    /// - `callback_url` ([`String`]): The callback URL which matches the one set in your EVE Online developer portal application.
+    ///
+    /// # Returns
+    /// - [`EsiClientBuilder`] instance with updated callback URL configuration.
+    pub fn callback_url(mut self, callback_url: &str) -> Self {
+        self.callback_url = Some(callback_url.to_string());
         self
     }
 }
@@ -341,7 +277,7 @@ impl EsiClientBuilder {
 /// Utility function that creates a default [`reqwest::Client`] if no client is provided
 ///
 /// Used with the [`EsiClientBuilder::build`] method to create a default [`reqwest::Client`] with
-/// provided user agent if a custom client has not been provided.
+/// provided user agent if a reqwest custom client has not been provided.
 ///
 /// Provides a warning if both a custom agent and user agent has been provided as the user agent
 /// cannot be set on the provided client, the user agent should be set on the provided client prior
@@ -354,7 +290,7 @@ impl EsiClientBuilder {
 ///   default reqwest::Client if no `client` is provided.
 ///
 /// # Returns
-/// - [`reqwest::Client`]: Either a default client or the provided one.
+/// - [`reqwest::Client`]: Either a default reqwest client or the provided one.
 ///
 /// # Errors
 /// - [`EsiError`]: If the default [`reqwest::Client`] fails to build
@@ -385,76 +321,69 @@ fn get_or_default_reqwest_client(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::OAuthError;
+    use crate::{constant::DEFAULT_ESI_URL, error::EsiConfigError};
 
     /// Test default values of the `EsiClientBuilder`.
     ///
     /// # Setup
-    /// - Creates an ESI client using the default values
+    /// - Create an [`EsiClientBuilder`] with the default values
     ///
     /// # Assertions
-    /// - Checks that the default values are set correctly
+    /// - Assert default values are set as expected
     #[test]
     fn test_default_builder_values() {
+        // Create an EsiClientBuilder with the default values
         let builder = EsiClientBuilder::new();
 
-        // Check default values
-        assert_eq!(builder.esi_url, DEFAULT_ESI_URL);
+        // Assert default values are set as expected
+        assert!(builder.config.is_none());
+        assert!(builder.reqwest_client.is_none());
         assert!(builder.user_agent.is_none());
         assert!(builder.client_id.is_none());
         assert!(builder.client_secret.is_none());
         assert!(builder.callback_url.is_none());
-        assert!(builder.oauth_client.is_none());
     }
 
-    /// Test setter methods of the `EsiClientBuilder`.
+    /// Test setter methods of the [`EsiClientBuilder`].
     ///
     /// # Setup
-    /// - Creates an ESI client with all values modified
+    /// - Create a custom [`reqwest::Client`]
+    /// - Create a custom [`JwtKeyCache`]
+    /// - Creates an [`EsiClient`] with all builder setter methods used
     ///
     /// # Assertions
-    /// - Checks that all setter methods were set correctly
+    /// - Assert base settings are set as expected
+    /// - Assert OAuth2 settings are set as expected
     #[test]
     fn test_builder_setter_methods() {
         let custom_reqwest_client = reqwest::Client::new();
+        let custom_config = EsiConfig::new().expect("Failed to create a default EsiConfig");
 
         let builder = EsiClientBuilder::new()
-            .esi_url("https://example.com")
+            // Base settings
+            .config(custom_config)
             .user_agent("MyApp/1.0 (contact@example.com)")
+            .reqwest_client(custom_reqwest_client)
+            // OAuth2 settings
             .client_id("client_id")
             .client_secret("client_secret")
-            .callback_url("http://localhost:8000/callback")
-            .reqwest_client(custom_reqwest_client);
+            .callback_url("http://localhost:8000/callback");
 
-        // Check updated values
-        assert_eq!(builder.esi_url, "https://example.com");
+        // Assert base values are set
+        assert!(builder.config.is_some());
+        assert!(builder.reqwest_client.is_some());
         assert_eq!(
             builder.user_agent,
             Some("MyApp/1.0 (contact@example.com)".to_string())
         );
+
+        // Assert OAuth2 values are set
         assert_eq!(builder.client_id, Some("client_id".to_string()));
         assert_eq!(builder.client_secret, Some("client_secret".to_string()));
         assert_eq!(
             builder.callback_url,
             Some("http://localhost:8000/callback".to_string())
         );
-    }
-
-    /// Test build without user agent.
-    ///
-    /// The builder allows building without a user agent, but it's not recommended
-    /// This test just verifies it doesn't fail
-    ///
-    /// # Setup
-    /// - Creates an ESI client builder without a user agent.
-    ///
-    /// # Assertions
-    /// - Verifies that the client was built successfully.
-    #[test]
-    fn test_build_without_user_agent() {
-        let result = EsiClientBuilder::new().build();
-
-        assert!(result.is_ok());
     }
 
     /// Test successful build with minimal configuration.
@@ -471,8 +400,11 @@ mod tests {
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build();
 
+        // Assert result is Ok
         assert!(result.is_ok());
         let client = result.unwrap();
+
+        // Assert default ESI_URL is set and oauth client is none
         assert_eq!(client.esi_url, DEFAULT_ESI_URL);
         assert!(client.oauth2_client.is_none());
     }
@@ -483,7 +415,8 @@ mod tests {
     /// - Creates an ESI client builder with OAuth configuration.
     ///
     /// # Assertions
-    /// - Verifies that the client receives the configured values from the builder.
+    /// - Assert result is ok
+    /// - Assert oauth client was initialized
     #[test]
     fn test_successful_build_with_oauth() {
         // Test building with OAuth configuration
@@ -494,9 +427,38 @@ mod tests {
             .callback_url("http://localhost:8080/callback")
             .build();
 
+        // Assert result is ok
         assert!(result.is_ok());
+
+        // Assert oauth client was initialized
         let client = result.unwrap();
         assert!(client.oauth2_client.is_some());
+    }
+
+    /// Test build with a custom config overriding defaults
+    ///
+    /// # Setup
+    /// - Create a config overriding default ESI URL
+    /// - Creates an ESI client with the custom config
+    ///
+    /// # Assertions
+    /// - Assert default ESI URL has been overridden
+    #[test]
+    fn test_build_with_custom_config() {
+        // Create a config overriding default ESI URL
+        let config = EsiConfig::builder()
+            .esi_url("https://example.com")
+            .build()
+            .expect("Failed to create a default EsiConfig");
+
+        // Create an ESI client with the custom config
+        let result = EsiClientBuilder::new()
+            .config(config)
+            .build()
+            .expect("Failed to build EsiClient");
+
+        // Assert default ESI URL has been overridden
+        assert_ne!(result.esi_url, DEFAULT_ESI_URL);
     }
 
     /// Test failed build due to partial OAuth configuration.
@@ -505,7 +467,7 @@ mod tests {
     /// - Creates an ESI client builder with only the client_id set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::MissingClientSecret)
+    /// - Verifies that the error response is EsiConfigError::MissingClientSecret
     #[test]
     fn test_build_with_partial_oauth_config() {
         // Test that providing only client_id without the other OAuth params fails
@@ -516,7 +478,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(EsiError::OAuthError(OAuthError::MissingClientSecret)) => {}
+            Err(EsiError::EsiConfigError(EsiConfigError::MissingClientSecret)) => {}
             _ => panic!("Expected MissingClientSecret error"),
         }
     }
@@ -526,11 +488,11 @@ mod tests {
 mod get_or_default_reqwest_client_tests {
     use crate::builder::get_or_default_reqwest_client;
 
-    /// Ensures a [`reqwest::Client`] is returned when a client & user agent is provided
+    /// Ensures a [`reqwest::Client`] is returned when a reqwest client & user agent is provided
     ///
     /// # Test Setup
-    /// - Build a custom reqwest::Client
-    /// - Call function with a custom reqwest::Client and providing a user_agent
+    /// - Build a custom [`reqwest::Client`]
+    /// - Call function with a custom [`reqwest::Client`] and providing a `user_agent`
     ///
     /// # Assert
     /// - Assert result is Ok indicating a reqwest client was returned without issues
@@ -560,7 +522,7 @@ mod get_or_default_reqwest_client_tests {
     /// Ensures a default [`reqwest::Client`] is returned if no client is provided
     ///
     /// # Test Setup
-    /// - Call function with reqwest::Client as None and providing a user_agent
+    /// - Call function with `client` set as None and providing a `user_agent`
     ///
     /// # Assert
     /// - Assert result is Ok indicating a default reqwest client with default settings has been returned

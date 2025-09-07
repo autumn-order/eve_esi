@@ -179,10 +179,8 @@ async fn get_jwt_keys_refresh_cooldown() {
     // Assert mock server received 1 expected fetch request
     mock.assert();
 
-    // Assert result is ok
+    // Assert result is error
     assert!(result.is_err());
-
-    // Assert error is of type OAuthError::JwtKeyRefreshCooldown
     match result {
         // Assert error is of the OAuthError:JwtKeyRefreshCooldown variant
         Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshCooldown(_))) => {}

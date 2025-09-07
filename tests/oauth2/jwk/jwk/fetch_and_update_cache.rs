@@ -67,7 +67,6 @@ async fn test_fetch_and_update_cache_request_error() {
 
     // Assert result is error
     assert!(result.is_err());
-
     match result {
         Err(EsiError::ReqwestError(err)) => {
             // Assert error is reqwest error of type 500 internal server error
@@ -77,6 +76,11 @@ async fn test_fetch_and_update_cache_request_error() {
                 Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR)
             )
         }
-        _ => panic!("Expected ReqwestError, got different error type"),
+        err => {
+            panic!(
+                "Expected ReqwestError, got different error type: {:#?}",
+                err
+            )
+        }
     }
 }

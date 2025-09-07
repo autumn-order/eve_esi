@@ -45,5 +45,8 @@
 pub mod cache;
 pub mod jwk;
 
+pub use cache::JwtKeyCache;
+pub use jwk::JwkApi;
+
 mod refresh;
 mod util;

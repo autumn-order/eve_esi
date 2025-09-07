@@ -1,5 +1,3 @@
-mod alliance;
-mod character;
-mod corporation;
+mod endpoints;
 mod esi;
 mod oauth2;
