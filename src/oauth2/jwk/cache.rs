@@ -14,8 +14,8 @@
 //! For details, see the [`JwtKeyCache`] struct.
 //! For a higher level overview of the usage of JWT keys, see [module-level documentation](super)
 
-use std::sync::atomic::AtomicBool;
 use std::time::Instant;
+use std::{sync::atomic::AtomicBool, time::Duration};
 
 use log::{debug, trace};
 use tokio::sync::{Notify, RwLock};
@@ -39,20 +39,20 @@ use crate::{
 #[derive(Clone)]
 pub(crate) struct JwtKeyCacheConfig {
     // Cache Settings
-    /// JWT key cache lifetime before expiration in seconds (3600 seconds representing 1 hour)
-    pub(crate) cache_ttl: u64,
+    /// JWT key cache lifetime before expiration (3600 seconds representing 1 hour)
+    pub(crate) cache_ttl: Duration,
 
     // Refresh Settings
     /// JSON web token key URL that provides keys used to validate tokens
     pub(crate) jwk_url: String,
+    /// Backoff period after a JWT key refresh failure when cache is empty or expired (default 100 milliseconds)
+    pub(crate) refresh_backoff: Duration,
+    /// Timeout when waiting for another thread to refresh JWT key (default 5 seconds)
+    pub(crate) refresh_timeout: Duration,
+    /// Cooldown period after a failed set of JWT key refresh attempts (default 60 seconds)
+    pub(crate) refresh_cooldown: Duration,
     /// Maximum number of retries for JWT key refresh when cache is empty or expired (default 2 retries)
-    pub(crate) refresh_max_retries: u64,
-    /// Backoff period in seconds after a JWT key refresh failure when cache is empty or expired (default 100 milliseconds)
-    pub(crate) refresh_backoff: u64,
-    /// Timeout in seconds when waiting for another thread to refresh JWT key (default 5 seconds)
-    pub(crate) refresh_timeout: u64,
-    /// Cooldown period in seconds after a failed set of JWT key refresh attempts (default 60 seconds)
-    pub(crate) refresh_cooldown: u64,
+    pub(crate) refresh_max_retries: u32,
 
     // Background Refresh Settings
     /// Determines whether or not a background task is spawned to refresh JWT keys proactively when cache is nearing expiration

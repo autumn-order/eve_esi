@@ -23,10 +23,10 @@
 //! | `token_url`     | URL to retrieve access tokens for OAuth2   |
 //! | `jwk_url`       | URL for JWT keys to validate tokens        |
 //! | `jwk_cache_ttl`     | The time that JWT keys are cached for      |
-//! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_refresh_backoff`     | How long to wait between retries         |
 //! | `jwk_refresh_timeout`     | How long to wait for another thread to refresh |
 //! | `jwk_refresh_cooldown`    | Cooldown between sets of JWT key refresh attempts |
+//! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_background_refresh_enabled` | Enable/disable background refresh          |
 //! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
 //!
@@ -50,6 +50,8 @@
 //!     .build()
 //!     .expect("Failed to build EsiClient");
 //! ```
+
+use std::time::Duration;
 
 use oauth2::{AuthUrl, TokenUrl};
 
@@ -267,35 +269,12 @@ impl EsiConfigBuilder {
     /// method.
     ///
     /// # Arguments
-    /// - `seconds` ([`u64`]): The lifetime in seconds of the JWT keys stored in the cache.
+    /// - `duration` ([`Duration`]): The lifetime of the JWT keys stored in the cache.
     ///
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the updated JWT key cache TTL
-    pub fn jwk_cache_ttl(mut self, seconds: u64) -> Self {
-        self.jwt_key_cache_config.cache_ttl = seconds;
-        self
-    }
-
-    /// Modifies the max amount of refresh attempts when fetching JWT keys
-    ///
-    /// This determines how many attempts are made to refresh JWT keys when
-    /// the cache is empty or fully expired and it is imperative to refresh the
-    /// cache in order to validate tokens.
-    ///
-    /// Between each fetch attempt there is an exponential backoff of 100ms by default
-    /// which can be modified with the [`Self::jwk_refresh_backoff`] method.
-    ///
-    /// This does not affect the background JWT key refresh as it only makes one attempt with
-    /// a 60 second cooldown between each attempt which can be modified with the
-    /// [`Self::jwk_refresh_cooldown`] method.
-    ///
-    /// # Arguments
-    /// - `retry_attempts` ([`u64`]): The amount of retry attempts if a JWT key fetch fails.
-    ///
-    /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the updated JWK refresh max retries
-    pub fn jwk_refresh_max_retries(mut self, retry_attempts: u64) -> Self {
-        self.jwt_key_cache_config.refresh_max_retries = retry_attempts;
+    pub fn jwk_cache_ttl(mut self, duration: Duration) -> Self {
+        self.jwt_key_cache_config.cache_ttl = duration;
         self
     }
 
@@ -314,12 +293,12 @@ impl EsiConfigBuilder {
     /// [`Self::jwk_refresh_cooldown`] method.
     ///
     /// # Arguments
-    /// - `backoff_milliseconds` ([`u64`]): The exponential backoff duration in milliseconds between each attempt.
+    /// - `duration` ([`Duration`]): The exponential backoff duration between each attempt.
     ///
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the updated exponential backoff
-    pub fn jwk_refresh_backoff(mut self, backoff_milliseconds: u64) -> Self {
-        self.jwt_key_cache_config.refresh_backoff = backoff_milliseconds;
+    pub fn jwk_refresh_backoff(mut self, duration: Duration) -> Self {
+        self.jwt_key_cache_config.refresh_backoff = duration;
         self
     }
 
@@ -331,13 +310,13 @@ impl EsiConfigBuilder {
     /// will wait for a default of 5 seconds before timing out if the refresh takes too long.
     ///
     /// # Arguments
-    /// - `timeout_seconds` ([`u64`]): The timeout in seconds to wait for another thread to complete a
+    /// - `duration` ([`Duration`]): Timeout duration to wait for another thread to complete a
     ///   JWT key refresh.
     ///
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the modified timeout setting.
-    pub fn jwk_refresh_timeout(mut self, timeout_seconds: u64) -> Self {
-        self.jwt_key_cache_config.refresh_timeout = timeout_seconds;
+    pub fn jwk_refresh_timeout(mut self, duration: Duration) -> Self {
+        self.jwt_key_cache_config.refresh_timeout = duration;
         self
     }
 
@@ -347,12 +326,35 @@ impl EsiConfigBuilder {
     /// between the next set of attempts to refresh JWT keys before expiration.
     ///
     /// # Arguments
-    /// - `cooldown_seconds` ([`u64`]): Cooldown in seconds between background JWT key cache refresh attempts.
+    /// - `duration` ([`Duration`]): Cooldown duration between background JWT key cache refresh attempts.
     ///
     /// # Returns
     /// - [`EsiConfigBuilder`]: Instance with the modified background refresh cooldown.
-    pub fn jwk_refresh_cooldown(mut self, cooldown_seconds: u64) -> Self {
-        self.jwt_key_cache_config.refresh_cooldown = cooldown_seconds;
+    pub fn jwk_refresh_cooldown(mut self, duration: Duration) -> Self {
+        self.jwt_key_cache_config.refresh_cooldown = duration;
+        self
+    }
+
+    /// Modifies the max amount of refresh attempts when fetching JWT keys
+    ///
+    /// This determines how many attempts are made to refresh JWT keys when
+    /// the cache is empty or fully expired and it is imperative to refresh the
+    /// cache in order to validate tokens.
+    ///
+    /// Between each fetch attempt there is an exponential backoff of 100ms by default
+    /// which can be modified with the [`Self::jwk_refresh_backoff`] method.
+    ///
+    /// This does not affect the background JWT key refresh as it only makes one attempt with
+    /// a 60 second cooldown between each attempt which can be modified with the
+    /// [`Self::jwk_refresh_cooldown`] method.
+    ///
+    /// # Arguments
+    /// - `retry_attempts` ([`u32`]): The amount of retry attempts if a JWT key fetch fails.
+    ///
+    /// # Returns
+    /// - [`EsiConfigBuilder`]: Instance with the updated JWK refresh max retries
+    pub fn jwk_refresh_max_retries(mut self, retry_attempts: u32) -> Self {
+        self.jwt_key_cache_config.refresh_max_retries = retry_attempts;
         self
     }
 
@@ -418,17 +420,19 @@ mod tests {
     /// - Assert JWT key background refresh settings were set as expected
     #[test]
     fn test_config_setter_methods() {
+        let zero_seconds = Duration::from_secs(0);
+
         let config = EsiConfig::builder()
             // URL settings
             .auth_url("https://example.com")
             .token_url("https://example.com")
             .jwk_url("https://example.com")
             // JWT key settings
-            .jwk_cache_ttl(0)
+            .jwk_cache_ttl(zero_seconds)
+            .jwk_refresh_backoff(zero_seconds)
+            .jwk_refresh_timeout(zero_seconds)
+            .jwk_refresh_cooldown(zero_seconds)
             .jwk_refresh_max_retries(0)
-            .jwk_refresh_backoff(0)
-            .jwk_refresh_timeout(0)
-            .jwk_refresh_cooldown(0)
             // Background refresh settings
             .jwk_background_refresh_enabled(false)
             .jwk_background_refresh_threshold(1)
@@ -444,11 +448,11 @@ mod tests {
         assert_eq!(config.jwt_key_cache_config.jwk_url, "https://example.com");
 
         // Assert JWT key settings were set
-        assert_eq!(config.jwt_key_cache_config.cache_ttl, 0);
+        assert_eq!(config.jwt_key_cache_config.cache_ttl, zero_seconds);
+        assert_eq!(config.jwt_key_cache_config.refresh_backoff, zero_seconds);
+        assert_eq!(config.jwt_key_cache_config.refresh_timeout, zero_seconds);
+        assert_eq!(config.jwt_key_cache_config.refresh_cooldown, zero_seconds);
         assert_eq!(config.jwt_key_cache_config.refresh_max_retries, 0);
-        assert_eq!(config.jwt_key_cache_config.refresh_backoff, 0);
-        assert_eq!(config.jwt_key_cache_config.refresh_timeout, 0);
-        assert_eq!(config.jwt_key_cache_config.refresh_cooldown, 0);
 
         // Assert JWT key background refresh settings were set
         assert_eq!(

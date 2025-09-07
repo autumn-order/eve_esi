@@ -46,17 +46,18 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
     if let Some(last_failure) = *last_refresh_failure.read().await {
         // Check if last refresh failure is within backoff period
         let elapsed_secs = last_failure.elapsed().as_secs();
-        let is_cooldown = elapsed_secs < config.refresh_cooldown;
+        let is_cooldown = elapsed_secs < config.refresh_cooldown.as_secs();
 
         if is_cooldown {
             #[cfg(not(tarpaulin_include))]
             debug!(
                 "Respecting background refresh cooldown: {}s elapsed of {}s required",
-                elapsed_secs, config.refresh_cooldown
+                elapsed_secs,
+                config.refresh_cooldown.as_secs()
             );
 
             // Return Some with the remaining cooldown in seconds
-            let remaining_cooldown = config.refresh_cooldown - elapsed_secs;
+            let remaining_cooldown = config.refresh_cooldown.as_secs() - elapsed_secs;
 
             return Some(remaining_cooldown);
         } else {
@@ -64,7 +65,7 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
             trace!(
                 "Background cooldown period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
-                config.refresh_cooldown
+                config.refresh_cooldown.as_secs()
             );
 
             // Return None indicating there is no active cooldown
@@ -109,7 +110,7 @@ pub(super) fn is_cache_approaching_expiry(
     // Determine how many seconds need to pass for the keys to be considered nearing expiration
     // By default, 80% of 3600 second TTL must have elapsed, 2880 seconds.
     let threshold_percentage = config.background_refresh_threshold / 100;
-    let threshold_seconds = config.cache_ttl * threshold_percentage;
+    let threshold_seconds = config.cache_ttl.as_secs() * threshold_percentage;
 
     // By default, if more than 2880 seconds have elapsed then the keys are nearing expiration.
     let is_approaching_expiry = elapsed_seconds > threshold_seconds;
@@ -121,7 +122,7 @@ pub(super) fn is_cache_approaching_expiry(
             elapsed_seconds,
             threshold_seconds,
             config.background_refresh_threshold,
-            config.cache_ttl
+            config.cache_ttl.as_secs()
         );
 
         // Return true if cache is approaching expiry
@@ -133,7 +134,7 @@ pub(super) fn is_cache_approaching_expiry(
                 elapsed_seconds,
                 threshold_seconds,
                 config.background_refresh_threshold,
-                config.cache_ttl
+                config.cache_ttl.as_secs()
             );
 
         // Return false if cache is not yet approaching expiry
@@ -160,13 +161,14 @@ pub(super) fn is_cache_approaching_expiry(
 pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, elapsed_seconds: u64) -> bool {
     let cache_ttl = jwt_key_cache.config.cache_ttl;
 
-    let is_expired = elapsed_seconds >= cache_ttl;
+    let is_expired = elapsed_seconds >= cache_ttl.as_secs();
 
     if is_expired {
         #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache expired: elapsed={}s, ttl={}s",
-            elapsed_seconds, cache_ttl
+            elapsed_seconds,
+            cache_ttl.as_secs()
         );
 
         // Return true if cache is not yet expired
@@ -176,7 +178,7 @@ pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, elapsed_seconds: u64
         trace!(
             "JWT keys cache valid: elapsed={}s, ttl={}s",
             elapsed_seconds,
-            cache_ttl
+            cache_ttl.as_secs()
         );
 
         // Return false if cache is still valid
