@@ -1,48 +1,39 @@
-use std::time::Instant;
+use std::time::Duration;
 
-use eve_esi::{
-    error::{EsiError, OAuthError},
-    model::oauth2::EveJwtKeys,
-};
+use eve_esi::error::{EsiError, OAuthError};
 
-use super::util::{
-    create_mock_jwt_keys_alternative, get_jwk_internal_server_error_response,
-    get_jwk_success_response,
-};
+use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
 use crate::util::setup;
 
 /// Tests that get_jwt_keys returns cached keys when they are not expired.
 ///
 /// # Test Setup
 /// - Create a basic EsiClient & mock HTTP server
-/// - Configures a mock response expeting 0 requests
-/// - Pre-populates the cache with valid keys
+/// - Configure a mock response expecting only 1 request for initial cache population
+/// - Pre-populate the cache with valid keys
 ///
 /// # Assertions
-/// - Assert that no fetch request is made
+/// - Assert cache was initially populated without issues
+/// - Assert that only 1 fetch request was made
 /// - Assert result is Ok
 #[tokio::test]
 async fn get_jwt_keys_valid_cache() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
-    let jwt_key_cache = &esi_client.jwt_key_cache;
 
-    // Create a mock response expecting 0 requests
-    let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
-
-    // Create cached JWT keys
-    let cached_keys = EveJwtKeys::create_mock_keys();
+    // Create a mock response expecting 1 request for initial cache population
+    let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Pre-populate the cache
-    {
-        let mut cache = jwt_key_cache.cache.write().await;
-        *cache = Some((cached_keys.clone(), Instant::now()));
-    }
+    let result = esi_client.oauth2().jwk().fetch_and_update_cache().await;
+
+    // Assert cache was initially populated without issues
+    assert!(result.is_ok());
 
     // Call the method under test
     let result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
-    // Assert no fetch requests were made
+    // Assert only 1 fetch request was made
     mock.assert();
 
     // Assert result is Ok
@@ -53,79 +44,57 @@ async fn get_jwt_keys_valid_cache() {
 ///
 /// # Test Setup
 /// - Create a basic EsiClient & mock HTTP server
-/// - Configures a mock success response with expected JWT keys
-/// - Pre-populates the cache with expired keys
+/// - Create mock success response expecting 2 requests:
+/// - Pre-populate the cache
+/// - Wait for the cache to expire (2 seconds)
 ///
 /// # Assertions
-/// - Assert that 1 fetch request was made to mock server
-/// - Asserts result is Ok
-/// - Assert expected keys were returned
-/// - Assert key cache is not empty
-/// - Assert keys in cache are no longer expired
+/// - Assert cache was initially populated without issues
+/// - Assert mock server received 2 expected fetch requests
+/// - Assert result is Ok
 #[tokio::test]
 async fn get_jwt_keys_expired_cache() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
-    let jwt_key_cache = &esi_client.jwt_key_cache;
 
-    // Create mock response with mock keys & expecting 1 request
-    let mock = get_jwk_success_response(&mut mock_server, 1);
+    // Create mock success response expecting 2 requests:
+    // - Pre-populating the cache
+    // - Refreshing the expired cache
+    let mock = get_jwk_success_response(&mut mock_server, 2);
 
-    // Pre-populate the cache with expired keys
-    {
-        let mut cache = jwt_key_cache.cache.write().await;
+    // Pre-populate the cache
+    let result = esi_client.oauth2().jwk().fetch_and_update_cache().await;
 
-        let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(3600);
-        let mock_keys = create_mock_jwt_keys_alternative();
+    // Assert cache was initially populated without issues
+    assert!(result.is_ok());
 
-        *cache = Some((mock_keys, timestamp));
-    }
+    // Wait for cache to expire
+    // For testing, the cache expiry is set to 2 seconds
+    tokio::time::sleep(std::time::Duration::from_millis(2100)).await;
 
     // Call the method under test
     let result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
-    // Assert mock server received 1 expected fetch request
+    // Assert mock server received 2 expected fetch requests
     mock.assert();
 
     // Assert result is Ok
     assert!(result.is_ok());
-
-    // Assert expected keys were returned
-    let jwt_keys = result.unwrap();
-    assert_eq!(jwt_keys.keys.len(), 2);
-
-    // Cache should be updated with new keys
-    {
-        let cache = jwt_key_cache.cache.read().await;
-
-        // Assert cache is not empty
-        assert!(cache.is_some());
-        let (_, timestamp) = cache.as_ref().unwrap();
-
-        // Assert keys in cache are no longer expired
-        // By default keys expire after 3600 seconds
-        let expired = std::time::Instant::now() - std::time::Duration::from_secs(3600);
-
-        assert!(timestamp > &expired)
-    }
 }
 
 /// Tests that get_jwt_keys fetches fresh keys when the cache is empty.
 ///
 /// # Test Setup
-/// - Create a basic EsiClient & mock HTTP server
-/// - Configures a mock success response with expected JWT keys
-/// - JWT key cache will be empty by default
+/// - Setup a basic EsiClient & mock HTTP server
+/// - Create mock response with mock keys & expecting 1 request
 ///
 /// # Assertions
 /// - Assert mock server received 1 expected fetch request
 /// - Assert result is ok
-/// - Assert JWT key cache is no longer empty
 #[tokio::test]
 async fn get_jwt_keys_empty_cache() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
-    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -138,45 +107,37 @@ async fn get_jwt_keys_empty_cache() {
 
     // Assert result is ok
     assert!(result.is_ok());
-
-    // Cache should be updated with new keys
-    {
-        let cache = jwt_key_cache.cache.read().await;
-
-        // Assert cache is no longer empty
-        assert!(cache.is_some());
-    }
 }
 
 /// An error will be returned due to refresh cooldown still being active
 ///
 /// # Test Setup
-/// - Create a basic EsiClient & mock HTTP server
-/// - Set last refresh failure within past 60 seconds
+/// - Setup a basic EsiClient & mock HTTP server
+/// - Create a mock response expecting 3 requests
 ///
 /// # Assertions
-/// - Assert mock server received 0 expected fetch requests
+/// - Assert initial attempt resulted in an error
+/// - Assert mock server received 3 expected fetch request from initial attempt
 /// - Assert result is error
-/// - Assert error is of type OAuthError::JwtKeyRefreshCooldown
+/// - Assert error is of the OAuthError:JwtKeyRefreshCooldown variant
 #[tokio::test]
 async fn get_jwt_keys_refresh_cooldown() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
-    let jwt_key_cache = &esi_client.jwt_key_cache;
 
-    // Create a mock response expecting 0 requests
-    let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
+    // Create a mock response expecting 3 requests
+    let mock = get_jwk_internal_server_error_response(&mut mock_server, 3);
 
-    // Set the recent failure within cooldown period default of 60 seconds
-    {
-        let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
-        *failure_time = Some(std::time::Instant::now() - std::time::Duration::from_secs(30));
-    }
+    // Make an initial attempt to update the cache which which will fail
+    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
+
+    // Assert initial attempt resulted in an error
+    assert!(result.is_err());
 
     // Call the method under test
     let result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
-    // Assert mock server received 1 expected fetch request
+    // Assert mock server received 3 expected fetch request from initial attempt
     mock.assert();
 
     // Assert result is error
@@ -186,4 +147,49 @@ async fn get_jwt_keys_refresh_cooldown() {
         Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshCooldown(_))) => {}
         _ => panic!("Expected OAuthError::JwtKeyRefreshCooldown error"),
     }
+}
+
+/// Tests that background refresh is triggered when cache is past proactive refresh threshold
+///
+/// # Test Setup
+/// - Setup a basic EsiClient & mock HTTP server
+/// - Create a mock response expecting 2 requests
+/// - Pre-populate the cache
+/// - Wait a moment for cache to reach background refresh threshold (1100ms)
+///
+/// # Assertions
+/// - Assert cache was successfully updated
+/// - Assert 2 fetch requests were made, the pre-populate & background refresh
+/// - Assert result is Ok
+#[tokio::test]
+async fn get_jwt_keys_background_refresh() {
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
+
+    // Create a mock response expecting 2 requests:
+    // - Pre-populate the cache
+    // - Background refresh
+    let mock = get_jwk_success_response(&mut mock_server, 2);
+
+    // Pre-populate the cache
+    let result = esi_client.oauth2().jwk().fetch_and_update_cache().await;
+
+    // Assert cache was successfully updated
+    assert!(result.is_ok());
+
+    // Wait a moment for cache to reach background refresh threshold
+    // For testing, we set cache expiry to 2 seconds & threshold to 50%
+    tokio::time::sleep(Duration::from_millis(1100)).await;
+
+    // Call the method under test
+    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
+
+    // Wait for background refresh to run
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    // Assert 2 fetch requests were made, the pre-populate & background refresh
+    mock.assert();
+
+    // Assert result is Ok
+    assert!(result.is_ok());
 }

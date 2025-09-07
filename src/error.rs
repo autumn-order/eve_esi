@@ -32,18 +32,18 @@
 //!     .public_data()
 //!     .build();
 //!
-//! // Error will be returned due to OAuth2 not being configured
-//! let result = esi_client.oauth2().initiate_oauth_login(scopes);
+//! // OAuth2 runtime error will be returned due to OAuth2 not being setup on client
+//! let result = esi_client.oauth2().login_url(scopes);
 //!
 //! // Handle error types
 //! match result {
 //!     Ok(_) => { /* ... */ }
-//!     Err(EsiError::EsiConfigError(config_err)) => {
-//!         // Handle config-specific error
-//!         println!("Config error: {config_err}");
+//!     Err(EsiError::OAuthError(oauth_err)) => {
+//!         // Handle OAuth2-specific error
+//!         println!("OAuth2 error: {oauth_err}");
 //!     }
 //!     // Additional EsiError types
-//!     err => panic!("Unexpected error type: {:#?}")
+//!     err => panic!("Unexpected error type: {:#?}", err)
 //! }
 //! ```
 

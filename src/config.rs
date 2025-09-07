@@ -33,13 +33,15 @@
 //! ## Usage
 //!
 //! ```
+//! use std::time::Duration;
+//!
 //! use eve_esi::EsiClient;
 //! use eve_esi::config::EsiConfig;
 //!
 //! // Build a config to override defaults
 //! let config = EsiConfig::builder()
 //!     // Set JWT key cache lifetime to 7200 seconds representing 2 hours
-//!     .jwk_cache_ttl(7200)
+//!     .jwk_cache_ttl(Duration::from_secs(7200))
 //!     .build()
 //!     .expect("Failed to build EsiConfig");
 //!
