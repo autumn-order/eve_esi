@@ -151,6 +151,10 @@ async fn get_jwt_keys_refresh_cooldown() {
 
 /// Tests that background refresh is triggered when cache is past proactive refresh threshold
 ///
+/// When the JWT key cache is a certain % to expiry determined by the background_refresh_threshold
+/// set on the EsiConfig for EsiClient, a background refresh is triggered to refresh keys
+/// proactively.
+///
 /// # Test Setup
 /// - Setup a basic EsiClient & mock HTTP server
 /// - Create a mock response expecting 2 requests
@@ -158,7 +162,7 @@ async fn get_jwt_keys_refresh_cooldown() {
 /// - Wait a moment for cache to reach background refresh threshold (1100ms)
 ///
 /// # Assertions
-/// - Assert cache was successfully updated
+/// - Assert cache was initially populated without issues
 /// - Assert 2 fetch requests were made, the pre-populate & background refresh
 /// - Assert result is Ok
 #[tokio::test]
@@ -171,7 +175,7 @@ async fn get_jwt_keys_background_refresh() {
     // - Background refresh
     let mock = get_jwk_success_response(&mut mock_server, 2);
 
-    // Pre-populate the cache
+    // Assert cache was initially populated without issues
     let result = esi_client.oauth2().jwk().fetch_and_update_cache().await;
 
     // Assert cache was successfully updated
@@ -187,9 +191,60 @@ async fn get_jwt_keys_background_refresh() {
     // Wait for background refresh to run
     tokio::time::sleep(Duration::from_millis(100)).await;
 
-    // Assert 2 fetch requests were made, the pre-populate & background refresh
+    // Assert 2 fetch requests were made, pre-populating the cache & background refresh
     mock.assert();
 
     // Assert result is Ok
     assert!(result.is_ok());
+}
+
+/// Tests only 1 request is made when get_jwt_keys is called concurrently
+///
+/// Spawns 3 tasks that all attempt to get JWT keys from an empty cache which would
+/// prompt them to attempt to refresh the keys. They'll attempt to acquire a refresh lock,
+/// whichever one acquires the lock performs a refresh while the other 2 tasks
+/// will wait for the refresh to complete and then return the keys from the cache.
+///
+/// # Test Setup
+/// - Setup a basic EsiClient & mock HTTP server
+/// - Create a mock response expecting 1 request
+/// - Spawn 3 concurrent tasks that all call get_jwt_keys
+/// - Wait for all tasks to complete
+///
+/// # Assertions
+/// - Assert only 1 fetch request was made
+/// - Assert all tasks got valid results
+#[tokio::test]
+async fn get_jwt_keys_concurrency() {
+    // Setup a basic EsiClient & mock HTTP server
+    let (esi_client, mut mock_server) = setup().await;
+
+    // Create a mock response expecting 1 request
+    let mock = get_jwk_success_response(&mut mock_server, 1);
+
+    // Create shared client reference
+    let esi_client = std::sync::Arc::new(esi_client);
+
+    // Create 3 tasks to call get_jwt_keys concurrently
+    let client1 = esi_client.clone();
+    let task1 = tokio::spawn(async move { client1.oauth2().jwk().get_jwt_keys().await });
+
+    let client2 = esi_client.clone();
+    let task2 = tokio::spawn(async move { client2.oauth2().jwk().get_jwt_keys().await });
+
+    let client3 = esi_client.clone();
+    let task3 = tokio::spawn(async move { client3.oauth2().jwk().get_jwt_keys().await });
+
+    // Wait for all tasks to complete
+    let result1 = task1.await.expect("Task 1 panicked");
+    let result2 = task2.await.expect("Task 2 panicked");
+    let result3 = task3.await.expect("Task 3 panicked");
+
+    // Assert only 1 fetch request was made
+    mock.assert();
+
+    // Assert all tasks got valid results
+    assert!(result1.is_ok(), "Task 1 failed: {:?}", result1.err());
+    assert!(result2.is_ok(), "Task 2 failed: {:?}", result2.err());
+    assert!(result3.is_ok(), "Task 3 failed: {:?}", result3.err());
 }
