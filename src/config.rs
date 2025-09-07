@@ -55,8 +55,8 @@ use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
     constant::{DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_TOKEN_URL},
-    error::EsiError,
-    oauth2::{error::OAuthConfigError, jwk::cache::JwtKeyCacheConfig},
+    error::{EsiConfigError, EsiError},
+    oauth2::jwk::cache::JwtKeyCacheConfig,
 };
 
 /// Configuration settings for the [`EsiClient`](crate::EsiClient)
@@ -158,27 +158,25 @@ impl EsiConfigBuilder {
     pub fn build(self) -> Result<EsiConfig, EsiError> {
         // Ensure background refresh percentage is set properly
         if !(self.jwt_key_cache_config.background_refresh_threshold > 0) {
-            return Err(EsiError::OAuthConfigError(
-                OAuthConfigError::InvalidBackgroundRefreshThreshold,
+            return Err(EsiError::EsiConfigError(
+                EsiConfigError::InvalidBackgroundRefreshThreshold,
             ));
         }
         if !(self.jwt_key_cache_config.background_refresh_threshold < 100) {
-            return Err(EsiError::OAuthConfigError(
-                OAuthConfigError::InvalidBackgroundRefreshThreshold,
+            return Err(EsiError::EsiConfigError(
+                EsiConfigError::InvalidBackgroundRefreshThreshold,
             ));
         }
 
         // Parse URLs
         let auth_url = match AuthUrl::new(self.auth_url.clone()) {
             Ok(url) => url,
-            Err(_) => return Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)),
+            Err(_) => return Err(EsiError::EsiConfigError(EsiConfigError::InvalidAuthUrl)),
         };
         let token_url = match TokenUrl::new(self.token_url.clone()) {
             Ok(url) => url,
             Err(_) => {
-                return Err(EsiError::OAuthConfigError(
-                    OAuthConfigError::InvalidTokenUrl,
-                ));
+                return Err(EsiError::EsiConfigError(EsiConfigError::InvalidTokenUrl));
             }
         };
 
@@ -481,8 +479,8 @@ mod tests {
         // Assert error is of type OAuthConfigError::InvalidBackgroundRefreshThreshold
         assert!(matches!(
             result,
-            Err(EsiError::OAuthConfigError(
-                OAuthConfigError::InvalidBackgroundRefreshThreshold
+            Err(EsiError::EsiConfigError(
+                EsiConfigError::InvalidBackgroundRefreshThreshold
             ))
         ))
     }
@@ -494,7 +492,7 @@ mod tests {
     ///
     /// # Assertions
     /// - Assert result is an error
-    /// - Assert error is of type [`OAuthConfigError::InvalidBackgroundRefreshThreshold`]
+    /// - Assert error is of type [`EsiConfigError::InvalidBackgroundRefreshThreshold`]
     #[test]
     fn test_invalid_background_refresh_threshold_100() {
         // Create a EsiConfig with invalid threshold percent
@@ -505,11 +503,11 @@ mod tests {
         // Assert result is error
         assert!(result.is_err());
 
-        // Assert error is of type OAuthConfigError::InvalidBackgroundRefreshThreshold
+        // Assert error is of type EsiConfigError::InvalidBackgroundRefreshThreshold
         assert!(matches!(
             result,
-            Err(EsiError::OAuthConfigError(
-                OAuthConfigError::InvalidBackgroundRefreshThreshold
+            Err(EsiError::EsiConfigError(
+                EsiConfigError::InvalidBackgroundRefreshThreshold
             ))
         ))
     }
@@ -520,7 +518,7 @@ mod tests {
     /// - Attempt to build an EsiConfig with the auth_url set to an invalid URL.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidAuthUrl)
+    /// - Verifies that the error response is EsiConfigError::InvalidAuthUrl
     #[test]
     fn test_invalid_auth_url() {
         // Create an EsiConfig with an invalid auth_url
@@ -530,8 +528,8 @@ mod tests {
         assert!(result.is_err());
 
         match result {
-            // Assert error is of the OAuthConfigError:InvalidAuthUrl variant
-            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidAuthUrl)) => {}
+            // Assert error is of the EsiConfigError:InvalidAuthUrl variant
+            Err(EsiError::EsiConfigError(EsiConfigError::InvalidAuthUrl)) => {}
             _ => panic!("Expected InvalidAuthUrl error"),
         }
     }
@@ -542,7 +540,7 @@ mod tests {
     /// - Attempt to build an EsiConfig with the token_url set to an invalid URL.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidTokenUrl)
+    /// - Verifies that the error response is EsiConfigError::InvalidTokenUrl
     #[test]
     fn test_invalid_token_url() {
         // Create an EsiConfig with an invalid token_url
@@ -552,8 +550,8 @@ mod tests {
         assert!(result.is_err());
 
         match result {
-            // Assert error is of the OAuthConfigError:InvalidTokenUrl variant
-            Err(EsiError::OAuthConfigError(OAuthConfigError::InvalidTokenUrl)) => {}
+            // Assert error is of the EsiConfigError:InvalidTokenUrl variant
+            Err(EsiError::EsiConfigError(EsiConfigError::InvalidTokenUrl)) => {}
             _ => panic!("Expected InvalidTokenUrl error"),
         }
     }

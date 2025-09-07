@@ -8,7 +8,7 @@
 //!
 //! This client is only used internally by the [`EsiClient`](crate::EsiClient).
 //!
-//! - See [module-level] documentation for a higher level overview and usage example
+//! - See [module-level documentation](super) for a higher level overview and usage example
 //! - See [EsiClientBuilder docs](crate::builder) for instructions on setting up OAuth2 for the eve_esi crate.
 
 use oauth2::basic::{BasicClient, BasicErrorResponseType, BasicTokenType};
@@ -20,7 +20,7 @@ use oauth2::{
 
 use crate::builder::EsiClientBuilder;
 use crate::config::EsiConfig;
-use crate::error::{EsiError, OAuthError};
+use crate::error::{EsiConfigError, EsiError};
 
 /// OAuth2 client type for [`EsiClient`](crate::EsiClient)
 ///
@@ -64,21 +64,25 @@ impl EsiClientBuilder {
         // Get client_id & client_secret
         let client_id = match self.client_id.clone() {
             Some(id) => id.clone(),
-            None => return Err(EsiError::OAuthError(OAuthError::MissingClientId)),
+            None => return Err(EsiError::EsiConfigError(EsiConfigError::MissingClientId)),
         };
         let client_secret = match self.client_secret.clone() {
             Some(secret) => secret.clone(),
-            None => return Err(EsiError::OAuthError(OAuthError::MissingClientSecret)),
+            None => {
+                return Err(EsiError::EsiConfigError(
+                    EsiConfigError::MissingClientSecret,
+                ))
+            }
         };
 
         // Parse URLs
         let callback_url = match self.callback_url.clone() {
             Some(url) => url.clone(),
-            None => return Err(EsiError::OAuthError(OAuthError::MissingCallbackUrl)),
+            None => return Err(EsiError::EsiConfigError(EsiConfigError::MissingCallbackUrl)),
         };
         let redirect_url = match RedirectUrl::new(callback_url) {
             Ok(url) => url,
-            Err(_) => return Err(EsiError::OAuthError(OAuthError::InvalidCallbackUrl)),
+            Err(_) => return Err(EsiError::EsiConfigError(EsiConfigError::InvalidCallbackUrl)),
         };
 
         // Create OAuth2 Client
@@ -94,7 +98,7 @@ impl EsiClientBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::error::{EsiError, OAuthError};
+    use crate::error::{EsiConfigError, EsiError};
     use crate::EsiClient;
 
     /// Tests the successful build of the OAuth2 client for the [`EsiClient`]
@@ -123,7 +127,7 @@ mod tests {
     /// - Creates an ESI client with OAuth2 configured
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::MissingClientId
+    /// - Verifies that the error response is EsiConfigError::MissingClientId
     #[test]
     fn test_missing_client_id() {
         let result = EsiClient::builder()
@@ -136,7 +140,7 @@ mod tests {
             Ok(_) => {
                 panic!("Expected Err");
             }
-            Err(EsiError::OAuthError(OAuthError::MissingClientId)) => {
+            Err(EsiError::EsiConfigError(EsiConfigError::MissingClientId)) => {
                 assert!(true);
             }
             Err(_) => panic!("Expected EsiError::MissingClientId"),
@@ -149,7 +153,7 @@ mod tests {
     /// - Creates an ESI client with the client_secret not set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::MissingClientSecret
+    /// - Verifies that the error response is EsiConfigError::MissingClientSecret
     #[test]
     fn test_missing_client_secret() {
         let result = EsiClient::builder()
@@ -162,7 +166,7 @@ mod tests {
             Ok(_) => {
                 panic!("Expected Err");
             }
-            Err(EsiError::OAuthError(OAuthError::MissingClientSecret)) => {
+            Err(EsiError::EsiConfigError(EsiConfigError::MissingClientSecret)) => {
                 assert!(true);
             }
             Err(_) => panic!("Expected EsiError::MissingClientSecret"),
@@ -175,7 +179,7 @@ mod tests {
     /// - Creates an ESI client with the callback_url not set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::MissingCallbackUrl
+    /// - Verifies that the error response is EsiConfigError::MissingCallbackUrl
     #[test]
     fn test_missing_callback_url() {
         // Create an ESI client
@@ -189,7 +193,7 @@ mod tests {
             Ok(_) => {
                 panic!("Expected Err");
             }
-            Err(EsiError::OAuthError(OAuthError::MissingCallbackUrl)) => {
+            Err(EsiError::EsiConfigError(EsiConfigError::MissingCallbackUrl)) => {
                 assert!(true);
             }
             Err(_) => panic!("Expected EsiError::MissingCallbackUrl"),
@@ -202,7 +206,7 @@ mod tests {
     /// - Creates an ESI client with the callback_url set to an invalid URL.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::InvalidCallbackUrl)
+    /// - Verifies that the error response is EsiConfigError::InvalidCallbackUrl
     #[test]
     fn test_invalid_callback_url() {
         let result = EsiClient::builder()
@@ -214,7 +218,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(EsiError::OAuthError(OAuthError::InvalidCallbackUrl)) => {}
+            Err(EsiError::EsiConfigError(EsiConfigError::InvalidCallbackUrl)) => {}
             _ => panic!("Expected InvalidCallbackUrl error"),
         }
     }

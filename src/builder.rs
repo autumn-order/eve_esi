@@ -321,7 +321,7 @@ fn get_or_default_reqwest_client(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{constant::DEFAULT_ESI_URL, error::OAuthError};
+    use crate::{constant::DEFAULT_ESI_URL, error::EsiConfigError};
 
     /// Test default values of the `EsiClientBuilder`.
     ///
@@ -467,7 +467,7 @@ mod tests {
     /// - Creates an ESI client builder with only the client_id set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiError::OAuthError(OAuthError::MissingClientSecret)
+    /// - Verifies that the error response is EsiConfigError::MissingClientSecret
     #[test]
     fn test_build_with_partial_oauth_config() {
         // Test that providing only client_id without the other OAuth params fails
@@ -478,7 +478,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(EsiError::OAuthError(OAuthError::MissingClientSecret)) => {}
+            Err(EsiError::EsiConfigError(EsiConfigError::MissingClientSecret)) => {}
             _ => panic!("Expected MissingClientSecret error"),
         }
     }
