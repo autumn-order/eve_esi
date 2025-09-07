@@ -5,11 +5,11 @@ use eve_esi::{
     model::oauth2::EveJwtKeys,
 };
 
-use crate::oauth2::jwk::util::{
-    get_jwk_internal_server_error_response, get_jwk_success_response, setup,
+use super::util::{
+    create_mock_jwt_keys_alternative, get_jwk_internal_server_error_response,
+    get_jwk_success_response,
 };
-
-use super::super::mock::create_mock_jwt_keys_alternative;
+use crate::util::setup;
 
 /// Tests that get_jwt_keys returns cached keys when they are not expired.
 ///

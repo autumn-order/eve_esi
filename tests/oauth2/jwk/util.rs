@@ -1,45 +1,6 @@
-use std::time::Duration;
+use eve_esi::model::oauth2::{EveJwtKey, EveJwtKeys};
 
-use eve_esi::config::EsiConfig;
-use eve_esi::model::oauth2::EveJwtKeys;
-use eve_esi::EsiClient;
-use mockito::{Mock, Server, ServerGuard};
-
-/// Utility function to create initial test setup for all jwk integration tests
-///
-/// # Setup
-/// - Create a mock server using the [`mockito`] crate to handle HTTP requests at mock endpoints
-/// - Create an [`EsiConfig`] with the `jwk_url` set to the mock server & reduced wait times
-/// - Create an EsiClient using the custom [`EsiConfig`]
-///
-/// # Returns
-/// A tuple containing:
-/// - [`eve_esi::EsiClient`]: A basic EsiClient with jwk_url set to the mock server
-/// - [`mockito::ServerGuard`]: A mock server for handling http requests for test purposes
-pub(super) async fn setup() -> (EsiClient, ServerGuard) {
-    // Setup mock server
-    let mock_server = Server::new_async().await;
-    let mock_server_url = mock_server.url();
-
-    // Create a config with mock server JWK URL & reduced wait times
-    let config = EsiConfig::builder()
-        .jwk_url(&format!("{}/oauth/jwks", mock_server_url))
-        // Set exponential backoff between refresh retries to 1 millisecond
-        .jwk_refresh_backoff(Duration::from_millis(1))
-        // Set timeout to 1 second when waiting for another thread to refresh
-        .jwk_refresh_timeout(Duration::from_secs(1))
-        .build()
-        .expect("Failed to build EsiConfig");
-
-    // Create ESI client with the custom config
-    let esi_client = EsiClient::builder()
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .config(config)
-        .build()
-        .expect("Failed to build EsiClient");
-
-    (esi_client, mock_server)
-}
+use mockito::{Mock, ServerGuard};
 
 /// Returns status code 200 with mock jwk keys
 ///
@@ -94,4 +55,28 @@ pub(super) fn get_jwk_internal_server_error_response(
         .create();
 
     mock
+}
+
+/// Helper function to create mock JWT keys for testing cache refresh
+pub fn create_mock_jwt_keys_alternative() -> EveJwtKeys {
+    EveJwtKeys {
+        skip_unresolved_json_web_keys: true, // Different from the other mock
+        keys: vec![
+            EveJwtKey::RS256 {
+                e: "AQAB".to_string(),
+                kid: "JWT-Signature-Key-3".to_string(), // Different kid
+                kty: "RSA".to_string(),
+                n: "vX1oo9bD4DQBZa4qP0W0HZK2sNM3JRj3n5UZ1qJ9WqFpOvG43UqKVeSoK5jIIZ9OyTQCJFN3WUuGfFWuXIQUQ-YQgNzBu9NrGfSqZjgS5j3xgxWTQ2aaCQC8CyNDwIPvHFsB3nI9SPjVJxwoKaceTLMV98_5IMydZYpDXWv8qahA1wIbjrwFkDm6uKxRkUwRWjOcK3GVtYjBnmrcaQK5_6gbfBgOt2kkE3QRFNZdUSkvU6M0DTQj4JpJ8zUFRB0Z3HVarJ_LXzlRkXAjggItTYINijMNzcROLfLdQA9U0q-JiU8EhRkD9LJXSQgQXE5hXRQwGjSH_QJWIoQcdQ".to_string(), // Different n
+                r#use: "sig".to_string(),
+            },
+            EveJwtKey::ES256 {
+                crv: "P-256".to_string(),
+                kid: "JWT-Signature-Key-4".to_string(), // Different kid
+                kty: "EC".to_string(),
+                r#use: "sig".to_string(),
+                x: "F0KvrJXqZJ8avKyHx3EZpGbIHwYZPiBgmX0oRbbO9_c".to_string(), // Different x
+                y: "NluE_RjRJbxNCFnG9oqB_3KJq0bLiQJGlXrfEiT6Oig".to_string(), // Different y
+            },
+        ],
+    }
 }

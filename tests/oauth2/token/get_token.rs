@@ -1,42 +1,11 @@
 use eve_esi::config::EsiConfig;
-use mockito::{Server, ServerGuard};
-use oauth2::RequestTokenError;
-
 use eve_esi::error::{EsiError, OAuthError};
 use eve_esi::EsiClient;
+use mockito::Server;
+use oauth2::RequestTokenError;
 
 use super::util::create_mock_token;
-
-/// Provides an [`EsiClient`] & [`EsiConfig`] with the token URL shared between tests
-///
-/// # Setup
-/// - Create a mock server using the [`mockito`] crate to handle HTTP requests at mock endpoints
-/// - Create [`EsiConfig`] pointing token_url to the mock server
-/// - Create [`EsiClient`] with custom config & oauth configured
-///
-/// # Returns
-/// A tuple containing:
-/// - [`eve_esi::EsiClient`]: A basic EsiClient with token_url set to the mock server
-/// - [`mockito::ServerGuard`]: A mock server for handling http requests for test purposes
-async fn setup() -> Result<(EsiClient, ServerGuard), EsiError> {
-    let mock_server = Server::new_async().await;
-
-    // Create EsiConfig pointing token_url to the mock server
-    let config = EsiConfig::builder()
-        .token_url(&format!("{}/v2/oauth/token", mock_server.url()))
-        .build()?;
-
-    // Create EsiClient with custom config & oauth configured
-    let client = EsiClient::builder()
-        .config(config)
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .client_id("client_id")
-        .client_secret("client_secret")
-        .callback_url("http://localhost:8000/callback")
-        .build()?;
-
-    Ok((client, mock_server))
-}
+use crate::util::setup;
 
 /// Tests the successful retrieval of an OAuth2 token
 ///
@@ -50,7 +19,7 @@ async fn setup() -> Result<(EsiClient, ServerGuard), EsiError> {
 #[tokio::test]
 pub async fn test_get_token_success() {
     // Create EsiClient configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await.unwrap();
+    let (client, mut mock_server) = setup().await;
 
     // Create mock response
     let mock_token = create_mock_token();
@@ -82,7 +51,7 @@ pub async fn test_get_token_success() {
 #[tokio::test]
 pub async fn test_get_token_error() {
     // Create EsiClient configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await.unwrap();
+    let (client, mut mock_server) = setup().await;
 
     // Create mock response
     let mock = mock_server

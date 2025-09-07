@@ -1,7 +1,7 @@
 use eve_esi::error::EsiError;
 use eve_esi::model::alliance::Alliance;
 
-use super::super::util::setup;
+use crate::util::setup;
 
 /// Tests the successful retrieval of alliance information from a mock EVE ESI server.
 ///
