@@ -29,14 +29,18 @@
 //!     .build()
 //!     .expect("Failed to build EsiClient");
 //!
+//! // Build scopes requesting only publicData
 //! let scopes = eve_esi::oauth2::ScopeBuilder::new()
 //!     .public_data()
 //!     .build();
+//!
+//! // Create a login URL
 //! let auth_data = esi_client
 //!     .oauth2()
-//!     .initiate_oauth_login(scopes)
-//!     .expect("Failed to initiate OAuth login");
+//!     .login_url(scopes)
+//!     .expect("Failed to create a login url");
 //!
+//! // Print the created login URL
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```
 
