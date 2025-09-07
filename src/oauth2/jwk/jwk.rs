@@ -143,7 +143,7 @@ impl<'a> JwkApi<'a> {
         if let Some(cooldown_remaining) = cooldown {
             let error_message = format!(
                 "JWT key refresh cooldown still active due to recent refresh failure during last {} seconds. Cooldown remaining: {} seconds.",
-                &config.refresh_cooldown, cooldown_remaining
+                &config.refresh_cooldown.as_secs(), cooldown_remaining
             );
 
             #[cfg(not(tarpaulin_include))]
