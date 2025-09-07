@@ -589,3 +589,258 @@ mod wait_for_ongoing_refresh_tests {
         }
     }
 }
+
+#[cfg(test)]
+mod trigger_background_jwt_refresh_test {
+    use std::time::Duration;
+
+    use crate::tests::setup;
+
+    /// Ensures the successful trigger of a background refresh
+    ///
+    /// Background refresh should occur because there is no current cooldown nor refresh lock in place.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient & mock HTTP server
+    ///
+    /// # Assertions
+    /// - Assert background refresh has been triggered
+    #[tokio::test]
+    async fn test_background_refresh() {
+        // Setup a basic EsiClient & mock HTTP server
+        let (esi_client, _) = setup().await;
+
+        // Trigger background refresh
+        let result = esi_client
+            .oauth2()
+            .jwk()
+            .trigger_background_jwt_refresh()
+            .await;
+
+        // Sleep to allow refresh to execute for code coverage
+        tokio::time::sleep(Duration::from_millis(100)).await;
+
+        // Assert background refresh has been triggered
+        assert_eq!(result, true);
+    }
+
+    /// Tests the background refresh if still within cooldown period
+    ///
+    /// A background refresh should not be triggered due to the last refresh failure
+    /// being within the 60 second cooldown period.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient & mock HTTP server
+    /// - Set last failure within cooldown period of last 60 seconds
+    ///
+    /// # Assertions
+    /// - Assert background refresh was not triggered
+    #[tokio::test]
+    async fn test_background_refresh_cooldown() {
+        // Setup a basic EsiClient & mock HTTP server
+        let (esi_client, _) = setup().await;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        // Set last failure within cooldown period of last 60 seconds (failed 30 seconds ago)
+        {
+            let last_failure = std::time::Instant::now() - std::time::Duration::from_secs(30);
+
+            let mut failure_time = jwt_key_cache.last_refresh_failure.write().await;
+            *failure_time = Some(last_failure);
+        }
+
+        // Trigger background refresh
+        let refresh_triggered = esi_client
+            .oauth2()
+            .jwk()
+            .trigger_background_jwt_refresh()
+            .await;
+
+        // Assert background refresh was not triggered
+        assert_eq!(refresh_triggered, false)
+    }
+
+    /// Tests the background refresh if refresh is already in progress by another thread
+    ///
+    /// Acquires a refresh lock which indicates another thread is performing a refresh,
+    /// therefore a background refresh will not be triggered.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient & mock HTTP server
+    /// - Acquire a refresh lock
+    ///
+    /// # Assertions
+    /// - Assert refresh lock is in place
+    /// - Assert background refresh was not triggered
+    #[tokio::test]
+    async fn test_background_refresh_already_in_progress() {
+        // Setup a basic EsiClient & mock HTTP server
+        let (esi_client, _) = setup().await;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        // Acquire a refresh lock
+        let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
+
+        // Assert refresh lock is in place
+        assert_eq!(lock_acquired, true);
+
+        // Trigger background refresh
+        let refresh_triggered = esi_client
+            .oauth2()
+            .jwk()
+            .trigger_background_jwt_refresh()
+            .await;
+
+        // Assert background refresh was not triggered
+        assert_eq!(refresh_triggered, false);
+    }
+}
+
+#[cfg(test)]
+mod refresh_jwt_keys_tests {
+    use crate::tests::setup;
+    use crate::{error::EsiError, oauth2::jwk::refresh::refresh_jwt_keys};
+
+    use super::super::tests::{get_jwk_internal_server_error_response, get_jwk_success_response};
+
+    /// Validates successful refresh on first attempt
+    ///
+    /// Attempts to refresh & update JWT key cache from a mock server
+    /// representing EVE Online OAuth2 API. Only 1 fetch attempt should be made as it will
+    /// be a success on the first try.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient & mock HTTP server
+    /// - Configures a mock success response with expected JWT keys
+    ///
+    /// # Assertions
+    /// - Assert that only 1 fetch attempt was made to the server
+    /// - Assert that the function returned the expected keys
+    /// - Assert that the cache has been properly updated
+    #[tokio::test]
+    async fn test_refresh_keys_success() {
+        // Setup a basic EsiClient & mock HTTP server
+        let (esi_client, mut mock_server) = setup().await;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        // Create mock response with mock keys & expecting 1 request
+        let mock = get_jwk_success_response(&mut mock_server, 1);
+
+        // Call method under test
+        let result = refresh_jwt_keys(
+            &esi_client.reqwest_client,
+            &esi_client.jwt_key_cache,
+            esi_client.jwt_key_cache.config.refresh_max_retries,
+        )
+        .await;
+
+        // Assert we received only 1 expected request
+        mock.assert();
+
+        // Assert function returned expected keys
+        assert!(result.is_ok());
+
+        // Assert cache has been properly updated
+        let cache = jwt_key_cache.cache.read().await;
+
+        assert!(*&cache.is_some())
+    }
+
+    /// Validates error handling should all attempts fail
+    ///
+    /// Attempts to refresh & update JWT key cache from a mock server
+    /// representing the EVE Online OAuth2 API. All attempts will fail due to the mock server returning
+    /// error code 500 on each attempt. The function should retry
+    /// for a total of 3 attempts before returning an error.
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient & mock HTTP server
+    /// - Configures a mock response returning an error 500
+    ///
+    /// # Assertions
+    /// - Assert that 3 fetch attempts were made to the server
+    /// - Assert that the function returned the expected error type of
+    ///   reqwest::Error related to status code 500.
+    #[tokio::test]
+    async fn test_refresh_keys_failure() {
+        // Setup a basic EsiClient & mock HTTP server
+        let (esi_client, mut mock_server) = setup().await;
+
+        // Create mock response with error 500 and expecting 3 requests
+        let mock = get_jwk_internal_server_error_response(&mut mock_server, 3);
+
+        // Call method under test
+        let result = refresh_jwt_keys(
+            &esi_client.reqwest_client,
+            &esi_client.jwt_key_cache,
+            esi_client.jwt_key_cache.config.refresh_max_retries,
+        )
+        .await;
+
+        // Assert we received only 3 expected requests
+        mock.assert();
+
+        // Assert function returned expected error
+        assert!(result.is_err());
+        match result {
+            Err(EsiError::ReqwestError(err)) => {
+                // Ensure reqwest error is of type 500 server error
+                assert!(err.is_status());
+                assert_eq!(
+                    err.status(),
+                    Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR)
+                )
+            }
+            _ => panic!("Expected EsiError::ReqwestError, got different error type"),
+        }
+    }
+
+    /// Validates successful refresh after 2 attempts
+    ///
+    /// Attempts to refresh & update JWT key cache from a mock server
+    /// representing the EVE Online OAuth2 API. First attempt will fail due receiving status code 500,
+    /// second attempt will succeed returning the expected keys
+    ///
+    /// # Test Setup
+    /// - Create a basic EsiClient & mock HTTP server
+    /// - Configures an initial response returning an internal server error
+    /// - Configures a second response that successfully returns the expected keys
+    ///
+    /// # Assertions
+    /// - Assert that 1 fetch attempt was made for each response type, an
+    ///   error 500 response and success 200 that returned expected keys
+    /// - Assert that the function returned the expected keys
+    /// - Assert that the cache has been properly updated
+    #[tokio::test]
+    async fn test_refresh_keys_retry() {
+        // Setup a basic EsiClient & mock HTTP server
+        let (esi_client, mut mock_server) = setup().await;
+        let jwt_key_cache = &esi_client.jwt_key_cache;
+
+        // Create an initial mock response with error 500 and expecting 1 request
+        let mock_500 = get_jwk_internal_server_error_response(&mut mock_server, 1);
+
+        // Create a 2nd mock response with mock keys & expecting 1 request
+        let mock_200 = get_jwk_success_response(&mut mock_server, 1);
+
+        // Call method under test
+        let result = refresh_jwt_keys(
+            &esi_client.reqwest_client,
+            &esi_client.jwt_key_cache,
+            esi_client.jwt_key_cache.config.refresh_max_retries,
+        )
+        .await;
+
+        // Assert we received only 1 expected request per response type
+        mock_500.assert();
+        mock_200.assert();
+
+        // Assert function returned expected keys
+        assert!(result.is_ok());
+
+        // Assert cache has been properly updated
+        let cache = jwt_key_cache.cache.read().await;
+
+        assert!(*&cache.is_some())
+    }
+}
