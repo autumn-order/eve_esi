@@ -48,7 +48,7 @@ use std::sync::Arc;
 use log::warn;
 
 use crate::config::EsiConfig;
-use crate::error::EsiError;
+use crate::error::Error;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::EsiClient;
 
@@ -107,7 +107,7 @@ impl EsiClientBuilder {
     ///   missing OAuth2 settings on [`EsiClientBuilder`] or invalid URLs configured by a custom [`EsiConfig`].
     /// - There is an internal issue building a default [`reqwest::Client`]
     /// - There is an internal issue building a default [`EsiConfig`]
-    pub fn build(self) -> Result<EsiClient, EsiError> {
+    pub fn build(self) -> Result<EsiClient, Error> {
         let mut builder = self;
 
         // Create a default EsiConfig if one is not provided
@@ -297,7 +297,7 @@ impl EsiClientBuilder {
 fn get_or_default_reqwest_client(
     client: Option<reqwest::Client>,
     user_agent: &Option<String>,
-) -> Result<reqwest::Client, EsiError> {
+) -> Result<reqwest::Client, Error> {
     match client {
         Some(client) => {
             if user_agent.is_some() {
@@ -321,7 +321,7 @@ fn get_or_default_reqwest_client(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{constant::DEFAULT_ESI_URL, error::EsiConfigError};
+    use crate::{constant::DEFAULT_ESI_URL, ConfigError};
 
     /// Test default values of the `EsiClientBuilder`.
     ///
@@ -478,7 +478,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(EsiError::EsiConfigError(EsiConfigError::MissingClientSecret)) => {}
+            Err(Error::ConfigError(ConfigError::MissingClientSecret)) => {}
             _ => panic!("Expected MissingClientSecret error"),
         }
     }

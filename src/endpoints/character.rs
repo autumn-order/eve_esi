@@ -28,7 +28,7 @@
 //!     println!("Character name: {}", character.name);
 //! }
 //! ```
-use crate::error::EsiError;
+use crate::error::Error;
 use crate::EsiClient;
 
 use crate::model::character::{Character, CharacterAffiliation};
@@ -89,7 +89,7 @@ impl<'a> CharacterApi<'a> {
     pub async fn get_character_public_information(
         &self,
         character_id: i32,
-    ) -> Result<Character, EsiError> {
+    ) -> Result<Character, Error> {
         let url = format!("{}/characters/{}/", self.client.esi_url, character_id);
 
         Ok(self.client.get_from_public_esi::<Character>(&url).await?)
@@ -135,7 +135,7 @@ impl<'a> CharacterApi<'a> {
     pub async fn character_affiliation(
         &self,
         character_ids: Vec<i32>,
-    ) -> Result<Vec<CharacterAffiliation>, EsiError> {
+    ) -> Result<Vec<CharacterAffiliation>, Error> {
         let url = format!("{}/characters/affiliation/", self.client.esi_url);
         let esi_client = self.client;
 

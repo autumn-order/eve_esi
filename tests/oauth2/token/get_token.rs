@@ -1,6 +1,3 @@
-use eve_esi::config::EsiConfig;
-use eve_esi::error::{EsiError, OAuthError};
-use eve_esi::EsiClient;
 use mockito::Server;
 use oauth2::RequestTokenError;
 
@@ -67,8 +64,9 @@ pub async fn test_get_token_error() {
     mock.assert();
     match result {
         Ok(_) => panic!("Expected an error"),
-        Err(EsiError::OAuthError(OAuthError::TokenError(RequestTokenError::ServerResponse(_)))) => {
-        }
+        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::TokenError(
+            RequestTokenError::ServerResponse(_),
+        ))) => {}
         Err(err) => panic!("Expected error of type EsiError::ReqwestError: {}", err),
     }
 }
@@ -99,12 +97,12 @@ pub async fn test_get_token_oauth_client_missing() {
         .create();
 
     // Create ESI client without OAuth2 config & with mock token endpoint
-    let config = EsiConfig::builder()
+    let config = eve_esi::EsiConfig::builder()
         .token_url(&format!("{}/v2/oauth/token", mock_server.url()))
         .build()
         .expect("Failed to build EsiConfig");
 
-    let esi_client = EsiClient::builder()
+    let esi_client = eve_esi::EsiClient::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
         .config(config)
         .build()
@@ -117,7 +115,7 @@ pub async fn test_get_token_oauth_client_missing() {
     mock.assert();
     match result {
         Ok(_) => panic!("Expected an error"),
-        Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)) => {}
+        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::OAuth2NotConfigured)) => {}
         Err(_) => {
             panic!("Expected error of type EsiError::OAuthError(OAuthError::OAuth2NotConfigured)")
         }

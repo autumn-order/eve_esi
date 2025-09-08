@@ -1,7 +1,5 @@
 use std::time::Duration;
 
-use eve_esi::error::{EsiError, OAuthError};
-
 use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
 use crate::util::setup;
 
@@ -144,8 +142,11 @@ async fn get_jwt_keys_refresh_cooldown() {
     assert!(result.is_err());
     match result {
         // Assert error is of the OAuthError:JwtKeyRefreshCooldown variant
-        Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshCooldown(_))) => {}
-        _ => panic!("Expected OAuthError::JwtKeyRefreshCooldown error"),
+        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::JwtKeyRefreshCooldown(_))) => {}
+        err => panic!(
+            "Expected OAuthError::JwtKeyRefreshCooldown error, recieved: {:#?}.",
+            err
+        ),
     }
 }
 

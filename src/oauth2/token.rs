@@ -3,7 +3,7 @@
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, StandardTokenResponse};
 
-use crate::error::{EsiError, OAuthError};
+use crate::error::{Error, OAuthError};
 use crate::oauth2::OAuth2Api;
 
 impl<'a> OAuth2Api<'a> {
@@ -47,10 +47,10 @@ impl<'a> OAuth2Api<'a> {
     pub async fn get_token(
         &self,
         code: &str,
-    ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, EsiError> {
+    ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
         let client = match &self.client.oauth2_client {
             Some(client) => client,
-            None => return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)),
+            None => return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured)),
         };
 
         match client
@@ -59,7 +59,7 @@ impl<'a> OAuth2Api<'a> {
             .await
         {
             Ok(token) => Ok(token),
-            Err(err) => Err(EsiError::OAuthError(OAuthError::TokenError(err))),
+            Err(err) => Err(Error::OAuthError(OAuthError::TokenError(err))),
         }
     }
 }

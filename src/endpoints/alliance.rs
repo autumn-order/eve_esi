@@ -28,7 +28,7 @@
 //! }
 //! ```
 
-use crate::{error::EsiError, model::alliance::Alliance, EsiClient};
+use crate::{error::Error, model::alliance::Alliance, EsiClient};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
@@ -82,7 +82,7 @@ impl<'a> AllianceApi<'a> {
     ///     println!("Alliance name: {}", alliance.name);
     /// }
     /// ```
-    pub async fn get_alliance_information(&self, alliance_id: i32) -> Result<Alliance, EsiError> {
+    pub async fn get_alliance_information(&self, alliance_id: i32) -> Result<Alliance, Error> {
         let url = format!("{}/alliances/{}/", self.client.esi_url, alliance_id);
 
         Ok(self.client.get_from_public_esi::<Alliance>(&url).await?)

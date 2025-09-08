@@ -28,7 +28,7 @@
 //! }
 //! ```
 
-use crate::error::EsiError;
+use crate::error::Error;
 use crate::model::corporation::Corporation;
 use crate::EsiClient;
 
@@ -87,7 +87,7 @@ impl<'a> CorporationApi<'a> {
     pub async fn get_corporation_information(
         &self,
         corporation_id: i32,
-    ) -> Result<Corporation, EsiError> {
+    ) -> Result<Corporation, Error> {
         let url = format!("{}/corporations/{}/", self.client.esi_url, corporation_id);
 
         Ok(self.client.get_from_public_esi::<Corporation>(&url).await?)

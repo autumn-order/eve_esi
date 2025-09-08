@@ -1,5 +1,3 @@
-use eve_esi::error::EsiError;
-
 use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
 use crate::util::setup;
 
@@ -56,7 +54,7 @@ async fn test_fetch_and_update_cache_request_error() {
     // Assert result is error
     assert!(result.is_err());
     match result {
-        Err(EsiError::ReqwestError(err)) => {
+        Err(eve_esi::Error::ReqwestError(err)) => {
             // Assert error is reqwest error of type 500 internal server error
             assert!(err.is_status());
             assert_eq!(

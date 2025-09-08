@@ -69,12 +69,12 @@ pub use crate::oauth2::error::OAuthError;
 /// error types for granular handling.
 ///
 #[derive(Error, Debug)]
-pub enum EsiError {
+pub enum Error {
     /// Config errors related to building a [`EsiConfig`](crate::EsiConfig) or [`EsiClient`](crate::EsiClient)
     ///
     /// For a more detailed description, see [`EsiConfigError`]
     #[error(transparent)]
-    EsiConfigError(EsiConfigError),
+    ConfigError(ConfigError),
     /// Runtime errors related to the EVE Online OAuth2 authentication process.
     ///
     /// For a more detailed description, see [`OAuthError`].
@@ -104,7 +104,7 @@ pub enum EsiError {
 /// You can match on [`EsiConfigError`] to handle errors at a high level, or downcast to more specific
 /// error types for granular handling.
 #[derive(Error, Debug)]
-pub enum EsiConfigError {
+pub enum ConfigError {
     /// Error returned when the ESI client ID is missing.
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2

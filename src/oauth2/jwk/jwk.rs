@@ -12,7 +12,7 @@
 use log::{debug, error};
 use std::time::Instant;
 
-use crate::error::{EsiError, OAuthError};
+use crate::error::{Error, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::oauth2::jwk::refresh::refresh_jwt_keys;
@@ -88,7 +88,7 @@ impl<'a> JwkApi<'a> {
     ///
     /// # Errors
     /// - [`EsiError`]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
-    pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
+    pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.jwt_key_cache;
         let config = &jwt_key_cache.config;
@@ -149,7 +149,7 @@ impl<'a> JwkApi<'a> {
             #[cfg(not(tarpaulin_include))]
             error!("{}", error_message);
 
-            return Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshCooldown(
+            return Err(Error::OAuthError(OAuthError::JwtKeyRefreshCooldown(
                 error_message,
             )));
         }
@@ -186,7 +186,7 @@ impl<'a> JwkApi<'a> {
     ///
     /// # Errors
     /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
-    pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, EsiError> {
+    pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
 
         fetch_and_update_cache(&esi_client.reqwest_client, &esi_client.jwt_key_cache).await
@@ -206,7 +206,7 @@ impl<'a> JwkApi<'a> {
     ///
     /// # Errors
     /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
-    pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
+    pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
 
         fetch_jwt_keys(
@@ -237,7 +237,7 @@ impl<'a> JwkApi<'a> {
 pub(super) async fn fetch_jwt_keys(
     reqwest_client: &reqwest::Client,
     jwk_url: &str,
-) -> Result<EveJwtKeys, EsiError> {
+) -> Result<EveJwtKeys, Error> {
     #[cfg(not(tarpaulin_include))]
     debug!("Fetching JWT keys from EVE OAuth2 API: {}", jwk_url);
 
@@ -328,7 +328,7 @@ pub(super) async fn fetch_jwt_keys(
 pub(super) async fn fetch_and_update_cache(
     reqwest_client: &reqwest::Client,
     jwt_key_cache: &JwtKeyCache,
-) -> Result<EveJwtKeys, EsiError> {
+) -> Result<EveJwtKeys, Error> {
     #[cfg(not(tarpaulin_include))]
     debug!("Fetching fresh JWT keys and updating cache");
 

@@ -1,6 +1,5 @@
 use eve_esi::model::oauth2::EveJwtKey;
-use eve_esi::EsiClient;
-use eve_esi::{config::EsiConfig, error::EsiError};
+use eve_esi::{EsiClient, EsiConfig};
 
 use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
 use crate::util::setup;
@@ -82,7 +81,7 @@ async fn fetch_jwt_keys_server_error() {
     assert!(result.is_err());
 
     match result {
-        Err(EsiError::ReqwestError(err)) => {
+        Err(eve_esi::Error::ReqwestError(err)) => {
             // Assert error is reqwest error of type 500 internal server error
             assert!(err.is_status());
             assert_eq!(
@@ -134,7 +133,7 @@ async fn fetch_jwt_keys_network_error() {
     assert!(result.is_err());
 
     match result {
-        Err(EsiError::ReqwestError(err)) => {
+        Err(eve_esi::Error::ReqwestError(err)) => {
             // Assert reqwest error is related to a connection issue
             assert!(err.is_connect())
         }
@@ -180,7 +179,7 @@ async fn fetch_jwt_keys_parse_error() {
     assert!(result.is_err());
 
     match result {
-        Err(EsiError::ReqwestError(err)) => {
+        Err(eve_esi::Error::ReqwestError(err)) => {
             // Assert reqwest error is related to decoding the body
             assert!(err.is_decode())
         }

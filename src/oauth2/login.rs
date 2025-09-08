@@ -7,7 +7,7 @@
 
 use oauth2::{CsrfToken, Scope};
 
-use crate::error::{EsiError, OAuthError};
+use crate::error::{Error, OAuthError};
 use crate::model::oauth2::AuthenticationData;
 use crate::oauth2::OAuth2Api;
 
@@ -58,13 +58,13 @@ impl<'a> OAuth2Api<'a> {
     /// // Print the created login URL
     /// println!("Login URL: {}", auth_data.login_url);
     /// ```
-    pub fn login_url(&self, scopes: Vec<String>) -> Result<AuthenticationData, EsiError> {
+    pub fn login_url(&self, scopes: Vec<String>) -> Result<AuthenticationData, Error> {
         // Retrieve the OAuth2 client from the EsiClient
         let client = match &self.client.oauth2_client {
             Some(client) => client,
             // Returns an error if the OAuth2 client is not found due to it not having been configured when
             // building the EsiClient.
-            None => return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)),
+            None => return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured)),
         };
 
         // Convert the Vec<String> of scopes into Vec<Scope>
@@ -86,7 +86,7 @@ impl<'a> OAuth2Api<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::error::{EsiError, OAuthError};
+    use crate::error::{Error, OAuthError};
     use crate::oauth2::ScopeBuilder;
 
     /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
@@ -147,7 +147,7 @@ mod tests {
 
         // Ensure error is of type EsiError::OAuthError(OAuthError::OAuth2NotConfigured)
         match result {
-            Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)) => {},
+            Err(Error::OAuthError(OAuthError::OAuth2NotConfigured)) => {},
             err => panic!("Expected EsiError::OAuthError(OAuthError::OAuth2NotConfigured), instead received: {:#?}", err),
         }
     }

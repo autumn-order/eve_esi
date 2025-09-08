@@ -15,7 +15,7 @@ use std::time::Instant;
 use ::tokio::time::Duration;
 use log::{debug, error, info, trace};
 
-use crate::error::{EsiError, OAuthError};
+use crate::error::{Error, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 
@@ -48,7 +48,7 @@ impl<'a> JwkApi<'a> {
     /// - Ok([`EveJwtKeys`]) if the refresh was successful and keys are now in the cache
     /// - Err([`EsiError`]) if the refresh attempt failed or timed out after
     ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
-    pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, EsiError> {
+    pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.jwt_key_cache;
         let config = &jwt_key_cache.config;
@@ -82,7 +82,7 @@ impl<'a> JwkApi<'a> {
             debug!("{}", error_message);
 
             // Return error indicating function timed out waiting JWT key refresh
-            return Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshTimeout(
+            return Err(Error::OAuthError(OAuthError::JwtKeyRefreshTimeout(
                 error_message,
             )));
         }
@@ -113,7 +113,7 @@ impl<'a> JwkApi<'a> {
         debug!("{}", error_message);
 
         // Return an error indicating no keys were found in cache
-        Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshFailure(
+        Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(
             error_message,
         )))
     }
@@ -220,7 +220,7 @@ pub(super) async fn refresh_jwt_keys(
     reqwest_client: &reqwest::Client,
     jwt_key_cache: &JwtKeyCache,
     max_retries: u32,
-) -> Result<EveJwtKeys, EsiError> {
+) -> Result<EveJwtKeys, Error> {
     let config = &jwt_key_cache.config;
 
     // Track operation timing for performance monitoring
@@ -314,7 +314,7 @@ pub(super) async fn refresh_jwt_keys(
 
 #[cfg(test)]
 mod wait_for_ongoing_refresh_tests {
-    use crate::error::EsiError;
+    use crate::error::Error;
     use crate::model::oauth2::EveJwtKeys;
     use crate::oauth2::error::OAuthError;
     use crate::tests::setup;
@@ -455,7 +455,7 @@ mod wait_for_ongoing_refresh_tests {
         // Assert function returned expected error
         assert!(result.is_err());
         match result {
-            Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshFailure(_))) => {}
+            Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(_))) => {}
             _ => panic!("Expected OAuthError::JwtKeyRefreshFailure, got different error type"),
         }
     }
@@ -536,7 +536,7 @@ mod wait_for_ongoing_refresh_tests {
         // Assert function returned expected error
         assert!(result.is_err());
         match result {
-            Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshFailure(_))) => {}
+            Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(_))) => {}
             _ => panic!("Expected OAuthError::JwtKeyRefreshFailure, got different error type"),
         }
     }
@@ -584,7 +584,7 @@ mod wait_for_ongoing_refresh_tests {
         // Assert function returned expected error
         assert!(result.is_err());
         match result {
-            Err(EsiError::OAuthError(OAuthError::JwtKeyRefreshTimeout(_))) => {}
+            Err(Error::OAuthError(OAuthError::JwtKeyRefreshTimeout(_))) => {}
             _ => panic!("Expected OAuthError::JwtKeyCacheError, got different error type"),
         }
     }
@@ -699,7 +699,7 @@ mod trigger_background_jwt_refresh_test {
 #[cfg(test)]
 mod refresh_jwt_keys_tests {
     use crate::tests::setup;
-    use crate::{error::EsiError, oauth2::jwk::refresh::refresh_jwt_keys};
+    use crate::{error::Error, oauth2::jwk::refresh::refresh_jwt_keys};
 
     use super::super::tests::{get_jwk_internal_server_error_response, get_jwk_success_response};
 
@@ -783,7 +783,7 @@ mod refresh_jwt_keys_tests {
         // Assert function returned expected error
         assert!(result.is_err());
         match result {
-            Err(EsiError::ReqwestError(err)) => {
+            Err(Error::ReqwestError(err)) => {
                 // Ensure reqwest error is of type 500 server error
                 assert!(err.is_status());
                 assert_eq!(

@@ -67,7 +67,11 @@ pub mod error;
 pub mod model;
 pub mod oauth2;
 
+pub use crate::builder::EsiClientBuilder;
 pub use crate::client::EsiClient;
+pub use crate::config::{EsiConfig, EsiConfigBuilder};
+pub use crate::error::{ConfigError, Error};
+pub use crate::oauth2::error::OAuthError;
 
 mod constant;
 mod esi;
