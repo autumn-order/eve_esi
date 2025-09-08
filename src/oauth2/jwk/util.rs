@@ -25,14 +25,14 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// # Thread Safety
 /// This method acquires a read lock on the failure timestamp, allowing
 /// multiple threads to check the backoff status concurrently.
-/// - Reads from the shared [`EsiClient::jwt_keys_last_refresh_failure`](crate::EsiClient::jwt_keys_last_refresh_failure)
+/// - Reads from the shared [`Client::jwt_keys_last_refresh_failure`](crate::Client::jwt_keys_last_refresh_failure)
 ///   timestamp
 ///
 /// # Arguments
 /// - `jwk_refresh_cooldown` ([`u64`]): Cooldown in seconds between background refresh
 ///   attempts as defined by the [`OAuthConfig::jwk_refresh_cooldown`](crate::oauth2::OAuth2Config::jwk_refresh_cooldown)
-///   field used by the [`EsiClient`](crate::EsiClient). By default this is 60 seconds.
-/// - `jwt_key_last_refresh_failure` ([`EsiClient::jwt_keys_last_refresh_failure`](crate::EsiClient::jwt_keys_last_refresh_failure)):
+///   field used by the [`Client`](crate::Client). By default this is 60 seconds.
+/// - `jwt_key_last_refresh_failure` ([`Client::jwt_keys_last_refresh_failure`](crate::Client::jwt_keys_last_refresh_failure)):
 ///   field representing the last failed JWT key refresh attempt.
 ///
 /// # Returns
@@ -89,12 +89,12 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
 /// # Parameters
 /// - `jwt_key_cache_ttl` ([`u64`]): Lifetime in seconds before cache is considered expired which
 ///   is defined by the [`OAuthConfig::jwk_cache_ttl`](crate::oauth2::OAuth2Config::jwk_cache_ttl)
-///   field used by the [`EsiClient`](crate::EsiClient). By default this 3600 seconds
+///   field used by the [`Client`](crate::Client). By default this 3600 seconds
 ///   representing 1 hour.
 /// - `background_refresh_threshold` ([`u64`]): Number representing % when cache is considered
 ///   nearing expiry which is defined by the
 ///   [`OAuthConfig::jwk_background_refresh_threshold_percent`](crate::oauth2::OAuth2Config::jwk_background_refresh_threshold_percent)
-///   field used by the [`EsiClient`](crate::EsiClient) which represents the percentage of the total
+///   field used by the [`Client`](crate::Client) which represents the percentage of the total
 ///   TTL after which we consider the cache to be approaching expiry. By default this is 80%.
 /// - `elapsed_seconds` ([`u64`]): Number of seconds since the cache was last updated
 ///
@@ -151,7 +151,7 @@ pub(super) fn is_cache_approaching_expiry(
 /// - `jwt_key_cache_ttl` ([`u64`]): Lifetime in seconds before cache is considered expired
 ///   which is defined by the
 ///   [`OAuthConfig::jwk_cache_ttl`](crate::oauth2::OAuth2Config::jwk_cache_ttl)
-///   field used by [`EsiClient`](crate::EsiClient). By default this is 3600 seconds
+///   field used by [`Client`](crate::Client). By default this is 3600 seconds
 ///   representing 1 hour.
 /// - `elapsed_seconds` ([`u64`]): Number of seconds since the cache was last updated
 ///
@@ -188,7 +188,7 @@ pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, elapsed_seconds: u64
 
 #[cfg(test)]
 mod is_refresh_cooldown_tests {
-    use crate::EsiClient;
+    use crate::Client;
 
     use super::check_refresh_cooldown;
 
@@ -199,7 +199,7 @@ mod is_refresh_cooldown_tests {
     /// a refresh due to cooldown period.
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Set last refresh failure within default cooldown period of past 60 seconds
     ///
     /// # Assertions
@@ -207,11 +207,11 @@ mod is_refresh_cooldown_tests {
     /// - Assert 30 seconds remain in cooldown period
     #[tokio::test]
     async fn test_check_refresh_cooldown_within_cooldown() {
-        // Setup EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = esi_client.jwt_key_cache;
 
@@ -238,18 +238,18 @@ mod is_refresh_cooldown_tests {
     /// assert that the function returns false, indicating that we can attempt a refresh.
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Set last refresh failure beyond default cooldown period of past 60 seconds
     ///
     /// # Assertions
     /// - Assert cooldown is None indicating we are not in the cooldown period
     #[tokio::test]
     async fn test_check_refresh_cooldown_recent_failure() {
-        // Setup EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = esi_client.jwt_key_cache;
 
@@ -272,19 +272,19 @@ mod is_refresh_cooldown_tests {
     /// indicating that we can attempt a refresh.
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
-    /// - Do not set the [`EsiClient::jwt_key_last_refresh_failure`]
+    /// - Create a basic Client
+    /// - Do not set the [`Client::jwt_key_last_refresh_failure`]
     ///
     /// # Assertions
     /// - Assert cooldown is None indicating we are not in the cooldown period
     #[tokio::test]
     async fn test_check_refresh_cooldown_no_failure() {
-        // Setup EsiClient
+        // Setup Client
         // Don't set back off period
-        let esi_client = EsiClient::builder()
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = esi_client.jwt_key_cache;
 
@@ -298,7 +298,7 @@ mod is_refresh_cooldown_tests {
 
 #[cfg(test)]
 mod is_cache_approaching_expiry_tests {
-    use crate::EsiClient;
+    use crate::Client;
 
     use super::is_cache_approaching_expiry;
 
@@ -308,18 +308,18 @@ mod is_cache_approaching_expiry_tests {
     /// the function should return true indicating that the cache is almost expired.
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Set the JWT key cache to beyond 80% expired
     ///
     /// # Validations
     /// - Verifies the function returns true, cache is almost expired.
     #[test]
     fn test_is_cache_approaching_expiry_true() {
-        // Setup EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Set the expiration timestamp to psat default expiry of 2880 seconds
         // Default approaching expiry is 2880 seconds (80% of 3600 seconds default)
@@ -339,18 +339,18 @@ mod is_cache_approaching_expiry_tests {
     /// should return false indicating we are not yet nearing expiration.
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Set the client JWT key cache to less than 80% expired
     ///
     /// # Validations
     /// - Verifies the function returns false, cache is not yet nearing expiration.
     #[test]
     fn test_is_cache_approaching_expiry_false() {
-        // Setup EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@email.com")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Set the expiration timestamp to represent fresh keys
         let timestamp = std::time::Instant::now();
@@ -366,7 +366,7 @@ mod is_cache_approaching_expiry_tests {
 
 #[cfg(test)]
 mod is_cache_expired_tests {
-    use crate::EsiClient;
+    use crate::Client;
 
     use super::is_cache_expired;
 
@@ -376,17 +376,17 @@ mod is_cache_expired_tests {
     /// by default, the cache should be considered fully expired.
     ///
     /// # Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Set the client JWT key cache to past 3600 seconds expiration
     ///
     /// # Assertions
     /// - Verifies the function returns true, the cache is fully expired
     #[test]
     fn test_is_cache_expired_true() {
-        let esi_client = EsiClient::builder()
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Set expiration timestamp to past default expiration of 3600 seconds
         let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(3601);
@@ -405,18 +405,18 @@ mod is_cache_expired_tests {
     /// by default, the cache should be not yet expired.
     ///
     /// # Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Set the client JWT key cache to fresh keys
     ///
     /// # Assertions
     /// - Verifies the function returns true, the cache is fully expired
     #[test]
     fn test_is_cache_expired_false() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Set expiration timestamp to represent fresh keys
         let timestamp = std::time::Instant::now();

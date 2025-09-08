@@ -30,13 +30,13 @@ async fn main() {
         contact_email,
         env!("CARGO_PKG_REPOSITORY")
     );
-    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
+    let esi_client: eve_esi::Client = eve_esi::Client::builder()
         .user_agent(&user_agent)
         .client_id(&esi_client_id)
         .client_secret(&esi_secret_secret)
         .callback_url(&callback_url)
         .build()
-        .expect("Failed to build EsiClient");
+        .expect("Failed to build Client");
 
     // Arc is used to share the client between threads safely
     // Sharing the esi_client as an Extension avoids having initialize it in every API route
@@ -54,7 +54,7 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn login(Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>) -> Response {
+async fn login(Extension(esi_client): Extension<Arc<eve_esi::Client>>) -> Response {
     let scopes = eve_esi::oauth2::ScopeBuilder::new().public_data().build();
 
     let auth_data = match esi_client.oauth2().login_url(scopes) {

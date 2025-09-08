@@ -3,13 +3,13 @@
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, StandardTokenResponse};
 
-use crate::error::{EsiError, OAuthError};
+use crate::error::{Error, OAuthError};
 use crate::oauth2::OAuth2Api;
 
 impl<'a> OAuth2Api<'a> {
     /// Retrieves a token from EVE Online's OAuth2 API.
     ///
-    /// This method uses the configured EsiClient to retrieve a token from EVE Online's
+    /// This method uses the configured Client to retrieve a token from EVE Online's
     /// OAuth2 API using the provided authorization code. This will contain both your
     /// access token and refresh token.
     ///
@@ -17,20 +17,20 @@ impl<'a> OAuth2Api<'a> {
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() {
-    ///     use eve_esi::EsiClient;
+    ///     use eve_esi::Client;
     ///     use oauth2::TokenResponse;
     ///
     ///     // You can get the authorization code as a query parameter in your callback API route
     ///     // when a user is redirected back to your application after authorization.
     ///     let authorization_code = "authorization_code";
     ///
-    ///     let esi_client = EsiClient::builder()
+    ///     let esi_client = Client::builder()
     ///         .user_agent("MyApp/1.0 (contact@example.com)")
     ///         .client_id("client_id")
     ///         .client_secret("client_secret")
     ///         .callback_url("http://localhost:8080/callback")
     ///         .build()
-    ///         .expect("Failed to build EsiClient");
+    ///         .expect("Failed to build Client");
     ///
     ///     let token = esi_client
     ///         .oauth2()
@@ -47,10 +47,10 @@ impl<'a> OAuth2Api<'a> {
     pub async fn get_token(
         &self,
         code: &str,
-    ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, EsiError> {
+    ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
         let client = match &self.client.oauth2_client {
             Some(client) => client,
-            None => return Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured)),
+            None => return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured)),
         };
 
         match client
@@ -59,7 +59,7 @@ impl<'a> OAuth2Api<'a> {
             .await
         {
             Ok(token) => Ok(token),
-            Err(err) => Err(EsiError::OAuthError(OAuthError::TokenError(err))),
+            Err(err) => Err(Error::OAuthError(OAuthError::TokenError(err))),
         }
     }
 }

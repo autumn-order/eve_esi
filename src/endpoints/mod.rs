@@ -15,10 +15,10 @@
 //! ```no_run
 //! #[tokio::main]
 //! async fn main() {
-//!     let esi_client = eve_esi::EsiClient::builder()
+//!     let esi_client = eve_esi::Client::builder()
 //!         .user_agent("MyApp/1.0 (contact@example.com)")
 //!         .build()
-//!         .expect("Failed to build EsiClient");
+//!         .expect("Failed to build Client");
 //!
 //!     // Get information about the corporation The Order of Autumn (id: 98785281)
 //!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();

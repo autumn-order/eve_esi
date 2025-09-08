@@ -1,4 +1,3 @@
-use eve_esi::error::EsiError;
 use eve_esi::model::character::CharacterAffiliation;
 
 use crate::util::setup;
@@ -96,7 +95,7 @@ async fn character_affiliation_bad_request() {
     // Assert result is error
     assert!(result.is_err());
     match result {
-        Err(EsiError::ReqwestError(err)) => {
+        Err(eve_esi::Error::ReqwestError(err)) => {
             // Assert reqwest error is due to status BAD_REQUEST
             assert!(err.status().is_some());
             assert_eq!(err.status().unwrap(), reqwest::StatusCode::BAD_REQUEST);

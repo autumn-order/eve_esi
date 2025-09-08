@@ -18,17 +18,13 @@
 //! # Example
 //!
 //! ```rust
-//! use eve_esi::error::EsiError;
-//! use eve_esi::oauth2::ScopeBuilder;
-//! use eve_esi::EsiClient;
-//!
 //! // Don't set any OAuth2 related settings
-//! let esi_client = EsiClient::builder()
+//! let esi_client = eve_esi::Client::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
 //!     .build()
-//!     .expect("Failed to build EsiClient");
+//!     .expect("Failed to build Client");
 //!
-//! let scopes = ScopeBuilder::new()
+//! let scopes = eve_esi::ScopeBuilder::new()
 //!     .public_data()
 //!     .build();
 //!
@@ -38,7 +34,7 @@
 //! // Handle error types
 //! match result {
 //!     Ok(_) => { /* ... */ }
-//!     Err(EsiError::OAuthError(oauth_err)) => {
+//!     Err(eve_esi::Error::OAuthError(oauth_err)) => {
 //!         // Handle OAuth2-specific error
 //!         println!("OAuth2 error: {oauth_err}");
 //!     }
@@ -59,22 +55,22 @@ pub use crate::oauth2::error::OAuthError;
 /// See the [module-level documentation](self) for an overview and usage example.
 ///
 /// # Variants
-/// - [`EsiConfigError`](EsiError::EsiConfigError) - Errors due to configuration issues when building an [`EsiClient`](crate::EsiClient)
+/// - [`ConfigError`](Error::ConfigError) - Errors due to configuration issues when building an [`Client`](crate::Client)
 ///   or [`EsiConfig`](crate::config::EsiConfig)
-/// - [`OAuthError`](EsiError::OAuthError) - Errors related to OAuth2 authentication. See [`OAuthError`] for details.
-/// - [`ReqwestError`](EsiError::ReqwestError) - Errors that occur during HTTP requests. See [`reqwest::Error`] for details.
+/// - [`OAuthError`](Error::OAuthError) - Errors related to OAuth2 authentication. See [`OAuthError`] for details.
+/// - [`ReqwestError`](Error::ReqwestError) - Errors that occur during HTTP requests. See [`reqwest::Error`] for details.
 ///
 /// # Usage
 /// You can match on [`EsiError`] to handle errors at a high level, or downcast to more specific
 /// error types for granular handling.
 ///
 #[derive(Error, Debug)]
-pub enum EsiError {
-    /// Config errors related to building a [`EsiConfig`](crate::EsiConfig) or [`EsiClient`](crate::EsiClient)
+pub enum Error {
+    /// Config errors related to building a [`EsiConfig`](crate::EsiConfig) or [`Client`](crate::Client)
     ///
     /// For a more detailed description, see [`EsiConfigError`]
     #[error(transparent)]
-    EsiConfigError(EsiConfigError),
+    ConfigError(ConfigError),
     /// Runtime errors related to the EVE Online OAuth2 authentication process.
     ///
     /// For a more detailed description, see [`OAuthError`].
@@ -87,7 +83,7 @@ pub enum EsiError {
     ReqwestError(#[from] reqwest::Error),
 }
 
-/// Errors when building a new [`EsiClient`](crate::EsiClient) or [`EsiConfig`](crate::config::EsiConfig)
+/// Errors when building a new [`Client`](crate::Client) or [`EsiConfig`](crate::config::EsiConfig)
 ///
 /// This enum represents the various errors which could occur due to an improper configuration such as an
 /// improper URL format or an invalid JWT key background refresh threshold.
@@ -104,11 +100,11 @@ pub enum EsiError {
 /// You can match on [`EsiConfigError`] to handle errors at a high level, or downcast to more specific
 /// error types for granular handling.
 #[derive(Error, Debug)]
-pub enum EsiConfigError {
+pub enum ConfigError {
     /// Error returned when the ESI client ID is missing.
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2
-    /// without first setting the client ID on the [`EsiClient`](crate::EsiClient).
+    /// without first setting the client ID on the [`Client`](crate::Client).
     ///
     /// # Resolution
     /// To fix this:
@@ -129,7 +125,7 @@ pub enum EsiConfigError {
     /// Error returned when the ESI client secret is missing.
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2
-    /// without first setting the client secret on the [`EsiClient`](crate::EsiClient).
+    /// without first setting the client secret on the [`Client`](crate::Client).
     ///
     /// # Resolution
     /// To fix this:
@@ -150,7 +146,7 @@ pub enum EsiConfigError {
     /// Error returned when the ESI callback URL is missing.
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2
-    /// without first setting the callback URL on the [`EsiClient`](crate::EsiClient).
+    /// without first setting the callback URL on the [`Client`](crate::Client).
     ///
     /// # Resolution
     /// To fix this:
@@ -183,7 +179,7 @@ pub enum EsiConfigError {
         "Invalid EVE OAuth2 callback URL:\n\
         \n\
         To fix this:\n\
-          - Use the default URL provided by the EsiClient\n\
+          - Use the default URL provided by the Client\n\
           - Validate the url set using `esi_client_builder.callback_url(callback_url)`\n\
             is using a url that is correctly formatted\n\
             e.g. https://example.com/callback\n\

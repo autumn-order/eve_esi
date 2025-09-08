@@ -21,7 +21,7 @@ use log::{debug, trace};
 use tokio::sync::{Notify, RwLock};
 
 use crate::{
-    config::EsiConfig,
+    config::Config,
     constant::{
         DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
         DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN, DEFAULT_JWK_REFRESH_MAX_RETRIES,
@@ -120,7 +120,7 @@ impl JwtKeyCache {
     ///
     /// # Returns
     /// - [`JwtKeyCache`]: Default cache instance that contains no keys initially
-    pub(crate) fn new(config: &EsiConfig) -> Self {
+    pub(crate) fn new(config: &Config) -> Self {
         Self {
             cache: RwLock::new(None),
             refresh_lock: AtomicBool::new(false),
@@ -319,7 +319,7 @@ impl JwtKeyCache {
 
 #[cfg(test)]
 mod cache_get_keys_tests {
-    use crate::{model::oauth2::EveJwtKeys, EsiClient};
+    use crate::{model::oauth2::EveJwtKeys, Client};
 
     /// Validates function returns Some keys when cache has keys
     ///
@@ -327,18 +327,18 @@ mod cache_get_keys_tests {
     /// function returns them properly without issues.
     ///
     /// # Test Setup
-    /// - Setup basic EsiClient
-    /// - Set EsiClient JWT key cache with mock keys
+    /// - Setup basic Client
+    /// - Set Client JWT key cache with mock keys
     ///
     /// # Assertions
     /// - Verify function returns Some(EveJwtKeys)
     #[tokio::test]
     async fn test_cache_get_keys_some() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = esi_client.jwt_key_cache;
 
@@ -363,18 +363,18 @@ mod cache_get_keys_tests {
     /// function returns None as expected.
     ///
     /// # Test Setup
-    /// - Setup basic EsiClient
+    /// - Setup basic Client
     /// - Do not set the JWT key cache
     ///
     /// # Assertions
     /// - Verify function returns None
     #[tokio::test]
     async fn test_cache_get_keys_none() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = esi_client.jwt_key_cache;
 
@@ -390,26 +390,26 @@ mod cache_get_keys_tests {
 
 #[cfg(test)]
 mod cache_update_keys_tests {
-    use crate::{model::oauth2::EveJwtKeys, EsiClient};
+    use crate::{model::oauth2::EveJwtKeys, Client};
 
     /// Validates that cache properly updates with new keys
     ///
     /// Checks that writing new keys to the JWT key cache on
-    /// EsiClient is successful.
+    /// Client is successful.
     ///
     /// # Test Setup
-    /// - Setup basic EsiClient
+    /// - Setup basic Client
     /// - Create mock JWT keys
     ///
     /// # Assertions
-    /// - Assert that the EsiClient jwt_keys_cache now is Some()
+    /// - Assert that the Client jwt_keys_cache now is Some()
     #[tokio::test]
     async fn test_cache_update_keys() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = esi_client.jwt_key_cache;
 
@@ -429,27 +429,27 @@ mod cache_update_keys_tests {
 
 #[cfg(test)]
 mod jwk_refresh_lock_try_acquire_tests {
-    use crate::EsiClient;
+    use crate::Client;
 
     /// Checks that lock is properly acquired when not already in use
     ///
     /// Attempts to acquire a lock to refresh JWT keys on a new
-    /// EsiClient which should return as successful (true) indicating
+    /// Client which should return as successful (true) indicating
     /// that no other threads are currently attempting a key refresh.
     ///
     /// # Test Setup
-    /// - Setup a basic EsiClient
+    /// - Setup a basic Client
     /// - Attempt to acquire a lock for JWT key refresh
     ///
     /// # Assertions
     /// - Assert that result is true when acquiring lock
     #[test]
     fn test_jwk_refresh_lock_try_acquire_success() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Attempt to acquire lock
         let jwt_key_cache = &esi_client.jwt_key_cache;
@@ -467,7 +467,7 @@ mod jwk_refresh_lock_try_acquire_tests {
     /// unsuccessful (false).
     ///
     /// # Test Setup
-    /// - Setup basic EsiClient
+    /// - Setup basic Client
     /// - Acquire a lock initially
     /// - Attempt to acquire lock again
     ///
@@ -476,11 +476,11 @@ mod jwk_refresh_lock_try_acquire_tests {
     ///   a second time indicating it is already in use.
     #[test]
     fn test_jwk_refresh_lock_try_acquire_unsuccessful() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Acquire a lock initially
         let jwt_key_cache = &esi_client.jwt_key_cache;
@@ -506,7 +506,7 @@ mod jwk_refresh_lock_try_acquire_tests {
 mod jwk_lock_release_and_notify_tests {
     use std::time::Duration;
 
-    use crate::EsiClient;
+    use crate::Client;
 
     /// Verifies that lock is successfully released & waiters are notified
     ///
@@ -517,7 +517,7 @@ mod jwk_lock_release_and_notify_tests {
     /// without issues.
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Acquire a JWT key refresh lock
     /// - Setup a notification listener
     ///
@@ -527,11 +527,11 @@ mod jwk_lock_release_and_notify_tests {
     /// - Assert that lock has been properly released
     #[tokio::test]
     async fn test_jwk_refresh_lock_release_and_notify_success() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Acquire a lock
         let jwt_key_cache = &esi_client.jwt_key_cache;
@@ -587,23 +587,23 @@ mod jwk_lock_release_and_notify_tests {
 
 #[cfg(test)]
 mod set_refresh_failure_tests {
-    use crate::EsiClient;
+    use crate::Client;
 
     /// Set the last refresh failure timestamp
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     ///
     /// # Assertions
     /// - Assert last refresh failure is Some
     /// - Assert failure time matches timestamp set
     #[tokio::test]
     async fn test_set_refresh_failure_some() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = &esi_client.jwt_key_cache;
 
@@ -623,18 +623,18 @@ mod set_refresh_failure_tests {
     /// Set the last refresh failure timestamp to none
     ///
     /// # Test Setup
-    /// - Create a basic EsiClient
+    /// - Create a basic Client
     /// - Set a refresh failure timestamp
     ///
     /// # Assertions
     /// - Assert last refresh failure is None
     #[tokio::test]
     async fn test_set_refresh_failure_none() {
-        // Setup basic EsiClient
-        let esi_client = EsiClient::builder()
+        // Setup basic Client
+        let esi_client = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         let jwt_key_cache = &esi_client.jwt_key_cache;
 

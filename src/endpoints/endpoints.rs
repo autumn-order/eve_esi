@@ -1,10 +1,10 @@
-//! Implements ESI endpoints for usage with the [`EsiClient`]
+//! Implements ESI endpoints for usage with the [`Client`]
 //!
 //! For details on usage see [module-level documentation](super)
 
-use crate::EsiClient;
+use crate::Client;
 
-impl EsiClient {
+impl Client {
     /// Access to Alliance ESI endpoints
     ///
     /// Returns an API client for interacting with alliance-related endpoints.

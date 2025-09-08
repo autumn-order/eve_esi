@@ -9,24 +9,21 @@
 //!
 //! # Example
 //! ```
-//! use eve_esi::error::{EsiError, OAuthError};
-//! use eve_esi::oauth2::ScopeBuilder;
-//!
-//! let esi_client = eve_esi::EsiClient::builder()
+//! let esi_client = eve_esi::Client::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
 //!     // Don't set .client_id()
 //!     // Don't set .client_secret()
 //!     // Don't set .callback_url()
 //!     .build()
-//!     .expect("Failed to build EsiClient");
+//!     .expect("Failed to build Client");
 //!
 //! // Using OAuth2 without configuring required settings causes a runtime error.
-//! let scopes = ScopeBuilder::new()
+//! let scopes = eve_esi::ScopeBuilder::new()
 //!     .public_data()
 //!     .build();
 //! let result = esi_client.oauth2().login_url(scopes);
 //!
-//! assert!(matches!(result, Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured))));
+//! assert!(matches!(result, Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::OAuth2NotConfigured))));
 //! ```
 
 use oauth2::basic::BasicErrorResponseType;
@@ -42,7 +39,7 @@ use thiserror::Error;
 /// See the [module-level documentation](self) for an overview and usage example.
 ///
 /// # Variants
-/// - [`OAuth2NotConfigured`](OAuthError::OAuth2NotConfigured): Error returned when OAuth2 has not been configured for [`EsiClient`](crate::EsiClient).
+/// - [`OAuth2NotConfigured`](OAuthError::OAuth2NotConfigured): Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
 /// - [`JwtKeyRefreshTimeout`](OAuthError::JwtKeyRefreshTimeout): Error when waiting for another thread to refresh JWT key cache times out
 /// - [`JwtKeyRefreshFailure`](OAuthError::JwtKeyRefreshFailure): Error when waiting for another thread to refresh JWT key cache fails
 /// - [`JwtKeyRefreshCooldown`](OAuthError::JwtKeyRefreshCooldown): Error when JWT key refresh is still in cooldown
@@ -54,32 +51,32 @@ use thiserror::Error;
 /// - Refreshing access tokens
 #[derive(Error, Debug)]
 pub enum OAuthError {
-    /// Error returned when OAuth2 has not been configured for [`EsiClient`](crate::EsiClient).
+    /// Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
     ///
-    /// This error occurs when the [`EsiClient`](crate::EsiClient) is built without setting
+    /// This error occurs when the [`Client`](crate::Client) is built without setting
     /// the client ID, client secret, and callback URL. This error occurs at runtime rather
     /// than setup because it does not yet know if you'll be using OAuth2 features unless
     /// you set at least one of OAuth2 related settings or try to use an OAuth2 related method.
     ///
     /// # Resolution
-    /// To fix this configure your [`EsiClient`](crate::EsiClient) with the `client_id`, `client_secret`,
+    /// To fix this configure your [`Client`](crate::Client) with the `client_id`, `client_secret`,
     /// and `callback_url` from https://developers.eveonline.com/applications.
     ///
     /// ```
-    /// use eve_esi::EsiClient;
+    /// use eve_esi::Client;
     ///
-    /// let esi_client = EsiClient::builder()
+    /// let esi_client = Client::builder()
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
     ///     .client_id("client_id")
     ///     .client_secret("client_secret")
     ///     .callback_url("http://localhost:8080/callback")
     ///     .build()
-    ///     .expect("Failed to build EsiClient");
+    ///     .expect("Failed to build Client");
     /// ```
     #[error(
-        "OAuth2 not configured for EsiClient\n\
+        "OAuth2 not configured for Client\n\
         \n\
-        To fix this configure your EsiClient with the client ID, client secret,\n\
+        To fix this configure your Client with the client ID, client secret,\n\
         and callback URL from https://developers.eveonline.com/applications\n\
         \n\
         See this example: https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs"

@@ -1,4 +1,3 @@
-use eve_esi::error::EsiError;
 use eve_esi::model::character::Character;
 
 use crate::util::setup;
@@ -94,7 +93,7 @@ async fn get_character_public_information_not_found() {
     // Assert result is error
     assert!(result.is_err());
     match result {
-        Err(EsiError::ReqwestError(err)) => {
+        Err(eve_esi::Error::ReqwestError(err)) => {
             // Assert reqwest error is due to status NOT_FOUND
             assert!(err.status().is_some());
             assert_eq!(err.status().unwrap(), reqwest::StatusCode::NOT_FOUND);

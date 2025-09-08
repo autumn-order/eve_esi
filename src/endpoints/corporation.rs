@@ -4,7 +4,7 @@
 //! corporation-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
 //!
 //! The [`CorporationApi`] acts as a high-level interface for retrieving public information
-//! and affiliations for EVE Online corporations. It requires an [`EsiClient`] instance
+//! and affiliations for EVE Online corporations. It requires an [`Client`] instance
 //! to perform HTTP requests to the ESI endpoints.
 //!
 //! # Features
@@ -17,10 +17,10 @@
 //! ```no_run
 //! #[tokio::main]
 //! async fn main() {
-//!     let esi_client = eve_esi::EsiClient::builder()
+//!     let esi_client = eve_esi::Client::builder()
 //!         .user_agent("MyApp/1.0 (contact@example.com)")
 //!         .build()
-//!         .expect("Failed to build EsiClient");
+//!         .expect("Failed to build Client");
 //!
 //!     // Get information about the corporation The Order of Autumn (id: 98785281)
 //!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
@@ -28,29 +28,29 @@
 //! }
 //! ```
 
-use crate::error::EsiError;
+use crate::error::Error;
 use crate::model::corporation::Corporation;
-use crate::EsiClient;
+use crate::Client;
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
 ///
 /// The `CorporationApi` struct acts as an interface for retrieving information about EVE Online corporations
-/// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
+/// using the ESI API. It requires an [`Client`] for making HTTP requests to the ESI endpoints.
 ///
 /// See the [module-level documentation](self) for an overview and usage example.
 pub struct CorporationApi<'a> {
-    client: &'a EsiClient,
+    client: &'a Client,
 }
 
 impl<'a> CorporationApi<'a> {
     /// Creates a new instance of `CorporationApi`.
     ///
     /// # Arguments
-    /// - `client` - The [`EsiClient`] used for making HTTP requests to the ESI endpoints.
+    /// - `client` - The [`Client`] used for making HTTP requests to the ESI endpoints.
     ///
     /// # Returns
     /// Returns a new instance of `CorporationApi`.
-    pub fn new(client: &'a EsiClient) -> Self {
+    pub fn new(client: &'a Client) -> Self {
         Self { client }
     }
 
@@ -74,10 +74,10 @@ impl<'a> CorporationApi<'a> {
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() {
-    ///     let esi_client = eve_esi::EsiClient::builder()
+    ///     let esi_client = eve_esi::Client::builder()
     ///         .user_agent("MyApp/1.0 (contact@example.com)")
     ///         .build()
-    ///         .expect("Failed to build EsiClient");
+    ///         .expect("Failed to build Client");
     ///
     ///     // Get information about the corporation The Order of Autumn (id: 98785281)
     ///     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
@@ -87,7 +87,7 @@ impl<'a> CorporationApi<'a> {
     pub async fn get_corporation_information(
         &self,
         corporation_id: i32,
-    ) -> Result<Corporation, EsiError> {
+    ) -> Result<Corporation, Error> {
         let url = format!("{}/corporations/{}/", self.client.esi_url, corporation_id);
 
         Ok(self.client.get_from_public_esi::<Corporation>(&url).await?)

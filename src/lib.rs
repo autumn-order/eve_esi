@@ -11,15 +11,15 @@
 //!
 //! # Usage
 //!
-//! Create a new EsiClient instance and request public information about a character from ESI.
+//! Create a new Client instance and request public information about a character from ESI.
 //!
 //! ```no_run
 //! #[tokio::main]
 //! async fn main() {
-//!     let esi_client = eve_esi::EsiClient::builder()
+//!     let esi_client = eve_esi::Client::builder()
 //!         .user_agent("MyApp/1.0 (contact@example.com)")
 //!         .build()
-//!         .expect("Failed to build EsiClient");
+//!         .expect("Failed to build Client");
 //!
 //!     // Get information about the corporation The Order of Autumn (id: 98785281)
 //!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
@@ -53,10 +53,10 @@
 //! env_logger::init();
 //!
 //! // Now logs from eve_esi will be captured
-//! let esi_client = eve_esi::EsiClient::builder()
+//! let esi_client = eve_esi::Client::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
 //!     .build()
-//!     .expect("Failed to build EsiClient");
+//!     .expect("Failed to build Client");
 //! ```
 
 pub mod builder;
@@ -67,7 +67,12 @@ pub mod error;
 pub mod model;
 pub mod oauth2;
 
-pub use crate::client::EsiClient;
+pub use crate::builder::ClientBuilder;
+pub use crate::client::Client;
+pub use crate::config::{Config, ConfigBuilder};
+pub use crate::error::{ConfigError, Error};
+pub use crate::oauth2::error::OAuthError;
+pub use crate::oauth2::ScopeBuilder;
 
 mod constant;
 mod esi;
