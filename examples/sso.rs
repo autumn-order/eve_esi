@@ -17,7 +17,7 @@ use std::env;
 #[tokio::main]
 async fn main() {
     // Retrieve environment from the .env
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
 
     let contact_email = env::var("CONTACT_EMAIL").expect("Please set CONTACT_EMAIL in your .env");
     let esi_client_id =

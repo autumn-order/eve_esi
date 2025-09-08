@@ -4,7 +4,7 @@ version = "0.4.0"
 authors = ["Hyziri <hyziri@protonmail.com>"]
 edition = "2021"
 description = "Thread-safe, asynchronous client for EVE Online's ESI & OAuth2"
-keywords = ["esi", "eve_esi", "eve_online", "eve_oauth2", "eve_api"]
+keywords = ["eve_online", "esi", "eve",  "eve_esi", "eve_oauth2"]
 repository = "https://github.com/hyziri/eve_esi"
 license = "MIT"
 readme = "README.md"
@@ -24,7 +24,7 @@ axum = "0.8.4"
 tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
 mockito = "1.7.0"
 serde_json = "1.0.142"
-dotenv = "0.15.0"
+dotenvy = "0.15.7"
 env_logger = "0.11.8"
 
 [lints.rust]

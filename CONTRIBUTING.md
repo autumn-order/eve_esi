@@ -76,7 +76,7 @@ When submitting your pull request, please be sure to document the features you h
 
 Prior to submitting a pull request, check the following:
 - `cargo test`: Ensure all tests pass
-- `cargo tarpaulin`: Ensure the changes you make are properly covered by tests
+- `cargo llvm-cov` (`cargo install cargo-llvm-cov): Ensure the changes you make are properly covered by tests (See <https://github.com/taiki-e/cargo-llvm-cov>)
 - `cargo doc --open`: Check for any documentation warnings such as broken links and everything is correctly formatted
 
 To submit a pull request, do the following:
