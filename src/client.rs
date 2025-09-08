@@ -57,6 +57,8 @@ pub(crate) struct ClientRef {
     pub(crate) reqwest_client: reqwest::Client,
     /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
+    /// The EVE Online login server URL which represents the expected issuer of tokens
+    pub(crate) login_url: String,
 
     // OAuth2 Settings
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
@@ -67,6 +69,8 @@ pub(crate) struct ClientRef {
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.
     pub(crate) jwt_key_cache: JwtKeyCache,
+    /// The intended audience which JWT tokens will be used with
+    pub(crate) jwt_audience: String,
 }
 
 impl Client {
