@@ -7,9 +7,9 @@
 //! [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
 //!
 //! This crate implements concurrency & caching to provide performance in applications at scale.
-//! For example JSON web token keys (JWT keys) are used to validate tokens after a successful single sign-on login,
-//! this crate automatically caches the keys and refreshes them proactively before expiry in a background task for
-//! mimimal latency with each login.
+//! For example JSON web token keys (JWT keys) are used to validate tokens after a successful EVE
+//! Online single sign-on login, this crate automatically caches the keys and refreshes them proactively
+//! before expiry in a background task for mimimal latency.
 //!
 //! # References
 //! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
