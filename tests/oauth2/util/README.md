@@ -2,13 +2,19 @@
 
 Ensure the `test_private_rsa_key.pem` & `public_test_rsa_key.pem` exist in the `tests/oauth2/util/` directory or JWT key & token related tests will fail.
 
-Generate the private key with:
+1. Change your directory to `tests/oauth2/util/`
+
+```sh
+cd tests/oauth2/util/
+```
+
+2. Generate the private key with:
 
 ```sh
 openssl genpkey -algorithm RSA -out private_test_rsa_key.pem
 ```
 
-Generate the public key with:
+3. Generate the public key with:
 
 ```sh
 openssl rsa -in private_test_rsa_key.pem -pubout -out public_test_rsa_key.pem

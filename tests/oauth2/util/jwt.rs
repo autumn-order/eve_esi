@@ -29,7 +29,7 @@ pub fn create_mock_token_keys() -> EveJwtKeys {
     // Extract RSA components
     let rsa = Rsa::public_key_from_pem(&public_key_pem).unwrap();
 
-    // Get the modulus and exponent as raw bytes
+    // Get the modulus and exponent as raw bytes which are used for the validation
     let n_bytes = rsa.n().to_vec();
     let e_bytes = rsa.e().to_vec();
 
