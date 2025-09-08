@@ -58,12 +58,12 @@ impl<'a> AllianceApi<'a> {
     /// executor corporation, and faction.
     ///
     /// # Arguments
-    /// - `alliance_id` - The unique identifier for the alliance to look up
+    /// - `alliance_id` ([`i32`]): The unique identifier for the alliance to look up
     ///
     /// # Returns
     /// Returns a `Result` containing either:
     /// - [`Alliance`] - The alliance data if successfully retrieved
-    /// - [`EsiError`] - An error if the request failed (e.g., alliance not found, network issues)
+    /// - [`Error`] - An error if the request failed (e.g., alliance not found, network issues)
     ///
     /// # EVE ESI Reference
     /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceId).

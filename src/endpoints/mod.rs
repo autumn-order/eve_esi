@@ -7,9 +7,9 @@
 //!
 //! # Modules
 //!
-//! - [`alliances`](crate::endpoints::alliances)
-//! - [`characters`](crate::endpoints::characters)
-//! - [`corporations`](crate::endpoints::corporations)
+//! - [`alliance`]: Alliance Endpoints for EVE Online's ESI API.
+//! - [`character`]: Character Endpoints for EVE Online's ESI API.
+//! - [`corporation`]: Corporation Endpoints for EVE Online's ESI API.
 //!
 //! # Example
 //! ```no_run

@@ -20,16 +20,16 @@ impl<'a> OAuth2Api<'a> {
     /// [crate::oauth2::OAuth2Api::get_token] method.
     ///
     /// # Arguments
-    /// - `scopes` (Vec<[`String`]>): A vec of scope strings representing the permissions your application is requesting.
+    /// - `scopes` (`Vec<`[`String`]`>`): A vec of scope strings representing the permissions your application is requesting.
     ///   These must match the scopes configured in your EVE developer application.
     ///
     /// # Returns
-    /// Returns a [`AuthenticationData`](crate::model::oauth2::AuthenticationData) struct containing:
+    /// Returns a [`AuthenticationData`] struct containing:
     /// - `login_url` ([`String`]): The URL users should visit to authenticate.
     /// - `state` ([`String`]): A unique state string used for CSRF protection.
     ///
     /// # Errors
-    /// Returns an [`EsiError`] if:
+    /// Returns an [`Error`] if:
     /// - The `client_id`, `client_secret`, and `callback_url` is missing from the [`Client`](crate::Client) configuration
     ///   which results in an [`OAuthError::OAuth2NotConfigured`] error.
     ///
@@ -45,7 +45,7 @@ impl<'a> OAuth2Api<'a> {
     ///     .expect("Failed to build Client");
     ///
     /// // Build scopes requesting only publicData
-    /// let scopes = eve_esi::oauth2::ScopeBuilder::new()
+    /// let scopes = eve_esi::ScopeBuilder::new()
     ///     .public_data()
     ///     .build();
     ///

@@ -5,15 +5,15 @@
 //!
 //! # Overview
 //!
-//! The primary error type is [`EsiError`], which encapsulates all possible error conditions
+//! The primary error type is [`enum@Error`], which encapsulates all possible error conditions
 //! that may arise when interacting with the EVE ESI API. This includes errors related to
-//! configuration (see [`EsiConfigError`]), OAuth2 authentication (see [`OAuthError`]), and
+//! configuration (see [`ConfigError`]), OAuth2 authentication (see [`OAuthError`]), and
 //! HTTP request failures (see [`reqwest::Error`]).
 //!
 //! By using these error types, consumers of the library can match on specific error variants
 //! to implement granular error handling or simply handle errors at a higher level.
 //!
-//! See the documentation for [`EsiError`] and [`EsiConfigError`] for more details on each error variant.
+//! See the documentation for [`enum@Error`] and [`ConfigError`] for more details on each error variant.
 //!
 //! # Example
 //!
@@ -56,19 +56,19 @@ pub use crate::oauth2::error::OAuthError;
 ///
 /// # Variants
 /// - [`ConfigError`](Error::ConfigError) - Errors due to configuration issues when building an [`Client`](crate::Client)
-///   or [`EsiConfig`](crate::config::EsiConfig)
+///   or [`Config`](crate::config::Config)
 /// - [`OAuthError`](Error::OAuthError) - Errors related to OAuth2 authentication. See [`OAuthError`] for details.
 /// - [`ReqwestError`](Error::ReqwestError) - Errors that occur during HTTP requests. See [`reqwest::Error`] for details.
 ///
 /// # Usage
-/// You can match on [`EsiError`] to handle errors at a high level, or downcast to more specific
+/// You can match on [`enum@Error`] to handle errors at a high level, or downcast to more specific
 /// error types for granular handling.
 ///
 #[derive(Error, Debug)]
 pub enum Error {
-    /// Config errors related to building a [`EsiConfig`](crate::EsiConfig) or [`Client`](crate::Client)
+    /// Config errors related to building a [`Config`](crate::Config) or [`Client`](crate::Client)
     ///
-    /// For a more detailed description, see [`EsiConfigError`]
+    /// For a more detailed description, see [`ConfigError`]
     #[error(transparent)]
     ConfigError(ConfigError),
     /// Runtime errors related to the EVE Online OAuth2 authentication process.
@@ -83,7 +83,7 @@ pub enum Error {
     ReqwestError(#[from] reqwest::Error),
 }
 
-/// Errors when building a new [`Client`](crate::Client) or [`EsiConfig`](crate::config::EsiConfig)
+/// Errors when building a new [`Client`](crate::Client) or [`Config`](crate::Config)
 ///
 /// This enum represents the various errors which could occur due to an improper configuration such as an
 /// improper URL format or an invalid JWT key background refresh threshold.
@@ -91,17 +91,21 @@ pub enum Error {
 /// See the [module-level documentation](self) for an overview and usage example.
 ///
 /// # Variants
-/// - [`InvalidAuthUrl`](EsiConfigError::InvalidAuthUrl): EVE OAuth2 authorization URL is in an invalid URL format.
-/// - [`InvalidTokenUrl](EsiConfigError::InvalidTokenUrl): EVE OAuth2 token URL is in an invalid URL format.
-/// - [`InvalidBackgroundRefreshThreshold`](EsiConfigError::InvalidBackgroundRefreshThreshold): JWT key cache
+/// - [`MissingClientId`](ConfigError::MissingClientId): The [crate::Client] is missing a `client_id`
+/// - [`MissingClientSecret`](ConfigError::MissingClientSecret): The [crate::Client] is missing a `client_secret`
+/// - [`MissingCallbackUrl`](ConfigError::MissingCallbackUrl): The [crate::Client] is missing a `callback_url`
+/// - [`InvalidCallbackUrl`](ConfigError::InvalidCallbackUrl): The `callback_url` is in an invalid URL format.
+/// - [`InvalidAuthUrl`](ConfigError::InvalidAuthUrl): EVE OAuth2 authorization URL is in an invalid URL format.
+/// - [`InvalidTokenUrl](ConfigError::InvalidTokenUrl): EVE OAuth2 token URL is in an invalid URL format.
+/// - [`InvalidBackgroundRefreshThreshold`](ConfigError::InvalidBackgroundRefreshThreshold): JWT key cache
 ///   background refresh threshold percentage is not between 0 and 100
 ///
 /// # Usage
-/// You can match on [`EsiConfigError`] to handle errors at a high level, or downcast to more specific
+/// You can match on [`ConfigError`] to handle errors at a high level, or downcast to more specific
 /// error types for granular handling.
 #[derive(Error, Debug)]
 pub enum ConfigError {
-    /// Error returned when the ESI client ID is missing.
+    /// The [crate::Client] is missing a `client_id`
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2
     /// without first setting the client ID on the [`Client`](crate::Client).
@@ -109,7 +113,7 @@ pub enum ConfigError {
     /// # Resolution
     /// To fix this:
     /// - Set `esi_client_builder.client_id(client_id)`
-    /// - You can obtain a client ID at: https://developers.eveonline.com/applications
+    /// - You can obtain a client ID at: <https://developers.eveonline.com/applications>
     #[error(
         "Missing ESI client ID.\n\
         \n\
@@ -122,7 +126,7 @@ pub enum ConfigError {
     )]
     MissingClientId,
 
-    /// Error returned when the ESI client secret is missing.
+    /// The [crate::Client] is missing a `client_secret`
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2
     /// without first setting the client secret on the [`Client`](crate::Client).
@@ -130,7 +134,7 @@ pub enum ConfigError {
     /// # Resolution
     /// To fix this:
     /// - Set `esi_client_builder.client_secret(client_secret)`
-    /// - You can obtain a client secret at: https://developers.eveonline.com/applications
+    /// - You can obtain a client secret at: <https://developers.eveonline.com/applications>
     #[error(
         "Missing ESI client secret.\n\
         \n\
@@ -143,7 +147,7 @@ pub enum ConfigError {
     )]
     MissingClientSecret,
 
-    /// Error returned when the ESI callback URL is missing.
+    /// The [crate::Client] is missing a `client_secret`
     ///
     /// This error occurs when attempting to access EVE Online's OAuth2
     /// without first setting the callback URL on the [`Client`](crate::Client).
@@ -151,7 +155,7 @@ pub enum ConfigError {
     /// # Resolution
     /// To fix this:
     /// - Set `esi_client_builder.callback_url(callback_url)`
-    /// - Ensure it matches the callback URL set at: https://developers.eveonline.com/applications
+    /// - Ensure it matches the callback URL set at: <https://developers.eveonline.com/applications>
     #[error(
         "Missing ESI callback URL.\n\
         \n\
@@ -164,7 +168,7 @@ pub enum ConfigError {
     )]
     MissingCallbackUrl,
 
-    /// Error returned when the EVE OAuth2 callback URL is invalid.
+    /// The `callback_url` is in an invalid URL format.
     ///
     /// This error occurs when the callback url set using `esi_client_builder.callback_url(callback_url)`
     /// is not correctly formatted.
@@ -191,12 +195,12 @@ pub enum ConfigError {
     /// EVE OAuth2 authentication URL is invalid.
     ///
     /// This error occurs when the auth url is changed from the default URL
-    /// on [`EsiConfig`](crate::config::EsiConfig) and is not correctly formatted.
+    /// on [`Config`](crate::Config) and is not correctly formatted.
     ///
     /// # Resolution
     /// To fix this:
     /// - Use the default URL provided by the default config
-    /// - Validate the url set on [`EsiConfig`](crate::config::EsiConfig)
+    /// - Validate the url set on [`Config`](crate::Config)
     ///   is using a url that is correctly formatted.
     ///
     ///   e.g. `https://login.eveonline.com/v2/oauth/authorize`
@@ -214,12 +218,12 @@ pub enum ConfigError {
     /// EVE OAuth2 token URL is invalid.
     ///
     /// This error occurs when the token url is changed from the default URL
-    /// on [`EsiConfig`](crate::config::EsiConfig) and is not correctly formatted.
+    /// on [`Config`](crate::Config) and is not correctly formatted.
     ///
     /// # Resolution
     /// To fix this:
     /// - Use the default URL provided by the default config
-    /// - Validate the url set on [`EsiConfig`](crate::config::EsiConfig)
+    /// - Validate the url set on [`Config`](crate::Config)
     ///   is using a url that is correctly formatted.
     ///
     ///   e.g. `https://login.eveonline.com/v2/oauth/token`
@@ -246,7 +250,7 @@ pub enum ConfigError {
     /// # Resolution
     /// To fix this:
     /// - Use the default percentage provided by the default config
-    /// - Validate the percentage set on [`EsiConfig`](crate::config::EsiConfig)
+    /// - Validate the percentage set on [`Config`](crate::Config)
     ///   is between 0 and 100.
     #[error(
         "Invalid JWT key cache background refresh threshold:\n\

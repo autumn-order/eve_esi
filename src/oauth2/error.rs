@@ -60,7 +60,7 @@ pub enum OAuthError {
     ///
     /// # Resolution
     /// To fix this configure your [`Client`](crate::Client) with the `client_id`, `client_secret`,
-    /// and `callback_url` from https://developers.eveonline.com/applications.
+    /// and `callback_url` from <https://developers.eveonline.com/applications>.
     ///
     /// ```
     /// use eve_esi::Client;
