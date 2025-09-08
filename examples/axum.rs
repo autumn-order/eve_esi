@@ -6,7 +6,6 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use std::sync::Arc;
 
 #[derive(Deserialize)]
 struct GetByIdParams {
@@ -29,14 +28,11 @@ async fn main() {
         .build()
         .expect("Failed to build ESI client");
 
-    // Arc is used to share the client between threads safely
-    // Sharing the esi_client as an Extension avoids having initialize it in every API route
-    // This allows you to configure it once here in main as opposed to configuring again in every API route
-    let shared_client = Arc::new(esi_client);
+    // Use esi_client from an Axum extension to share it across threads
     let app = Router::new()
         .route("/character", get(get_esi_character))
         .route("/corporation", get(get_esi_corporation))
-        .layer(Extension(shared_client));
+        .layer(Extension(esi_client));
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
         .await
@@ -48,7 +44,7 @@ async fn main() {
 }
 
 async fn get_esi_character(
-    Extension(esi_client): Extension<Arc<eve_esi::Client>>,
+    Extension(esi_client): Extension<eve_esi::Client>,
     params: Query<GetByIdParams>,
 ) -> Response {
     let character_id: i32 = params.0.id;
@@ -73,7 +69,7 @@ async fn get_esi_character(
 }
 
 async fn get_esi_corporation(
-    Extension(esi_client): Extension<Arc<eve_esi::Client>>,
+    Extension(esi_client): Extension<eve_esi::Client>,
     params: Query<GetByIdParams>,
 ) -> Response {
     let corporation_id: i32 = params.0.id;

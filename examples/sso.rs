@@ -6,7 +6,6 @@ use axum::{
     Router,
 };
 use std::env;
-use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
@@ -38,13 +37,10 @@ async fn main() {
         .build()
         .expect("Failed to build Client");
 
-    // Arc is used to share the client between threads safely
-    // Sharing the esi_client as an Extension avoids having initialize it in every API route
-    // This allows you to configure it once here in main as opposed to configuring again in every API route
-    let shared_client = Arc::new(esi_client);
+    // Access the esi_client from an Axum extension to share it across threads
     let app = Router::new()
         .route("/login", get(login))
-        .layer(Extension(shared_client));
+        .layer(Extension(esi_client));
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
         .await
@@ -54,7 +50,7 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn login(Extension(esi_client): Extension<Arc<eve_esi::Client>>) -> Response {
+async fn login(Extension(esi_client): Extension<eve_esi::Client>) -> Response {
     let scopes = eve_esi::oauth2::ScopeBuilder::new().public_data().build();
 
     let auth_data = match esi_client.oauth2().login_url(scopes) {

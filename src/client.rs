@@ -40,6 +40,7 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// an [`Arc`] internally for usage across multiple threads.
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
+#[derive(Clone)]
 pub struct Client {
     /// Inner reference containing the actual client implementation.
     pub(crate) inner: Arc<ClientRef>,
