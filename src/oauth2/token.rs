@@ -48,14 +48,14 @@ impl<'a> OAuth2Api<'a> {
         &self,
         code: &str,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
-        let client = match &self.client.oauth2_client {
+        let client = match &self.client.inner.oauth2_client {
             Some(client) => client,
             None => return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured)),
         };
 
         match client
             .exchange_code(AuthorizationCode::new(code.to_string()))
-            .request_async(&self.client.reqwest_client)
+            .request_async(&self.client.inner.reqwest_client)
             .await
         {
             Ok(token) => Ok(token),

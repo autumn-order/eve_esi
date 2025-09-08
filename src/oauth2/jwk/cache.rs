@@ -340,7 +340,7 @@ mod cache_get_keys_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Set JWT key cache
         {
@@ -376,7 +376,7 @@ mod cache_get_keys_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Do not set JWT key cache which is None by default
 
@@ -411,7 +411,7 @@ mod cache_update_keys_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock keys
         let mock_keys = EveJwtKeys::create_mock_keys();
@@ -452,7 +452,7 @@ mod jwk_refresh_lock_try_acquire_tests {
             .expect("Failed to build Client");
 
         // Attempt to acquire lock
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
 
@@ -483,7 +483,7 @@ mod jwk_refresh_lock_try_acquire_tests {
             .expect("Failed to build Client");
 
         // Acquire a lock initially
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         let lock = jwt_key_cache.refresh_lock_try_acquire();
 
@@ -493,7 +493,7 @@ mod jwk_refresh_lock_try_acquire_tests {
 
         // Acquire lock a second time
         // Should return false indicating lock is already in use
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
 
@@ -534,7 +534,7 @@ mod jwk_lock_release_and_notify_tests {
             .expect("Failed to build Client");
 
         // Acquire a lock
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         let lock = !jwt_key_cache
             .refresh_lock
@@ -605,7 +605,7 @@ mod set_refresh_failure_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Call function
         let timestamp = std::time::Instant::now();
@@ -636,7 +636,7 @@ mod set_refresh_failure_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Set a refresh failure_timestamp
         {

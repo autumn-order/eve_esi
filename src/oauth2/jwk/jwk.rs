@@ -90,7 +90,7 @@ impl<'a> JwkApi<'a> {
     /// - [`EsiError`]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
         let config = &jwt_key_cache.config;
 
         // Check if we have valid keys in the cache
@@ -165,7 +165,7 @@ impl<'a> JwkApi<'a> {
         // We have the lock, so refresh the cache
         // Attempt up to (2 retries) with an exponential (100 ms) backoff
         refresh_jwt_keys(
-            &esi_client.reqwest_client,
+            &esi_client.inner.reqwest_client,
             &jwt_key_cache,
             jwt_key_cache.config.refresh_max_retries,
         )
@@ -189,7 +189,11 @@ impl<'a> JwkApi<'a> {
     pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
 
-        fetch_and_update_cache(&esi_client.reqwest_client, &esi_client.jwt_key_cache).await
+        fetch_and_update_cache(
+            &esi_client.inner.reqwest_client,
+            &esi_client.inner.jwt_key_cache,
+        )
+        .await
     }
 
     /// Fetches JWT keys from EVE's OAuth2 API
@@ -210,8 +214,8 @@ impl<'a> JwkApi<'a> {
         let esi_client = self.client;
 
         fetch_jwt_keys(
-            &esi_client.reqwest_client,
-            &esi_client.jwt_key_cache.config.jwk_url,
+            &esi_client.inner.reqwest_client,
+            &esi_client.inner.jwt_key_cache.config.jwk_url,
         )
         .await
     }

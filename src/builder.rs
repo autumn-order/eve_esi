@@ -47,6 +47,7 @@ use std::sync::Arc;
 
 use log::warn;
 
+use crate::client::ClientRef;
 use crate::config::Config;
 use crate::error::Error;
 use crate::oauth2::jwk::cache::JwtKeyCache;
@@ -137,14 +138,19 @@ impl ClientBuilder {
         // Setup JWT key cache
         let jwt_key_cache = JwtKeyCache::new(&config);
 
-        // Build Client
-        Ok(Client {
+        // Build ClientRef
+        let client_ref = ClientRef {
             reqwest_client,
             esi_url: config.esi_url,
 
             // OAuth2
             oauth2_client: oauth_client,
-            jwt_key_cache: Arc::new(jwt_key_cache),
+            jwt_key_cache: jwt_key_cache,
+        };
+
+        // Wrap ClientRef in Client
+        Ok(Client {
+            inner: Arc::new(client_ref),
         })
     }
 
@@ -405,8 +411,8 @@ mod tests {
         let client = result.unwrap();
 
         // Assert default ESI_URL is set and oauth client is none
-        assert_eq!(client.esi_url, DEFAULT_ESI_URL);
-        assert!(client.oauth2_client.is_none());
+        assert_eq!(client.inner.esi_url, DEFAULT_ESI_URL);
+        assert!(client.inner.oauth2_client.is_none());
     }
 
     /// Test successful build with OAuth configuration.
@@ -432,7 +438,7 @@ mod tests {
 
         // Assert oauth client was initialized
         let client = result.unwrap();
-        assert!(client.oauth2_client.is_some());
+        assert!(client.inner.oauth2_client.is_some());
     }
 
     /// Test build with a custom config overriding defaults
@@ -458,7 +464,7 @@ mod tests {
             .expect("Failed to build Client");
 
         // Assert default ESI URL has been overridden
-        assert_ne!(result.esi_url, DEFAULT_ESI_URL);
+        assert_ne!(result.inner.esi_url, DEFAULT_ESI_URL);
     }
 
     /// Test failed build due to partial OAuth configuration.

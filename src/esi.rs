@@ -6,7 +6,7 @@ impl Client {
     /// Makes an unauthenticated GET request to the ESI API.
     ///
     /// # Arguments
-    /// - `url` - The ESI API endpoint URL to request.
+    /// - `url` ([`DeserializeOwned`]): The ESI API endpoint URL to request.
     ///
     /// # Returns
     /// A Result containing the deserialized response data or a reqwest error.
@@ -17,7 +17,9 @@ impl Client {
         &self,
         url: &str,
     ) -> Result<T, reqwest::Error> {
-        let req = self.reqwest_client.get(url).send().await?;
+        let reqwest_client = &self.inner.reqwest_client;
+
+        let req = reqwest_client.get(url).send().await?;
         req.error_for_status_ref()?;
         let result: T = req.json().await?;
         Ok(result)
@@ -26,8 +28,8 @@ impl Client {
     /// Makes an unauthenticated POST request to the ESI API.
     ///
     /// # Arguments
-    /// - `url` - The ESI API endpoint URL to request.
-    /// - `data` - The data to send in the request body.
+    /// - `url` ([`DeserializeOwned`]):  The ESI API endpoint URL to request.
+    /// - `data` ([`Serialize`]): The data to send in the request body.
     ///
     /// # Returns
     /// A Result containing the deserialized response data or a reqwest error.
@@ -40,7 +42,9 @@ impl Client {
         url: &str,
         data: &U,
     ) -> Result<T, reqwest::Error> {
-        let req = self.reqwest_client.post(url).json(data).send().await?;
+        let reqwest_client = &self.inner.reqwest_client;
+
+        let req = reqwest_client.post(url).json(data).send().await?;
         req.error_for_status_ref()?;
         let result: T = req.json().await?;
         Ok(result)
