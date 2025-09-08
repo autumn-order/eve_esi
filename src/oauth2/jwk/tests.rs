@@ -1,6 +1,6 @@
-use eve_esi::model::oauth2::EveJwtKeys;
-
 use mockito::{Mock, ServerGuard};
+
+use crate::model::oauth2::EveJwtKeys;
 
 /// Returns status code 200 with mock jwk keys
 ///

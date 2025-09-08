@@ -24,7 +24,7 @@
 //! let scopes = ScopeBuilder::new()
 //!     .public_data()
 //!     .build();
-//! let result = esi_client.oauth2().initiate_oauth_login(scopes);
+//! let result = esi_client.oauth2().login_url(scopes);
 //!
 //! assert!(matches!(result, Err(EsiError::OAuthError(OAuthError::OAuth2NotConfigured))));
 //! ```

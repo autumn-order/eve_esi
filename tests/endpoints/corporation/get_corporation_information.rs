@@ -1,7 +1,7 @@
 use eve_esi::error::EsiError;
 use eve_esi::model::corporation::Corporation;
 
-use super::super::util::setup;
+use crate::util::setup;
 
 /// Tests the successful retrieval of a corporation from a mock EVE ESI server.
 ///

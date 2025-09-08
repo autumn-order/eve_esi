@@ -1,8 +1,7 @@
 use eve_esi::error::EsiError;
 
-use crate::oauth2::jwk::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
-
-use super::super::util::setup;
+use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
+use crate::util::setup;
 
 /// Tests that JWK keys are properly fetched & cache is updated
 ///

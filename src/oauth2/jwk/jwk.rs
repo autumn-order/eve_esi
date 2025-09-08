@@ -87,7 +87,7 @@ impl<'a> JwkApi<'a> {
     /// - [`EveJwtKeys`]: A Result containing the JWT keys if successful
     ///
     /// # Errors
-    /// - [`EsiError]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
+    /// - [`EsiError`]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, EsiError> {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.jwt_key_cache;

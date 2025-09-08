@@ -1,7 +1,7 @@
 use eve_esi::error::EsiError;
 use eve_esi::model::character::Character;
 
-use super::super::util::setup;
+use crate::util::setup;
 
 /// Tests the successful retrieval of character information from a mock EVE ESI server.
 ///

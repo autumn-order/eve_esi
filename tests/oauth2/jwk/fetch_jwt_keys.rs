@@ -2,9 +2,8 @@ use eve_esi::model::oauth2::EveJwtKey;
 use eve_esi::EsiClient;
 use eve_esi::{config::EsiConfig, error::EsiError};
 
-use crate::oauth2::jwk::util::{
-    get_jwk_internal_server_error_response, get_jwk_success_response, setup,
-};
+use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
+use crate::util::setup;
 
 /// Tests the successful retrieval of JWT keys from a mock EVE SSO server.
 ///

@@ -71,3 +71,6 @@ pub use crate::client::EsiClient;
 
 mod constant;
 mod esi;
+
+#[cfg(test)]
+mod tests;

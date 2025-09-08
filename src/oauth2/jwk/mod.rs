@@ -50,3 +50,6 @@ pub use jwk::JwkApi;
 
 mod refresh;
 mod util;
+
+#[cfg(test)]
+mod tests;
