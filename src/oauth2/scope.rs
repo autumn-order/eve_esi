@@ -41,7 +41,7 @@ impl ScopeBuilder {
         ScopeBuilder { scopes: Vec::new() }
     }
 
-    /// Builds the list of scopes into Vec<String>.
+    /// Builds the list of scopes into `Vec<String>`.
     ///
     /// # Example
     /// ```
@@ -77,5 +77,34 @@ impl ScopeBuilder {
     pub fn public_data(mut self) -> Self {
         self.scopes.push(scope::public::PUBLIC_DATA.to_string());
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Tests that all existing scopes can be built.
+    ///
+    /// # Setup
+    /// - Creates a new ScopeBuilder instance with every scope.
+    ///
+    /// # Assertions
+    /// - Asserts that we have the right number of scopes.
+    /// - Asserts that the scopes are correct and in the right order.
+    #[test]
+    fn test_all_scopes() {
+        // Create a new ScopeBuilder instance with every scope
+        let scopes = ScopeBuilder::new()
+            .public_data()
+            .custom("custom_scope")
+            .build();
+
+        // Assert that we have the right number of scopes
+        assert_eq!(scopes.len(), 2);
+
+        // Assert that the scopes are correct and in the right order
+        assert_eq!(scopes[0], scope::public::PUBLIC_DATA);
+        assert_eq!(scopes[1], "custom_scope");
     }
 }

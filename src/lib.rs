@@ -1,8 +1,15 @@
 #![warn(missing_docs)]
 
-//! # EVE ESI
-//! Rust API wrapper for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer).
-//! See the [README](https://github.com/hyziri/eve_esi/blob/main/README.md) for more examples and details.
+//! EVE ESI
+//!
+//! A thread-safe, asynchronous client which provides methods & types for interaction with
+//! [EVE Online's ESI](https://developers.eveonline.com/api-explorer) &
+//! [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
+//!
+//! This crate implements concurrency & caching to provide performance in applications at scale.
+//! For example JSON web token keys (JWT keys) are used to validate tokens after a successful single sign-on login,
+//! this crate automatically caches the keys and refreshes them proactively before expiry in a background task for
+//! mimimal latency with each login.
 //!
 //! # References
 //! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
@@ -10,15 +17,19 @@
 //!
 //! # Usage
 //!
-//! Create a new EsiClient instance and request public information about a character from ESI.
+//! Create a new ESI Client instance and request public information about a corporation from ESI.
 //!
 //! ```no_run
+//! // esi_client is asynchronous, #[tokio::main] allows for making the main function async
+//! // You would ideally use esi_client with an async web framework like Axum as shown in examples
 //! #[tokio::main]
 //! async fn main() {
-//!     let esi_client = eve_esi::EsiClient::builder()
+//!     // Build a new ESI Client with the builder method
+//!     let esi_client = eve_esi::Client::builder()
+//!     // Always set a user agent to identify your application
 //!         .user_agent("MyApp/1.0 (contact@example.com)")
 //!         .build()
-//!         .expect("Failed to build EsiClient");
+//!         .expect("Failed to build Client");
 //!
 //!     // Get information about the corporation The Order of Autumn (id: 98785281)
 //!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
@@ -26,14 +37,53 @@
 //! }
 //! ```
 //!
-//! Make certain you set the user agent as demonstrated above, ensure it includes contact email in case there are any issues with your ESI requests.
+//! # Logging
+//!
+//! This library uses the [`log`](https://crates.io/crates/log) crate for logging. To capture log output,
+//! applications using this library should initialize a logger implementation like `env_logger`,
+//! `simple_logger`, or any other implementation of the `log` crate's facade.
+//!
+//! ## Log Levels
+//!
+//! - **Error**: Used for failures that prevent successful API calls
+//! - **Warn**: Used for potential issues that don't prevent operation but could be problematic
+//! - **Info**: Used for successful API calls and important client state changes
+//! - **Debug**: Used for detailed information about API call parameters and responses
+//! - **Trace**: Used for very detailed debugging information
+//!
+//! ## Example with env_logger
+//!
+//! ```no_run
+//! // Set RUST_LOG environment variable to control log levels
+//! // e.g., RUST_LOG=eve_esi=debug,info
+//!
+//! // Initialize env_logger
+//! env_logger::init();
+//!
+//! // Now logs from eve_esi will be captured
+//! let esi_client = eve_esi::Client::builder()
+//!     .user_agent("MyApp/1.0 (contact@example.com)")
+//!     .build()
+//!     .expect("Failed to build Client");
+//! ```
 
+pub mod builder;
+pub mod client;
+pub mod config;
+pub mod endpoints;
 pub mod error;
 pub mod model;
 pub mod oauth2;
 
-pub use crate::client::EsiClient;
+pub use crate::builder::ClientBuilder;
+pub use crate::client::Client;
+pub use crate::config::{Config, ConfigBuilder};
+pub use crate::error::{ConfigError, Error};
+pub use crate::oauth2::error::OAuthError;
+pub use crate::oauth2::ScopeBuilder;
 
-mod client;
-mod endpoints;
+mod constant;
 mod esi;
+
+#[cfg(test)]
+mod tests;
