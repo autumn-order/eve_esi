@@ -314,11 +314,10 @@ pub(super) async fn refresh_jwt_keys(
 #[cfg(test)]
 mod wait_for_ongoing_refresh_tests {
     use crate::error::Error;
-    use crate::model::oauth2::EveJwtKeys;
     use crate::oauth2::error::OAuthError;
     use crate::tests::setup;
 
-    use super::super::tests::get_jwk_internal_server_error_response;
+    use super::super::tests::{create_mock_keys, get_jwk_internal_server_error_response};
 
     /// Validates retrieving keys from cache after waiting for refresh.
     ///
@@ -356,7 +355,7 @@ mod wait_for_ongoing_refresh_tests {
         let (tx, rx) = tokio::sync::oneshot::channel();
 
         // Spawn a coroutine to perform the background refresh
-        let keys = EveJwtKeys::create_mock_keys();
+        let keys = create_mock_keys();
 
         let keys_clone = keys.clone();
         let client_ref = esi_client.inner.clone();
@@ -495,7 +494,7 @@ mod wait_for_ongoing_refresh_tests {
             let expired_timestamp =
                 std::time::Instant::now() - std::time::Duration::from_secs(3601);
             let mut cache = jwt_key_cache.cache.write().await;
-            *cache = Some((EveJwtKeys::create_mock_keys(), expired_timestamp));
+            *cache = Some((create_mock_keys(), expired_timestamp));
         }
 
         // Acquire a refresh lock

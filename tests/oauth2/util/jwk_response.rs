@@ -1,4 +1,4 @@
-use eve_esi::model::oauth2::EveJwtKeys;
+use super::super::util::jwt::create_mock_token_keys;
 
 use mockito::{Mock, ServerGuard};
 
@@ -15,8 +15,8 @@ use mockito::{Mock, ServerGuard};
 /// # Returns
 /// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
 ///   were received.
-pub(super) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
-    let mock_keys = EveJwtKeys::create_mock_keys();
+pub(crate) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
+    let mock_keys = create_mock_token_keys();
 
     let mock = server
         .mock("GET", "/oauth/jwks")
@@ -42,7 +42,7 @@ pub(super) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) 
 /// # Returns
 /// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
 ///   were received.
-pub(super) fn get_jwk_internal_server_error_response(
+pub(crate) fn get_jwk_internal_server_error_response(
     server: &mut ServerGuard,
     expect: usize,
 ) -> Mock {

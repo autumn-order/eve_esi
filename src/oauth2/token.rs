@@ -4,7 +4,7 @@
 //!
 //! ## Methods
 //! - [OAuth2Api::get_token]: Retrieves a token from EVE Online's OAuth2 API
-//! - [OAuth2Api::validate_token]: Validates token retrieved via the [`Self::get_token`] method
+//! - [OAuth2Api::validate_token]: Validates token retrieved via the [`OAuth2Api::get_token`] method
 //!
 //! ## Documentation
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
@@ -69,9 +69,7 @@ impl<'a> OAuth2Api<'a> {
     /// This method uses the configured Client to retrieve a token from EVE Online's
     /// OAuth2 API using the provided authorization code. This will contain both your
     /// access token and refresh token. The access token contains the character ID which you
-    /// can access after validation.
-    ///
-    /// See docs for [Self::validate_token] for token validation.
+    /// can access after validation. See [Self::validate_token] for token validation.
     ///
     /// For an overview & usage, see the [module-level documentation](super)
     ///

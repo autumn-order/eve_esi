@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
+use crate::oauth2::util::jwk_response::{
+    get_jwk_internal_server_error_response, get_jwk_success_response,
+};
 use crate::util::setup;
 
 /// Tests that get_jwt_keys returns cached keys when they are not expired.

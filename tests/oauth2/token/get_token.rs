@@ -1,13 +1,13 @@
 use mockito::Server;
 use oauth2::RequestTokenError;
 
-use super::util::create_mock_token;
+use super::super::util::jwt::create_mock_token;
 use crate::util::setup;
 
 /// Tests the successful retrieval of an OAuth2 token
 ///
 /// # Setup
-/// - Create an Client configured with OAuth2 and a mock server
+/// - Create a Client configured with OAuth2 and a mock server
 /// - Configures a mock response with a successful token response
 ///
 /// # Assertions

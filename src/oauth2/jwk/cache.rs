@@ -319,7 +319,9 @@ impl JwtKeyCache {
 
 #[cfg(test)]
 mod cache_get_keys_tests {
-    use crate::{model::oauth2::EveJwtKeys, Client};
+    use crate::Client;
+
+    use super::super::tests::create_mock_keys;
 
     /// Validates function returns Some keys when cache has keys
     ///
@@ -344,7 +346,7 @@ mod cache_get_keys_tests {
 
         // Set JWT key cache
         {
-            let keys = (EveJwtKeys::create_mock_keys(), std::time::Instant::now());
+            let keys = (create_mock_keys(), std::time::Instant::now());
 
             let mut cache = jwt_key_cache.cache.write().await;
             *cache = Some(keys);
@@ -390,7 +392,9 @@ mod cache_get_keys_tests {
 
 #[cfg(test)]
 mod cache_update_keys_tests {
-    use crate::{model::oauth2::EveJwtKeys, Client};
+    use crate::Client;
+
+    use super::super::tests::create_mock_keys;
 
     /// Validates that cache properly updates with new keys
     ///
@@ -414,7 +418,7 @@ mod cache_update_keys_tests {
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock keys
-        let mock_keys = EveJwtKeys::create_mock_keys();
+        let mock_keys = create_mock_keys();
 
         // Test function
         jwt_key_cache.update_keys(mock_keys).await;
