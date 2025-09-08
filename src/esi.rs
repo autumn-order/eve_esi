@@ -17,7 +17,7 @@ impl Client {
         &self,
         url: &str,
     ) -> Result<T, reqwest::Error> {
-        let req = self.reqwest_client.get(url).send().await?;
+        let req = self.inner.reqwest_client.get(url).send().await?;
         req.error_for_status_ref()?;
         let result: T = req.json().await?;
         Ok(result)
@@ -40,7 +40,13 @@ impl Client {
         url: &str,
         data: &U,
     ) -> Result<T, reqwest::Error> {
-        let req = self.reqwest_client.post(url).json(data).send().await?;
+        let req = self
+            .inner
+            .reqwest_client
+            .post(url)
+            .json(data)
+            .send()
+            .await?;
         req.error_for_status_ref()?;
         let result: T = req.json().await?;
         Ok(result)

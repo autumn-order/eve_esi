@@ -13,6 +13,12 @@
 //! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 //!
+//! ## Warning
+//! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+//! Include application name, version, and contact information in your user agent string.
+//!
+//! Example: "MyApp/1.0 (contact@example.com)"
+//!
 //! ## Example
 //! ```
 //! // Set a user agent used to identify the application making ESI requests
@@ -21,12 +27,6 @@
 //!     .build()
 //!     .expect("Failed to build Client");
 //! ```
-//!
-//! ## Warning
-//! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
-//! Include application name, version, and contact information in your user agent string.
-//!
-//! Example: "MyApp/1.0 (contact@example.com)"
 
 use std::sync::Arc;
 
@@ -36,10 +36,21 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 
 /// The main client for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 ///
-/// Use this struct to configure OAuth2 authentication and make requests to ESI endpoints.
+/// Use this struct to configure OAuth2 authentication and make requests to ESI endpoints. Uses
+/// an [`Arc`] internally for usage across multiple threads.
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct Client {
+    /// Inner reference containing the actual client implementation.
+    pub(crate) inner: Arc<ClientRef>,
+}
+
+/// Reference type containing the actual client implementation.
+///
+/// This struct is wrapped in an [`Arc`] within the [`Client`] struct.
+///
+/// For a full overview, features, and usage examples, see the [module-level documentation](self).
+pub(crate) struct ClientRef {
     // Base settings
     /// HTTP client used to make requests to EVE Online's APIs
     pub(crate) reqwest_client: reqwest::Client,

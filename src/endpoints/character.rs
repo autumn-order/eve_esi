@@ -90,7 +90,7 @@ impl<'a> CharacterApi<'a> {
         &self,
         character_id: i32,
     ) -> Result<Character, Error> {
-        let url = format!("{}/characters/{}/", self.client.esi_url, character_id);
+        let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
 
         Ok(self.client.get_from_public_esi::<Character>(&url).await?)
     }
@@ -136,7 +136,7 @@ impl<'a> CharacterApi<'a> {
         &self,
         character_ids: Vec<i32>,
     ) -> Result<Vec<CharacterAffiliation>, Error> {
-        let url = format!("{}/characters/affiliation/", self.client.esi_url);
+        let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
         let esi_client = self.client;
 
         Ok(esi_client

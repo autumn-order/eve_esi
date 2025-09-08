@@ -50,7 +50,7 @@ impl<'a> JwkApi<'a> {
     ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
         let config = &jwt_key_cache.config;
 
         let start_time = Instant::now();
@@ -148,7 +148,7 @@ impl<'a> JwkApi<'a> {
     /// - `bool` indicating whether or not a background refresh was triggered
     pub(super) async fn trigger_background_jwt_refresh(&self) -> bool {
         let esi_client = self.client;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Check if we are still in cooldown due to fetch failure within 60 second cooldown period
         if check_refresh_cooldown(&jwt_key_cache).await.is_some() {
@@ -170,8 +170,8 @@ impl<'a> JwkApi<'a> {
         debug!("Triggering background JWT refresh task");
 
         // Clone the required components
-        let reqwest_client = esi_client.reqwest_client.clone();
-        let jwt_key_cache = esi_client.jwt_key_cache.clone();
+        let reqwest_client = esi_client.inner.reqwest_client.clone();
+        let jwt_key_cache = esi_client.inner.jwt_key_cache.clone();
 
         tokio::spawn(async move {
             // Make no retries as the background refresh utilizes a 60 second cooldown between attempts instead.
@@ -342,7 +342,7 @@ mod wait_for_ongoing_refresh_tests {
     async fn test_wait_for_refresh_success() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, mut mock_server) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock response with error 500 and expecting 0 requests
         let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
@@ -360,7 +360,7 @@ mod wait_for_ongoing_refresh_tests {
         let keys = EveJwtKeys::create_mock_keys();
 
         let keys_clone = keys.clone();
-        let cache_clone = esi_client.jwt_key_cache.clone();
+        let cache_clone = esi_client.inner.jwt_key_cache.clone();
 
         tokio::spawn(async move {
             // Signal that refresh is about to start
@@ -413,7 +413,7 @@ mod wait_for_ongoing_refresh_tests {
     async fn test_wait_for_refresh_failure_empty_cache() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, mut mock_server) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock response with error 500 and expecting 0 requests
         let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
@@ -486,7 +486,7 @@ mod wait_for_ongoing_refresh_tests {
     async fn test_wait_for_refresh_failure_expired_cache() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, mut mock_server) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock response with error 500 and expecting 0 requests
         let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
@@ -561,7 +561,7 @@ mod wait_for_ongoing_refresh_tests {
     async fn test_wait_for_refresh_timeout() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, mut mock_server) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock response with error 500 and expecting 0 requests
         let mock = get_jwk_internal_server_error_response(&mut mock_server, 0);
@@ -639,7 +639,7 @@ mod trigger_background_jwt_refresh_test {
     async fn test_background_refresh_cooldown() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, _) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Set last failure within cooldown period of last 60 seconds (failed 30 seconds ago)
         {
@@ -676,7 +676,7 @@ mod trigger_background_jwt_refresh_test {
     async fn test_background_refresh_already_in_progress() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, _) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Acquire a refresh lock
         let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
@@ -721,16 +721,16 @@ mod refresh_jwt_keys_tests {
     async fn test_refresh_keys_success() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, mut mock_server) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock response with mock keys & expecting 1 request
         let mock = get_jwk_success_response(&mut mock_server, 1);
 
         // Call method under test
         let result = refresh_jwt_keys(
-            &esi_client.reqwest_client,
-            &esi_client.jwt_key_cache,
-            esi_client.jwt_key_cache.config.refresh_max_retries,
+            &esi_client.inner.reqwest_client,
+            &esi_client.inner.jwt_key_cache,
+            esi_client.inner.jwt_key_cache.config.refresh_max_retries,
         )
         .await;
 
@@ -771,9 +771,9 @@ mod refresh_jwt_keys_tests {
 
         // Call method under test
         let result = refresh_jwt_keys(
-            &esi_client.reqwest_client,
-            &esi_client.jwt_key_cache,
-            esi_client.jwt_key_cache.config.refresh_max_retries,
+            &esi_client.inner.reqwest_client,
+            &esi_client.inner.jwt_key_cache,
+            esi_client.inner.jwt_key_cache.config.refresh_max_retries,
         )
         .await;
 
@@ -815,7 +815,7 @@ mod refresh_jwt_keys_tests {
     async fn test_refresh_keys_retry() {
         // Setup a basic Client & mock HTTP server
         let (esi_client, mut mock_server) = setup().await;
-        let jwt_key_cache = &esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create an initial mock response with error 500 and expecting 1 request
         let mock_500 = get_jwk_internal_server_error_response(&mut mock_server, 1);
@@ -825,9 +825,9 @@ mod refresh_jwt_keys_tests {
 
         // Call method under test
         let result = refresh_jwt_keys(
-            &esi_client.reqwest_client,
-            &esi_client.jwt_key_cache,
-            esi_client.jwt_key_cache.config.refresh_max_retries,
+            &esi_client.inner.reqwest_client,
+            &esi_client.inner.jwt_key_cache,
+            esi_client.inner.jwt_key_cache.config.refresh_max_retries,
         )
         .await;
 

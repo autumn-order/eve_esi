@@ -60,7 +60,7 @@ impl<'a> OAuth2Api<'a> {
     /// ```
     pub fn login_url(&self, scopes: Vec<String>) -> Result<AuthenticationData, Error> {
         // Retrieve the OAuth2 client from the Client
-        let client = match &self.client.oauth2_client {
+        let client = match &self.client.inner.oauth2_client {
             Some(client) => client,
             // Returns an error if the OAuth2 client is not found due to it not having been configured when
             // building the Client.

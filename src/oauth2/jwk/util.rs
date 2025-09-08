@@ -213,7 +213,7 @@ mod is_refresh_cooldown_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Set the recent failure within cooldown period default of 60 seconds
         {
@@ -251,7 +251,7 @@ mod is_refresh_cooldown_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Set the last refresh failure greater than default of cooldown period of 60 seconds
         {
@@ -286,7 +286,7 @@ mod is_refresh_cooldown_tests {
             .build()
             .expect("Failed to build Client");
 
-        let jwt_key_cache = esi_client.jwt_key_cache;
+        let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Run function
         let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
@@ -327,7 +327,7 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -357,7 +357,7 @@ mod is_cache_approaching_expiry_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, elapsed_seconds);
 
         // Assert false
         assert_eq!(result, false)
@@ -393,7 +393,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.inner.jwt_key_cache, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, true)
@@ -423,7 +423,7 @@ mod is_cache_expired_tests {
         let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.inner.jwt_key_cache, elapsed_seconds);
 
         // Assert true
         assert_eq!(result, false)

@@ -83,7 +83,7 @@ impl<'a> AllianceApi<'a> {
     /// }
     /// ```
     pub async fn get_alliance_information(&self, alliance_id: i32) -> Result<Alliance, Error> {
-        let url = format!("{}/alliances/{}/", self.client.esi_url, alliance_id);
+        let url = format!("{}/alliances/{}/", self.client.inner.esi_url, alliance_id);
 
         Ok(self.client.get_from_public_esi::<Alliance>(&url).await?)
     }
