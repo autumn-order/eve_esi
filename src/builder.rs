@@ -142,11 +142,11 @@ impl ClientBuilder {
         let client_ref = ClientRef {
             reqwest_client,
             esi_url: config.esi_url,
-            login_url: config.login_url,
 
             // OAuth2
             oauth2_client: oauth_client,
             jwt_key_cache: jwt_key_cache,
+            jwt_issuer: config.jwt_issuer,
             jwt_audience: config.jwt_audience,
         };
 

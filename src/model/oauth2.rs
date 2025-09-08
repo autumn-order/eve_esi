@@ -108,6 +108,44 @@ pub enum EveJwtKey {
     },
 }
 
+/// Represents the claims in an EVE Online JWT access token
+///
+/// This struct contains the standard JWT claims as well as EVE Online specific
+/// claims that are used to identify the character and other information.
+///
+/// # Documentation
+/// See [EVE SSO documentation](https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens)
+/// for details about JWT claims.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EveJwtClaims {
+    /// The issuer of the JWT token (EVE Online's login service URL)
+    pub iss: String,
+    /// ID for the authenticated user (Example: "CHARACTER:EVE:2114794365")
+    pub sub: String,
+    /// Audience the JWT token is intended for (your client_id, EVE Online)
+    pub aud: Vec<String>,
+    /// JWT token ID, a unique identifier for this specific token
+    pub jti: String,
+    /// Key ID identifying which key was used to sign this JWT
+    pub kid: String,
+    /// The EVE Online server the key is for (tranquility)
+    pub tenant: String,
+    /// The region from which the token was issued (world)
+    pub region: String,
+    /// Expiration time (Unix timestamp)
+    pub exp: i64,
+    /// Issued at time (Unix timestamp)
+    pub iat: i64,
+    /// The scopes granted by this token
+    pub scp: Option<String>,
+    /// The character's name
+    pub name: String,
+    /// The character's ID
+    pub owner: String,
+    /// The character's organization (corporation/alliance) ID
+    pub azp: String,
+}
+
 impl EveJwtKeys {
     /// Utility function to create a set of mock JWT keys
     ///

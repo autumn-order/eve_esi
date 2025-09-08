@@ -64,10 +64,13 @@ pub async fn test_get_token_error() {
     mock.assert();
     match result {
         Ok(_) => panic!("Expected an error"),
-        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::TokenError(
+        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::RequestTokenError(
             RequestTokenError::ServerResponse(_),
         ))) => {}
-        Err(err) => panic!("Expected error of type EsiError::ReqwestError: {}", err),
+        Err(err) => panic!(
+            "Expected error of type RequestTokenError::ServerResponse, received {:#?}",
+            err
+        ),
     }
 }
 

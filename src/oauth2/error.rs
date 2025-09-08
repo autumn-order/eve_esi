@@ -109,10 +109,26 @@ pub enum OAuthError {
     ///
     /// For a more detailed explanation of the error, see the [`RequestTokenError`] enum.
     #[error("OAuth2 token error: {0:?}")]
-    TokenError(
+    RequestTokenError(
         RequestTokenError<
             HttpClientError<reqwest::Error>,
             StandardErrorResponse<BasicErrorResponseType>,
         >,
     ),
+
+    /// Error types returned when OAuth2 token validation fails
+    ///
+    /// For a more detailed explanation of the error, see the [`jsonwebtoken::errors::Error`] enum.
+    #[error("Validate token error: {0:?}")]
+    ValidateTokenError(jsonwebtoken::errors::Error),
+
+    /// Error returned when JWT key cache does not have the ES256 token key needed for validation
+    ///
+    /// This would be an issue with the [crate::oauth2::jwk::JwkApi::get_jwt_keys] method where
+    /// the API the keys are fetched from is expected to return a Vec<> with 1 ES256 and 1 RS256
+    /// key but only the ES256 was returned otherwise the [crate::oauth2::OAuth2Api::validate_token] method
+    /// would've returned a cache related error instead
+    /// ([`JwtKeyRefreshTimeout`], [`JwtKeyRefreshFailure`], [`JwtKeyRefreshCooldown`]).
+    #[error("No valid token key for validation found in cache: {0:?}")]
+    NoValidKeyFound(String),
 }

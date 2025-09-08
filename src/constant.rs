@@ -3,8 +3,6 @@ use std::time::Duration;
 // Default EVE Online API URLs
 /// Default EVE Online ESI URL
 pub static DEFAULT_ESI_URL: &str = "https://esi.evetech.net";
-/// Default EVE Online login server URL which represents the expected issuer of tokens
-pub static DEFAULT_LOGIN_URL: &str = "https://login.eveonline.com";
 /// Default EVE Online authorization URL for single sign-on
 pub static DEFAULT_AUTH_URL: &str = "https://login.eveonline.com/v2/oauth/authorize";
 /// Default EVE Online OAuth2 token URL used for retrieving access tokens
@@ -30,5 +28,7 @@ pub static DEFAULT_JWK_REFRESH_COOLDOWN: Duration = Duration::from_secs(60);
 pub static DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT: u64 = 80;
 
 // Default JWT settings
+/// Default EVE Online login server URL which represents the expected issuer of tokens
+pub static DEFAULT_JWT_ISSUER: &str = "https://login.eveonline.com";
 /// Default intended audience which JWT tokens will be used with
 pub static DEFAULT_JWT_AUDIENCE: &str = "EVE Online";

@@ -19,7 +19,6 @@
 //! | `new`           | Create a new [`ConfigBuilder`]          |
 //! | `build`         | Build the [`Config`]                    |
 //! | `esi_url`       | Base URL for ESI endpoints                 |
-//! | `login_url`     | EVE login server URL, expected issuer of JWT tokens     |
 //! | `auth_url`      | URL for sign in with EVE Online            |
 //! | `token_url`     | URL to retrieve access tokens for OAuth2   |
 //! | `jwk_url`       | URL for JWT keys to validate tokens        |
@@ -30,7 +29,6 @@
 //! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_background_refresh_enabled` | Enable/disable background refresh          |
 //! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
-//! | `jwt_audience`                     | Intended audience which JWT tokens will be used with |
 //!
 //! ## Usage
 //!
@@ -58,7 +56,7 @@ use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
     constant::{
-        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_LOGIN_URL,
+        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER,
         DEFAULT_TOKEN_URL,
     },
     error::{ConfigError, Error},
@@ -72,16 +70,16 @@ pub struct Config {
     // URL settings
     /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
-    /// The EVE Online login server URL which represents the expected issuer of tokens
-    pub(crate) login_url: String,
     /// Authorization URL used to login with EVE Online's OAuth2
     pub(crate) auth_url: AuthUrl,
     /// Token URL which provides an access token for authenticated ESI endpoints
     pub(crate) token_url: TokenUrl,
 
-    // OAuth2 JWT settings
+    // JWT Key Settings
     /// Config for JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
+    /// The EVE Online login server URL which represents the expected issuer of tokens
+    pub(crate) jwt_issuer: String,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
 }
@@ -93,16 +91,16 @@ pub struct ConfigBuilder {
     // URL settings
     /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
-    /// The EVE Online login server URL which represents the expected issuer of tokens
-    pub(crate) login_url: String,
     /// Authorization URL used to login with EVE Online's OAuth2
     pub(crate) auth_url: String,
     /// Token URL which provides an access token for authenticated ESI endpoints
     pub(crate) token_url: String,
 
-    // OAuth2 JWT settings
+    // OAuth2 JWT key config
     /// Config for OAuth2 JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
+    /// The EVE Online login server URL which represents the expected issuer of tokens
+    pub(crate) jwt_issuer: String,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
 }
@@ -146,12 +144,12 @@ impl ConfigBuilder {
         Self {
             // URL settings
             esi_url: DEFAULT_ESI_URL.to_string(),
-            login_url: DEFAULT_LOGIN_URL.to_string(),
             auth_url: DEFAULT_AUTH_URL.to_string(),
             token_url: DEFAULT_TOKEN_URL.to_string(),
 
-            // OAuth2 JWT settings
+            // OAuth2 JWT key config
             jwt_key_cache_config: JwtKeyCacheConfig::new(),
+            jwt_issuer: DEFAULT_JWT_ISSUER.to_string(),
             jwt_audience: DEFAULT_JWT_AUDIENCE.to_string(),
         }
     }
@@ -199,12 +197,12 @@ impl ConfigBuilder {
         Ok(Config {
             // URL settings
             esi_url: self.esi_url,
-            login_url: self.login_url,
             auth_url: auth_url,
             token_url: token_url,
 
-            // OAuth2 JWT settings
+            // JWT key cache settings
             jwt_key_cache_config: self.jwt_key_cache_config,
+            jwt_issuer: self.jwt_issuer,
             jwt_audience: self.jwt_audience,
         })
     }
@@ -222,22 +220,6 @@ impl ConfigBuilder {
     /// - [`ConfigBuilder`]: Instance with the updated ESI URL
     pub fn esi_url(mut self, esi_url: &str) -> Self {
         self.esi_url = esi_url.to_string();
-        self
-    }
-
-    /// Sets EVE Online login server URL
-    ///
-    /// This is the expected issuer of JSON web tokens used to access
-    /// authenticated ESI routes.
-    ///
-    /// # Arguments
-    /// - `login_url` (&[`str`]): The URL for EVE Online's login server.
-    ///   Default is `"https://login.eveonline.com"`.
-    ///
-    /// # Returns
-    /// - [`ConfigBuilder`]: Instance with updated EVE Online login URL.
-    pub fn login_url(mut self, login_url: &str) -> Self {
-        self.login_url = login_url.to_string();
         self
     }
 
@@ -435,6 +417,22 @@ impl ConfigBuilder {
         self
     }
 
+    /// Sets the the expected issuer of JWT tokens
+    ///
+    /// This is the expected issuer of JSON web tokens used to access
+    /// authenticated ESI routes. Typically the EVE Online login server URL.
+    ///
+    /// # Arguments
+    /// - `issuer` (&[`str`]): The URL for EVE Online's login server.
+    ///   Default is `"https://login.eveonline.com"`.
+    ///
+    /// # Returns
+    /// - [`ConfigBuilder`]: Instance with updated EVE Online login URL.
+    pub fn jwt_issuer(mut self, issuer: &str) -> Self {
+        self.jwt_issuer = issuer.to_string();
+        self
+    }
+
     /// Sets the intended audience tokens are expected to be used with
     ///
     /// The intended audience which the JSON web tokens (JWTs) used to access authenticated
@@ -472,8 +470,6 @@ mod tests {
 
         let config = Config::builder()
             // URL settings
-            .esi_url("https://example.com")
-            .login_url("https://example.com")
             .auth_url("https://example.com")
             .token_url("https://example.com")
             .jwk_url("https://example.com")
@@ -487,6 +483,7 @@ mod tests {
             .jwk_background_refresh_enabled(false)
             .jwk_background_refresh_threshold(1)
             // JWT settings
+            .jwt_issuer("example")
             .jwt_audience("example")
             .build()
             .expect("Failed to build Config");
@@ -495,8 +492,6 @@ mod tests {
         let auth_url = AuthUrl::new("https://example.com".to_string()).unwrap();
         let token_url = TokenUrl::new("https://example.com".to_string()).unwrap();
 
-        assert_eq!(config.esi_url, "https://example.com");
-        assert_eq!(config.login_url, "https://example.com");
         assert_eq!(config.auth_url, auth_url);
         assert_eq!(config.token_url, token_url);
         assert_eq!(config.jwt_key_cache_config.jwk_url, "https://example.com");
@@ -516,7 +511,8 @@ mod tests {
         assert_eq!(config.jwt_key_cache_config.background_refresh_threshold, 1);
 
         // Assert JWT settings were set
-        assert_eq!(config.jwt_audience, "example")
+        assert_eq!(config.jwt_issuer, "example");
+        assert_eq!(config.jwt_audience, "example");
     }
 
     /// Expect an error setting the JWK background refresh threshold to 0
