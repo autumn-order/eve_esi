@@ -170,12 +170,11 @@ impl<'a> JwkApi<'a> {
         debug!("Triggering background JWT refresh task");
 
         // Clone the required components
-        let reqwest_client = esi_client.inner.reqwest_client.clone();
-        let jwt_key_cache = esi_client.inner.jwt_key_cache.clone();
+        let client_ref = esi_client.inner.clone();
 
         tokio::spawn(async move {
             // Make no retries as the background refresh utilizes a 60 second cooldown between attempts instead.
-            refresh_jwt_keys(&reqwest_client, &jwt_key_cache, 0).await
+            refresh_jwt_keys(&client_ref.reqwest_client, &client_ref.jwt_key_cache, 0).await
         });
 
         #[cfg(not(tarpaulin_include))]
@@ -360,7 +359,7 @@ mod wait_for_ongoing_refresh_tests {
         let keys = EveJwtKeys::create_mock_keys();
 
         let keys_clone = keys.clone();
-        let cache_clone = esi_client.inner.jwt_key_cache.clone();
+        let client_ref = esi_client.inner.clone();
 
         tokio::spawn(async move {
             // Signal that refresh is about to start
@@ -370,10 +369,10 @@ mod wait_for_ongoing_refresh_tests {
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
             // Update keys
-            cache_clone.update_keys(keys_clone).await;
+            client_ref.jwt_key_cache.update_keys(keys_clone).await;
 
             // Release lock & notify waiters
-            cache_clone.refresh_lock_release_and_notify();
+            client_ref.jwt_key_cache.refresh_lock_release_and_notify();
         });
 
         // Wait for coroutine to begin refresh
@@ -428,7 +427,7 @@ mod wait_for_ongoing_refresh_tests {
         let (tx, rx) = tokio::sync::oneshot::channel();
 
         // Spawn a coroutine to perform the background refresh
-        let cache_clone = jwt_key_cache.clone();
+        let client_ref = esi_client.inner.clone();
 
         tokio::spawn(async move {
             // Signal that refresh is about to start
@@ -440,7 +439,7 @@ mod wait_for_ongoing_refresh_tests {
             // Don't update the cache with keys to represent a failure
 
             // Release lock & notify waiters regardless of success
-            cache_clone.refresh_lock_release_and_notify();
+            client_ref.jwt_key_cache.refresh_lock_release_and_notify();
         });
 
         // Wait for coroutine to begin refresh
@@ -509,7 +508,7 @@ mod wait_for_ongoing_refresh_tests {
         let (tx, rx) = tokio::sync::oneshot::channel();
 
         // Spawn a coroutine to perform the background refresh
-        let cache_clone = jwt_key_cache.clone();
+        let client_ref = esi_client.inner.clone();
 
         tokio::spawn(async move {
             // Signal that refresh is about to start
@@ -521,7 +520,7 @@ mod wait_for_ongoing_refresh_tests {
             // Don't update the cache with keys to represent a failure
 
             // Release lock & notify waiters regardless of success
-            cache_clone.refresh_lock_release_and_notify();
+            client_ref.jwt_key_cache.refresh_lock_release_and_notify();
         });
 
         // Wait for coroutine to begin refresh

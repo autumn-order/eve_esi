@@ -66,7 +66,7 @@ pub(crate) struct ClientRef {
     pub(crate) oauth2_client: Option<OAuth2Client>,
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.
-    pub(crate) jwt_key_cache: Arc<JwtKeyCache>,
+    pub(crate) jwt_key_cache: JwtKeyCache,
 }
 
 impl Client {

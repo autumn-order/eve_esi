@@ -145,7 +145,7 @@ impl ClientBuilder {
 
             // OAuth2
             oauth2_client: oauth_client,
-            jwt_key_cache: Arc::new(jwt_key_cache),
+            jwt_key_cache: jwt_key_cache,
         };
 
         // Wrap ClientRef in Client
