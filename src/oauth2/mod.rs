@@ -44,7 +44,6 @@
 //! println!("Login URL: {}", auth_data.login_url);
 //! ```
 
-pub mod client;
 pub mod error;
 pub mod jwk;
 pub mod login;
@@ -54,3 +53,5 @@ pub mod token;
 
 pub use oauth2::OAuth2Api;
 pub use scope::ScopeBuilder;
+
+pub(crate) mod client;

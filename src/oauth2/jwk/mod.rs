@@ -42,11 +42,11 @@
 //! - Atomic flags for refresh coordination
 //! - Notification mechanisms for efficient waiting
 
-pub mod cache;
 pub mod jwk;
 
-pub use cache::JwtKeyCache;
 pub use jwk::JwkApi;
+
+pub(crate) mod cache;
 
 mod refresh;
 mod util;
