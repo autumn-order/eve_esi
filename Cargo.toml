@@ -1,9 +1,9 @@
 [package]
 name = "eve_esi"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["Hyziri <hyziri@protonmail.com>"]
 edition = "2021"
-description = "Rust API wrapper for EVE Online's ESI & OAuth2."
+description = "Thread-safe, asynchronous client for EVE Online's ESI & OAuth2"
 keywords = ["esi", "eve_esi", "eve_online", "eve_oauth2", "eve_api"]
 repository = "https://github.com/hyziri/eve_esi"
 license = "MIT"
