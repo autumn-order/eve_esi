@@ -4,15 +4,15 @@ Rust API wrapper for interaction with [EVE Online's ESI](https://developers.eveo
 
 ## Usage
 
-Create a new EsiClient instance and request public information about a character from ESI.
+Create a new Client instance and request public information about a character from ESI.
 
 ```rust
 #[tokio::main]
 async fn main() {
-    let esi_client = eve_esi::EsiClient::builder()
+    let esi_client = eve_esi::Client::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
         .build()
-        .expect("Failed to build EsiClient");
+        .expect("Failed to build Client");
 
     // Get information about the corporation The Order of Autumn (id: 98785281)
     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
@@ -66,13 +66,8 @@ applications using this library should initialize a logger implementation like `
 env_logger::init();
 
 // Now logs from eve_esi will be captured
-let esi_client = eve_esi::EsiClient::builder()
+let esi_client = eve_esi::Client::builder()
     .user_agent("MyApp/1.0 (contact@example.com)")
     .build()
-    .expect("Failed to build EsiClient");
+    .expect("Failed to build Client");
 ```
-
-## Notes
-
-- More ESI routes will be added as needed, feel free to submit pull requests to add any you may need.
-- You can override the esi_url for the ESI Client by simply using `esi_client.esi_url = "http://your_url.com"` for use cases such as unit tests with crates such as [mockito](https://docs.rs/mockito/latest/mockito/) to emulate endpoints. See this repository's tests folder for examples.
