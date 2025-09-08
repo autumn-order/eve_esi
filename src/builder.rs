@@ -12,7 +12,7 @@
 //! - Set a user agent
 //! - Configure [`Client`] for OAuth2 using `client_id`, `client_secret`, and `callback_url` methods
 //! - Override the default JWT key cache & refresh settings used to validate OAuth2 tokens & override
-//!   the default endpoint URLs with a custom [`EsiConfig`] using the [`ClientBuilder::config`] method.
+//!   the default endpoint URLs with a custom [`Config`] using the [`ClientBuilder::config`] method.
 //!
 //! ## Builder Methods
 //! | Method           | Purpose                                 |
@@ -47,7 +47,7 @@ use std::sync::Arc;
 
 use log::warn;
 
-use crate::config::EsiConfig;
+use crate::config::Config;
 use crate::error::Error;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 use crate::Client;
@@ -58,7 +58,7 @@ use crate::Client;
 pub struct ClientBuilder {
     // Base Settings
     /// Config used to override default settings
-    pub(crate) config: Option<EsiConfig>,
+    pub(crate) config: Option<Config>,
     /// Overrides the default reqwest HTTP client if set to Some()
     pub(crate) reqwest_client: Option<reqwest::Client>,
     /// User agent used for default reqwest client if no client is provided
@@ -104,16 +104,16 @@ impl ClientBuilder {
     /// # Error
     /// Returns an [`EsiError`] if:
     /// - There is a user issue related to building an [`oauth2::Client`] usually due to
-    ///   missing OAuth2 settings on [`ClientBuilder`] or invalid URLs configured by a custom [`EsiConfig`].
+    ///   missing OAuth2 settings on [`ClientBuilder`] or invalid URLs configured by a custom [`Config`].
     /// - There is an internal issue building a default [`reqwest::Client`]
-    /// - There is an internal issue building a default [`EsiConfig`]
+    /// - There is an internal issue building a default [`Config`]
     pub fn build(self) -> Result<Client, Error> {
         let mut builder = self;
 
-        // Create a default EsiConfig if one is not provided
+        // Create a default Config if one is not provided
         let config = match builder.config.take() {
             Some(config) => config,
-            None => EsiConfig::new()?,
+            None => Config::new()?,
         };
 
         // Setup a reqwest client
@@ -155,11 +155,11 @@ impl ClientBuilder {
     /// on usage & options see the [config module documentation](super::config).
     ///
     /// # Arguments
-    /// - `config` ([`EsiConfig`]): config used to override default [`Client`] settings
+    /// - `config` ([`Config`]): config used to override default [`Client`] settings
     ///
     /// # Returns
     /// - [`ClientBuilder`]: instance with the updated config
-    pub fn config(mut self, config: EsiConfig) -> Self {
+    pub fn config(mut self, config: Config) -> Self {
         self.config = Some(config);
         self
     }
@@ -357,7 +357,7 @@ mod tests {
     #[test]
     fn test_builder_setter_methods() {
         let custom_reqwest_client = reqwest::Client::new();
-        let custom_config = EsiConfig::new().expect("Failed to create a default EsiConfig");
+        let custom_config = Config::new().expect("Failed to create a default Config");
 
         let builder = ClientBuilder::new()
             // Base settings
@@ -446,10 +446,10 @@ mod tests {
     #[test]
     fn test_build_with_custom_config() {
         // Create a config overriding default ESI URL
-        let config = EsiConfig::builder()
+        let config = Config::builder()
             .esi_url("https://example.com")
             .build()
-            .expect("Failed to create a default EsiConfig");
+            .expect("Failed to create a default Config");
 
         // Create an ESI client with the custom config
         let result = ClientBuilder::new()
@@ -467,7 +467,7 @@ mod tests {
     /// - Creates an ESI client builder with only the client_id set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiConfigError::MissingClientSecret
+    /// - Verifies that the error response is ConfigError::MissingClientSecret
     #[test]
     fn test_build_with_partial_oauth_config() {
         // Test that providing only client_id without the other OAuth params fails

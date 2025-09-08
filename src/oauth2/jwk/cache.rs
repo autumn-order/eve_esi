@@ -21,7 +21,7 @@ use log::{debug, trace};
 use tokio::sync::{Notify, RwLock};
 
 use crate::{
-    config::EsiConfig,
+    config::Config,
     constant::{
         DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT, DEFAULT_JWK_CACHE_TTL,
         DEFAULT_JWK_REFRESH_BACKOFF, DEFAULT_JWK_REFRESH_COOLDOWN, DEFAULT_JWK_REFRESH_MAX_RETRIES,
@@ -120,7 +120,7 @@ impl JwtKeyCache {
     ///
     /// # Returns
     /// - [`JwtKeyCache`]: Default cache instance that contains no keys initially
-    pub(crate) fn new(config: &EsiConfig) -> Self {
+    pub(crate) fn new(config: &Config) -> Self {
         Self {
             cache: RwLock::new(None),
             refresh_lock: AtomicBool::new(false),

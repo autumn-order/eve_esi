@@ -97,10 +97,10 @@ pub async fn test_get_token_oauth_client_missing() {
         .create();
 
     // Create ESI client without OAuth2 config & with mock token endpoint
-    let config = eve_esi::EsiConfig::builder()
+    let config = eve_esi::Config::builder()
         .token_url(&format!("{}/v2/oauth/token", mock_server.url()))
         .build()
-        .expect("Failed to build EsiConfig");
+        .expect("Failed to build Config");
 
     let esi_client = eve_esi::Client::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")

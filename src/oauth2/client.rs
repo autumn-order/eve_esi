@@ -19,7 +19,7 @@ use oauth2::{
 };
 
 use crate::builder::ClientBuilder;
-use crate::config::EsiConfig;
+use crate::config::Config;
 use crate::error::{ConfigError, Error};
 
 /// OAuth2 client type for [`Client`](crate::Client)
@@ -50,17 +50,17 @@ impl ClientBuilder {
     ///
     /// # Arguments
     /// - `self` ([`ClientBuilder`]): Builder used to set the `client_id`, `client_secret`, and `callback_url`
-    /// - `config` (&[`EsiConfig`]): Config used to set the EVE Online OAuth2 endpoint URLs
+    /// - `config` (&[`Config`]): Config used to set the EVE Online OAuth2 endpoint URLs
     ///
     /// # Returns
-    /// - [`OAuth2Client`]: Instance with configured settings from [`EsiConfig`]
+    /// - [`OAuth2Client`]: Instance with configured settings from [`Config`]
     ///
     /// # Errors
     /// - [`OAuthError`]: Error if either the client ID, client secret, or callback URL is missing or
     ///   the callback URL is incorrectly formatted.
     /// - [`OAuthConfigError`]: Error if the auth URL or token URL has been changed from default and
     ///   is incorrectly formatted.
-    pub(crate) fn setup_oauth_client(self, config: &EsiConfig) -> Result<OAuth2Client, Error> {
+    pub(crate) fn setup_oauth_client(self, config: &Config) -> Result<OAuth2Client, Error> {
         // Get client_id & client_secret
         let client_id = match self.client_id.clone() {
             Some(id) => id.clone(),
@@ -123,7 +123,7 @@ mod tests {
     /// - Creates an ESI client with OAuth2 configured
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiConfigError::MissingClientId
+    /// - Verifies that the error response is ConfigError::MissingClientId
     #[test]
     fn test_missing_client_id() {
         let result = Client::builder()
@@ -149,7 +149,7 @@ mod tests {
     /// - Creates an ESI client with the client_secret not set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiConfigError::MissingClientSecret
+    /// - Verifies that the error response is ConfigError::MissingClientSecret
     #[test]
     fn test_missing_client_secret() {
         let result = Client::builder()
@@ -175,7 +175,7 @@ mod tests {
     /// - Creates an ESI client with the callback_url not set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiConfigError::MissingCallbackUrl
+    /// - Verifies that the error response is ConfigError::MissingCallbackUrl
     #[test]
     fn test_missing_callback_url() {
         // Create an ESI client
@@ -202,7 +202,7 @@ mod tests {
     /// - Creates an ESI client with the callback_url set to an invalid URL.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiConfigError::InvalidCallbackUrl
+    /// - Verifies that the error response is ConfigError::InvalidCallbackUrl
     #[test]
     fn test_invalid_callback_url() {
         let result = Client::builder()

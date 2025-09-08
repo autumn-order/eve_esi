@@ -16,8 +16,8 @@
 //!
 //! | Method          | Purpose                                    |
 //! | --------------- | ------------------------------------------ |
-//! | `new`           | Create a new [`EsiConfigBuilder`]          |
-//! | `build`         | Build the [`EsiConfig`]                    |
+//! | `new`           | Create a new [`ConfigBuilder`]          |
+//! | `build`         | Build the [`Config`]                    |
 //! | `esi_url`       | Base URL for ESI endpoints                 |
 //! | `auth_url`      | URL for sign in with EVE Online            |
 //! | `token_url`     | URL to retrieve access tokens for OAuth2   |
@@ -35,14 +35,14 @@
 //! ```
 //! use std::time::Duration;
 //!
-//! use eve_esi::config::EsiConfig;
+//! use eve_esi::config::Config;
 //!
 //! // Build a config to override defaults
-//! let config = EsiConfig::builder()
+//! let config = Config::builder()
 //!     // Set JWT key cache lifetime to 7200 seconds representing 2 hours
 //!     .jwk_cache_ttl(Duration::from_secs(7200))
 //!     .build()
-//!     .expect("Failed to build EsiConfig");
+//!     .expect("Failed to build Config");
 //!
 //! // Apply config settings to Client
 //! let esi_client = eve_esi::Client::builder()
@@ -65,7 +65,7 @@ use crate::{
 /// Configuration settings for the [`Client`](crate::Client)
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
-pub struct EsiConfig {
+pub struct Config {
     // URL settings
     /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
@@ -79,10 +79,10 @@ pub struct EsiConfig {
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
 }
 
-/// Builder struct for configuring & constructing an [`EsiConfig`] to override default [`Client`](crate::Client) settings
+/// Builder struct for configuring & constructing an [`Config`] to override default [`Client`](crate::Client) settings
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
-pub struct EsiConfigBuilder {
+pub struct ConfigBuilder {
     // URL settings
     /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
@@ -96,41 +96,41 @@ pub struct EsiConfigBuilder {
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
 }
 
-impl EsiConfig {
-    /// Creates a new instance of [`EsiConfig`] with default settings
+impl Config {
+    /// Creates a new instance of [`Config`] with default settings
     ///
     /// For details see [module-level documentation](self).
     ///
     /// # Returns
-    /// - [`EsiConfig`]: With the default configuration
+    /// - [`Config`]: With the default configuration
     ///
     /// # Errors
-    /// - [`EsiError`]: If the default [`EsiConfigBuilder::jwk_background_refresh_threshold`] is configured incorrectly.
+    /// - [`EsiError`]: If the default [`ConfigBuilder::jwk_background_refresh_threshold`] is configured incorrectly.
     pub fn new() -> Result<Self, Error> {
-        EsiConfigBuilder::new().build()
+        ConfigBuilder::new().build()
     }
 
-    /// Returns a [`EsiConfigBuilder`] instance used to configure JWT key related settings
+    /// Returns a [`ConfigBuilder`] instance used to configure JWT key related settings
     ///
-    /// Allows for the configuration of the [`EsiConfig`] using the [`EsiConfigBuilder`]
+    /// Allows for the configuration of the [`Config`] using the [`ConfigBuilder`]
     /// setter methods to override the default configuration.
     ///
     /// For details see [module-level documentation](self).
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the default config which can be overridden with setter methods.
-    pub fn builder() -> EsiConfigBuilder {
-        EsiConfigBuilder::new()
+    /// - [`ConfigBuilder`]: Instance with the default config which can be overridden with setter methods.
+    pub fn builder() -> ConfigBuilder {
+        ConfigBuilder::new()
     }
 }
 
-impl EsiConfigBuilder {
-    /// Creates a new [`EsiConfigBuilder`] instance used to build an [`EsiConfig`]
+impl ConfigBuilder {
+    /// Creates a new [`ConfigBuilder`] instance used to build an [`Config`]
     ///
     /// For a full overview, features, and usage example, see the [module-level documentation](self).
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the default settings that can be modified with the setter methods.
+    /// - [`ConfigBuilder`]: Instance with the default settings that can be modified with the setter methods.
     pub fn new() -> Self {
         Self {
             // URL settings
@@ -143,22 +143,22 @@ impl EsiConfigBuilder {
         }
     }
 
-    /// Builds a [`EsiConfig`] instance
+    /// Builds a [`Config`] instance
     ///
-    /// Converts an [`EsiConfigBuilder`] into a [`EsiConfig`] with the configured values that
+    /// Converts an [`ConfigBuilder`] into a [`Config`] with the configured values that
     /// were set with the builder methods.
     ///
     /// For a full overview, features, and usage example, see the [module-level documentation](self).
     ///
     /// # Returns
-    /// - [`EsiConfig`]: instance with the settings configured on the builder
+    /// - [`Config`]: instance with the settings configured on the builder
     ///
     /// # Errors
     /// Returns an [`EsiError`] if one of the following occurs:
     /// - The [`Self::jwk_background_refresh_threshold`] method is given a value less than 1 or over 99
     /// - The [`Self::auth_url`] method is given an invalid URL
     /// - The [`Self::token_url`] method is given an invalid URL
-    pub fn build(self) -> Result<EsiConfig, Error> {
+    pub fn build(self) -> Result<Config, Error> {
         // Ensure background refresh percentage is set properly
         if !(self.jwt_key_cache_config.background_refresh_threshold > 0) {
             return Err(Error::ConfigError(
@@ -183,7 +183,7 @@ impl EsiConfigBuilder {
             }
         };
 
-        Ok(EsiConfig {
+        Ok(Config {
             // URL settings
             esi_url: self.esi_url,
             auth_url: auth_url,
@@ -204,7 +204,7 @@ impl EsiConfigBuilder {
     /// - `esi_url` (&[`str`]): The EVE Online ESI API base URL.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the updated ESI URL
+    /// - [`ConfigBuilder`]: Instance with the updated ESI URL
     pub fn esi_url(mut self, esi_url: &str) -> Self {
         self.esi_url = esi_url.to_string();
         self
@@ -220,7 +220,7 @@ impl EsiConfigBuilder {
     /// - `auth_url` (&[`str`]): The EVE Online OAuth2 authorization endpoint URL.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with updated EVE Online OAuth2 authorization URL.
+    /// - [`ConfigBuilder`]: Instance with updated EVE Online OAuth2 authorization URL.
     pub fn auth_url(mut self, auth_url: &str) -> Self {
         self.auth_url = auth_url.to_string();
         self
@@ -236,7 +236,7 @@ impl EsiConfigBuilder {
     /// - `token_url` (&[`str`]): The EVE Online OAuth2 token endpoint URL.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with updated EVE Online OAuth2 token URL.
+    /// - [`ConfigBuilder`]: Instance with updated EVE Online OAuth2 token URL.
     pub fn token_url(mut self, token_url: &str) -> Self {
         self.token_url = token_url.to_string();
         self
@@ -252,7 +252,7 @@ impl EsiConfigBuilder {
     /// - `jwk_url` (&[`str`]): The EVE Online JWK endpoint URL.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with updated EVE Online JWK URL configuration.
+    /// - [`ConfigBuilder`]: Instance with updated EVE Online JWK URL configuration.
     pub fn jwk_url(mut self, jwk_url: &str) -> Self {
         self.jwt_key_cache_config.jwk_url = jwk_url.to_string();
         self
@@ -273,7 +273,7 @@ impl EsiConfigBuilder {
     /// - `duration` ([`Duration`]): The lifetime of the JWT keys stored in the cache.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the updated JWT key cache TTL
+    /// - [`ConfigBuilder`]: Instance with the updated JWT key cache TTL
     pub fn jwk_cache_ttl(mut self, duration: Duration) -> Self {
         self.jwt_key_cache_config.cache_ttl = duration;
         self
@@ -297,7 +297,7 @@ impl EsiConfigBuilder {
     /// - `duration` ([`Duration`]): The exponential backoff duration between each attempt.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the updated exponential backoff
+    /// - [`ConfigBuilder`]: Instance with the updated exponential backoff
     pub fn jwk_refresh_backoff(mut self, duration: Duration) -> Self {
         self.jwt_key_cache_config.refresh_backoff = duration;
         self
@@ -315,7 +315,7 @@ impl EsiConfigBuilder {
     ///   JWT key refresh.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the modified timeout setting.
+    /// - [`ConfigBuilder`]: Instance with the modified timeout setting.
     pub fn jwk_refresh_timeout(mut self, duration: Duration) -> Self {
         self.jwt_key_cache_config.refresh_timeout = duration;
         self
@@ -330,7 +330,7 @@ impl EsiConfigBuilder {
     /// - `duration` ([`Duration`]): Cooldown duration between background JWT key cache refresh attempts.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the modified background refresh cooldown.
+    /// - [`ConfigBuilder`]: Instance with the modified background refresh cooldown.
     pub fn jwk_refresh_cooldown(mut self, duration: Duration) -> Self {
         self.jwt_key_cache_config.refresh_cooldown = duration;
         self
@@ -353,7 +353,7 @@ impl EsiConfigBuilder {
     /// - `retry_attempts` ([`u32`]): The amount of retry attempts if a JWT key fetch fails.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the updated JWK refresh max retries
+    /// - [`ConfigBuilder`]: Instance with the updated JWK refresh max retries
     pub fn jwk_refresh_max_retries(mut self, retry_attempts: u32) -> Self {
         self.jwt_key_cache_config.refresh_max_retries = retry_attempts;
         self
@@ -379,7 +379,7 @@ impl EsiConfigBuilder {
     ///   is enabled.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the background refresh is enabled or disabled.
+    /// - [`ConfigBuilder`]: Instance with the background refresh is enabled or disabled.
     pub fn jwk_background_refresh_enabled(mut self, background_refresh_enabled: bool) -> Self {
         self.jwt_key_cache_config.background_refresh_enabled = background_refresh_enabled;
         self
@@ -398,7 +398,7 @@ impl EsiConfigBuilder {
     /// - `threshold_percent` ([`u64`]): A number representing the percentage of when the refresh should be triggered.
     ///
     /// # Returns
-    /// - [`EsiConfigBuilder`]: Instance with the modified proactive background refresh threshold percentage.
+    /// - [`ConfigBuilder`]: Instance with the modified proactive background refresh threshold percentage.
     pub fn jwk_background_refresh_threshold(mut self, threshold_percentage: u64) -> Self {
         self.jwt_key_cache_config.background_refresh_threshold = threshold_percentage;
         self
@@ -409,11 +409,11 @@ impl EsiConfigBuilder {
 mod tests {
     use super::*;
 
-    /// Ensures that all setter methods for [`EsiConfigBuilder`] work as expected
+    /// Ensures that all setter methods for [`ConfigBuilder`] work as expected
     ///
     /// Test Setup
-    /// - Create a new instance of [`EsiConfigBuilder`] and use each setter method
-    /// - Build the [`EsiConfigBuilder`] returning an [`EsiConfig`]
+    /// - Create a new instance of [`ConfigBuilder`] and use each setter method
+    /// - Build the [`ConfigBuilder`] returning an [`Config`]
     ///
     /// Assertions
     /// - Assert URL settings were set as expected
@@ -423,7 +423,7 @@ mod tests {
     fn test_config_setter_methods() {
         let zero_seconds = Duration::from_secs(0);
 
-        let config = EsiConfig::builder()
+        let config = Config::builder()
             // URL settings
             .auth_url("https://example.com")
             .token_url("https://example.com")
@@ -438,7 +438,7 @@ mod tests {
             .jwk_background_refresh_enabled(false)
             .jwk_background_refresh_threshold(1)
             .build()
-            .expect("Failed to build EsiConfig");
+            .expect("Failed to build Config");
 
         // Assert URL settings were set
         let auth_url = AuthUrl::new("https://example.com".to_string()).unwrap();
@@ -466,15 +466,15 @@ mod tests {
     /// Expect an error setting the JWK background refresh threshold to 0
     ///
     /// # Test Setup
-    /// - Attempt to build a [`EsiConfig`] with the jwk_background_refresh_threshold to 0
+    /// - Attempt to build a [`Config`] with the jwk_background_refresh_threshold to 0
     ///
     /// # Assertions
     /// - Assert result is an error
     /// - Assert error is of type [`OAuthConfigError::InvalidBackgroundRefreshThreshold`]
     #[test]
     fn test_invalid_background_refresh_threshold_0() {
-        // Create a EsiConfig with invalid threshold percent
-        let result = EsiConfig::builder()
+        // Create a Config with invalid threshold percent
+        let result = Config::builder()
             .jwk_background_refresh_threshold(0)
             .build();
 
@@ -493,22 +493,22 @@ mod tests {
     /// Expect an error setting the JWK background refresh threshold to 100
     ///
     /// # Test Setup
-    /// - Attempt to build an [`EsiConfig`] with the jwk_background_refresh_threshold to 100
+    /// - Attempt to build an [`Config`] with the jwk_background_refresh_threshold to 100
     ///
     /// # Assertions
     /// - Assert result is an error
-    /// - Assert error is of type [`EsiConfigError::InvalidBackgroundRefreshThreshold`]
+    /// - Assert error is of type [`ConfigError::InvalidBackgroundRefreshThreshold`]
     #[test]
     fn test_invalid_background_refresh_threshold_100() {
-        // Create a EsiConfig with invalid threshold percent
-        let result = EsiConfig::builder()
+        // Create a Config with invalid threshold percent
+        let result = Config::builder()
             .jwk_background_refresh_threshold(100)
             .build();
 
         // Assert result is error
         assert!(result.is_err());
 
-        // Assert error is of type EsiConfigError::InvalidBackgroundRefreshThreshold
+        // Assert error is of type ConfigError::InvalidBackgroundRefreshThreshold
         assert!(matches!(
             result,
             Err(Error::ConfigError(
@@ -517,45 +517,45 @@ mod tests {
         ))
     }
 
-    /// Tests the attempting initialize an EsiConfig with an invalid auth_url
+    /// Tests the attempting initialize an Config with an invalid auth_url
     ///
     /// # Test Setup
-    /// - Attempt to build an EsiConfig with the auth_url set to an invalid URL.
+    /// - Attempt to build an Config with the auth_url set to an invalid URL.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiConfigError::InvalidAuthUrl
+    /// - Verifies that the error response is ConfigError::InvalidAuthUrl
     #[test]
     fn test_invalid_auth_url() {
-        // Create an EsiConfig with an invalid auth_url
-        let result = EsiConfig::builder().auth_url("invalid_url").build();
+        // Create an Config with an invalid auth_url
+        let result = Config::builder().auth_url("invalid_url").build();
 
         // Assert result is an Error
         assert!(result.is_err());
 
         match result {
-            // Assert error is of the EsiConfigError:InvalidAuthUrl variant
+            // Assert error is of the ConfigError:InvalidAuthUrl variant
             Err(Error::ConfigError(ConfigError::InvalidAuthUrl)) => {}
             _ => panic!("Expected InvalidAuthUrl error"),
         }
     }
 
-    /// Tests the attempting initialize an EsiConfig with an invalid token_url
+    /// Tests the attempting initialize an Config with an invalid token_url
     ///
     /// # Test Setup
-    /// - Attempt to build an EsiConfig with the token_url set to an invalid URL.
+    /// - Attempt to build an Config with the token_url set to an invalid URL.
     ///
     /// # Assertions
-    /// - Verifies that the error response is EsiConfigError::InvalidTokenUrl
+    /// - Verifies that the error response is ConfigError::InvalidTokenUrl
     #[test]
     fn test_invalid_token_url() {
-        // Create an EsiConfig with an invalid token_url
-        let result = EsiConfig::builder().token_url("invalid_url").build();
+        // Create an Config with an invalid token_url
+        let result = Config::builder().token_url("invalid_url").build();
 
         // Assert result is an Error
         assert!(result.is_err());
 
         match result {
-            // Assert error is of the EsiConfigError:InvalidTokenUrl variant
+            // Assert error is of the ConfigError:InvalidTokenUrl variant
             Err(Error::ConfigError(ConfigError::InvalidTokenUrl)) => {}
             _ => panic!("Expected InvalidTokenUrl error"),
         }
