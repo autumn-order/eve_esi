@@ -1,5 +1,8 @@
 # EVE ESI
 
+![Crates.io Version](https://img.shields.io/crates/v/eve_esi)
+[![Maintainability](https://qlty.sh/gh/hyziri/projects/eve_esi/maintainability.svg)](https://qlty.sh/gh/hyziri/projects/eve_esi)
+
 A thread-safe, asynchronous client which provides methods & types for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer) & [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
 
 This crate implements concurrency & caching to provide performance in applications at scale. For example JSON web token keys (JWT keys) are used to validate tokens after a successful single sign-on login, this crate automatically caches the keys and refreshes them proactively before expiry in a background task for mimimal latency with each login.
