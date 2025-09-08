@@ -7,9 +7,9 @@
 //!
 //! # Modules
 //!
-//! - [`alliances`](crate::endpoints::alliances)
-//! - [`characters`](crate::endpoints::characters)
-//! - [`corporations`](crate::endpoints::corporations)
+//! - [`alliance`]: Alliance-based ESI endpoints
+//! - [`character`]: Character-based ESI endpoints
+//! - [`corporation`]: Corporation-based ESI endpoints
 //!
 //! # Example
 //! ```no_run

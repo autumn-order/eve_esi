@@ -24,12 +24,12 @@ impl<'a> OAuth2Api<'a> {
     ///   These must match the scopes configured in your EVE developer application.
     ///
     /// # Returns
-    /// Returns a [`AuthenticationData`](crate::model::oauth2::AuthenticationData) struct containing:
+    /// Returns a [`AuthenticationData`] struct containing:
     /// - `login_url` ([`String`]): The URL users should visit to authenticate.
     /// - `state` ([`String`]): A unique state string used for CSRF protection.
     ///
     /// # Errors
-    /// Returns an [`EsiError`] if:
+    /// Returns an [`Error`] if:
     /// - The `client_id`, `client_secret`, and `callback_url` is missing from the [`Client`](crate::Client) configuration
     ///   which results in an [`OAuthError::OAuth2NotConfigured`] error.
     ///

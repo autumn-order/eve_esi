@@ -1,6 +1,6 @@
 //! # EVE Online ESI Client Config
 //!
-//! Provides methods to override defaults for the [`Client`]. This allows the
+//! Provides methods to override defaults for the [`Client`](crate::Client). This allows the
 //! modification of the base ESI URL, OAuth2 endpoint URLs and the logic of how JWT
 //! key caching and refreshing is handled.
 //!
@@ -105,7 +105,7 @@ impl Config {
     /// - [`Config`]: With the default configuration
     ///
     /// # Errors
-    /// - [`EsiError`]: If the default [`ConfigBuilder::jwk_background_refresh_threshold`] is configured incorrectly.
+    /// - [`Error`]: If the default [`ConfigBuilder::jwk_background_refresh_threshold`] is configured incorrectly.
     pub fn new() -> Result<Self, Error> {
         ConfigBuilder::new().build()
     }
@@ -154,7 +154,7 @@ impl ConfigBuilder {
     /// - [`Config`]: instance with the settings configured on the builder
     ///
     /// # Errors
-    /// Returns an [`EsiError`] if one of the following occurs:
+    /// Returns an [`Error`] if one of the following occurs:
     /// - The [`Self::jwk_background_refresh_threshold`] method is given a value less than 1 or over 99
     /// - The [`Self::auth_url`] method is given an invalid URL
     /// - The [`Self::token_url`] method is given an invalid URL

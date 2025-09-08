@@ -60,12 +60,12 @@ impl<'a> CorporationApi<'a> {
     /// and other relevant information.
     ///
     /// # Arguments
-    /// - `corporation_id` - The ID of the corporation to retrieve information for.
+    /// - `corporation_id` ([`i32`]): The ID of the corporation to retrieve information for.
     ///
     /// # Returns
     /// Returns a `Result` containing either:
     /// - [`Corporation`] - The corporation information if the request was successful.
-    /// - [`EsiError`] - An error if the request failed (e.g. corporation not found, network issues)
+    /// - [`Error`] - An error if the request failed (e.g. corporation not found, network issues)
     ///
     /// # EVE ESI Reference
     /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationId)

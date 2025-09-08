@@ -87,7 +87,7 @@ impl<'a> JwkApi<'a> {
     /// - [`EveJwtKeys`]: A Result containing the JWT keys if successful
     ///
     /// # Errors
-    /// - [`EsiError`]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
+    /// - [`Error`]: Returns an error if the JWT key cache is empty and new keys could not be fetched.
     pub async fn get_jwt_keys(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
@@ -185,7 +185,7 @@ impl<'a> JwkApi<'a> {
     /// - [`EveJwtKeys`]: Struct representing JWT keys returned from the EVE OAuth2 JWK endpoint.
     ///
     /// # Errors
-    /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
+    /// - [`Error::ReqwestError`]: If the request to fetch JWT keys fails.
     pub async fn fetch_and_update_cache(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
 
@@ -209,7 +209,7 @@ impl<'a> JwkApi<'a> {
     /// - [`EveJwtKeys`]: Struct representing JWT keys returned from the EVE OAuth2 JWK endpoint.
     ///
     /// # Errors
-    /// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
+    /// - [`Error::ReqwestError`]: If the request to fetch JWT keys fails.
     pub async fn fetch_jwt_keys(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
 
@@ -237,7 +237,7 @@ impl<'a> JwkApi<'a> {
 /// - [`EveJwtKeys`]: a struct containing the JWT keys if successful
 ///
 /// # Errors
-/// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
+/// - [`Error::ReqwestError`]: If the request to fetch JWT keys fails.
 pub(super) async fn fetch_jwt_keys(
     reqwest_client: &reqwest::Client,
     jwk_url: &str,
@@ -328,7 +328,7 @@ pub(super) async fn fetch_jwt_keys(
 /// - [`EveJwtKeys`]: a struct containing the JWT keys if successful
 ///
 /// # Errors
-/// - [`EsiError::ReqwestError`]: If the request to fetch JWT keys fails.
+/// - [`Error::ReqwestError`]: If the request to fetch JWT keys fails.
 pub(super) async fn fetch_and_update_cache(
     reqwest_client: &reqwest::Client,
     jwt_key_cache: &JwtKeyCache,

@@ -62,12 +62,12 @@ impl<'a> CharacterApi<'a> {
     /// and other relevant information.
     ///
     /// # Arguments
-    /// - `character_id` - The ID of the character to retrieve information for.
+    /// - `character_id` (`Vec<`[`i32`]`>`): The ID of the character to retrieve information for.
     ///
     /// # Returns
     /// Returns a `Result` containing either:
     /// - [`Character`] - The character data if successfully retrieved
-    /// - [`EsiError`] - An error if the request failed (e.g., character not found, network issues)
+    /// - [`Error`] - An error if the request failed (e.g., character not found, network issues)
     ///
     /// # EVE ESI Reference
     /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId).
@@ -101,12 +101,12 @@ impl<'a> CharacterApi<'a> {
     /// Each affiliation includes the character's corporation, alliance, and faction IDs.
     ///
     /// # Arguments
-    /// - `character_ids` - A list of character IDs to retrieve affiliations for.
+    /// - `character_ids` (`Vec<`[`i32`]`): A list of character IDs to retrieve affiliations for.
     ///
     /// # Returns
     /// Returns a `Result` containing either:
-    /// - [`Vec<CharacterAffiliation>`] - The affiliations for the characters if successfully retrieved
-    /// - [`EsiError`] - An error if the request failed (network issues)
+    /// - `Vec<`[`CharacterAffiliation`]`>` - The affiliations for the characters if successfully retrieved
+    /// - [`Error`] - An error if the request failed (network issues)
     ///
     /// # EVE ESI Reference
     /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation).

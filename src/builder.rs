@@ -103,7 +103,7 @@ impl ClientBuilder {
     /// - [`Client`]: Instance to interface with EVE Online ESI & OAuth2 endpoints.
     ///
     /// # Error
-    /// Returns an [`EsiError`] if:
+    /// Returns an [`Error`] if:
     /// - There is a user issue related to building an [`oauth2::Client`] usually due to
     ///   missing OAuth2 settings on [`ClientBuilder`] or invalid URLs configured by a custom [`Config`].
     /// - There is an internal issue building a default [`reqwest::Client`]
@@ -226,7 +226,7 @@ impl ClientBuilder {
     ///
     /// This method configures the client ID required for OAuth2 authentication.
     /// You must register your application with EVE Online developers to get a client ID.
-    /// https://developers.eveonline.com/applications
+    /// <https://developers.eveonline.com/applications>
     ///
     /// # Warning
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
@@ -245,7 +245,7 @@ impl ClientBuilder {
     ///
     /// This method configures the client secret required for OAuth2 authentication.
     /// You must register your application with EVE Online developers to get a client secret.
-    /// https://developers.eveonline.com/applications
+    /// <https://developers.eveonline.com/applications>
     ///
     /// # Warning
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
@@ -264,7 +264,7 @@ impl ClientBuilder {
     ///
     /// This method configures the callback URL required for OAuth2 authentication when the user is redirected back to your application.
     /// Ensure that the callback URL matches the one set in your EVE Online developer portal application.
-    /// https://developers.eveonline.com/applications
+    /// <https://developers.eveonline.com/applications>
     ///
     /// # Warning
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.

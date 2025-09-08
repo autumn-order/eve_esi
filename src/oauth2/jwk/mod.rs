@@ -6,18 +6,7 @@
 //!
 //! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or
 //! the endpoints used for EVE OAuth2 can be overridden using the
-//! [`OAuth2Config`](crate::oauth2::OAuth2Config).
-//!
-//! # Submodules
-//!
-//! The JWT key management is divided into several components:
-//!
-//! - **Core API** [`jwk`]: Provides the public interface for JWT key operations
-//! - **Cache Management** [`cache`]: Handles the storage and retrieval of JWT keys
-//! - **Task Management** [`task`]: Implements background refresh tasks and retry logic
-//! - **Utilities** [`util`]: Contains helper functions for cache expiry, backoff, etc.
-//! - **Refresh Utilities** [`util_refresh`]: Contains helper functions for managing
-//!   JWT key refresh lock & update notifications.
+//! [`Config`](crate::Config).
 //!
 //! # Key Features
 //!
@@ -29,11 +18,15 @@
 //!
 //! # Usage
 //!
-//! The main entry point for this module is the [`super::OAuth2Api::get_jwt_keys`] method, which:
+//! The main entry point for this module is the [`JwkApi::get_jwt_keys`] method, which:
 //! 1. Returns cached keys if they're valid
 //! 2. Triggers background refresh if keys are approaching expiry
 //! 3. Fetches new keys if the cache is empty or expired
 //! 4. Coordinates with other threads if a refresh is already in progress
+//!
+//! Alternatively you can use:
+//! - [`JwkApi::fetch_jwt_keys`]: If you simply wish to fetch keys with no caching
+//! - [`JwkApi::fetch_and_update_cache]: If you want to update cache regardless of expiration
 //!
 //! # Thread Safety
 //!

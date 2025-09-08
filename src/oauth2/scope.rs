@@ -41,7 +41,7 @@ impl ScopeBuilder {
         ScopeBuilder { scopes: Vec::new() }
     }
 
-    /// Builds the list of scopes into Vec<String>.
+    /// Builds the list of scopes into `Vec<String>`.
     ///
     /// # Example
     /// ```
