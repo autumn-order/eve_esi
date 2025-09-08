@@ -1,6 +1,6 @@
 //! # EVE Online ESI Client Config
 //!
-//! Provides methods to override defaults for the [`EsiClient`]. This allows the
+//! Provides methods to override defaults for the [`Client`]. This allows the
 //! modification of the base ESI URL, OAuth2 endpoint URLs and the logic of how JWT
 //! key caching and refreshing is handled.
 //!
@@ -35,7 +35,6 @@
 //! ```
 //! use std::time::Duration;
 //!
-//! use eve_esi::EsiClient;
 //! use eve_esi::config::EsiConfig;
 //!
 //! // Build a config to override defaults
@@ -45,12 +44,12 @@
 //!     .build()
 //!     .expect("Failed to build EsiConfig");
 //!
-//! // Apply config settings to EsiClient
-//! let esi_client = EsiClient::builder()
+//! // Apply config settings to Client
+//! let esi_client = eve_esi::Client::builder()
 //!     .config(config)
 //!     .user_agent("MyApp/1.0 (contact@example.com")
 //!     .build()
-//!     .expect("Failed to build EsiClient");
+//!     .expect("Failed to build Client");
 //! ```
 
 use std::time::Duration;
@@ -63,7 +62,7 @@ use crate::{
     oauth2::jwk::cache::JwtKeyCacheConfig,
 };
 
-/// Configuration settings for the [`EsiClient`](crate::EsiClient)
+/// Configuration settings for the [`Client`](crate::Client)
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiConfig {
@@ -80,7 +79,7 @@ pub struct EsiConfig {
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
 }
 
-/// Builder struct for configuring & constructing an [`EsiConfig`] to override default [`EsiClient`](crate::EsiClient) settings
+/// Builder struct for configuring & constructing an [`EsiConfig`] to override default [`Client`](crate::Client) settings
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
 pub struct EsiConfigBuilder {

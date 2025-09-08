@@ -16,7 +16,7 @@ impl<'a> OAuth2Api<'a> {
     ///
     /// This method constructs the URL that begins the login process for EVE Online SSO (single sign-on) or also known as OAuth2.
     /// After successful authentication, EVE Online will redirect the user to the callback URL (`callback_url`) specified
-    /// in your [`EsiClient`](crate::EsiClient) configuration with an authorization code used to request an access token with the
+    /// in your [`Client`](crate::Client) configuration with an authorization code used to request an access token with the
     /// [crate::oauth2::OAuth2Api::get_token] method.
     ///
     /// # Arguments
@@ -30,19 +30,19 @@ impl<'a> OAuth2Api<'a> {
     ///
     /// # Errors
     /// Returns an [`EsiError`] if:
-    /// - The `client_id`, `client_secret`, and `callback_url` is missing from the [`EsiClient`](crate::EsiClient) configuration
+    /// - The `client_id`, `client_secret`, and `callback_url` is missing from the [`Client`](crate::Client) configuration
     ///   which results in an [`OAuthError::OAuth2NotConfigured`] error.
     ///
     /// # Example
     /// ```
-    /// // Configure EsiClient for OAuth2 with a client_id, client_secret, and callback_url
-    /// let esi_client = eve_esi::EsiClient::builder()
+    /// // Configure Client for OAuth2 with a client_id, client_secret, and callback_url
+    /// let esi_client = eve_esi::Client::builder()
     ///     .user_agent("MyApp/1.0 (contact@example.com)")
     ///     .client_id("client_id")
     ///     .client_secret("client_secret")
     ///     .callback_url("http://localhost:8080/callback")
     ///     .build()
-    ///     .expect("Failed to build EsiClient");
+    ///     .expect("Failed to build Client");
     ///
     /// // Build scopes requesting only publicData
     /// let scopes = eve_esi::oauth2::ScopeBuilder::new()
@@ -59,11 +59,11 @@ impl<'a> OAuth2Api<'a> {
     /// println!("Login URL: {}", auth_data.login_url);
     /// ```
     pub fn login_url(&self, scopes: Vec<String>) -> Result<AuthenticationData, Error> {
-        // Retrieve the OAuth2 client from the EsiClient
+        // Retrieve the OAuth2 client from the Client
         let client = match &self.client.oauth2_client {
             Some(client) => client,
             // Returns an error if the OAuth2 client is not found due to it not having been configured when
-            // building the EsiClient.
+            // building the Client.
             None => return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured)),
         };
 
@@ -92,7 +92,7 @@ mod tests {
     /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
     ///
     /// # Test Setup
-    /// - Configure [`EsiClient`](crate::EsiClient) for OAuth2 with a client_id, client_secret, and callback_url
+    /// - Configure [`Client`](crate::Client) for OAuth2 with a client_id, client_secret, and callback_url
     /// - Build scopes requesting only publicData
     ///
     /// # Assertions
@@ -100,14 +100,14 @@ mod tests {
     ///   confirming that proper CSRF protection is in place
     #[test]
     fn test_successful_login_url() {
-        // Configure EsiClient for OAuth2 with a client_id, client_secret, and callback_url
-        let esi_client = crate::EsiClient::builder()
+        // Configure Client for OAuth2 with a client_id, client_secret, and callback_url
+        let esi_client = crate::Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
             .client_secret("client_secret")
             .callback_url("http://localhost:8080/callback")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Build scopes requesting only publicData
         let scopes = ScopeBuilder::new().public_data().build();
@@ -122,7 +122,7 @@ mod tests {
     /// Ensures the proper error is received when attempting to generate a login url without configuring OAuth2
     ///
     /// # Test Setup
-    /// - Create an [`EsiClient`](crate::EsiClient) without setting the client_id, client_secret, or callback_url
+    /// - Create an [`Client`](crate::Client) without setting the client_id, client_secret, or callback_url
     /// - Build scopes requesting only publicData
     ///
     /// # Assertions
@@ -131,10 +131,10 @@ mod tests {
     #[test]
     fn test_oauth_client_not_configured() {
         // Create an ESI client without setting the client_id, client_secret, or callback_url
-        let esi_client = crate::EsiClient::builder()
+        let esi_client = crate::Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .build()
-            .expect("Failed to build EsiClient");
+            .expect("Failed to build Client");
 
         // Build scopes requesting only publicData
         let scopes = ScopeBuilder::new().public_data().build();

@@ -1,6 +1,6 @@
 //! # EVE Online ESI Client
 //!
-//! This module provides the [`EsiClient`] struct for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
+//! This module provides the [`Client`] struct for interacting with EVE Online's ESI (EVE Stable Infrastructure) API.
 //!
 //! ## Features
 //! - Make authenticated and unauthenticated requests to ESI endpoints
@@ -15,13 +15,11 @@
 //!
 //! ## Example
 //! ```
-//! use eve_esi::EsiClient;
-//!
 //! // Set a user agent used to identify the application making ESI requests
-//! let esi_client = EsiClient::builder()
+//! let esi_client = eve_esi::Client::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
 //!     .build()
-//!     .expect("Failed to build EsiClient");
+//!     .expect("Failed to build Client");
 //! ```
 //!
 //! ## Warning
@@ -32,7 +30,7 @@
 
 use std::sync::Arc;
 
-use crate::builder::EsiClientBuilder;
+use crate::builder::ClientBuilder;
 use crate::oauth2::client::OAuth2Client;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 
@@ -41,7 +39,7 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 /// Use this struct to configure OAuth2 authentication and make requests to ESI endpoints.
 ///
 /// For a full overview, features, and usage examples, see the [module-level documentation](self).
-pub struct EsiClient {
+pub struct Client {
     // Base settings
     /// HTTP client used to make requests to EVE Online's APIs
     pub(crate) reqwest_client: reqwest::Client,
@@ -52,19 +50,19 @@ pub struct EsiClient {
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
     ///
     /// Will be None if `client_id`, `client_secret`, and `callback_url` have not been
-    /// set on the [`EsiClient`] which will result in errors if trying to use OAuth2-related endpoints.
+    /// set on the [`Client`] which will result in errors if trying to use OAuth2-related endpoints.
     pub(crate) oauth2_client: Option<OAuth2Client>,
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.
     pub(crate) jwt_key_cache: Arc<JwtKeyCache>,
 }
 
-impl EsiClient {
-    /// Creates a new [`EsiClientBuilder`]
+impl Client {
+    /// Creates a new [`ClientBuilder`]
     ///
     /// For a full overview, features, and usage examples, see the [module-level documentation](self).
-    pub fn builder() -> EsiClientBuilder {
-        EsiClientBuilder::new()
+    pub fn builder() -> ClientBuilder {
+        ClientBuilder::new()
     }
 }
 
@@ -72,18 +70,18 @@ impl EsiClient {
 mod tests {
     use super::*;
 
-    /// Test the successful minimal build of [`EsiClient::builder`]
+    /// Test the successful minimal build of [`Client::builder`]
     ///
     /// # Setup
-    /// - Setup an EsiClientBuilder using the builder() method
+    /// - Setup an ClientBuilder using the builder() method
     ///
     /// # Assertions
     /// - Validate that the default values are correct
     /// - Verify that the esi_client has built successfully
     #[test]
     fn test_successful_build_minimal() {
-        // Test that builder() returns a valid EsiClientBuilder
-        let builder = EsiClient::builder();
+        // Test that builder() returns a valid ClientBuilder
+        let builder = Client::builder();
 
         // Verify the builder has expected default values
         assert!(builder.user_agent.is_none());

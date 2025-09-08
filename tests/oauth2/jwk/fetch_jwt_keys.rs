@@ -1,5 +1,5 @@
 use eve_esi::model::oauth2::EveJwtKey;
-use eve_esi::{EsiClient, EsiConfig};
+use eve_esi::{Client, EsiConfig};
 
 use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
 use crate::util::setup;
@@ -7,7 +7,7 @@ use crate::util::setup;
 /// Tests the successful retrieval of JWT keys from a mock EVE SSO server.
 ///
 /// # Test Setup
-/// - Create a basic EsiClient & mock HTTP server
+/// - Create a basic Client & mock HTTP server
 /// - Configures a mock success response with expected JWT keys
 ///
 /// # Assertions
@@ -17,7 +17,7 @@ use crate::util::setup;
 /// - Assert we have at least 1 key of expected type
 #[tokio::test]
 async fn fetch_jwt_keys_success() {
-    // Setup a basic EsiClient & mock HTTP server
+    // Setup a basic Client & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
 
     // Create mock response with mock keys & expecting 1 request
@@ -56,7 +56,7 @@ async fn fetch_jwt_keys_success() {
 /// Tests error handling when retrieving JWT keys from a failing EVE SSO server.
 ///
 /// # Test Setup
-/// - Create a basic EsiClient & mock HTTP server
+/// - Create a basic Client & mock HTTP server
 /// - Configures a mock response returning an error 500 and expecting 1 request
 ///
 /// # Assertions
@@ -65,7 +65,7 @@ async fn fetch_jwt_keys_success() {
 /// - Assert error is of type [`reqwest::StatusCode::INTERNAL_SERVER_ERROR`]
 #[tokio::test]
 async fn fetch_jwt_keys_server_error() {
-    // Setup a basic EsiClient & mock HTTP server
+    // Setup a basic Client & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
 
     // Create mock response with error 500 and expecting 1 request
@@ -98,7 +98,7 @@ async fn fetch_jwt_keys_server_error() {
 /// # Test Setup
 /// - Create a custom OAuth2 config with the JWK URL set to an invalid endpoint
 /// - Create a reqwest client with reduced timeout
-/// - Create an EsiClient with the custom OAuth2 config and reqwest client
+/// - Create an Client with the custom OAuth2 config and reqwest client
 ///
 /// # Assertions
 /// - Assert result is error
@@ -119,12 +119,12 @@ async fn fetch_jwt_keys_network_error() {
         .expect("Failed to build reqwest Client");
 
     // Create ESI client with the custom config & reqwest client
-    let esi_client = EsiClient::builder()
+    let esi_client = Client::builder()
         .config(config)
         .user_agent("MyApp/1.0 (contact@example.com)")
         .reqwest_client(reqwest_client)
         .build()
-        .expect("Failed to build EsiClient");
+        .expect("Failed to build Client");
 
     // Call the fetch_jwt_keys method
     let result = esi_client.oauth2().jwk().fetch_jwt_keys().await;
@@ -149,7 +149,7 @@ async fn fetch_jwt_keys_network_error() {
 /// Tests error handling when server returns an invalid response body
 ///
 /// # Test Setup
-/// - Create a basic EsiClient & mock HTTP server
+/// - Create a basic Client & mock HTTP server
 /// - Configures a mock success response with an unexpected response body
 ///
 /// # Assertions
@@ -158,7 +158,7 @@ async fn fetch_jwt_keys_network_error() {
 /// - Assert error is of type [`reqwest::error::Kind::Decode`]
 #[tokio::test]
 async fn fetch_jwt_keys_parse_error() {
-    // Setup a basic EsiClient & mock HTTP server
+    // Setup a basic Client & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
 
     // Create mock success response with unexpected body

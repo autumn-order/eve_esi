@@ -24,7 +24,7 @@ async fn main() {
         env!("CARGO_PKG_VERSION"),
         env!("CARGO_PKG_REPOSITORY")
     );
-    let esi_client: eve_esi::EsiClient = eve_esi::EsiClient::builder()
+    let esi_client: eve_esi::Client = eve_esi::Client::builder()
         .user_agent(&user_agent)
         .build()
         .expect("Failed to build ESI client");
@@ -48,7 +48,7 @@ async fn main() {
 }
 
 async fn get_esi_character(
-    Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>,
+    Extension(esi_client): Extension<Arc<eve_esi::Client>>,
     params: Query<GetByIdParams>,
 ) -> Response {
     let character_id: i32 = params.0.id;
@@ -73,7 +73,7 @@ async fn get_esi_character(
 }
 
 async fn get_esi_corporation(
-    Extension(esi_client): Extension<Arc<eve_esi::EsiClient>>,
+    Extension(esi_client): Extension<Arc<eve_esi::Client>>,
     params: Query<GetByIdParams>,
 ) -> Response {
     let corporation_id: i32 = params.0.id;

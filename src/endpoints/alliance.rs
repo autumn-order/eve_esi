@@ -4,7 +4,7 @@
 //! alliance-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
 //!
 //! The [`AllianceApi`] acts as a high-level interface for retrieving public information
-//! and affiliations for EVE Online alliances. It requires an [`EsiClient`] instance
+//! and affiliations for EVE Online alliances. It requires an [`Client`] instance
 //! to perform HTTP requests to the ESI endpoints.
 //!
 //! # Features
@@ -17,10 +17,10 @@
 //! ```no_run
 //! #[tokio::main]
 //! async fn main() {
-//!     let esi_client = eve_esi::EsiClient::builder()
+//!     let esi_client = eve_esi::Client::builder()
 //!         .user_agent("MyApp/1.0 (contact@example.com)")
 //!         .build()
-//!         .expect("Failed to build EsiClient");
+//!         .expect("Failed to build Client");
 //!
 //!     // Get information about The Autumn alliance (id: 99013534)
 //!     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();
@@ -28,27 +28,27 @@
 //! }
 //! ```
 
-use crate::{error::Error, model::alliance::Alliance, EsiClient};
+use crate::{model::alliance::Alliance, Client, Error};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
 /// The `AllianceApi` struct acts as an interface for retrieving information about EVE Online alliances
-/// using the ESI API. It requires an [`EsiClient`] for making HTTP requests to the ESI endpoints.
+/// using the ESI API. It requires an [`Client`] for making HTTP requests to the ESI endpoints.
 ///
 /// See the [module-level documentation](self) for an overview and usage example.
 pub struct AllianceApi<'a> {
-    client: &'a EsiClient,
+    client: &'a Client,
 }
 
 impl<'a> AllianceApi<'a> {
     /// Creates a new instance of `AllianceApi`.
     ///
     /// # Arguments
-    /// - `client` - The [`EsiClient`] used for making HTTP requests to the ESI endpoints.
+    /// - `client` - The [`Client`] used for making HTTP requests to the ESI endpoints.
     ///
     /// # Returns
     /// Returns a new instance of `AllianceApi`.
-    pub fn new(client: &'a EsiClient) -> Self {
+    pub fn new(client: &'a Client) -> Self {
         Self { client }
     }
 
@@ -72,10 +72,10 @@ impl<'a> AllianceApi<'a> {
     /// ```no_run
     /// #[tokio::main]
     /// async fn main() {
-    ///     let esi_client = eve_esi::EsiClient::builder()
+    ///     let esi_client = eve_esi::Client::builder()
     ///         .user_agent("MyApp/1.0 (contact@example.com)")
     ///         .build()
-    ///         .expect("Failed to build EsiClient");
+    ///         .expect("Failed to build Client");
     ///
     ///     // Get information about The Autumn alliance (id: 99013534)
     ///     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();

@@ -7,7 +7,7 @@ use crate::util::setup;
 /// Tests the successful retrieval of an OAuth2 token
 ///
 /// # Setup
-/// - Create an EsiClient configured with OAuth2 and a mock server
+/// - Create an Client configured with OAuth2 and a mock server
 /// - Configures a mock response with a successful token response
 ///
 /// # Assertions
@@ -15,7 +15,7 @@ use crate::util::setup;
 /// - Verifies that the token response is successful
 #[tokio::test]
 pub async fn test_get_token_success() {
-    // Create EsiClient configured with OAuth2 & mock server
+    // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
     // Create mock response
@@ -39,7 +39,7 @@ pub async fn test_get_token_success() {
 /// Tests error handling when failing to retrieve an OAuth2 token
 ///
 /// # Setup
-/// - Create an EsiClient configured with OAuth2 and a mock server
+/// - Create an Client configured with OAuth2 and a mock server
 /// - Configures a mock response with a bad request status code
 ///
 /// # Assertions
@@ -47,7 +47,7 @@ pub async fn test_get_token_success() {
 /// - Verifies that the error is of the [`RequestTokenError::ServerResponse`] type
 #[tokio::test]
 pub async fn test_get_token_error() {
-    // Create EsiClient configured with OAuth2 & mock server
+    // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
     // Create mock response
@@ -102,11 +102,11 @@ pub async fn test_get_token_oauth_client_missing() {
         .build()
         .expect("Failed to build EsiConfig");
 
-    let esi_client = eve_esi::EsiClient::builder()
+    let esi_client = eve_esi::Client::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
         .config(config)
         .build()
-        .expect("Failed to build EsiClient");
+        .expect("Failed to build Client");
 
     // Call the get_token method
     let result = esi_client.oauth2().get_token("authorization_code").await;

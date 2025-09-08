@@ -20,19 +20,19 @@ use crate::oauth2::jwk::util::{
     check_refresh_cooldown, is_cache_approaching_expiry, is_cache_expired,
 };
 use crate::oauth2::OAuth2Api;
-use crate::EsiClient;
+use crate::Client;
 
 /// Provides access to JWK endpoints & caching for EVE Online's OAuth2 endpoints
 ///
 /// The [`JwkApi`] acts as an interface for retrieving JWT keys, caching, and refreshing them
 /// when the keys are expired or nearing expiration.
 ///
-/// It requires an [`EsiClient`] which is used for making HTTP requests and it provides the
+/// It requires an [`Client`] which is used for making HTTP requests and it provides the
 /// JWT key cache used by the eve_esi crate's OAuth2 functionality for token validation.
 ///
 /// See the [module-level documentation](super) for an overview and usage example.
 pub struct JwkApi<'a> {
-    pub(super) client: &'a EsiClient,
+    pub(super) client: &'a Client,
 }
 
 impl OAuth2Api<'_> {
@@ -51,12 +51,12 @@ impl<'a> JwkApi<'a> {
     /// Creates a new instance of [`JwkApi`]
     ///
     /// # Arguments
-    /// - `client` (&'a [`EsiClient`]) used for making HTTP requests to EVE Online API endpoints
+    /// - `client` (&'a [`Client`]) used for making HTTP requests to EVE Online API endpoints
     ///   and providing the JWT key cache.
     ///
     /// # Returns
     /// - `Self`: A new instance of [`JwkApi`].
-    pub fn new(client: &'a EsiClient) -> Self {
+    pub fn new(client: &'a Client) -> Self {
         Self { client }
     }
 

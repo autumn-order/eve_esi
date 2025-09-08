@@ -1,8 +1,8 @@
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::EsiClient;
+use crate::Client;
 
-impl EsiClient {
+impl Client {
     /// Makes an unauthenticated GET request to the ESI API.
     ///
     /// # Arguments
