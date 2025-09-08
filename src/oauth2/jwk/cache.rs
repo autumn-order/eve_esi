@@ -77,15 +77,15 @@ pub(crate) struct JwtKeyCacheConfig {
 /// - [`RwLock`]: To allow for simultaneous reads of the cache and the last refresh failure timestamp
 /// - [`AtomicBool`]: To manage a high volume of simultaneous attempts to acquire a refresh lock
 /// - [`Notify`]: To provide notifications of when the cache has been updated
-pub struct JwtKeyCache {
+pub(crate) struct JwtKeyCache {
     /// RwLock with a tuple containing JWT keys and timestamp of when keys were updated
-    pub cache: RwLock<Option<(EveJwtKeys, Instant)>>,
+    pub(super) cache: RwLock<Option<(EveJwtKeys, Instant)>>,
     /// AtomicBool indicating whether a JWT key refresh is currently in progress
-    pub refresh_lock: AtomicBool,
+    pub(super) refresh_lock: AtomicBool,
     /// Notifier for when a JWT key refresh is completed
-    pub refresh_notifier: Notify,
+    pub(super) refresh_notifier: Notify,
     /// RwLock with a timestamp of last failed set of JWT key refresh attemmpts
-    pub last_refresh_failure: RwLock<Option<Instant>>,
+    pub(super) last_refresh_failure: RwLock<Option<Instant>>,
     /// Configuration for JWT key cache & refreshes
     pub(super) config: JwtKeyCacheConfig,
 }

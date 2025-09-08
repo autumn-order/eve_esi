@@ -13,7 +13,7 @@ impl EsiClient {
     ///
     /// # Type Parameters
     /// - `T` - The expected return type that implements `DeserializeOwned`
-    pub async fn get_from_public_esi<T: DeserializeOwned>(
+    pub(crate) async fn get_from_public_esi<T: DeserializeOwned>(
         &self,
         url: &str,
     ) -> Result<T, reqwest::Error> {
@@ -35,7 +35,7 @@ impl EsiClient {
     /// # Type Parameters
     /// - `T` - The expected return type that implements `DeserializeOwned`.
     /// - `U` - The type of data to send, which must implement `Serialize`.
-    pub async fn post_to_public_esi<T: DeserializeOwned, U: Serialize + ?Sized>(
+    pub(crate) async fn post_to_public_esi<T: DeserializeOwned, U: Serialize + ?Sized>(
         &self,
         url: &str,
         data: &U,

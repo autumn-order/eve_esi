@@ -11,12 +11,10 @@ use crate::util::setup;
 ///
 /// # Assertions
 /// - Assert that fetch request was made
-/// - Assert that cache was properly updated
 #[tokio::test]
 async fn test_fetch_and_update_cache_success() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
-    let jwt_key_cache = &esi_client.jwt_key_cache;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -29,15 +27,6 @@ async fn test_fetch_and_update_cache_success() {
 
     // Assert result is Ok
     assert!(result.is_ok());
-
-    // Ensure cache has been updated
-    let cache = jwt_key_cache.cache.read().await;
-    let keys = match &*cache {
-        Some((keys, timestamp)) => Some((keys.clone(), timestamp.clone())),
-        None => None,
-    };
-
-    assert!(keys.is_some())
 }
 
 /// Tests that an error is properly handled when JWK fetch fails
