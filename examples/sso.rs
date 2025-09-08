@@ -1,3 +1,10 @@
+//! EVE ESI Axum SSO Example
+//!
+//! This is an example demonstrating single sign-on with EVE Online's OAuth2 API.
+//!
+//! This example is incomplete as it demonstrates the first half of the login but still has yet to implement
+//! the second half of handling the callback and validating the token.
+
 use axum::{
     extract::Extension,
     http::StatusCode,
@@ -9,6 +16,7 @@ use std::env;
 
 #[tokio::main]
 async fn main() {
+    // Retrieve environment from the .env
     dotenv::dotenv().ok();
 
     let contact_email = env::var("CONTACT_EMAIL").expect("Please set CONTACT_EMAIL in your .env");
@@ -29,8 +37,12 @@ async fn main() {
         contact_email,
         env!("CARGO_PKG_REPOSITORY")
     );
+
+    // Build an ESI client with a user agent & optional reqwest client
     let esi_client: eve_esi::Client = eve_esi::Client::builder()
+        // Always set a user agent to identify your application
         .user_agent(&user_agent)
+        // client_id, client_secret, and callback_url must be set to enable OAuth2 for ESI client
         .client_id(&esi_client_id)
         .client_secret(&esi_secret_secret)
         .callback_url(&callback_url)
@@ -42,6 +54,7 @@ async fn main() {
         .route("/login", get(login))
         .layer(Extension(esi_client));
 
+    // Start the API server
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
         .await
         .unwrap();
@@ -51,10 +64,13 @@ async fn main() {
 }
 
 async fn login(Extension(esi_client): Extension<eve_esi::Client>) -> Response {
+    // Build the scopes we wish to request from the user
     let scopes = eve_esi::oauth2::ScopeBuilder::new().public_data().build();
 
+    // Generate the login url or return an error if one occurs
     let auth_data = match esi_client.oauth2().login_url(scopes) {
         Ok(auth_data) => auth_data,
+        // If OAuth2 is not properly configured such as .env not being set then an error will be returned
         Err(err) => {
             println!("Error initiating OAuth login: {}", err);
 
@@ -66,5 +82,6 @@ async fn login(Extension(esi_client): Extension<eve_esi::Client>) -> Response {
         }
     };
 
+    // Redirect the user to the login url to begin the single sign-on flow
     Redirect::temporary(&auth_data.login_url).into_response()
 }
