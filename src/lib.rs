@@ -2,8 +2,14 @@
 
 //! EVE ESI
 //!
-//! Rust API wrapper for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer).
-//! See the [README](https://github.com/hyziri/eve_esi/blob/main/README.md) for more examples and details.
+//! A thread-safe, asynchronous client which provides methods & types for interaction with
+//! [EVE Online's ESI](https://developers.eveonline.com/api-explorer) &
+//! [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
+//!
+//! This crate implements concurrency & caching to provide performance in applications at scale.
+//! For example JSON web token keys (JWT keys) are used to validate tokens after a successful single sign-on login,
+//! this crate automatically caches the keys and refreshes them proactively before expiry in a background task for
+//! mimimal latency with each login.
 //!
 //! # References
 //! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
@@ -11,12 +17,16 @@
 //!
 //! # Usage
 //!
-//! Create a new Client instance and request public information about a character from ESI.
+//! Create a new ESI Client instance and request public information about a corporation from ESI.
 //!
 //! ```no_run
+//! // esi_client is asynchronous, #[tokio::main] allows for making the main function async
+//! // You would ideally use esi_client with an async web framework like Axum as shown in examples
 //! #[tokio::main]
 //! async fn main() {
+//!     // Build a new ESI Client with the builder method
 //!     let esi_client = eve_esi::Client::builder()
+//!     // Always set a user agent to identify your application
 //!         .user_agent("MyApp/1.0 (contact@example.com)")
 //!         .build()
 //!         .expect("Failed to build Client");
@@ -26,8 +36,6 @@
 //!     println!("Corporation name: {}", corporation.name);
 //! }
 //! ```
-//!
-//! Make certain you set the user agent as demonstrated above, ensure it includes contact email in case there are any issues with your ESI requests.
 //!
 //! # Logging
 //!

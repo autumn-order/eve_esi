@@ -203,7 +203,7 @@ impl ClientBuilder {
     /// The user agent string is used to identify the client making requests to the EVE Online API.
     /// A proper user agent should include an app name, version, and contact information.
     ///
-    /// Example: "MyApp/1.0 (contact@example.com)"
+    /// Example: `"MyApp/1.0 (contact@example.com)"`
     ///
     /// # Warning
     ///

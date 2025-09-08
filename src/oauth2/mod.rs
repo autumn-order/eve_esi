@@ -1,6 +1,6 @@
 //! Methods for OAuth2 authentication with EVE Online SSO
 //!
-//! This module provides methods for initiating and managing the EVE Online OAuth2 authentication process
+//! This module provides methods for initiating and managing the EVE Online OAuth2 authentication process.
 //! It includes functionality for generating login URLs to initiate the authentication process, building scopes for authorization, and managing tokens.
 //!
 //! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or

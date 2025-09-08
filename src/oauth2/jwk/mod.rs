@@ -26,7 +26,7 @@
 //!
 //! Alternatively you can use:
 //! - [`JwkApi::fetch_jwt_keys`]: If you simply wish to fetch keys with no caching
-//! - [`JwkApi::fetch_and_update_cache]: If you want to update cache regardless of expiration
+//! - [`JwkApi::fetch_and_update_cache`]: If you want to update cache regardless of expiration
 //!
 //! # Thread Safety
 //!

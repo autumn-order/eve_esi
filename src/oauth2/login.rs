@@ -20,7 +20,7 @@ impl<'a> OAuth2Api<'a> {
     /// [crate::oauth2::OAuth2Api::get_token] method.
     ///
     /// # Arguments
-    /// - `scopes` (Vec<[`String`]>): A vec of scope strings representing the permissions your application is requesting.
+    /// - `scopes` (`Vec<`[`String`]`>`): A vec of scope strings representing the permissions your application is requesting.
     ///   These must match the scopes configured in your EVE developer application.
     ///
     /// # Returns
@@ -45,7 +45,7 @@ impl<'a> OAuth2Api<'a> {
     ///     .expect("Failed to build Client");
     ///
     /// // Build scopes requesting only publicData
-    /// let scopes = eve_esi::oauth2::ScopeBuilder::new()
+    /// let scopes = eve_esi::ScopeBuilder::new()
     ///     .public_data()
     ///     .build();
     ///

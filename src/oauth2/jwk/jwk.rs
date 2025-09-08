@@ -68,7 +68,7 @@ impl<'a> JwkApi<'a> {
     /// If the cache is 80% to expiration by default, it will start a background task to refresh the
     /// keys proactively. This method prevents multiple concurrent refresh attempts by using an atomic
     /// flag. If a refresh is already in progress when this method is called, it will wait
-    /// briefly and retry getting the keys from cache.
+    /// for the refresh to complete and then try getting the keys from cache.
     ///
     /// # Implementation Details
     /// - Uses a read lock on the cache to check current state without blocking other readers
@@ -197,9 +197,6 @@ impl<'a> JwkApi<'a> {
     }
 
     /// Fetches JWT keys from EVE's OAuth2 API
-    ///
-    /// Fetches JWT keys from EVE's OAuth2 API and returns the keys if
-    /// successful or a reqwest error if not.
     ///
     /// This function does not implement measures to prevent concurrent JWT key fetch
     /// attempts, you should use [`Self::get_jwt_keys`] if you do not wish to implement

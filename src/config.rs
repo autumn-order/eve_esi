@@ -35,21 +35,19 @@
 //! ```
 //! use std::time::Duration;
 //!
-//! use eve_esi::config::Config;
-//!
 //! // Build a config to override defaults
-//! let config = Config::builder()
+//! let config = eve_esi::Config::builder()
 //!     // Set JWT key cache lifetime to 7200 seconds representing 2 hours
 //!     .jwk_cache_ttl(Duration::from_secs(7200))
 //!     .build()
-//!     .expect("Failed to build Config");
+//!     .expect("Failed to build ESI Config");
 //!
 //! // Apply config settings to Client
 //! let esi_client = eve_esi::Client::builder()
 //!     .config(config)
 //!     .user_agent("MyApp/1.0 (contact@example.com")
 //!     .build()
-//!     .expect("Failed to build Client");
+//!     .expect("Failed to build ESI Client");
 //! ```
 
 use std::time::Duration;

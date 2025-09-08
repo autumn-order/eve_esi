@@ -16,15 +16,17 @@ This crate utilizes the following EVE Online APIs:
 
 ## Client
 
-The EsiClient located in `client.rs` is the main client used to interact with the ESI API. It is configured using the `builder.rs` file which allows you to set up OAuth2 settings, base URLs, and other configurations.
+The Client located in `client.rs` is the main client used to interact with the ESI API. It is configured using the `builder.rs` file which allows you to set up OAuth2 settings, base URLs, and other configurations.
 
 ## Errors
 
-We use 2 main error enums, EsiError located in `error.rs` for general ESI related errors, and OAuthError located in `oauth2/error.rs` for OAuth2 related errors.
+We use 3 main error enums, `Error` & `ConfigError` located in `error.rs` for general runtime errors or configuration errors, `OAuthError` located in `oauth2/error.rs` for OAuth2 related errors.
 
 ## Configuration
 
 Default URLs and constants used throughout the crate are located in `constant.rs`. This includes base URLs for the ESI API & EVE OAuth2 endpoints as well as default settings for JWT key caching & refreshing used for authentication token validation.
+
+The defaults can be overridden using the `Config` located in `config.rs`
 
 `.env.example` is copied to `.env` and used with the `examples/sso` example to configure the EVE developer application values. It doesn't need to be set for the library itself.
 
@@ -35,10 +37,13 @@ The file structure of the `eve_esi` crate is as follows:
 ```plaintext
 ├── lib.rs       (The main entry point for the library)
 ├── client.rs    (The main client used to interact with the ESI API)
+├── config.rs    (Advanced config to override client default settings)
 ├── builder.rs   (The configuration for the client, including OAuth2 settings)
 ├── constant.rs  (Default URLs & constants used throughout the crate)
 ├── error.rs     (The error enum used throughout the crate)
-├── esi.rs       (Helper functions for ESI requests)
+├── esi.rs       (Helper functions for making ESI requests)
+├── tests/       (Utilities for unit tests)
+│   └── util.rs      (Shared setup function for all HTTP based unit tests)
 ├── model/       (All models used in the crate & ESI schemas)
 │   ├── oauth2.rs    (OAuth2 related models)
 │   ├── alliance.rs  (Alliance related models)
@@ -67,14 +72,32 @@ FOR SECURITY ISSUES: Please see [SECURITY.md](https://github.com/hyziri/eve_esi/
 
 # Submitting Pull Requests
 
-In order to submit a pull request, first you will need to fork the repository and clone it to your local machine. You'll make your commits to this forked repository.
-
-- Prior to submitting the pull request run `cargo test` to ensure all tests pass.
-- Additionally, please run `cargo tarpaulin` (`cargo install tarpaulin`) to ensure that the code you are submitting has sufficient test coverage.
-
 When submitting your pull request, please be sure to document the features you have implement, any breaking changes which may require a major version bump, and notes that may be useful for other maintainers to know such as any known issues, bugs, or limitations of the code you are submitting.
 
+Prior to submitting a pull request, check the following:
+- `cargo test`: Ensure all tests pass
+- `cargo tarpaulin`: Ensure the changes you make are properly covered by tests
+- `cargo doc --open`: Check for any documentation warnings such as broken links and everything is correctly formatted
+
+To submit a pull request, do the following:
+
+1. Fork this repository
+2. Clone it to your machine
+3. Checkout a new branch for your feature
+4. Commit changes
+5. Create a pull request on this repository with a summary of your feature & changes
+
 Please be aware, any code submitted to this repository must fall under the MIT license.
+
+
+## Development Environment
+
+Development environments for Rust projects is rather straightforward. You simply need a proper code editor & the Rust toolchain installed.
+
+To get started with contributing to the `eve_esi` crate:
+- You will need to install [rust](https://www.rust-lang.org/tools/install) then use `rustup default stable` or `rustup default nightly` to set the default toolchain to.
+- You will need a code editor which supports `rust-analyzer` such as [Zed](https://zed.dev/) or [Visual Studio Code](https://code.visualstudio.com/).
+- To start use `cargo test` to run the tests to ensure everything is working as expected.
 
 ## Workflow
 
@@ -83,6 +106,7 @@ When submitting a new ESI endpoint, please include the following:
 1. ESI endpoint under the `endpoints/` directory named after the section category of the endpoint as stated in the [ESI API Documentation](https://developers.eveonline.com/api-explorer).
 2. Any related schemas mirroring the [ESI API Documentation](https://developers.eveonline.com/api-explorer) documentation exactly under the `model/` directory which shares the same name as the section category of the related endpoint.
 3. An integration test of the additional endpoint under the `tests/endpoint_category` folder.
+4. A unit test if any internal functionality needs to be tested.
 
 The function name will mirror the title of the endpoint documented. For example, the List all alliances endpoint would be named `list_all_alliances` under the `endpoints/alliance.rs` file.
 
@@ -91,7 +115,8 @@ The schema name can be named something more concise as ESI docs use rather verbo
 For example, if you were to add the `list_all_alliances` endpoint, you would create the following files:
 - `src/endpoints/alliance.rs` for the endpoint implementation
 - `src/model/alliance.rs` for the related schemas
-- `tests/alliance/endpoint_name.rs` for the integration test of the endpoint
+- `tests/alliance/endpoint_name.rs` for the integration test of the endpoint for the public facing methods
+- Unit tests in the same file `src/endpoints/alliance.rs` under `mod list_alliances_tests {}` for internal functionality
 
 Don't forget to include:
 - If it's a new file, module documentation denoted by `//!` at the top of the file
@@ -114,7 +139,7 @@ When writing code for this project, we are meticulous in that we always include:
 
 Note: For logging, please use `#[cfg(not(tarpaulin_include))]` to exempt the log macros from code coverage as `cargo tarpaulin` will report the line as uncovered when they aren't necessary for test coverage. See examples below for usage.
 
-See `src/oauth2/jwt/task.rs` for an example of how these best practices are followed.
+See `src/oauth2/jwk/refresh.rs` for an example of how these best practices are followed.
 See `tests/alliance/get_alliance_information.rs` for an example of how to write integration tests for the endpoints.
 
 Ultimately, these ensure that our code is maintainable, understandable, and reliable. It takes longer to write initially but saves a lot of headaches in the long run trying to walk through each step of a function just to figure out what it does or how it is implemented.
@@ -124,12 +149,3 @@ For new programmers, especially to Rust, this can be daunting. You are encourage
 Additionally, you could consider using a tool such as [GitHub CoPilot](https://github.com/features/copilot) with your code editor which can help as a guide in writing documentation, unit tests, and explaining new concepts. You will just want to make absolute certain you double check everything it writes for correctness and consistency with the rest of the codebase.
 
 As of August 17th, 2025, `Claude Sonnet 3.7` is the recommended model to use.
-
-# Development Environment
-
-Development environments for Rust projects is rather straightforward. You simply need a proper code editor & the Rust toolchain installed.
-
-To get started with contributing to the `eve_esi` crate:
-- You will need to install [rust](https://www.rust-lang.org/tools/install) then use `rustup default stable` or `rustup default nightly` to set the default toolchain to.
-- You will need a code editor which supports `rust-analyzer` such as [Zed](https://zed.dev/) or [Visual Studio Code](https://code.visualstudio.com/).
-- To start use `cargo test` to run the tests to ensure everything is working as expected.

@@ -7,9 +7,9 @@
 //!
 //! # Modules
 //!
-//! - [`alliance`]: Alliance-based ESI endpoints
-//! - [`character`]: Character-based ESI endpoints
-//! - [`corporation`]: Corporation-based ESI endpoints
+//! - [`alliance`]: Alliance Endpoints for EVE Online's ESI API.
+//! - [`character`]: Character Endpoints for EVE Online's ESI API.
+//! - [`corporation`]: Corporation Endpoints for EVE Online's ESI API.
 //!
 //! # Example
 //! ```no_run
