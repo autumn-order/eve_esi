@@ -56,6 +56,7 @@
 //! ```
 
 use jsonwebtoken::{DecodingKey, Validation};
+use log::{debug, error};
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, StandardTokenResponse};
 
@@ -122,6 +123,9 @@ impl<'a> OAuth2Api<'a> {
     ///   issue validating the token.
     pub async fn validate_token(&self, token_secret: String) -> Result<EveJwtClaims, Error> {
         // Get JWT keys to validate token
+        #[cfg_attr(coverage_nightly, coverage(off))]
+        debug!("Retrieving keys for validation from JWT key cache");
+
         let jwt_keys = self.jwk().get_jwt_keys().await?;
 
         // Configure validation
@@ -130,22 +134,46 @@ impl<'a> OAuth2Api<'a> {
         validation.set_issuer(&[self.client.inner.jwt_issuer.to_string()]);
 
         // Try to find an RS256 key
+        #[cfg_attr(coverage_nightly, coverage(off))]
+        debug!("Checking JWT key cache for RS256 key");
+
         if let Some(EveJwtKey::RS256 { ref n, ref e, .. }) = get_first_rs256_key(&jwt_keys) {
             // RS256 key was found, extract n (modulus) and e (exponent) components for the decoding key
+            #[cfg_attr(coverage_nightly, coverage(off))]
+            debug!("Creating a decoding key from RS256 key");
+
             let decoding_key = match DecodingKey::from_rsa_components(n, e) {
                 Ok(key) => key,
-                Err(err) => return Err(Error::OAuthError(OAuthError::ValidateTokenError(err))),
+                Err(err) => {
+                    #[cfg_attr(coverage_nightly, coverage(off))]
+                    error!("Failed to decode RS256 key for token validation: {}", &err);
+
+                    return Err(Error::OAuthError(OAuthError::ValidateTokenError(err)));
+                }
             };
 
             // Validate the token
+            #[cfg_attr(coverage_nightly, coverage(off))]
+            debug!("Validating token using RS256 decoding key");
+
             match jsonwebtoken::decode::<EveJwtClaims>(&token_secret, &decoding_key, &validation) {
                 Ok(token_data) => Ok(token_data.claims),
-                Err(err) => Err(Error::OAuthError(OAuthError::ValidateTokenError(err))),
+                Err(err) => {
+                    #[cfg_attr(coverage_nightly, coverage(off))]
+                    error!("Failed to validate token with RS256 key: {}", &err);
+
+                    Err(Error::OAuthError(OAuthError::ValidateTokenError(err)))
+                }
             }
         } else {
             // No RS256 key was found
+            let message: &str =  "Failed to find RS256 key in JWT key cache when attempting to validate a JWT token.";
+
+            #[cfg_attr(coverage_nightly, coverage(off))]
+            error!("{}", message);
+
             Err(Error::OAuthError(OAuthError::NoValidKeyFound(
-                "Failed to find RS256 key in JWT key cache when attempting to validate a JWT token.".to_string(),
+                message.to_string(),
             )))
         }
     }
