@@ -159,7 +159,9 @@ impl JwtKeyCache {
     /// - [`None`] if the cache is empty (no keys have been fetched yet). This typically
     ///   triggers a fetch operation with retry logic when called from higher-level methods.
     pub(super) async fn get_keys(self: &Self) -> Option<(EveJwtKeys, std::time::Instant)> {
-        trace!("Attempting to retrieve JWT keys from cache");
+        let message = "Attempting to retrieve JWT keys from cache";
+
+        trace!("{}", message);
 
         // Retrieve the cache
         let cache = self.cache.read().await;
@@ -168,17 +170,21 @@ impl JwtKeyCache {
         if let Some((keys, timestamp)) = &*cache {
             let elapsed = timestamp.elapsed().as_secs();
 
-            debug!(
+            let message = format!(
                 "Found JWT keys in cache: key_count={}, age={}s",
                 keys.keys.len(),
                 elapsed
             );
 
+            debug!("{}", message);
+
             // Return the keys found in cache
             return Some((keys.clone(), timestamp.clone()));
         }
 
-        debug!("JWT keys cache is empty, keys need to be fetched");
+        let message = "JWT keys cache is empty, keys need to be fetched";
+
+        debug!("{}", message);
 
         // Return None since no data was found in the cache
         None
@@ -208,10 +214,12 @@ impl JwtKeyCache {
         let mut cache = self.cache.write().await;
         *cache = Some((keys, std::time::Instant::now()));
 
-        debug!(
+        let message = format!(
             "JWT keys cache successfully updated with {} keys",
             &key_count
         );
+
+        debug!("{}", message);
     }
 
     /// Clears the JWT key cache of any keys present
@@ -235,7 +243,9 @@ impl JwtKeyCache {
     /// # Returns
     /// - [`bool`]: Indicates whether or not the cache was cleared.
     pub(crate) async fn clear_cache(self: &Self) -> bool {
-        debug!("Attempting to clear JWT key cache");
+        let message = "Attempting to clear JWT key cache";
+
+        debug!("{}", message);
 
         // Acquire write lock first to not accidentally overwrite any updates
         let mut cache = self.cache.write().await;
@@ -248,24 +258,31 @@ impl JwtKeyCache {
             if timestamp < &sixty_seconds_ago {
                 // Clear the cache
                 let elapsed = timestamp.elapsed().as_secs();
-                info!(
+
+                let message = format!(
                     "Clearing JWT key cache of keys that were set {}s ago",
                     elapsed
                 );
+
+                info!("{}", message);
 
                 *cache = None;
 
                 true
             } else {
-                debug!(
+                let message = format!(
                     "JWT key cache not cleared due to keys being within {} seconds of age",
                     self.config.refresh_cooldown.as_secs()
                 );
 
+                debug!("{}", message);
+
                 false
             }
         } else {
-            debug!("JWT key cache is currently empty, no need to clear it.");
+            let message = "JWT key cache is currently empty, no need to clear it.";
+
+            debug!("{}", message);
 
             false
         }
@@ -303,12 +320,16 @@ impl JwtKeyCache {
         );
 
         if !lock_acquired.is_err() {
-            debug!("Successfully acquired JWT key refresh lock");
+            let message = "Successfully acquired JWT key refresh lock";
+
+            debug!("{}", message);
 
             // Lock successfully acquired
             true
         } else {
-            trace!("Failed to acquire JWT key refresh lock (already held by another thread)");
+            let message = "Failed to acquire JWT key refresh lock (already held by another thread)";
+
+            trace!("{}", message);
 
             // Lock already in use
             false
@@ -340,7 +361,9 @@ impl JwtKeyCache {
         // Notify waiters
         self.refresh_notifier.notify_waiters();
 
-        debug!("JWT key refresh lock released and waiters notified");
+        let message = "JWT key refresh lock released and waiters notified";
+
+        debug!("{}", message);
     }
 
     /// Sets the last JWT key cache refresh failure time
@@ -621,11 +644,9 @@ mod jwk_refresh_lock_try_acquire_tests {
         // Acquire a lock initially
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
-        let lock = jwt_key_cache.refresh_lock_try_acquire();
+        let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
 
-        if !lock {
-            panic!("Failed to acquire initial lock")
-        }
+        assert_eq!(lock_acquired, true);
 
         // Acquire lock a second time
         // Should return false indicating lock is already in use
@@ -693,14 +714,10 @@ mod jwk_lock_release_and_notify_tests {
         jwt_key_cache.refresh_lock_release_and_notify();
 
         let notified = tokio::select! {
-            _ = notification => {
-                // Notification received successfully
-                true
-            }
-            _ = timeout => {
-                // Timed out waiting for notification
-                false
-            }
+            // Notification received successfully
+            _ = notification => true,
+            // Timed out waiting for notification
+            _ = timeout => false
         };
 
         // Assert that notification was received
