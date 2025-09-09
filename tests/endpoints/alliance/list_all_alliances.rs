@@ -5,7 +5,7 @@ use crate::util::setup;
 /// # Test Setup
 /// - Setup a basic EsiClient & mock HTTP server
 /// - Create mock Vec of alliance IDs
-/// - Configure mock server with an ESI endpoint a mock list of alliance IDs
+/// - Configure mock server with endpoint returning mock alliance IDs
 ///
 /// # Assertions
 /// - Assert 1 request was made to the mock server
@@ -16,14 +16,14 @@ async fn test_list_all_alliances_success() {
     let (esi_client, mut mock_server) = setup().await;
 
     // Create mock Vec of alliance IDs
-    let mock_alliance = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let mock_alliance_ids = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    // Configure mock server with an ESI endpoint a mock list of alliance IDs
+    // Configure mock server with endpoint returning mock alliance IDs
     let mock = mock_server
         .mock("GET", "/alliances")
         .with_status(200)
         .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&mock_alliance).unwrap())
+        .with_body(serde_json::to_string(&mock_alliance_ids).unwrap())
         .create();
 
     // Retrieve the list of alliances

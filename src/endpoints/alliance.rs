@@ -9,6 +9,8 @@
 //! # Methods
 //! - [`AllianceApi::list_all_alliances`]: Retrieves a list of IDs of every alliance in EVE Online
 //! - [`AllianceApi::get_alliance_information`]: Retrieves public information for the given alliance_id
+//! - [`AllianceApi::list_alliance_corporations]: Retrieves the IDs of all corporations part of the provided alliance_id
+//! - [`AllianceApi::get_alliance_icon]: Get the 128x128 & 64x64 icon URLs for an alliance
 //!
 //! # Usage Example
 //! ```no_run
@@ -28,7 +30,10 @@
 
 use std::time::Instant;
 
-use crate::{model::alliance::Alliance, Client, Error};
+use crate::{
+    model::alliance::{Alliance, AllianceIcons},
+    Client, Error,
+};
 
 use log::{debug, error, info};
 
@@ -61,9 +66,9 @@ impl<'a> AllianceApi<'a> {
     ///
     /// # Returns
     /// A result containing either:
-    /// - `Vec<`[`i32`]`>`: A vec of every alliance ID in EVE Online
+    /// - `Vec<`[`i64`]`>`: A vec of every alliance ID in EVE Online
     /// - [`Error`]: An error if the fetch request failed
-    pub async fn list_all_alliances(&self) -> Result<Vec<i32>, Error> {
+    pub async fn list_all_alliances(&self) -> Result<Vec<i64>, Error> {
         let url = format!("{}/alliances", self.client.inner.esi_url);
 
         let message = format!("Fetching list of all alliance IDs from {}", url);
@@ -73,7 +78,7 @@ impl<'a> AllianceApi<'a> {
         let start_time = Instant::now();
 
         // Fetch all alliances
-        let result = self.client.get_from_public_esi::<Vec<i32>>(&url).await;
+        let result = self.client.get_from_public_esi::<Vec<i64>>(&url).await;
 
         let elapsed = start_time.elapsed();
         match result {
@@ -108,13 +113,13 @@ impl<'a> AllianceApi<'a> {
     ///- <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceId>
     ///
     /// # Arguments
-    /// - `alliance_id` ([`i32`]): The ID of the alliance to retrieve information for
+    /// - `alliance_id` ([`i64`]): The ID of the alliance to retrieve information for
     ///
     /// # Returns
     /// A result containing either:
     /// - [`Alliance`]: The alliance data if successfully retrieved
     /// - [`Error`]: An error if the fetch request failed
-    pub async fn get_alliance_information(&self, alliance_id: i32) -> Result<Alliance, Error> {
+    pub async fn get_alliance_information(&self, alliance_id: i64) -> Result<Alliance, Error> {
         let url = format!("{}/alliances/{}/", self.client.inner.esi_url, alliance_id);
 
         let message = format!(
@@ -162,18 +167,21 @@ impl<'a> AllianceApi<'a> {
     /// # EVE ESI Reference
     /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceIdCorporations>
     ///
+    /// # Arguments
+    /// - `alliance_id` ([`i64`]): ID of the alliance to fetch corporation IDs for
+    ///
     /// # Returns
     /// A result containing either:
-    /// - `Vec<`[`i32`]`>`: A vec of the ID of every corporation part of the alliance
+    /// - `Vec<`[`i64`]`>`: A vec of the ID of every corporation part of the alliance
     /// - [`Error`]: An error if the fetch request failed
-    pub async fn list_alliance_corporations(&self, alliance_id: i32) -> Result<Vec<i32>, Error> {
+    pub async fn list_alliance_corporations(&self, alliance_id: i64) -> Result<Vec<i64>, Error> {
         let url = format!(
             "{}/alliances/{}/corporations",
             self.client.inner.esi_url, alliance_id
         );
 
         let message = format!(
-            "Fetching IDs of all corporations part of alliance {} from {}",
+            "Fetching IDs of all corporations part of alliance ID {} from {}",
             alliance_id, url
         );
 
@@ -182,13 +190,13 @@ impl<'a> AllianceApi<'a> {
         let start_time = Instant::now();
 
         // Fetch all alliances
-        let result = self.client.get_from_public_esi::<Vec<i32>>(&url).await;
+        let result = self.client.get_from_public_esi::<Vec<i64>>(&url).await;
 
         let elapsed = start_time.elapsed();
         match result {
             Ok(corporations) => {
                 let message = format!(
-                    "Successfully fetched IDs for {} corporation(s) part of alliance {} (took {}ms)",
+                    "Successfully fetched IDs for {} corporation(s) part of alliance ID {} (took {}ms)",
                     corporations.len(),
                     alliance_id,
                     elapsed.as_millis()
@@ -200,7 +208,65 @@ impl<'a> AllianceApi<'a> {
             }
             Err(err) => {
                 let message = format!(
-                    "Failed to fetch IDs of all corporations part of alliance {} after {}ms due to error: {:#?}",
+                    "Failed to fetch IDs of all corporations part of alliance ID {} after {}ms due to error: {:#?}",
+                    alliance_id,
+                    elapsed.as_millis(),
+                    err
+                );
+
+                error!("{}", message);
+
+                Err(err.into())
+            }
+        }
+    }
+
+    /// Get the 128x128 & 64x64 icon URLs for an alliance
+    ///
+    /// # EVE ESI Reference
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceIdIcons>
+    ///
+    /// # Arguments
+    /// - `alliance_id` ([`i64`]): ID of the alliance to fetch icons for
+    ///
+    /// # Returns
+    /// A result containing either:
+    /// - [`AllianceIcons`]: A struct with URLs for the 128x128 & 64x64 icons for an alliance
+    /// - [`Error`]: An error if the fetch request failed
+    pub async fn get_alliance_icon(&self, alliance_id: i64) -> Result<AllianceIcons, Error> {
+        let url = format!(
+            "{}/alliances/{}/icons",
+            self.client.inner.esi_url, alliance_id
+        );
+
+        let message = format!(
+            "Fetching icons URLs for alliance ID {} from {}",
+            alliance_id, url
+        );
+
+        debug!("{}", message);
+
+        let start_time = Instant::now();
+
+        // Fetch all alliances
+        let result = self.client.get_from_public_esi::<AllianceIcons>(&url).await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(icons) => {
+                let message = format!(
+                    "Successfully fetched icon URLs for alliance ID {} (took {}ms)",
+                    alliance_id,
+                    elapsed.as_millis()
+                );
+
+                info!("{}", message);
+
+                Ok(icons)
+            }
+            Err(err) => {
+                let message = format!(
+                    "Failed to fetch icon URLs for alliance ID {} after {}ms due to error: {:#?}",
                     alliance_id,
                     elapsed.as_millis(),
                     err
