@@ -1,11 +1,21 @@
 //! Errors related to the OAuth2 portion of the EVE ESI crate
 //!
-//! Provides an enum for runtime related errors, [`OAuthError`], which provides
+//! Provides an enum for runtime related OAuth2 errors, [`OAuthError`], which provides
 //! detailed error messages as well as instructions on how to
 //! resolve the issues which could occur.
 //!
-//! # Error Types
-//! - [`OAuthError`]: Runtime errors related to EVE OAuth2
+//! These errors are typically returned when handling JWT tokens for the SSO (single sign-on) login flow.
+//! Possible errors could be not having the [`Client`](crate::Client) configured for OAuth2, an issue validating
+//! a JWT token, or an issue fetching the JWT keys used to validate the token.
+//!
+//! # Variants
+//! - [`OAuthError::OAuth2NotConfigured`]: Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
+//! - [`OAuthError::JwtKeyRefreshTimeout`]: Error when waiting for another thread to refresh JWT key cache times out
+//! - [`OAuthError::JwtKeyRefreshFailure`]: Error when waiting for another thread to refresh JWT key cache fails
+//! - [`OAuthError::JwtKeyRefreshCooldown`]: Error when JWT key refresh is still in cooldown
+//! - [`OAuthError::RequestTokenError`]: Error when an OAuth2 token fetch request fails
+//! - [`OAuthError::ValidateTokenError`]: Error when JWT key refresh is still in cooldown
+//! - [`OAuthError::NoValidKeyFound`]: Error returned when JWT key cache does not have the ES256 token key needed for validation
 //!
 //! # Example
 //! ```
@@ -37,18 +47,6 @@ use thiserror::Error;
 /// with instructions on how to resolve each issue.
 ///
 /// See the [module-level documentation](self) for an overview and usage example.
-///
-/// # Variants
-/// - [`OAuth2NotConfigured`](OAuthError::OAuth2NotConfigured): Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
-/// - [`JwtKeyRefreshTimeout`](OAuthError::JwtKeyRefreshTimeout): Error when waiting for another thread to refresh JWT key cache times out
-/// - [`JwtKeyRefreshFailure`](OAuthError::JwtKeyRefreshFailure): Error when waiting for another thread to refresh JWT key cache fails
-/// - [`JwtKeyRefreshCooldown`](OAuthError::JwtKeyRefreshCooldown): Error when JWT key refresh is still in cooldown
-///
-/// # Usage
-/// These errors are typically returned when:
-/// - Setting up the OAuth2 authentication process with `initiate_oauth_login`
-/// - Attempting to exchange an authorization code for an access token
-/// - Refreshing access tokens
 #[derive(Error, Debug)]
 pub enum OAuthError {
     /// Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
@@ -105,7 +103,7 @@ pub enum OAuthError {
     #[error("JWT key cache refresh cooldown still active: {0}")]
     JwtKeyRefreshCooldown(String),
 
-    /// Errors types returned when an OAuth2 token request fails.
+    /// Error when an OAuth2 token fetch request fails
     ///
     /// For a more detailed explanation of the error, see the [`RequestTokenError`] enum.
     #[error("OAuth2 token error: {0:?}")]
@@ -116,7 +114,7 @@ pub enum OAuthError {
         >,
     ),
 
-    /// Error types returned when OAuth2 token validation fails
+    /// Error type returned when OAuth2 token validation fails
     ///
     /// For a more detailed explanation of the error, see the [`jsonwebtoken::errors::Error`] enum.
     #[error("Validate token error: {0:?}")]
@@ -124,11 +122,8 @@ pub enum OAuthError {
 
     /// Error returned when JWT key cache does not have the ES256 token key needed for validation
     ///
-    /// This would be an issue with the [crate::oauth2::jwk::JwkApi::get_jwt_keys] method where
-    /// the API the keys are fetched from is expected to return a Vec<> with 1 ES256 and 1 RS256
-    /// key but only the ES256 was returned otherwise the [crate::oauth2::OAuth2Api::validate_token] method
-    /// would've returned a cache related error instead
-    /// ([`JwtKeyRefreshTimeout`], [`JwtKeyRefreshFailure`], [`JwtKeyRefreshCooldown`]).
+    /// This would be an issue with the jwt key cache not being empty nor expired but only having an ES256 key instead
+    /// of both an ES256 and RS256 key as expected to be returned by EVE Online's JWT key API.
     #[error("No valid token key for validation found in cache: {0:?}")]
     NoValidKeyFound(String),
 }
