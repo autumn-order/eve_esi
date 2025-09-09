@@ -159,7 +159,6 @@ impl JwtKeyCache {
     /// - [`None`] if the cache is empty (no keys have been fetched yet). This typically
     ///   triggers a fetch operation with retry logic when called from higher-level methods.
     pub(super) async fn get_keys(self: &Self) -> Option<(EveJwtKeys, std::time::Instant)> {
-        #[cfg(not(tarpaulin_include))]
         trace!("Attempting to retrieve JWT keys from cache");
 
         // Retrieve the cache
@@ -169,7 +168,6 @@ impl JwtKeyCache {
         if let Some((keys, timestamp)) = &*cache {
             let elapsed = timestamp.elapsed().as_secs();
 
-            #[cfg(not(tarpaulin_include))]
             trace!(
                 "Found JWT keys in cache: key_count={}, elapsed={}s",
                 keys.keys.len(),
@@ -180,7 +178,6 @@ impl JwtKeyCache {
             return Some((keys.clone(), timestamp.clone()));
         }
 
-        #[cfg(not(tarpaulin_include))]
         debug!("JWT keys cache is empty, keys need to be fetched");
 
         // Return None since no data was found in the cache
@@ -206,13 +203,11 @@ impl JwtKeyCache {
     /// # Parameters
     /// - `keys`: The EVE JWT keys to store in the cache
     pub(super) async fn update_keys(self: &Self, keys: EveJwtKeys) {
-        #[cfg(not(tarpaulin_include))]
         debug!("Updating JWT keys cache with {} keys", keys.keys.len());
 
         let mut cache = self.cache.write().await;
         *cache = Some((keys, std::time::Instant::now()));
 
-        #[cfg(not(tarpaulin_include))]
         debug!("JWT keys cache successfully updated");
     }
 
@@ -248,13 +243,11 @@ impl JwtKeyCache {
         );
 
         if !lock_acquired.is_err() {
-            #[cfg(not(tarpaulin_include))]
             debug!("Successfully acquired JWT key refresh lock");
 
             // Lock successfully acquired
             true
         } else {
-            #[cfg(not(tarpaulin_include))]
             trace!("Failed to acquire JWT key refresh lock (already held by another thread)");
 
             // Lock already in use
@@ -281,19 +274,18 @@ impl JwtKeyCache {
     /// that subsequently acquire the lock or are notified.
     pub(super) fn refresh_lock_release_and_notify(self: &Self) {
         // Release the lock
-        #[cfg(not(tarpaulin_include))]
+
         debug!("Releasing JWT key refresh lock");
 
         self.refresh_lock
             .store(false, std::sync::atomic::Ordering::Release);
 
         // Notify waiters
-        #[cfg(not(tarpaulin_include))]
+
         trace!("Notifying waiters about JWT key refresh completion");
 
         self.refresh_notifier.notify_waiters();
 
-        #[cfg(not(tarpaulin_include))]
         debug!("JWT key refresh lock released and waiters notified");
     }
 

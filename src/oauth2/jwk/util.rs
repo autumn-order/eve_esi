@@ -49,7 +49,6 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
         let is_cooldown = elapsed_secs < config.refresh_cooldown.as_secs();
 
         if is_cooldown {
-            #[cfg(not(tarpaulin_include))]
             debug!(
                 "Respecting background refresh cooldown: {}s elapsed of {}s required",
                 elapsed_secs,
@@ -61,7 +60,6 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
 
             return Some(remaining_cooldown);
         } else {
-            #[cfg(not(tarpaulin_include))]
             trace!(
                 "Background cooldown period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
@@ -116,7 +114,6 @@ pub(super) fn is_cache_approaching_expiry(
     let is_approaching_expiry = elapsed_seconds > threshold_seconds;
 
     if is_approaching_expiry {
-        #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
             elapsed_seconds,
@@ -128,7 +125,6 @@ pub(super) fn is_cache_approaching_expiry(
         // Return true if cache is approaching expiry
         true
     } else {
-        #[cfg(not(tarpaulin_include))]
         trace!(
                 "JWT keys cache not yet approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
                 elapsed_seconds,
@@ -164,7 +160,6 @@ pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, elapsed_seconds: u64
     let is_expired = elapsed_seconds >= cache_ttl.as_secs();
 
     if is_expired {
-        #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache expired: elapsed={}s, ttl={}s",
             elapsed_seconds,
@@ -174,7 +169,6 @@ pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, elapsed_seconds: u64
         // Return true if cache is not yet expired
         true
     } else {
-        #[cfg(not(tarpaulin_include))]
         trace!(
             "JWT keys cache valid: elapsed={}s, ttl={}s",
             elapsed_seconds,
