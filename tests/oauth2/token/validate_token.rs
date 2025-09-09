@@ -1,7 +1,7 @@
 use crate::oauth2::util::jwk_response::{
     get_jwk_internal_server_error_response, get_jwk_success_response,
 };
-use crate::oauth2::util::jwt::create_mock_token;
+use crate::oauth2::util::jwt::{create_mock_token, RSA_KEY_ID};
 use crate::util::setup;
 use eve_esi::model::oauth2::{EveJwtKey, EveJwtKeys};
 use oauth2::TokenResponse;
@@ -116,6 +116,7 @@ async fn test_validate_token_get_jwt_key_failure() {
 ///
 /// # Test Setup
 /// - Create an ESI Client configured with OAuth2 and a mock server
+/// - Create a mock EveJwtKeys struct that only contains an ES256 key
 /// - Create a mock JWT key response returning only an ES256 key
 /// - Create a mock token representing what we would get using the `get_token` method
 ///
@@ -128,7 +129,7 @@ async fn test_validate_token_no_rs256_key() {
     // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
-    // Create a mock JWT key response that only returns an ES256 key
+    // Create a mock EveJwtKeys struct that only contains an ES256 key
     let only_es256_key = EveJwtKeys {
         skip_unresolved_json_web_keys: false,
         keys: [EveJwtKey::ES256 {
@@ -176,6 +177,81 @@ async fn test_validate_token_no_rs256_key() {
     }
 }
 
-async fn test_validate_token_decoding_key_error() {}
+/// Tests validation failure due to an issue with the decoding key
+///
+/// `validate_token` uses a decoding key prior to decoding the token, if the RS256
+/// modulus is malformed then an error will be returned as result. Error will be of type
+/// [`OAuthError::ValidateTokenError`], more precisely it will be of the type
+/// [`jsonwebtoken::errors::ErrorKind::InvalidSignature`].
+///
+/// Generally applications would just return an internal server error when
+/// [`OAuthError::ValidateTokenError`] is returned and refresh the JWT key cache in this case.
+///
+/// # Test Setup
+/// - Create an ESI Client configured with OAuth2 and a mock server
+/// - Create a mock EveJwtKeys struct that only contains a malformed RS256 key (empty modulus)
+/// - Create a mock JWT key response returning the malformed key
+/// - Create a mock token representing what we would get using the `get_token` method
+///
+/// # Assertions
+/// - Assert mock JWT keys were fetched for validation
+/// - Assert token validation resulted in an error
+/// - Assert error is of type ErrorKind::InvalidSignature
+#[tokio::test]
+async fn test_validate_token_decoding_key_error() {
+    // Create Client configured with OAuth2 & mock server
+    let (client, mut mock_server) = setup().await;
+
+    // Create a mock EveJwtKeys struct that only contains a malformed RS256 key (empty modulus)
+    let malformed_rs256 = EveJwtKeys {
+        skip_unresolved_json_web_keys: false,
+        keys: [EveJwtKey::RS256 {
+            e: "ABCD".to_string(),
+            kid: RSA_KEY_ID.to_string(),
+            kty: "RSA".to_string(),
+            n: "".to_string(),
+            r#use: "sig".to_string(),
+        }]
+        .to_vec(),
+    };
+
+    // Create a mock JWT key response returning the malformed key
+    let mock = mock_server
+        .mock("GET", "/oauth/jwks")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(serde_json::to_string(&malformed_rs256).unwrap())
+        .expect(1)
+        .create();
+
+    // Create a mock token representing what we would get using the `get_token` method
+    let token = create_mock_token();
+
+    // Validate the token
+    let result = client
+        .oauth2()
+        .validate_token(token.access_token().secret().to_string())
+        .await;
+
+    // Assert mock JWT keys were fetched for validation
+    mock.assert();
+
+    // Assert token validation resulted in an error
+    assert!(result.is_err(), "Expected error, got: {:#?}", result);
+
+    // Assert error is of type ErrorKind::InvalidSignature
+    match result {
+        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::ValidateTokenError(err))) => {
+            assert_eq!(
+                err.kind(),
+                &jsonwebtoken::errors::ErrorKind::InvalidSignature
+            )
+        }
+        err => panic!(
+            "Expected OAuthError::ValidateTokenError, got different error type: {:#?}",
+            err
+        ),
+    }
+}
 
 async fn test_validate_token_validation_error() {}

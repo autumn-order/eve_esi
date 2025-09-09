@@ -131,7 +131,7 @@ impl<'a> OAuth2Api<'a> {
 
         // Try to find an RS256 key
         if let Some(EveJwtKey::RS256 { ref n, ref e, .. }) = get_first_rs256_key(&jwt_keys) {
-            // RS256 key was found, extract x and y components for the decoding key
+            // RS256 key was found, extract n (modulus) and e (exponent) components for the decoding key
             let decoding_key = match DecodingKey::from_rsa_components(n, e) {
                 Ok(key) => key,
                 Err(err) => return Err(Error::OAuthError(OAuthError::ValidateTokenError(err))),

@@ -11,7 +11,7 @@ use openssl::rsa::Rsa;
 
 use crate::constant::TEST_CLIENT_ID;
 
-const RSA_KEY_ID: &str = "JWT-Signature-Key-1";
+pub const RSA_KEY_ID: &str = "JWT-Signature-Key-1";
 
 /// Create mock token keys to validate tokens
 ///
