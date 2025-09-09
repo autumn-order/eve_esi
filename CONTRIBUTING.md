@@ -149,3 +149,78 @@ For new programmers, especially to Rust, this can be daunting. You are encourage
 Additionally, you could consider using a tool such as [GitHub CoPilot](https://github.com/features/copilot) with your code editor which can help as a guide in writing documentation, unit tests, and explaining new concepts. You will just want to make absolute certain you double check everything it writes for correctness and consistency with the rest of the codebase.
 
 As of August 17th, 2025, `Claude Sonnet 3.7` is the recommended model to use.
+
+# Codebase Test Coverage Quirks
+
+## cargo-llvm-cov Code Coverage & Log Macros
+
+**You may notice that logs are not written as one would expect in the format of:**
+
+```rust
+info!(
+    "Successfully fetched alliance information for alliance ID: {} (took {}ms)",
+    alliance_id,
+    elapsed.as_millis()
+);
+```
+
+**Instead they are written as:**
+
+```rust
+let message = format!(
+    "Successfully fetched alliance information for alliance ID: {} (took {}ms)",
+    alliance_id,
+    elapsed.as_millis()
+);
+
+info!("{}", message);
+```
+
+Why? The tool we use for code coverage, [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov), has issues with
+determing code coverage for multi-line log crate macros. As a result, declaring the message as a variable and passing
+it to the log macro that way has been found to be an acceptable solution until the issue may one day be resolved.
+
+Unfortunately, using `#[cfg_attr(coverage_nightly, coverage(off))]` flag does not work either.
+
+## cargo-llvm-cov Code Coverage & Test Assertions
+
+You should favor the usage of `assert!`, `assert_eq!`, and `matches!` macros in your tests rather than `match` and `if let Some(Error::ErrorType(err))`.
+
+**Avoid doing this:**
+
+```rust
+// Assert result is of type ConfigError::InvalidCallbackUrl
+match result {
+    Error::ConfigError(ConfigError::InvalidCallbackUrl) => {},
+    err => panic!("Expected ConfigError::InvalidCallbackUrl, instead got {:#?}", err)
+};
+```
+
+The problem with this is that [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) has trouble reading this.
+
+**Instead do**
+
+```rust
+// Assert result is err
+assert!(result.is_err());
+
+// Assert error is of type ConfigError::InvalidCallbackUrl
+assert!(matches!(
+    result,
+    Err(Error::ConfigError(ConfigError::InvalidCallbackUrl))
+));
+```
+
+If you need to check the error type of a request error, you may want go for a `match` statement or `if let Some(Error:ReqwestError(err)) = result`. These also have issues, the closing brace `}` will be marked as uncovered or the `panic!` macro in the match statement if got an unexpected error will also shows as uncovered.
+
+**Instead do:**
+
+```rust
+// Assert result is err
+assert!(result.is_err());
+
+// Assert error is due to reqwest internal server error
+assert!(
+    matches!(result, Err(Error::ReqwestError(ref e)) if e.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR))
+);
+```
