@@ -117,94 +117,98 @@ mod tests {
         assert!(result.is_ok())
     }
 
-    /// Tests the attempting to initialize an Client for oauth2 with a missing client ID
+    /// Tests attempting to initialize an Client for oauth2 with a missing client ID
     ///
     /// # Test Setup
-    /// - Creates an ESI client with OAuth2 configured
+    /// - Create an ESI client without setting the client_id
     ///
     /// # Assertions
-    /// - Verifies that the error response is ConfigError::MissingClientId
+    /// - Assert result is error
+    /// - Assert error is of type ConfigError::MissingClientId
     #[test]
     fn test_missing_client_id() {
+        // Create an ESI client without setting the client_id
         let result = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_secret("client_secret")
             .callback_url("http://localhost:8080/callback")
             .build();
 
-        match result {
-            Ok(_) => {
-                panic!("Expected Err");
-            }
-            Err(Error::ConfigError(ConfigError::MissingClientId)) => {
-                assert!(true);
-            }
-            Err(_) => panic!("Expected EsiError::MissingClientId"),
-        }
+        // Assert result is error
+        assert!(result.is_err());
+
+        // Assert error is of type ConfigError::MissingClientId
+        assert!(matches!(
+            result,
+            Err(Error::ConfigError(ConfigError::MissingClientId))
+        ));
     }
 
-    /// Tests the attempting to initialize an Client for oauth2 with a missing client secret
+    /// Tests attempting to initialize an Client for oauth2 with a missing client secret
     ///
     /// # Test Setup
     /// - Creates an ESI client with the client_secret not set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is ConfigError::MissingClientSecret
+    /// - Assert result is error
+    /// - Assert error is of type ConfigError::MissingClientSecret
     #[test]
     fn test_missing_client_secret() {
+        // Create an ESI client without setting the client_secret
         let result = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
             .callback_url("http://localhost:8080/callback")
             .build();
 
-        match result {
-            Ok(_) => {
-                panic!("Expected Err");
-            }
-            Err(Error::ConfigError(ConfigError::MissingClientSecret)) => {
-                assert!(true);
-            }
-            Err(_) => panic!("Expected EsiError::MissingClientSecret"),
-        }
+        // Assert result is error
+        assert!(result.is_err());
+
+        // Assert error is of type ConfigError::MissingClientSecret
+        assert!(matches!(
+            result,
+            Err(Error::ConfigError(ConfigError::MissingClientSecret))
+        ));
     }
 
-    /// Tests the attempting initialize an Client for oauth2 with a missing callback_url
+    /// Tests attempting initialize an Client for oauth2 with a missing callback_url
     ///
     /// # Test Setup
-    /// - Creates an ESI client with the callback_url not set.
+    /// - Create an ESI client without setting the callback_url
     ///
     /// # Assertions
-    /// - Verifies that the error response is ConfigError::MissingCallbackUrl
+    /// - Assert result is error
+    /// - Assert error is of type ConfigError::MissingCallbackUrl
     #[test]
     fn test_missing_callback_url() {
-        // Create an ESI client
+        // Create an ESI client without setting the callback_url
         let result = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
             .client_secret("client_secret")
             .build();
 
-        match result {
-            Ok(_) => {
-                panic!("Expected Err");
-            }
-            Err(Error::ConfigError(ConfigError::MissingCallbackUrl)) => {
-                assert!(true);
-            }
-            Err(_) => panic!("Expected EsiError::MissingCallbackUrl"),
-        }
+        // Assert result is error
+        assert!(result.is_err());
+
+        // Assert error is of type ConfigError::MissingCallbackUrl
+        assert!(matches!(
+            result,
+            Err(Error::ConfigError(ConfigError::MissingCallbackUrl))
+        ));
     }
 
-    /// Tests the attempting initialize an Client for oauth2 with an invalid callback_url
+    /// Tests attempting initialize an Client for oauth2 with an invalid callback_url
     ///
     /// # Test Setup
-    /// - Creates an ESI client with the callback_url set to an invalid URL.
+    /// - Create an ESI client with an invalid callback_url
     ///
     /// # Assertions
-    /// - Verifies that the error response is ConfigError::InvalidCallbackUrl
+    /// - Assert result is error
+    /// - Assert error is of type ConfigError::InvalidCallbackUrl
     #[test]
     fn test_invalid_callback_url() {
+        // Create an ESI client with an invalid callback_url
         let result = Client::builder()
             .user_agent("MyApp/1.0 (contact@example.com)")
             .client_id("client_id")
@@ -212,10 +216,13 @@ mod tests {
             .callback_url("invalid_url") // Invalid URL
             .build();
 
+        // Assert result is error
         assert!(result.is_err());
-        match result {
-            Err(Error::ConfigError(ConfigError::InvalidCallbackUrl)) => {}
-            _ => panic!("Expected InvalidCallbackUrl error"),
-        }
+
+        // Assert error is of type ConfigError::InvalidCallbackUrl
+        assert!(matches!(
+            result,
+            Err(Error::ConfigError(ConfigError::InvalidCallbackUrl))
+        ));
     }
 }

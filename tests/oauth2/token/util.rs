@@ -1,11 +1,10 @@
-use super::super::util::jwt::create_mock_token_keys;
+use super::super::util::jwt::create_mock_token;
 
 use mockito::{Mock, ServerGuard};
 
-/// Returns status code 200 with mock jwk keys
+/// Returns status code 200 with a mock token
 ///
-/// Adds a GET `/oauth/jwks` endpoint to the mock server which returns a set of mock
-/// JWK keys as expected from EVE Online's OAuth2 API.
+/// Adds a GET `/v2/oauth/token` endpoint to the mock server which returns a mock token.
 ///
 /// # Arguments
 /// - server (&mut [`mockito::ServerGuard`]): A mutable reference to a mock HTTP server which
@@ -15,14 +14,14 @@ use mockito::{Mock, ServerGuard};
 /// # Returns
 /// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
 ///   were received.
-pub(crate) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
-    let mock_keys = create_mock_token_keys(false);
+pub(crate) fn get_token_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
+    let mock_token = create_mock_token(false);
 
     let mock = server
-        .mock("GET", "/oauth/jwks")
+        .mock("POST", "/v2/oauth/token")
         .with_status(200)
         .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&mock_keys).unwrap())
+        .with_body(serde_json::to_string(&mock_token).unwrap())
         .expect(expect)
         .create();
 
@@ -31,7 +30,7 @@ pub(crate) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) 
 
 /// Returns status code 500 internal server error
 ///
-/// Adds a GET `/oauth/jwks` endpoint to the mock server which returns a status code 500
+/// Adds a GET `/v2/oauth/token` endpoint to the mock server which returns a status code 500
 /// internal server error.
 ///
 /// # Arguments
@@ -42,15 +41,12 @@ pub(crate) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) 
 /// # Returns
 /// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
 ///   were received.
-pub(crate) fn get_jwk_internal_server_error_response(
-    server: &mut ServerGuard,
-    expect: usize,
-) -> Mock {
+pub(crate) fn get_token_bad_request_response(server: &mut ServerGuard, expect: usize) -> Mock {
     let mock = server
-        .mock("GET", "/oauth/jwks")
-        .with_status(500)
+        .mock("POST", "/v2/oauth/token")
+        .with_status(400)
         .with_header("content-type", "application/json")
-        .with_body(r#"{"error": "Internal Server Error"}"#)
+        .with_body(r#"{"error": "Bad request"}"#)
         .expect(expect)
         .create();
 

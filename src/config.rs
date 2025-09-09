@@ -574,44 +574,46 @@ mod tests {
     /// Tests the attempting initialize an Config with an invalid auth_url
     ///
     /// # Test Setup
-    /// - Attempt to build an Config with the auth_url set to an invalid URL.
+    /// - Create a Config with an invalid auth_url
     ///
     /// # Assertions
-    /// - Verifies that the error response is ConfigError::InvalidAuthUrl
+    /// - Assert result is an Error
+    /// - Assert error is of the ConfigError:InvalidAuthUrl variant
     #[test]
     fn test_invalid_auth_url() {
-        // Create an Config with an invalid auth_url
+        // Create a Config with an invalid auth_url
         let result = Config::builder().auth_url("invalid_url").build();
 
         // Assert result is an Error
         assert!(result.is_err());
 
-        match result {
-            // Assert error is of the ConfigError:InvalidAuthUrl variant
-            Err(Error::ConfigError(ConfigError::InvalidAuthUrl)) => {}
-            _ => panic!("Expected InvalidAuthUrl error"),
-        }
+        // Assert error is of the ConfigError:InvalidAuthUrl variant
+        assert!(matches!(
+            result,
+            Err(Error::ConfigError(ConfigError::InvalidAuthUrl))
+        ));
     }
 
     /// Tests the attempting initialize an Config with an invalid token_url
     ///
     /// # Test Setup
-    /// - Attempt to build an Config with the token_url set to an invalid URL.
+    /// - Create a Config with an invalid token_url
     ///
     /// # Assertions
-    /// - Verifies that the error response is ConfigError::InvalidTokenUrl
+    /// - Assert result is an Error
+    /// - Assert error is of the ConfigError:InvalidTokenUrl variant
     #[test]
     fn test_invalid_token_url() {
-        // Create an Config with an invalid token_url
+        // Create a Config with an invalid token_url
         let result = Config::builder().token_url("invalid_url").build();
 
         // Assert result is an Error
         assert!(result.is_err());
 
-        match result {
-            // Assert error is of the ConfigError:InvalidTokenUrl variant
-            Err(Error::ConfigError(ConfigError::InvalidTokenUrl)) => {}
-            _ => panic!("Expected InvalidTokenUrl error"),
-        }
+        // Assert error is of the ConfigError:InvalidTokenUrl variant
+        assert!(matches!(
+            result,
+            Err(Error::ConfigError(ConfigError::InvalidTokenUrl))
+        ));
     }
 }

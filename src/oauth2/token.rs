@@ -1,9 +1,10 @@
 //! # EVE Online OAuth2 Tokens
 //!
-//! Methods for retrieving & validating tokens retrieved from EVE Online's OAuth2 API.
+//! Methods for fetching, refreshing, & validating tokens retrieved from EVE Online's OAuth2 API.
 //!
 //! ## Methods
 //! - [OAuth2Api::get_token]: Retrieves a token from EVE Online's OAuth2 API
+//! - [OAuth2Api::get_token_refresh]: Retrieves a new token using a refresh token
 //! - [OAuth2Api::validate_token]: Validates token retrieved via the [`OAuth2Api::get_token`] method
 //!
 //! ## Documentation
@@ -39,7 +40,7 @@
 //!         .expect("Failed to get token");
 //!
 //!     let access_token = token.access_token();
-//!     let refresh_token = token.refresh_token();
+//!     let refresh_token = token.refresh_token().unwrap();
 //!
 //!     // Validate the token
 //!     let claims = esi_client
@@ -48,20 +49,27 @@
 //!         .await
 //!         .expect("Failed to validate token");
 //!
-//!
 //!     // Extract character ID
 //!     let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
 //!     let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
+//!
+//!     // Refresh the token
+//!     let new_token = esi_client
+//!         .oauth2()
+//!         .get_token_refresh(refresh_token.secret().to_string())
+//!         .await
+//!         .expect("Failed to get refresh token");
 //! }
 //! ```
 
 use jsonwebtoken::{DecodingKey, Validation};
 use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
-use oauth2::{AuthorizationCode, EmptyExtraTokenFields, StandardTokenResponse};
+use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 
 use crate::error::{Error, OAuthError};
 use crate::model::oauth2::{EveJwtClaims, EveJwtKey, EveJwtKeys};
+use crate::oauth2::client::OAuth2Client;
 use crate::oauth2::OAuth2Api;
 use crate::Client;
 
@@ -78,6 +86,15 @@ impl<'a> OAuth2Api<'a> {
     /// # Documentation
     /// See <https://developers.eveonline.com/docs/services/sso/#authorization-code>
     ///
+    /// # Usage
+    /// After successful usage of [Self::get_token], you can use these methods on the resulting token:
+    ///
+    /// - Access token: `token.access_token()`
+    /// - Refresh token: `token.refresh_token()`
+    ///
+    /// The access token expires after 15 minutes, you can use [Self::get_token_refresh]
+    /// to get a new token.
+    ///
     /// # Arguments
     /// - `code` (&[`str`]): Authorization code returned in the callback API route query parameters
     ///   for your application.
@@ -89,38 +106,80 @@ impl<'a> OAuth2Api<'a> {
         &self,
         code: &str,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
-        // Attempt to retrieve OAuth2 client from ESI client
-        trace!("Attempting to retrieve OAuth2 client from ESI client");
-
-        let client = match &self.client.inner.oauth2_client {
-            Some(client) => {
-                trace!("Found OAuth2 client on ESI client");
-
-                client
-            }
-            None => {
-                error!("{}", Error::OAuthError(OAuthError::OAuth2NotConfigured));
-
-                // No OAuth2 client was found due to not being configured
-                return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured));
-            }
-        };
+        let oauth_client = get_oauth_client(self.client)?;
 
         // Attempt to fetch token
-        debug!("Attempting to fetch JWT token using provided authorization code");
+        let message = "Attempting to fetch JWT token using provided authorization code";
+        debug!("{}", message);
 
-        match client
+        match oauth_client
             .exchange_code(AuthorizationCode::new(code.to_string()))
             .request_async(&self.client.inner.reqwest_client)
             .await
         {
             Ok(token) => {
-                debug!("JWT Token fetched successfully");
+                debug!("{}", "JWT Token fetched successfully");
 
                 Ok(token)
             }
             Err(err) => {
-                error!("Error fetching token: {:#?}", err);
+                let message = format!("Error fetching token: {:#?}", err);
+                error!("{}", message);
+
+                Err(Error::OAuthError(OAuthError::RequestTokenError(err)))
+            }
+        }
+    }
+
+    /// Retrieves a new token using a refresh token
+    ///
+    /// Uses the configured client to fetch a fresh token using a provided refresh_token.
+    /// This will allow for getting a new access token & refresh token which you should replace your old
+    /// tokens with.
+    ///
+    /// This is similar to [`Self::get_token`], the only difference is you are requesting a token using a
+    /// refresh token rather than an authorization code.
+    ///
+    /// For an overview & usage, see the [module-level documentation](super)
+    ///
+    /// # Documentation
+    /// See <https://developers.eveonline.com/docs/services/sso/>
+    ///
+    /// # Arguments
+    /// - `refresh_token` ([`String`]): A string representing a refresh token returned from the
+    ///   [`Self::get_token`] method. You can get the refresh token from the token with the
+    ///   `token.refresh_token()` method if you haven't yet converted it to a string for database
+    ///   storage.
+    ///
+    /// # Errors
+    /// - [`Error`]: If OAuth2 is not configured for the ESI client, the provided refresh_token
+    ///   is invalid, or there is an issue fetching the JWT token from EVE Online's OAuth2 API.
+    pub async fn get_token_refresh(
+        &self,
+        refresh_token: String,
+    ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
+        let oauth_client = get_oauth_client(self.client)?;
+
+        // Convert refresh_token string to RefreshToken
+        let refresh_token = RefreshToken::new(refresh_token);
+
+        // Attempt to refresh token
+        let message = "Attempting to refresh JWT token using provided refresh token";
+        debug!("{}", message);
+
+        match oauth_client
+            .exchange_refresh_token(&refresh_token)
+            .request_async(&self.client.inner.reqwest_client)
+            .await
+        {
+            Ok(token) => {
+                debug!("{}", "JWT Token refreshed successfully");
+
+                Ok(token)
+            }
+            Err(err) => {
+                let message = format!("Error refreshing JWT token token: {:#?}", err);
+                error!("{}", message);
 
                 Err(Error::OAuthError(OAuthError::RequestTokenError(err)))
             }
@@ -162,14 +221,21 @@ impl<'a> OAuth2Api<'a> {
 
                 // Second attempt (retry) if cache was successfully cleared
                 if cache_cleared {
-                    debug!(
+                    let message = format!(
                         "Making 2nd attempt to validate token due to previous error: {:#?}",
                         &err
                     );
 
+                    debug!("{}", message);
+
                     attempt_validation(&self.client, &token_secret).await
                 } else {
-                    debug!("1st attempt to validate token failed, will not retry due to cache keys still being new: {:#?}", &err);
+                    let message = format!(
+                        "Making 2nd attempt to validate token due to previous error: {:#?}",
+                        &err
+                    );
+
+                    debug!("{}", message);
 
                     Err(err)
                 }
@@ -230,15 +296,19 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
                 let id_str = token_data.claims.sub.split(':').collect::<Vec<&str>>()[2];
                 let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
 
-                info!(
+                let message = format!(
                     "Successfully validated JWT token for character ID: {}",
                     character_id
                 );
 
+                info!("{}", message);
+
                 Ok(token_data.claims)
             }
             Err(err) => {
-                error!("Failed to validate token with RS256 key: {}", &err);
+                let message = format!("Failed to validate token with RS256 key: {}", &err);
+
+                error!("{}", message);
 
                 Err(Error::OAuthError(OAuthError::ValidateTokenError(err)))
             }
@@ -262,4 +332,24 @@ fn get_first_rs256_key(jwt_keys: &EveJwtKeys) -> Option<&EveJwtKey> {
         .keys
         .iter()
         .find(|key| matches!(key, EveJwtKey::RS256 { .. }))
+}
+
+/// Utility function to retrieve OAuth2 client or return an error
+fn get_oauth_client(client: &Client) -> Result<&OAuth2Client, Error> {
+    // Attempt to retrieve OAuth2 client from ESI client
+    trace!("{}", "Attempting to retrieve OAuth2 client from ESI client");
+
+    match client.inner.oauth2_client {
+        Some(ref client) => {
+            trace!("{}", "Found OAuth2 client on ESI client");
+
+            Ok(client)
+        }
+        None => {
+            error!("{}", Error::OAuthError(OAuthError::OAuth2NotConfigured));
+
+            // No OAuth2 client was found due to not being configured
+            Err(Error::OAuthError(OAuthError::OAuth2NotConfigured))
+        }
+    }
 }
