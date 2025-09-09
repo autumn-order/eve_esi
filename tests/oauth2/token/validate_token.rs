@@ -29,7 +29,7 @@ pub async fn test_validate_token_success() {
     let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Create a mock token representing what we would get using the `get_token` method
-    let token = create_mock_token();
+    let token = create_mock_token(false);
 
     // Validate the token
     let result = client
@@ -77,7 +77,7 @@ async fn test_validate_token_get_jwt_key_failure() {
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 3);
 
     // Create a mock token representing what we would get using the `get_token` method
-    let token = create_mock_token();
+    let token = create_mock_token(false);
 
     // Validate the token
     let result = client
@@ -153,7 +153,7 @@ async fn test_validate_token_no_rs256_key() {
         .create();
 
     // Create a mock token representing what we would get using the `get_token` method
-    let token = create_mock_token();
+    let token = create_mock_token(false);
 
     // Validate the token
     let result = client
@@ -196,20 +196,20 @@ async fn test_validate_token_no_rs256_key() {
 /// # Assertions
 /// - Assert mock JWT keys were fetched for validation
 /// - Assert token validation resulted in an error
-/// - Assert error is of type ErrorKind::InvalidSignature
+/// - Assert error is of type base64::DecodeError::InvalidByte
 #[tokio::test]
 async fn test_validate_token_decoding_key_error() {
     // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
-    // Create a mock EveJwtKeys struct that only contains a malformed RS256 key (empty modulus)
+    // Create a mock EveJwtKeys struct that only contains a malformed RS256 key (invalid modulus)
     let malformed_rs256 = EveJwtKeys {
         skip_unresolved_json_web_keys: false,
         keys: [EveJwtKey::RS256 {
             e: "ABCD".to_string(),
             kid: RSA_KEY_ID.to_string(),
             kty: "RSA".to_string(),
-            n: "".to_string(),
+            n: "invalid base64!@#$%^&*()".to_string(), // Invalid base64 that will cause decode to fail
             r#use: "sig".to_string(),
         }]
         .to_vec(),
@@ -225,7 +225,60 @@ async fn test_validate_token_decoding_key_error() {
         .create();
 
     // Create a mock token representing what we would get using the `get_token` method
-    let token = create_mock_token();
+    let token = create_mock_token(false);
+
+    // Validate the token
+    let result = client
+        .oauth2()
+        .validate_token(token.access_token().secret().to_string())
+        .await;
+
+    // Assert mock JWT keys were fetched for validation
+    mock.assert();
+
+    // Assert token validation resulted in an error
+    assert!(result.is_err(), "Expected error, got: {:#?}", result);
+
+    // Assert error is of type base64::DecodeError::InvalidByte
+    match result {
+        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::ValidateTokenError(err))) => {
+            assert_eq!(
+                err.kind(),
+                &jsonwebtoken::errors::ErrorKind::Base64(base64::DecodeError::InvalidByte(7, 32))
+            )
+        }
+        err => panic!(
+            "Expected OAuthError::ValidateTokenError, got different error type: {:#?}",
+            err
+        ),
+    }
+}
+
+/// Tests an issue validating the key due to a different private key
+///
+/// If the RSA private key used to sign the token is rotated, either being different than the
+/// corresponding public key stored in cache or fetched from EVE Online's OAuth2 API, a validation
+/// error will occur.
+///
+/// # Test Setup
+/// - Create an ESI Client configured with OAuth2 and a mock server
+/// - Create a mock JWT key response the Client will fetch for the JWT key cache
+/// - Create a mock token but with a different private key which will cause a validation error
+///
+/// # Assertions
+/// - Assert mock JWT keys were fetched for validation
+/// - Assert token validation resulted in an error
+/// - Assert error is of type ErrorKind::InvalidSignature
+#[tokio::test]
+async fn test_validate_token_validation_error() {
+    // Create Client configured with OAuth2 & mock server
+    let (client, mut mock_server) = setup().await;
+
+    // Create a mock JWT key response the Client will fetch for the JWT key cache
+    let mock = get_jwk_success_response(&mut mock_server, 1);
+
+    // Create a mock token but with a different private key which will cause a validation error
+    let token = create_mock_token(true);
 
     // Validate the token
     let result = client
@@ -244,7 +297,9 @@ async fn test_validate_token_decoding_key_error() {
         Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::ValidateTokenError(err))) => {
             assert_eq!(
                 err.kind(),
-                &jsonwebtoken::errors::ErrorKind::InvalidSignature
+                &jsonwebtoken::errors::ErrorKind::InvalidSignature,
+                "Expected ErrorKind::InvalidSignature, got different type: {:#?}",
+                err
             )
         }
         err => panic!(
@@ -253,5 +308,3 @@ async fn test_validate_token_decoding_key_error() {
         ),
     }
 }
-
-async fn test_validate_token_validation_error() {}

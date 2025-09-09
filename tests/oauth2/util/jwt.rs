@@ -66,10 +66,17 @@ pub fn create_mock_token_keys() -> EveJwtKeys {
 /// [`create_mock_token_keys`] function. Contains mock [`EveJwtClaims`] similar to what EVE servers would
 /// return.
 ///
+/// # arguments
+/// - `use_alternate_key` ([`bool`]): Indicates whether or not to use an alternate key, indicating `true` will
+///   cause JWT key validations to fail as the public key used to decode will be different than the private key
+///   used to encode.
+///
 /// # Returns
 /// - [`StandardTokenResponse`]<[`EmptyExtraTokenFields`], [`BasicTokenType`]>: A token which
 ///   contains [`EveJwtClaims`] and is encoded with a test RS256 private key for testing validation.
-pub fn create_mock_token() -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
+pub fn create_mock_token(
+    use_alternate_key: bool,
+) -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
     // Create header with algorithm and key id
     let mut header = Header::new(Algorithm::RS256);
     header.kid = Some(RSA_KEY_ID.to_string());
@@ -96,8 +103,11 @@ pub fn create_mock_token() -> StandardTokenResponse<EmptyExtraTokenFields, Basic
         azp: TEST_CLIENT_ID.to_string(),
     };
 
-    // Encode the access token
-    let private_key = include_bytes!("./private_test_rsa_key.pem");
+    // Select which key to use
+    let private_key = match use_alternate_key {
+        true => include_bytes!("./private_test_rsa_key_alt.pem"),
+        false => include_bytes!("./private_test_rsa_key.pem"),
+    };
 
     let encoding_key =
         EncodingKey::from_rsa_pem(private_key).expect("Failed to create encoding key");

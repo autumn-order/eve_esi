@@ -19,3 +19,9 @@ openssl genpkey -algorithm RSA -out private_test_rsa_key.pem
 ```sh
 openssl rsa -in private_test_rsa_key.pem -pubout -out public_test_rsa_key.pem
 ```
+
+4. Generate the alternate private key used to test error handling when RSA keys are rotated
+
+```sh
+openssl genpkey -algorithm RSA -out private_test_rsa_key_alt.pem
+```

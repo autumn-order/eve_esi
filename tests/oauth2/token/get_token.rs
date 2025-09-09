@@ -19,7 +19,7 @@ pub async fn test_get_token_success() {
     let (client, mut mock_server) = setup().await;
 
     // Create mock response
-    let mock_token = create_mock_token();
+    let mock_token = create_mock_token(false);
     let mock = mock_server
         .mock("POST", "/v2/oauth/token")
         .with_status(200)
@@ -90,7 +90,7 @@ pub async fn test_get_token_oauth_client_missing() {
     let mut mock_server = Server::new_async().await;
 
     // Create mock response
-    let mock_token = create_mock_token();
+    let mock_token = create_mock_token(false);
     let mock = mock_server
         .mock("POST", "/v2/oauth/token")
         .with_status(200)
