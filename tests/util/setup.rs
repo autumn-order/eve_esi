@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use mockito::{Server, ServerGuard};
 
+use crate::constant::TEST_CLIENT_ID;
+
 /// Utility function to create initial test setup for all jwk integration tests
 ///
 /// # Setup
@@ -29,7 +31,7 @@ pub async fn setup() -> (eve_esi::Client, ServerGuard) {
         // Set timeout to 1 second when waiting for another thread to refresh
         .jwk_refresh_timeout(Duration::from_secs(1))
         // Reduce cache lifetime & background refresh threshold for get_jwt_key tests
-        .jwk_cache_ttl(Duration::from_secs(2))
+        .jwk_cache_ttl(Duration::from_secs(1))
         .jwk_background_refresh_threshold(50) // 50% expiry for background refresh, 1 second
         .build()
         .expect("Failed to build Config");
@@ -37,7 +39,7 @@ pub async fn setup() -> (eve_esi::Client, ServerGuard) {
     // Create ESI client with OAuth2 & the custom config
     let esi_client = eve_esi::Client::builder()
         .user_agent("MyApp/1.0 (contact@example.com)")
-        .client_id("client_id")
+        .client_id(TEST_CLIENT_ID)
         .client_secret("client_secret")
         .callback_url("http://localhost:8000/callback")
         .config(config)

@@ -1,24 +1,54 @@
-use oauth2::basic::BasicTokenType;
-use oauth2::{AccessToken, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
-use std::time::Duration;
+use super::super::util::jwt::create_mock_token;
 
-/// Creates a mock token for usage with token related integration tests
-pub fn create_mock_token() -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
-    // Create the token components
-    let access_token = AccessToken::new("mock_access_token_value".to_string());
-    let token_type = BasicTokenType::Bearer;
-    let expires_in = Some(&Duration::from_secs(3600)); // 1 hour
-    let refresh_token = Some(RefreshToken::new("mock_refresh_token_value".to_string()));
+use mockito::{Mock, ServerGuard};
 
-    // Create empty extra fields
-    let extra_fields = EmptyExtraTokenFields {};
+/// Returns status code 200 with a mock token
+///
+/// Adds a GET `/v2/oauth/token` endpoint to the mock server which returns a mock token.
+///
+/// # Arguments
+/// - server (&mut [`mockito::ServerGuard`]): A mutable reference to a mock HTTP server which
+///   will return the response
+/// - expect ([`usize`]): The number of HTTP requests that should be expected
+///
+/// # Returns
+/// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
+///   were received.
+pub(crate) fn get_token_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
+    let mock_token = create_mock_token(false);
 
-    // Create the token response
-    let mut token = StandardTokenResponse::new(access_token, token_type, extra_fields);
+    let mock = server
+        .mock("POST", "/v2/oauth/token")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(serde_json::to_string(&mock_token).unwrap())
+        .expect(expect)
+        .create();
 
-    // Set optional fields
-    token.set_expires_in(expires_in);
-    token.set_refresh_token(refresh_token);
+    mock
+}
 
-    token
+/// Returns status code 500 internal server error
+///
+/// Adds a GET `/v2/oauth/token` endpoint to the mock server which returns a status code 500
+/// internal server error.
+///
+/// # Arguments
+/// - server (&mut [`mockito::ServerGuard`]): A mutable reference to a mock HTTP server which
+///   will return the response
+/// - expect ([`usize`]): The number of HTTP requests that should be expected
+///
+/// # Returns
+/// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
+///   were received.
+pub(crate) fn get_token_bad_request_response(server: &mut ServerGuard, expect: usize) -> Mock {
+    let mock = server
+        .mock("POST", "/v2/oauth/token")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error": "Bad request"}"#)
+        .expect(expect)
+        .create();
+
+    mock
 }

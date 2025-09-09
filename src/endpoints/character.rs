@@ -28,6 +28,11 @@
 //!     println!("Character name: {}", character.name);
 //! }
 //! ```
+
+use std::time::Instant;
+
+use log::{debug, error, info};
+
 use crate::error::Error;
 use crate::Client;
 
@@ -92,7 +97,44 @@ impl<'a> CharacterApi<'a> {
     ) -> Result<Character, Error> {
         let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
 
-        Ok(self.client.get_from_public_esi::<Character>(&url).await?)
+        let message = format!(
+            "Fetching character information for character ID {} from {}",
+            character_id, url
+        );
+
+        debug!("{}", message);
+
+        let start_time = Instant::now();
+
+        // Fetch character information from ESI
+        let result = self.client.get_from_public_esi::<Character>(&url).await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(character) => {
+                let message = format!(
+                    "Successfully fetched character information for character ID: {} (took {}ms)",
+                    character_id,
+                    elapsed.as_millis()
+                );
+
+                info!("{}", message);
+
+                Ok(character)
+            }
+            Err(err) => {
+                let message = format!(
+                    "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
+                        character_id,
+                        elapsed.as_millis(),
+                        err
+                );
+
+                error!("{}", message);
+
+                Err(err.into())
+            }
+        }
     }
 
     /// Retrieve affiliations for a list of characters.
@@ -137,10 +179,48 @@ impl<'a> CharacterApi<'a> {
         character_ids: Vec<i32>,
     ) -> Result<Vec<CharacterAffiliation>, Error> {
         let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
-        let esi_client = self.client;
 
-        Ok(esi_client
+        let message = format!(
+            "Fetching character affiliations for {} characters from {}",
+            character_ids.len(),
+            url
+        );
+
+        debug!("{}", message);
+
+        let start_time = Instant::now();
+
+        // Fetch character affiliations from ESI
+        let result = self
+            .client
             .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i32>>(&url, &character_ids)
-            .await?)
+            .await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(affiliations) => {
+                let message = format!(
+                    "Successfully fetched character affiliations for {} character(s) (took {}ms)",
+                    elapsed.as_millis(),
+                    character_ids.len()
+                );
+
+                info!("{}", message);
+
+                Ok(affiliations)
+            }
+            Err(err) => {
+                let message = format!(
+                    "Failed to fetch character affiliations for {} character(s) after {}ms due to error: {:#?}",
+                    character_ids.len(),
+                    elapsed.as_millis(),
+                    err
+                );
+
+                error!("{}", message);
+
+                Err(err.into())
+            }
+        }
     }
 }

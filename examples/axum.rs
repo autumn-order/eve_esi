@@ -23,6 +23,10 @@ struct GetByIdParams {
 
 #[tokio::main]
 async fn main() {
+    // Enable logging
+    // Run with `RUST_LOG=eve_esi=debug cargo run --example axum` to see logs
+    env_logger::init();
+
     // Always set a user agent for your ESI client
     // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
     // E.G. "MyApp/1.0 (contact@example.com)"
@@ -35,7 +39,10 @@ async fn main() {
 
     // Optional: Build a reqwest client, share it with ESI client to share an HTTP request pool for performance
     // Only do this if your app uses reqwest client elsewhere beyond ESI requests
-    let reqwest_client = reqwest::Client::new();
+    let reqwest_client = reqwest::Client::builder()
+        .user_agent(&user_agent)
+        .build()
+        .expect("Failed to build reqwest client");
 
     // Build an ESI client with a user agent & optional reqwest client
     let esi_client: eve_esi::Client = eve_esi::Client::builder()

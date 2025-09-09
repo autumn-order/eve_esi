@@ -108,36 +108,40 @@ pub enum EveJwtKey {
     },
 }
 
-impl EveJwtKeys {
-    /// Utility function to create a set of mock JWT keys
-    ///
-    /// Creates an RS256 & an ES256 variant of EveJwtKey within an
-    /// EveJwtKeys struct to mock the data returned from EVE's
-    /// OAuth2 JWT key API for the purposes of testing
-    ///
-    /// # Returns
-    /// - [`EveJwtKeys`]: which contains Vec<[`EveJwtKey::RS256`], [`EveJwtKey::ES256`] &
-    ///   the skip_unresolved_json_web_keys field set to `false`
-    pub fn create_mock_keys() -> EveJwtKeys {
-        EveJwtKeys {
-            skip_unresolved_json_web_keys: false,
-            keys: vec![
-                EveJwtKey::RS256 {
-                    e: "AQAB".to_string(),
-                    kid: "JWT-Signature-Key-1".to_string(),
-                    kty: "RSA".to_string(),
-                    n: "nehPQ7FQ1YK-leKyIg-aACZaT-DbTL5V1XpXghtLX_bEC-fwxhdE_4yQKDF6cA-V4c-5kh8wMZbfYw5xxgM9DynhHGNLbZpmfmbQZ3X-ZUwpZ4ARuYKKM8vGXaUxOH7rKjF4SWjbaPZR8wZO9TcLRUvuRjBppP_8JM3DTCfs0nD-r3J_5uUvXWGR_bFQ1s-Ucn3_QxQqR_D5wDJRx5ZiKIxja2IZg4PGNp5WdBBY-KwmyMxzYQvKWLlcjv5FRJVupKWcJgJ0uLgqBYLiKJFja3RSlQnK1ph__gIEFMnjXEQJhEQb5JdV9H8JaP_MxQi2-8SdCG4ZpAQwTZoIgQ".to_string(),
-                    r#use: "sig".to_string(),
-                },
-                EveJwtKey::ES256 {
-                    crv: "P-256".to_string(),
-                    kid: "JWT-Signature-Key-2".to_string(),
-                    kty: "EC".to_string(),
-                    r#use: "sig".to_string(),
-                    x: "ITcDYJ8WVpDO4QtZ169xXUt7GB1Y6-oMKIwJ3nK1tFU".to_string(),
-                    y: "ZAJr0f4V2Eu7xBgLMgQBdJ2DZ2mp8JykOhX4XgU_UEY".to_string(),
-                },
-            ],
-        }
-    }
+/// Represents the claims in an EVE Online JWT access token
+///
+/// This struct contains the standard JWT claims as well as EVE Online specific
+/// claims that are used to identify the character and other information.
+///
+/// # Documentation
+/// See [EVE SSO documentation](https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens)
+/// for details about JWT claims.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EveJwtClaims {
+    /// The issuer of the JWT token (EVE Online's login service URL)
+    pub iss: String,
+    /// ID for the authenticated user (Example: "CHARACTER:EVE:2114794365")
+    pub sub: String,
+    /// Audience the JWT token is intended for (your client_id, EVE Online)
+    pub aud: Vec<String>,
+    /// JWT token ID, a unique identifier for this specific token
+    pub jti: String,
+    /// Key ID identifying which key was used to sign this JWT
+    pub kid: String,
+    /// The EVE Online server the key is for (tranquility)
+    pub tenant: String,
+    /// The region from which the token was issued (world)
+    pub region: String,
+    /// Expiration time (Unix timestamp)
+    pub exp: i64,
+    /// Issued at time (Unix timestamp)
+    pub iat: i64,
+    /// The scopes granted by this token
+    pub scp: Option<String>,
+    /// The character's name
+    pub name: String,
+    /// The character's ID
+    pub owner: String,
+    /// The character's organization (corporation/alliance) ID
+    pub azp: String,
 }

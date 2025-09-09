@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
+use crate::oauth2::util::jwk_response::{
+    get_jwk_internal_server_error_response, get_jwk_success_response,
+};
 use crate::util::setup;
 
 /// Tests that get_jwt_keys returns cached keys when they are not expired.
@@ -67,8 +69,8 @@ async fn get_jwt_keys_expired_cache() {
     assert!(result.is_ok());
 
     // Wait for cache to expire
-    // For testing, the cache expiry is set to 2 seconds
-    tokio::time::sleep(std::time::Duration::from_millis(2100)).await;
+    // For testing, the cache expiry is set to 1 seconds
+    tokio::time::sleep(std::time::Duration::from_millis(1100)).await;
 
     // Call the method under test
     let result = esi_client.oauth2().jwk().get_jwt_keys().await;
@@ -176,15 +178,15 @@ async fn get_jwt_keys_background_refresh() {
     // - Background refresh
     let mock = get_jwk_success_response(&mut mock_server, 2);
 
-    // Assert cache was initially populated without issues
+    // Pre-populate the cache
     let result = esi_client.oauth2().jwk().fetch_and_update_cache().await;
 
     // Assert cache was successfully updated
     assert!(result.is_ok());
 
     // Wait a moment for cache to reach background refresh threshold
-    // For testing, we set cache expiry to 2 seconds & threshold to 50%
-    tokio::time::sleep(Duration::from_millis(1100)).await;
+    // For testing, we set cache expiry to 1 second & threshold to 50% (500ms)
+    tokio::time::sleep(Duration::from_millis(550)).await;
 
     // Call the method under test
     let result = esi_client.oauth2().jwk().get_jwt_keys().await;

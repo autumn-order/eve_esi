@@ -55,13 +55,11 @@ impl<'a> JwkApi<'a> {
 
         let start_time = Instant::now();
 
-        #[cfg(not(tarpaulin_include))]
         debug!("Waiting for another thread to refresh JWT keys");
 
         // Create a future that waits for the notification
         let notify_future = jwt_key_cache.refresh_notifier.notified();
 
-        #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
 
         let refresh_timeout = config.refresh_timeout;
@@ -78,7 +76,6 @@ impl<'a> JwkApi<'a> {
                 elapsed.as_millis()
             );
 
-            #[cfg(not(tarpaulin_include))]
             debug!("{}", error_message);
 
             // Return error indicating function timed out waiting JWT key refresh
@@ -92,11 +89,12 @@ impl<'a> JwkApi<'a> {
             // Ensure keys are not expired
             let elapsed_seconds = timestamp.elapsed().as_secs();
             if elapsed_seconds < config.cache_ttl.as_secs() {
-                #[cfg(not(tarpaulin_include))]
-                debug!(
+                let message = format!(
                     "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
                     elapsed.as_millis()
                 );
+
+                debug!("{}", message);
 
                 // Return keys if successfully retrieved from cache & not expired
                 return Ok(keys);
@@ -109,7 +107,6 @@ impl<'a> JwkApi<'a> {
             elapsed.as_millis()
         );
 
-        #[cfg(not(tarpaulin_include))]
         debug!("{}", error_message);
 
         // Return an error indicating no keys were found in cache
@@ -152,7 +149,6 @@ impl<'a> JwkApi<'a> {
 
         // Check if we are still in cooldown due to fetch failure within 60 second cooldown period
         if check_refresh_cooldown(&jwt_key_cache).await.is_some() {
-            #[cfg(not(tarpaulin_include))]
             debug!("Respecting refresh cooldown, delaying JWT key refresh");
 
             return false;
@@ -160,13 +156,11 @@ impl<'a> JwkApi<'a> {
 
         // Attempt to acquire a lock to perform the refresh
         if !jwt_key_cache.refresh_lock_try_acquire() {
-            #[cfg(not(tarpaulin_include))]
             debug!("JWT key refresh already in progress");
 
             return false;
         }
 
-        #[cfg(not(tarpaulin_include))]
         debug!("Triggering background JWT refresh task");
 
         // Clone the required components
@@ -177,7 +171,6 @@ impl<'a> JwkApi<'a> {
             refresh_jwt_keys(&client_ref.reqwest_client, &client_ref.jwt_key_cache, 0).await
         });
 
-        #[cfg(not(tarpaulin_include))]
         debug!("Background JWT key refresh task started");
 
         true
@@ -226,8 +219,8 @@ pub(super) async fn refresh_jwt_keys(
     let start_time = std::time::Instant::now();
 
     // Attempt inital JWT key refresh
-    #[cfg(not(tarpaulin_include))]
-    debug!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
+
+    trace!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
 
     let mut result = fetch_and_update_cache(&reqwest_client, &jwt_key_cache).await;
 
@@ -241,23 +234,26 @@ pub(super) async fn refresh_jwt_keys(
             config.refresh_backoff.as_millis() as u64 * 2u64.pow(retry_attempts),
         );
 
-        #[cfg(not(tarpaulin_include))]
-        debug!(
+        let message = format!(
             "JWT key fetch failed. Retrying ({}/{}) after {}ms",
             retry_attempts + 1,
             config.refresh_max_retries,
             backoff_duration.as_millis()
         );
 
+        debug!("{}", message);
+
         // Wait before retrying
         tokio::time::sleep(backoff_duration).await;
 
         // Try to fetch again
-        #[cfg(not(tarpaulin_include))]
-        debug!(
+
+        let message = format!(
             "Retry attempt # {}: fetching JWT keys after backoff",
             retry_attempts + 1
         );
+
+        debug!("{}", message);
 
         result = fetch_and_update_cache(&reqwest_client, &jwt_key_cache).await;
         retry_attempts += 1;
@@ -270,25 +266,24 @@ pub(super) async fn refresh_jwt_keys(
     let elapsed = start_time.elapsed();
     match result {
         Ok(keys) => {
-            #[cfg(not(tarpaulin_include))]
-            info!(
+            let message = format!(
                 "Successfully fetched and cached {} JWT keys (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
             );
 
+            info!("{}", message);
+
             // Clear any previous refresh failure on success
             jwt_key_cache.set_refresh_failure(None).await;
 
-            #[cfg(not(tarpaulin_include))]
             debug!("Cleared previous JWT key refresh failure timestamp");
 
             // Return JWT keys
             Ok(keys)
         }
         Err(err) => {
-            #[cfg(not(tarpaulin_include))]
-            error!(
+            let message = format!(
                 "JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
                 elapsed.as_millis(),
                 retry_attempts,
@@ -296,13 +291,14 @@ pub(super) async fn refresh_jwt_keys(
                 err
             );
 
+            error!("{}", message);
+
             // Set the refresh failure time to prevent another refresh attempt within the
             // default 60 second cooldown period
             jwt_key_cache
                 .set_refresh_failure(Some(std::time::Instant::now()))
                 .await;
 
-            #[cfg(not(tarpaulin_include))]
             debug!("Recorded JWT key refresh failure timestamp");
 
             // Return Error of type EsiError::ReqwestError
@@ -314,11 +310,10 @@ pub(super) async fn refresh_jwt_keys(
 #[cfg(test)]
 mod wait_for_ongoing_refresh_tests {
     use crate::error::Error;
-    use crate::model::oauth2::EveJwtKeys;
     use crate::oauth2::error::OAuthError;
     use crate::tests::setup;
 
-    use super::super::tests::get_jwk_internal_server_error_response;
+    use super::super::tests::{create_mock_keys, get_jwk_internal_server_error_response};
 
     /// Validates retrieving keys from cache after waiting for refresh.
     ///
@@ -356,7 +351,7 @@ mod wait_for_ongoing_refresh_tests {
         let (tx, rx) = tokio::sync::oneshot::channel();
 
         // Spawn a coroutine to perform the background refresh
-        let keys = EveJwtKeys::create_mock_keys();
+        let keys = create_mock_keys();
 
         let keys_clone = keys.clone();
         let client_ref = esi_client.inner.clone();
@@ -407,7 +402,7 @@ mod wait_for_ongoing_refresh_tests {
     /// - Assert that refresh lock is in place
     /// - Assert no requests have been made to mock JWK endpoint
     /// - Assert result is error
-    /// - Assert that an OAuthError::JwtKeyCacheError has been returned
+    /// - Assert error is of type OAuthError::JwtKeyRefreshFailure
     #[tokio::test]
     async fn test_wait_for_refresh_failure_empty_cache() {
         // Setup a basic Client & mock HTTP server
@@ -451,12 +446,14 @@ mod wait_for_ongoing_refresh_tests {
         // Assert mock server received 0 requests
         mock.assert();
 
-        // Assert function returned expected error
+        // Assert result is error
         assert!(result.is_err());
-        match result {
-            Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(_))) => {}
-            _ => panic!("Expected OAuthError::JwtKeyRefreshFailure, got different error type"),
-        }
+
+        // Assert error is of type OAuthError::JwtKeyRefreshFailure
+        assert!(matches!(
+            result,
+            Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(_)))
+        ));
     }
 
     /// Validates error handling when the ongoing refresh fails and cache is expired
@@ -480,7 +477,7 @@ mod wait_for_ongoing_refresh_tests {
     /// - Assert that refresh lock is in place
     /// - Assert no requests have been made to mock JWK endpoint
     /// - Assert result is error
-    /// - Assert that an OAuthError::JwtKeyCacheError has been returned
+    /// - Assert error is of type OAuthError::JwtKeyRefreshFailure
     #[tokio::test]
     async fn test_wait_for_refresh_failure_expired_cache() {
         // Setup a basic Client & mock HTTP server
@@ -495,7 +492,7 @@ mod wait_for_ongoing_refresh_tests {
             let expired_timestamp =
                 std::time::Instant::now() - std::time::Duration::from_secs(3601);
             let mut cache = jwt_key_cache.cache.write().await;
-            *cache = Some((EveJwtKeys::create_mock_keys(), expired_timestamp));
+            *cache = Some((create_mock_keys(), expired_timestamp));
         }
 
         // Acquire a refresh lock
@@ -532,12 +529,14 @@ mod wait_for_ongoing_refresh_tests {
         // Assert mock server received 0 requests
         mock.assert();
 
-        // Assert function returned expected error
+        // Assert result is error
         assert!(result.is_err());
-        match result {
-            Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(_))) => {}
-            _ => panic!("Expected OAuthError::JwtKeyRefreshFailure, got different error type"),
-        }
+
+        // Assert error is of type OAuthError::JwtKeyRefreshFailure
+        assert!(matches!(
+            result,
+            Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(_)))
+        ));
     }
 
     /// Validates error handling when a timeout occurs waiting for refresh
@@ -555,7 +554,8 @@ mod wait_for_ongoing_refresh_tests {
     /// # Assertions
     /// - Assert that refresh lock is in place
     /// - Assert no requests have been made to mock JWK endpoint
-    /// - Assert that an OAuthError::JwtKeyCacheError has been returned
+    /// - Assert result is error
+    /// - Assert error is of type OAuthError::JwtKeyRefreshTimeout
     #[tokio::test]
     async fn test_wait_for_refresh_timeout() {
         // Setup a basic Client & mock HTTP server
@@ -580,12 +580,14 @@ mod wait_for_ongoing_refresh_tests {
         // Assert mock server received 0 requests
         mock.assert();
 
-        // Assert function returned expected error
+        // Assert result is error
         assert!(result.is_err());
-        match result {
-            Err(Error::OAuthError(OAuthError::JwtKeyRefreshTimeout(_))) => {}
-            _ => panic!("Expected OAuthError::JwtKeyCacheError, got different error type"),
-        }
+
+        // Assert error is of type OAuthError::JwtKeyRefreshTimeout
+        assert!(matches!(
+            result,
+            Err(Error::OAuthError(OAuthError::JwtKeyRefreshTimeout(_)))
+        ));
     }
 }
 
@@ -757,9 +759,10 @@ mod refresh_jwt_keys_tests {
     /// - Configures a mock response returning an error 500
     ///
     /// # Assertions
-    /// - Assert that 3 fetch attempts were made to the server
-    /// - Assert that the function returned the expected error type of
-    ///   reqwest::Error related to status code 500.
+    /// - Assert we received only 3 expected requests
+    /// - Assert result is an error
+    /// - Assert error is of type Error::ReqwestError
+    /// - Assert reqwest error is due to internal server error
     #[tokio::test]
     async fn test_refresh_keys_failure() {
         // Setup a basic Client & mock HTTP server
@@ -779,19 +782,16 @@ mod refresh_jwt_keys_tests {
         // Assert we received only 3 expected requests
         mock.assert();
 
-        // Assert function returned expected error
+        // Assert result is an error
         assert!(result.is_err());
-        match result {
-            Err(Error::ReqwestError(err)) => {
-                // Ensure reqwest error is of type 500 server error
-                assert!(err.is_status());
-                assert_eq!(
-                    err.status(),
-                    Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR)
-                )
-            }
-            _ => panic!("Expected EsiError::ReqwestError, got different error type"),
-        }
+
+        // Assert error is of type Error::ReqwestError
+        assert!(matches!(result, Err(Error::ReqwestError(_))));
+
+        // Assert reqwest error is due to internal server error
+        assert!(
+            matches!(result, Err(Error::ReqwestError(ref e)) if e.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR))
+        );
     }
 
     /// Validates successful refresh after 2 attempts

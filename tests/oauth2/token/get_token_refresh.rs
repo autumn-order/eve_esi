@@ -1,29 +1,37 @@
-use oauth2::RequestTokenError;
+use oauth2::{RequestTokenError, TokenResponse};
 
 use crate::{
-    oauth2::token::util::{get_token_bad_request_response, get_token_success_response},
+    oauth2::{
+        token::util::{get_token_bad_request_response, get_token_success_response},
+        util::jwt::create_mock_token,
+    },
     util::setup,
 };
 
-/// Tests the successful retrieval of a JWT token
+/// Tests the successful refresh of a JWT token
 ///
 /// # Setup
 /// - Create Client configured with OAuth2 & mock server
 /// - Create mock response with 200 success response & mock token
+/// - Create a mock refresh token
 ///
 /// # Assertions
 /// - Assert only 1 fetch request was made
 /// - Assert result is ok
 #[tokio::test]
-pub async fn test_get_token_success() {
+pub async fn test_get_token_refresh_success() {
     // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
     // Create mock response with 200 success response & mock token
     let mock = get_token_success_response(&mut mock_server, 1);
 
-    // Call the get_token method
-    let result = client.oauth2().get_token("authorization_code").await;
+    // Create a mock refresh token
+    let mock_token = create_mock_token(true);
+    let refresh_token = mock_token.refresh_token().unwrap().secret().to_string();
+
+    // Call the get_token_refresh method
+    let result = client.oauth2().get_token_refresh(refresh_token).await;
 
     // Assert only 1 fetch request was made
     mock.assert();
@@ -32,26 +40,32 @@ pub async fn test_get_token_success() {
     assert!(result.is_ok());
 }
 
-/// Tests error handling when failing to retrieve a JWT token
+/// Tests error handling when failing to refresh a JWT token
 ///
 /// # Setup
 /// - Create Client configured with OAuth2 & mock server
 /// - Create mock response returning a 400 bad request
+/// - Create a mock refresh token
 ///
 /// # Assertions
 /// - Assert only 1 fetch request was made
 /// - Assert result is err
 /// - Assert error is of type RequestTokenError::ServerResponse
 #[tokio::test]
-pub async fn test_get_token_error() {
+pub async fn test_get_token_refresh_error() {
     // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
     // Create mock response returning a 400 bad request
     let mock = get_token_bad_request_response(&mut mock_server, 1);
 
-    // Call the get_token method
-    let result = client.oauth2().get_token("authorization_code").await;
+    // Create a mock refresh token
+    let mock_token = create_mock_token(true);
+    // Convert to string
+    let refresh_token = mock_token.refresh_token().unwrap().secret().to_string();
+
+    // Call the get_token_refresh method
+    let result = client.oauth2().get_token_refresh(refresh_token).await;
 
     // Assert only 1 fetch request was made
     mock.assert();
@@ -73,13 +87,14 @@ pub async fn test_get_token_error() {
 /// # Setup
 /// - Create an ESI client without OAuth2 configured
 /// - Create mock response which shouldn't be fetched
+/// - Create a mock refresh token
 ///
 /// # Assertions
 /// - Assert no fetch request was made
 /// - Assert result is error
 /// - Assert error is of type OAuthError::OAuth2NotConfigured
 #[tokio::test]
-pub async fn test_get_token_oauth_client_missing() {
+pub async fn test_get_token_refresh_oauth_client_missing() {
     let (_, mut mock_server) = setup().await;
 
     // Create ESI client without OAuth2 config & with mock token endpoint
@@ -97,8 +112,12 @@ pub async fn test_get_token_oauth_client_missing() {
     // Create mock response which shouldn't be fetched
     let mock = get_token_bad_request_response(&mut mock_server, 0);
 
-    // Call the get_token method
-    let result = client.oauth2().get_token("authorization_code").await;
+    // Create a mock refresh token
+    let mock_token = create_mock_token(true);
+    let refresh_token = mock_token.refresh_token().unwrap().secret().to_string();
+
+    // Call the get_token_refresh method
+    let result = client.oauth2().get_token_refresh(refresh_token).await;
 
     // Assert no fetch request was made
     mock.assert();

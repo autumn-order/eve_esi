@@ -146,6 +146,8 @@ impl ClientBuilder {
             // OAuth2
             oauth2_client: oauth_client,
             jwt_key_cache: jwt_key_cache,
+            jwt_issuer: config.jwt_issuer,
+            jwt_audience: config.jwt_audience,
         };
 
         // Wrap ClientRef in Client
@@ -304,15 +306,14 @@ fn get_or_default_reqwest_client(
     client: Option<reqwest::Client>,
     user_agent: &Option<String>,
 ) -> Result<reqwest::Client, Error> {
-    match client {
-        Some(client) => {
-            if user_agent.is_some() {
-                #[cfg(not(tarpaulin_include))]
-                warn!("user_agent is set on `ClientBuilder` but so is reqwest_client, as a result the user_agent will not be applied and should be instead applied to the provided reqwest client if not done so already.");
-            }
+    if user_agent.is_some() && client.is_some() {
+        let message = "user_agent is set on `ClientBuilder` but so is reqwest_client. The user_agent will not be applied and should be instead applied to the provided reqwest client if not done so already.";
 
-            Ok(client)
-        }
+        warn!("{}", message);
+    }
+
+    match client {
+        Some(client) => Ok(client),
         None => {
             let mut client_builder = reqwest::Client::builder();
             if let Some(agent) = user_agent {
@@ -473,7 +474,8 @@ mod tests {
     /// - Creates an ESI client builder with only the client_id set.
     ///
     /// # Assertions
-    /// - Verifies that the error response is ConfigError::MissingClientSecret
+    /// - Assert result is error
+    /// - Assert error is of type ConfigError::MissingClientSecret
     #[test]
     fn test_build_with_partial_oauth_config() {
         // Test that providing only client_id without the other OAuth params fails
@@ -482,11 +484,14 @@ mod tests {
             .client_id("client_id")
             .build();
 
+        // Assert result is error
         assert!(result.is_err());
-        match result {
-            Err(Error::ConfigError(ConfigError::MissingClientSecret)) => {}
-            _ => panic!("Expected MissingClientSecret error"),
-        }
+
+        // Assert error is of type ConfigError::MissingClientSecret
+        assert!(matches!(
+            result,
+            Err(Error::ConfigError(ConfigError::MissingClientSecret))
+        ));
     }
 }
 
