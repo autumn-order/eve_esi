@@ -17,7 +17,7 @@
 use std::time::Instant;
 use std::{sync::atomic::AtomicBool, time::Duration};
 
-use log::{debug, trace};
+use log::{debug, info, trace};
 use tokio::sync::{Notify, RwLock};
 
 use crate::{
@@ -209,6 +209,31 @@ impl JwtKeyCache {
         *cache = Some((keys, std::time::Instant::now()));
 
         debug!("JWT keys cache successfully updated");
+    }
+
+    /// Clears the JWT key cache of any keys present
+    ///
+    /// You would typically use this in the event of a validation failure
+    /// indicating that the JWT keys currently in the cache have been rotated out
+    /// or are malformed.
+    ///
+    /// This will trigger a refresh next time [`super::JwkApi::get_jwt_keys`] is called.
+    ///
+    /// # Implementation Details
+    /// - Only attempts if can acquire a [Self::refresh_lock_try_acquire] to not interfere with any
+    ///   ongoing refresh.
+    /// - Sets the [Self::cache] to [`None`] indicating no keys are currently stored
+    ///
+    /// # Returns
+    /// - [`bool`] indicating whether or not the cache was cleared successfully
+    pub(super) async fn clear_cache(self: &Self) {
+        if self.refresh_lock_try_acquire() {
+            info!("Clearing JWT key cache of keys");
+
+            // Clear the cache
+            let mut cache = self.cache.write().await;
+            *cache = None;
+        }
     }
 
     /// Attempts to atomically acquire the refresh lock for updating JWT keys
@@ -420,6 +445,74 @@ mod cache_update_keys_tests {
         let result = &*cache;
 
         assert!(result.is_some())
+    }
+}
+
+#[cfg(test)]
+mod clear_cache_tests {
+    use super::super::tests::create_mock_keys;
+    use crate::tests::setup;
+
+    /// Cache successfully cleared
+    ///
+    /// # Test Setup
+    /// - Setup a basic ESI client
+    /// - Fill JWT key cache with mock keys
+    ///
+    /// # Assert
+    /// - Assert cache is now empty
+    #[tokio::test]
+    async fn cache_clear_success() {
+        // Setup a basic ESI client
+        let (esi_client, _) = setup().await;
+
+        // Fill JWT key cache with mock keys
+        let mock_keys = create_mock_keys();
+
+        esi_client.inner.jwt_key_cache.update_keys(mock_keys).await;
+
+        // Clear the JWT key cache
+        esi_client.inner.jwt_key_cache.clear_cache().await;
+
+        // Assert cache is now empty
+        let cache = esi_client.inner.jwt_key_cache.get_keys().await;
+
+        assert!(cache.is_none())
+    }
+
+    /// Cache doesn't clear because refresh lock is in place
+    ///
+    /// # Test Setup
+    /// - Setup a basic ESI client
+    /// - Fill JWT key cache with mock keys
+    /// - Acquire a refresh lock to indicate a refresh is ongoing
+    ///
+    /// # Assert
+    /// - Assert refresh lock is in place
+    /// - Assert cache has not been cleared
+    #[tokio::test]
+    async fn cache_clear_refresh_lock() {
+        // Setup a basic ESI client
+        let (esi_client, _) = setup().await;
+
+        // Fill JWT key cache with mock keys
+        let mock_keys = create_mock_keys();
+
+        esi_client.inner.jwt_key_cache.update_keys(mock_keys).await;
+
+        // Acquire a refresh lock
+        let lock_acquired = esi_client.inner.jwt_key_cache.refresh_lock_try_acquire();
+
+        // Assert refresh lock is in place
+        assert_eq!(lock_acquired, true);
+
+        // Attempt to clear the JWT key cache
+        esi_client.inner.jwt_key_cache.clear_cache().await;
+
+        // Assert cache has not been cleared
+        let cache = esi_client.inner.jwt_key_cache.get_keys().await;
+
+        assert!(cache.is_some())
     }
 }
 
