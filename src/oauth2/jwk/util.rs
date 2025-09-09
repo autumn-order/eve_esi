@@ -47,22 +47,26 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
         let is_cooldown = elapsed_secs < config.refresh_cooldown.as_secs();
 
         if is_cooldown {
-            debug!(
+            let message = format!(
                 "Respecting background refresh cooldown: {}s elapsed of {}s required",
                 elapsed_secs,
                 config.refresh_cooldown.as_secs()
             );
+
+            debug!("{}", message);
 
             // Return Some with the remaining cooldown in seconds
             let remaining_cooldown = config.refresh_cooldown.as_secs() - elapsed_secs;
 
             return Some(remaining_cooldown);
         } else {
-            trace!(
+            let message = format!(
                 "Background cooldown period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
                 config.refresh_cooldown.as_secs()
             );
+
+            trace!("{}", message);
 
             // Return None indicating there is no active cooldown
             return None;
@@ -109,7 +113,7 @@ pub(super) fn is_cache_approaching_expiry(jwt_key_cache: &JwtKeyCache, timestamp
     let threshold_seconds = (config.cache_ttl.as_secs() as f64 * threshold_percentage) as u64;
 
     if is_approaching_expiry {
-        debug!(
+        let message = format!(
             "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
             elapsed_seconds,
             threshold_seconds,
@@ -117,16 +121,20 @@ pub(super) fn is_cache_approaching_expiry(jwt_key_cache: &JwtKeyCache, timestamp
             config.cache_ttl.as_secs()
         );
 
+        debug!("{}", message);
+
         // Return true if cache is approaching expiry
         true
     } else {
-        trace!(
-                "JWT keys cache not yet approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
-                elapsed_seconds,
-                threshold_seconds,
-                config.background_refresh_threshold,
-                config.cache_ttl.as_secs()
-            );
+        let message = format!(
+            "JWT keys cache not yet approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
+            elapsed_seconds,
+            threshold_seconds,
+            config.background_refresh_threshold,
+            config.cache_ttl.as_secs()
+        );
+
+        trace!("{}", message);
 
         // Return false if cache is not yet approaching expiry
         false
@@ -152,20 +160,24 @@ pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, timestamp: Instant) 
     let is_expired = timestamp.elapsed().as_millis() >= cache_ttl.as_millis();
 
     if is_expired {
-        debug!(
+        let message = format!(
             "JWT keys cache expired: elapsed={}s, ttl={}s",
             timestamp.elapsed().as_secs(),
             cache_ttl.as_secs()
         );
 
+        debug!("{}", message);
+
         // Return true if cache is not yet expired
         true
     } else {
-        trace!(
+        let message = format!(
             "JWT keys cache valid: elapsed={}s, ttl={}s",
             timestamp.elapsed().as_secs(),
             cache_ttl.as_secs()
         );
+
+        trace!("{}", message);
 
         // Return false if cache is still valid
         false
