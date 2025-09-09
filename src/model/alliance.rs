@@ -30,7 +30,7 @@ pub struct Alliance {
     pub ticker: String,
 }
 
-/// Reoresents the 128x128 & 64x64 icon URLs for an alliance
+/// Represents the 128x128 & 64x64 icon URLs for an alliance
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdIconsGet>

@@ -1,18 +1,14 @@
 //! Character Endpoints for EVE Online's ESI API.
 //!
 //! This module provides the [`CharacterApi`] struct and associated methods for accessing
-//! character-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
+//! character-related endpoints of the EVE Online ESI (EVE Stable Infrastructure) API.
 //!
-//! The [`CharacterApi`] acts as a high-level interface for retrieving public information
-//! and affiliations for EVE Online characters. It requires an [`Client`] instance
-//! to perform HTTP requests to the ESI endpoints.
+//! # Documentation
+//! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # Features
-//! - Fetch public information about a character by character ID
-//! - Retrieve affiliations (corporation, alliance, faction) for a list of characters
-//!
-//! # References
-//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//! # Methods
+//! - [`CharacterApi::get_character_public_information`]: Retrieves the public information of a specific character
+//! - [`CharacterApi::character_affiliation`]: Retrieve affiliations for a list of characters
 //!
 //! # Usage Example
 //! ```no_run
@@ -60,37 +56,18 @@ impl<'a> CharacterApi<'a> {
         Self { client }
     }
 
-    /// Retrieves information about a specific character from EVE Online's ESI API.
+    /// Retrieves the public information of a specific character
     ///
-    /// This endpoint fetches character information based on the provided character ID.
-    /// The endpoint returns data such as the character's name, corporation, alliance_id,
-    /// and other relevant information.
+    /// # Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
     ///
     /// # Arguments
     /// - `character_id` (`Vec<`[`i32`]`>`): The ID of the character to retrieve information for.
     ///
     /// # Returns
     /// Returns a `Result` containing either:
-    /// - [`Character`] - The character data if successfully retrieved
-    /// - [`Error`] - An error if the request failed (e.g., character not found, network issues)
-    ///
-    /// # EVE ESI Reference
-    /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId).
-    ///
-    /// # Example
-    /// ```no_run
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let esi_client = eve_esi::Client::builder()
-    ///         .user_agent("MyApp/1.0 (contact@example.com)")
-    ///         .build()
-    ///         .expect("Failed to build Client");
-    ///
-    ///     // Get information about the character Hyziri (id: 2114794365)
-    ///     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
-    ///     println!("Character name: {}", character.name);
-    /// }
-    /// ```
+    /// - [`Character`]: The character's information if successfully retrieved
+    /// - [`Error`]: An error if the fetch request fails
     pub async fn get_character_public_information(
         &self,
         character_id: i32,
@@ -137,43 +114,18 @@ impl<'a> CharacterApi<'a> {
         }
     }
 
-    /// Retrieve affiliations for a list of characters.
+    /// Retrieve affiliations for a list of characters
     ///
-    /// This endpoint returns a list of affiliations for the requested characters.
-    /// Each affiliation includes the character's corporation, alliance, and faction IDs.
+    /// # Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
     ///
     /// # Arguments
     /// - `character_ids` (`Vec<`[`i32`]`): A list of character IDs to retrieve affiliations for.
     ///
     /// # Returns
     /// Returns a `Result` containing either:
-    /// - `Vec<`[`CharacterAffiliation`]`>` - The affiliations for the characters if successfully retrieved
-    /// - [`Error`] - An error if the request failed (network issues)
-    ///
-    /// # EVE ESI Reference
-    /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation).
-    ///
-    /// # Example
-    /// ```no_run
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let esi_client = eve_esi::Client::builder()
-    ///         .user_agent("MyApp/1.0 (contact@example.com)")
-    ///         .build()
-    ///         .expect("Failed to build Client");
-    ///
-    ///     // Get affiliations for characters with IDs 2114794365 and 2117053828
-    ///     let affiliations = esi_client.character().character_affiliation(vec![2114794365, 2117053828]).await.unwrap();
-    ///     for affiliation in affiliations {
-    ///         let alliance_id = if let Some(alliance_id) = affiliation.alliance_id {
-    ///             alliance_id.to_string()
-    ///         } else {
-    ///             "None".to_string()
-    ///         };
-    ///
-    ///         println!("Character ID: {}, Alliance ID: {}, Corporation ID: {}", affiliation.character_id, alliance_id, affiliation.corporation_id);
-    ///     }
-    /// }
+    /// - `Vec<`[`CharacterAffiliation`]`>`: The affiliations of the characters if successfully retrieved
+    /// - [`Error`]: An error if the fetch request fails
     pub async fn character_affiliation(
         &self,
         character_ids: Vec<i32>,

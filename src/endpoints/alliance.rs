@@ -3,8 +3,8 @@
 //! This module provides the [`AllianceApi`] struct and associated methods for accessing
 //! alliance-related endpoints of the EVE Online ESI (EVE Stable Infrastructure) API.
 //!
-//! # References
-//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//! # Documentation
+//! - <https://developers.eveonline.com/api-explorer>
 //!
 //! # Methods
 //! - [`AllianceApi::list_all_alliances`]: Retrieves a list of IDs of every alliance in EVE Online
