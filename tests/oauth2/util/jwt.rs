@@ -121,6 +121,9 @@ pub fn create_mock_token(
     let access_token = AccessToken::new(access_token_secret);
     let token_type = BasicTokenType::Bearer;
     let expires_in = Some(&Duration::from_secs(3600)); // 1 hour
+
+    // We aren't actually validating this refresh token in get_token_refresh tests,
+    // we just use this for the get_token_refresh argument to test the execution paths.
     let refresh_token = Some(RefreshToken::new("mock_refresh_token_value".to_string()));
 
     // Create empty extra fields
