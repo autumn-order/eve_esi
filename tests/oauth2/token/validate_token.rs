@@ -1,10 +1,14 @@
+use std::time::Duration;
+
+use eve_esi::model::oauth2::{EveJwtKey, EveJwtKeys};
+use oauth2::TokenResponse;
+
+use crate::constant::TEST_CLIENT_ID;
 use crate::oauth2::util::jwk_response::{
     get_jwk_internal_server_error_response, get_jwk_success_response,
 };
-use crate::oauth2::util::jwt::{create_mock_token, RSA_KEY_ID};
+use crate::oauth2::util::jwt::{create_mock_token, create_mock_token_keys, RSA_KEY_ID};
 use crate::util::setup;
-use eve_esi::model::oauth2::{EveJwtKey, EveJwtKeys};
-use oauth2::TokenResponse;
 
 /// Tests successful validation of a JWT token
 ///
@@ -55,9 +59,12 @@ pub async fn test_validate_token_success() {
 
 /// Tests validation failure due to failure to fetch JWT keys used to validate
 ///
-/// `validate_token` will call the `get_jwt_keys` function to get keys from cache or
+/// `validate_token` will call the `get_jwt_keys` function internally to get keys from cache or
 /// fetch them if cache is empty. This tests error handling when the attempt to fetch
 /// the keys for validation fails.
+///
+/// If the keys are older than 60 seconds, they will be refreshed and a validation will be attempted again,
+/// in this instance they are fresh keys so no retry will be made here.
 ///
 /// # Test Setup
 /// - Create an ESI Client configured with OAuth2 and a mock server
@@ -113,6 +120,9 @@ async fn test_validate_token_get_jwt_key_failure() {
 /// an RS256 & ES256. The ES256 key is not used but is included in the cache case it may
 /// be needed later. In the event only the ES256 is available in the cache, a
 /// OAuthError::NoValidKeyFound error would occur.
+///
+/// If the keys are older than 60 seconds, they will be refreshed and validation will be attempted again,
+/// in this instance they are fresh keys so no retry will be made here.
 ///
 /// # Test Setup
 /// - Create an ESI Client configured with OAuth2 and a mock server
@@ -187,6 +197,9 @@ async fn test_validate_token_no_rs256_key() {
 /// Generally applications would just return an internal server error when
 /// [`OAuthError::ValidateTokenError`] is returned and refresh the JWT key cache in this case.
 ///
+/// If the keys are older than 60 seconds, they will be refreshed and validation will be attempted again,
+/// in this instance they are fresh keys so no retry will be made here.
+///
 /// # Test Setup
 /// - Create an ESI Client configured with OAuth2 and a mock server
 /// - Create a mock EveJwtKeys struct that only contains a malformed RS256 key (empty modulus)
@@ -260,6 +273,9 @@ async fn test_validate_token_decoding_key_error() {
 /// corresponding public key stored in cache or fetched from EVE Online's OAuth2 API, a validation
 /// error will occur.
 ///
+/// If the keys are older than 60 seconds, they will be refreshed and validation will be attempted again,
+/// in this instance they are fresh keys so no retry will be made here.
+///
 /// # Test Setup
 /// - Create an ESI Client configured with OAuth2 and a mock server
 /// - Create a mock JWT key response the Client will fetch for the JWT key cache
@@ -307,4 +323,87 @@ async fn test_validate_token_validation_error() {
             err
         ),
     }
+}
+
+/// JWT keys stored in cache have been rotated out, a retry will be needed to pass validation
+///
+/// JWT key cache does have keys for validation but they are outdated due to EVE Online having rotated their keys.
+/// Validation will fail prompting a refresh and will succeed on retry.
+///
+/// - The first validation attempt will fail due to the JWT key cache not being expired but holding keys which are
+///   out of date due to having been rotated.
+/// - Usually the cache would not be cleared since the keys were fetched within the 60 second refresh cooldown
+///   period (default), in this instance we've disabled the cooldown to clear cache and refresh immediately.
+/// - Each validation attempt calls the `get_jwt_keys` method internally to get the JWT keys from cache
+///   or refresh if the cache is empty.
+/// - The cache will be refreshed with the latest keys & the 2nd validation attempt will be successful.
+///
+/// # Test Setup
+/// - Create Client configured with no refresh cooldown to immediately clear & refresh cache on validation failure
+/// - Create a mock JWT key response with JWT keys that will fail validation
+/// - Create a mock JWT key response with the correct JWT keys
+/// - Pre-fill the cache with the first set of keys that will fail validation using `get_jwt_keys`
+/// - Create a mock token representing what we would get using the `get_token` method
+///
+/// # Assertions
+/// - Assert cache was pre-filled successfully
+/// - Assert 1 fetch attempt for each mock JWT keys was made pre-fill & validation
+/// - Assert token validation was successful
+#[tokio::test]
+async fn test_validate_token_key_rotation() {
+    // Create Client configured with no refresh cooldown to immediately clear & refresh cache on validation failure
+    let (_, mut mock_server) = setup().await;
+
+    let config = eve_esi::Config::builder()
+        // Set endpoint to mock server
+        .jwk_url(&format!("{}/oauth/jwks", mock_server.url()))
+        // Disable refresh cooldown so cache always clears
+        .jwk_refresh_cooldown(Duration::from_secs(0))
+        .build()
+        .expect("Failed to build Config");
+
+    let client = eve_esi::Client::builder()
+        .user_agent("MyApp/1.0 (contact@example.com)")
+        .client_id(TEST_CLIENT_ID)
+        .client_secret("client_secret")
+        .callback_url("http://localhost:8000/callback")
+        .config(config)
+        .build()
+        .expect("Failed to build Client");
+
+    // Create a mock JWT key response with JWT keys that will fail validation
+    let mock_keys = create_mock_token_keys(true);
+
+    let mock_1 = mock_server
+        .mock("GET", "/oauth/jwks")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(serde_json::to_string(&mock_keys).unwrap())
+        .expect(1)
+        .create();
+
+    // Create a mock JWT key response with the correct JWT keys
+    let mock_2 = get_jwk_success_response(&mut mock_server, 1);
+
+    // Pre-fill the cache with the first set of keys using `get_jwt_keys`
+    let result = client.oauth2().jwk().get_jwt_keys().await;
+
+    // Assert cache was pre-filled successfully
+    assert!(result.is_ok());
+
+    // Create a mock token representing what we would get using the `get_token` method
+    let token = create_mock_token(false);
+
+    // Validate token
+    let result = client
+        .oauth2()
+        .validate_token(token.access_token().secret().to_string())
+        .await;
+
+    // Assert 1 fetch attempt for each mock JWT keys was made pre-fill & validation
+    mock_1.assert();
+    mock_2.assert();
+
+    // Assert token validation was successful
+    assert!(result.is_ok(), "Token validation failed: {:#?}", result);
 }

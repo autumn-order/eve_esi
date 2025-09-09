@@ -22,9 +22,12 @@ pub const RSA_KEY_ID: &str = "JWT-Signature-Key-1";
 /// - [`EveJwtKeys`]: Struct containing an RS256 key based upon a mock public RSA key and a
 ///   ES256 included to mimic what ESI is expected to return but not intended to be used by
 ///   this crate.
-pub fn create_mock_token_keys() -> EveJwtKeys {
+pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
     // Load the public key PEM file
-    let public_key_pem = fs::read("tests/oauth2/util/public_test_rsa_key.pem").unwrap();
+    let public_key_pem = match use_alternate_key {
+        true => fs::read("tests/oauth2/util/public_test_rsa_key_alt.pem").unwrap(),
+        false => fs::read("tests/oauth2/util/public_test_rsa_key.pem").unwrap(),
+    };
 
     // Extract RSA components
     let rsa = Rsa::public_key_from_pem(&public_key_pem).unwrap();

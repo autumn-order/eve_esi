@@ -16,7 +16,7 @@ use mockito::{Mock, ServerGuard};
 /// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
 ///   were received.
 pub(crate) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
-    let mock_keys = create_mock_token_keys();
+    let mock_keys = create_mock_token_keys(false);
 
     let mock = server
         .mock("GET", "/oauth/jwks")
