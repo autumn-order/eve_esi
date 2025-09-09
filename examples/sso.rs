@@ -45,6 +45,10 @@ struct State(String);
 
 #[tokio::main]
 async fn main() {
+    // Enable logging
+    // Run with `RUST_LOG=eve_esi=debug cargo run --example sso` to see logs
+    env_logger::init();
+
     // Retrieve environment from the .env
     dotenvy::dotenv().ok();
 

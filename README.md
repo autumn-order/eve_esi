@@ -140,6 +140,8 @@ TODO: Work in progress
 
 ## Examples
 
+If you wish to see logs for the steps of how the crate works in the examples, prefix the `cargo run --example sso` command like so `RUST_LOG=eve_esi=debug cargo run --example sso`.
+
 ### Axum
 
 A basic example demonstrating how to use the `eve_esi` crate with the `axum` web framework to create an API that serves ESI data.
@@ -164,6 +166,8 @@ TODO: First half of the login flow is done, second half with the callback route 
 This library uses the [`log`](https://crates.io/crates/log) crate for logging. To capture log output,
 applications using this library should initialize a logger implementation like `env_logger`,
 `simple_logger`, or any other implementation of the `log` crate's facade.
+
+For production, you'll generally want to use log level either `info` or `warn` depending on how much you wish to rely on this crate's logging for your application.
 
 ### Log Levels
 

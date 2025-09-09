@@ -23,6 +23,10 @@ struct GetByIdParams {
 
 #[tokio::main]
 async fn main() {
+    // Enable logging
+    // Run with `RUST_LOG=eve_esi=debug cargo run --example axum` to see logs
+    env_logger::init();
+
     // Always set a user agent for your ESI client
     // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
     // E.G. "MyApp/1.0 (contact@example.com)"
