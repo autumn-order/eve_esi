@@ -112,6 +112,9 @@ let token = esi_client
 
 let access_token = token.access_token();
 let refresh_token = token.refresh_token();
+
+// Refresh token can be converted to a String this way
+let refresh_token_string = refresh_token.unwrap().secret().to_string();
 ```
 
 Callback route: validating a token, accessing character ID & name:
@@ -132,6 +135,22 @@ let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
 
 let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
 let character_name: String = claims.name;
+```
+
+Refreshing a token:
+
+```rust
+// In this scenario, refresh token was stored in database & retrieved as a string
+let refresh_token = "refresh_token_string...".to_string();
+
+// Call `get_token_refresh` and pass the refresh token string to get a new token
+let token = esi_client
+    .oauth2()
+    .get_token_refresh(refresh_token)
+    .await
+    .expect("Failed to fetch token");
+
+// Validate the token here and replace the old access/refresh token stored in the database...
 ```
 
 ### Making Authenticated ESI Requests
@@ -158,8 +177,8 @@ An example demonstrating how to use the `eve_esi` crate with the `axum` web fram
 3. Copy .env.example to .env and set the CALLBACK_URL, EVE_ESI_CLIENT_ID, EVE_ESI_CLIENT_SECRET, & CONTACT_EMAIL variables
 4. Run `cargo run --example sso`
 5. Go to `http://localhost:8080/login` in your browser
-
-TODO: First half of the login flow is done, second half with the callback route & token validation is work in progress.
+6. Login with EVE Online, you'll then be redirected to `http://localhost:8080/callback`
+7. Internally, the callback route will fetch a JWT token using the authorization code from login. The callback response will show your character ID & name.
 
 ## Logging
 
