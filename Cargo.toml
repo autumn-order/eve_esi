@@ -1,6 +1,6 @@
 [package]
 name = "eve_esi"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Hyziri <hyziri@protonmail.com>"]
 edition = "2021"
 description = "Thread-safe, asynchronous client for EVE Online's ESI & OAuth2"
@@ -31,7 +31,3 @@ tower-sessions = "0.14.0"
 time = "0.3.43"
 openssl = "0.10.73"
 base64 = "0.22.1"
-base64-url = "3.0.0"
-
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage,coverage_nightly)'] }
