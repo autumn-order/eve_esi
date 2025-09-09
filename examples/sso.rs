@@ -73,7 +73,10 @@ async fn main() {
 
     // Optional: Build a reqwest client, share it with ESI client to share an HTTP request pool for performance
     // Only do this if your app uses reqwest client elsewhere beyond ESI requests
-    let reqwest_client = reqwest::Client::new();
+    let reqwest_client = reqwest::Client::builder()
+        .user_agent(&user_agent)
+        .build()
+        .expect("Failed to build reqwest client");
 
     // Build an ESI client with a user agent & optional reqwest client
     let esi_client: eve_esi::Client = eve_esi::Client::builder()

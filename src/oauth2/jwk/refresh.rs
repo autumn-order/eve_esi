@@ -218,7 +218,7 @@ pub(super) async fn refresh_jwt_keys(
 
     // Attempt inital JWT key refresh
 
-    debug!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
+    trace!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
 
     let mut result = fetch_and_update_cache(&reqwest_client, &jwt_key_cache).await;
 

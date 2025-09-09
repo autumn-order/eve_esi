@@ -9,7 +9,7 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use log::{debug, error};
+use log::{debug, error, trace};
 use std::time::Instant;
 
 use crate::error::{Error, OAuthError};
@@ -95,7 +95,7 @@ impl<'a> JwkApi<'a> {
 
         // Check if we have valid keys in the cache
 
-        debug!("Checking JWT keys cache state");
+        trace!("Checking JWT keys cache state");
 
         if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
             let elapsed_seconds = timestamp.elapsed().as_secs();
@@ -115,7 +115,7 @@ impl<'a> JwkApi<'a> {
                     let _ = self.trigger_background_jwt_refresh().await;
                 }
 
-                debug!(
+                trace!(
                     "JWT keys still valid, using keys from cache (age: {}s)",
                     elapsed_seconds
                 );
@@ -128,7 +128,8 @@ impl<'a> JwkApi<'a> {
                 );
             }
         } else {
-            debug!("JWT key cache is currently empty");
+            // Trace due to `get_keys` logging as debug
+            trace!("JWT keys cache is empty, keys need to be fetched");
         };
 
         // Return error if JWT key refresh is still within default 60 second cooldown period
@@ -272,7 +273,7 @@ pub(super) async fn fetch_jwt_keys(
         Ok(keys) => {
             let elapsed = start_time.elapsed();
 
-            debug!(
+            trace!(
                 "Successfully parsed JWT keys response with {} keys (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
@@ -320,7 +321,7 @@ pub(super) async fn fetch_and_update_cache(
     reqwest_client: &reqwest::Client,
     jwt_key_cache: &JwtKeyCache,
 ) -> Result<EveJwtKeys, Error> {
-    debug!("Fetching fresh JWT keys and updating cache");
+    trace!("Fetching fresh JWT keys and updating cache");
 
     let start_time = Instant::now();
 
@@ -329,7 +330,7 @@ pub(super) async fn fetch_and_update_cache(
 
     match fetch_result {
         Ok(fresh_keys) => {
-            debug!(
+            trace!(
                 "Successfully fetched {} JWT keys, updating cache",
                 fresh_keys.keys.len()
             );
@@ -340,7 +341,8 @@ pub(super) async fn fetch_and_update_cache(
             let elapsed = start_time.elapsed();
 
             debug!(
-                "JWT keys cache updated successfully (took {}ms)",
+                "JWT keys cache updated successfully with {} keys (took {}ms)",
+                fresh_keys.keys.len(),
                 elapsed.as_millis()
             );
 

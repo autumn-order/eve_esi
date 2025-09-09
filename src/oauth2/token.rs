@@ -56,7 +56,7 @@
 //! ```
 
 use jsonwebtoken::{DecodingKey, Validation};
-use log::{debug, error, trace};
+use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, StandardTokenResponse};
 
@@ -107,7 +107,7 @@ impl<'a> OAuth2Api<'a> {
         };
 
         // Attempt to fetch token
-        debug!("Attempting to fetch token using provided authorization code");
+        debug!("Attempting to fetch JWT token using provided authorization code");
 
         match client
             .exchange_code(AuthorizationCode::new(code.to_string()))
@@ -115,7 +115,7 @@ impl<'a> OAuth2Api<'a> {
             .await
         {
             Ok(token) => {
-                debug!("Token fetched successfully");
+                debug!("JWT Token fetched successfully");
 
                 Ok(token)
             }
@@ -227,7 +227,13 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
 
         match jsonwebtoken::decode::<EveJwtClaims>(&token_secret, &decoding_key, &validation) {
             Ok(token_data) => {
-                debug!("Successfully decoded JWT token");
+                let id_str = token_data.claims.sub.split(':').collect::<Vec<&str>>()[2];
+                let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
+
+                info!(
+                    "Successfully validated JWT token for character ID: {}",
+                    character_id
+                );
 
                 Ok(token_data.claims)
             }

@@ -168,8 +168,8 @@ impl JwtKeyCache {
         if let Some((keys, timestamp)) = &*cache {
             let elapsed = timestamp.elapsed().as_secs();
 
-            trace!(
-                "Found JWT keys in cache: key_count={}, elapsed={}s",
+            debug!(
+                "Found JWT keys in cache: key_count={}, age={}s",
                 keys.keys.len(),
                 elapsed
             );
@@ -203,12 +203,15 @@ impl JwtKeyCache {
     /// # Parameters
     /// - `keys`: The EVE JWT keys to store in the cache
     pub(super) async fn update_keys(self: &Self, keys: EveJwtKeys) {
-        debug!("Updating JWT keys cache with {} keys", keys.keys.len());
+        let key_count = keys.keys.len();
 
         let mut cache = self.cache.write().await;
         *cache = Some((keys, std::time::Instant::now()));
 
-        debug!("JWT keys cache successfully updated");
+        debug!(
+            "JWT keys cache successfully updated with {} keys",
+            &key_count
+        );
     }
 
     /// Clears the JWT key cache of any keys present
@@ -331,16 +334,10 @@ impl JwtKeyCache {
     /// that subsequently acquire the lock or are notified.
     pub(super) fn refresh_lock_release_and_notify(self: &Self) {
         // Release the lock
-
-        debug!("Releasing JWT key refresh lock");
-
         self.refresh_lock
             .store(false, std::sync::atomic::Ordering::Release);
 
         // Notify waiters
-
-        trace!("Notifying waiters about JWT key refresh completion");
-
         self.refresh_notifier.notify_waiters();
 
         debug!("JWT key refresh lock released and waiters notified");

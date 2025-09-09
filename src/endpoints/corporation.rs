@@ -28,6 +28,10 @@
 //! }
 //! ```
 
+use std::time::Instant;
+
+use log::{debug, error, info};
+
 use crate::error::Error;
 use crate::model::corporation::Corporation;
 use crate::Client;
@@ -93,6 +97,35 @@ impl<'a> CorporationApi<'a> {
             self.client.inner.esi_url, corporation_id
         );
 
-        Ok(self.client.get_from_public_esi::<Corporation>(&url).await?)
+        debug!(
+            "Fetching corporation information for corporation ID {} from {}",
+            corporation_id, url
+        );
+
+        let start_time = Instant::now();
+
+        // Fetch corporation information from ESI
+        let result = self.client.get_from_public_esi::<Corporation>(&url).await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(corporation) => {
+                info!(
+                    "Successfully fetched corporation information for corporation ID: {} (took {}ms)",
+                    corporation_id,
+                    elapsed.as_millis()
+                );
+
+                Ok(corporation)
+            }
+            Err(err) => {
+                error!(
+                    "Failed to fetch corporation information for corporation ID {} after {}ms due to error: {:#?}",
+                    corporation_id, elapsed.as_millis(), err
+                );
+
+                Err(err.into())
+            }
+        }
     }
 }
