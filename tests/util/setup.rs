@@ -31,7 +31,7 @@ pub async fn setup() -> (eve_esi::Client, ServerGuard) {
         // Set timeout to 1 second when waiting for another thread to refresh
         .jwk_refresh_timeout(Duration::from_secs(1))
         // Reduce cache lifetime & background refresh threshold for get_jwt_key tests
-        .jwk_cache_ttl(Duration::from_secs(2))
+        .jwk_cache_ttl(Duration::from_secs(1))
         .jwk_background_refresh_threshold(50) // 50% expiry for background refresh, 1 second
         .build()
         .expect("Failed to build Config");

@@ -95,16 +95,16 @@ impl<'a> JwkApi<'a> {
 
         // Check if we have valid keys in the cache
 
-        trace!("Checking JWT keys cache state");
+        trace!("Checking JWT key cache state");
 
         if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
             let elapsed_seconds = timestamp.elapsed().as_secs();
 
             // If the cache is not expired return the keys
-            if !is_cache_expired(&jwt_key_cache, elapsed_seconds) {
+            if !is_cache_expired(&jwt_key_cache, timestamp) {
                 // If background refresh is enabled & the cache is approaching expiry, trigger a background refresh
                 if jwt_key_cache.config.background_refresh_enabled
-                    && is_cache_approaching_expiry(&jwt_key_cache, elapsed_seconds)
+                    && is_cache_approaching_expiry(&jwt_key_cache, timestamp)
                 {
                     debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
@@ -129,7 +129,7 @@ impl<'a> JwkApi<'a> {
             }
         } else {
             // Trace due to `get_keys` logging as debug
-            trace!("JWT keys cache is empty, keys need to be fetched");
+            trace!("JWT key cache is empty, keys need to be fetched");
         };
 
         // Return error if JWT key refresh is still within default 60 second cooldown period
