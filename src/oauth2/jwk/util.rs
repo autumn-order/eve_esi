@@ -107,8 +107,8 @@ pub(super) fn is_cache_approaching_expiry(
 
     // Determine how many seconds need to pass for the keys to be considered nearing expiration
     // By default, 80% of 3600 second TTL must have elapsed, 2880 seconds.
-    let threshold_percentage = config.background_refresh_threshold / 100;
-    let threshold_seconds = config.cache_ttl.as_secs() * threshold_percentage;
+    let threshold_percentage = config.background_refresh_threshold as f64 / 100.0;
+    let threshold_seconds = (config.cache_ttl.as_secs() as f64 * threshold_percentage) as u64;
 
     // By default, if more than 2880 seconds have elapsed then the keys are nearing expiration.
     let is_approaching_expiry = elapsed_seconds > threshold_seconds;
