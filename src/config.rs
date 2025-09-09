@@ -29,6 +29,8 @@
 //! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_background_refresh_enabled` | Enable/disable background refresh          |
 //! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
+//! | `jwt_issuer`   | Expected issuer of JWT tokens |
+//! | `jwt_audience` | Intended audience JWT tokens are to be used with |
 //!
 //! ## Usage
 //!
@@ -417,7 +419,7 @@ impl ConfigBuilder {
         self
     }
 
-    /// Sets the the expected issuer of JWT tokens
+    /// Expected issuer of JWT tokens
     ///
     /// This is the expected issuer of JSON web tokens used to access
     /// authenticated ESI routes. Typically the EVE Online login server URL.
@@ -433,7 +435,7 @@ impl ConfigBuilder {
         self
     }
 
-    /// Sets the intended audience tokens are expected to be used with
+    /// Intended audience JWT tokens are to be used with
     ///
     /// The intended audience which the JSON web tokens (JWTs) used to access authenticated
     /// ESI routes will be used with. This is primarily used for JWT validation.
