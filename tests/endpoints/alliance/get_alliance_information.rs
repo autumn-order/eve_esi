@@ -29,7 +29,7 @@ async fn get_alliance_information() {
         ticker: "AUTMN".to_string(),
     };
 
-    // Configure mock server with an ESI endpoint returning 404 not found
+    // Configure mock server with an ESI endpoint returning the mock alliance
     let mock = mock_server
         .mock("GET", "/alliances/99013534/")
         .with_status(200)
@@ -63,7 +63,7 @@ async fn get_alliance_information() {
 /// # Assertions
 /// - Assert 1 request was made to the mock server
 /// - Assert result is error
-/// - Assert reqwest error is due to status NOT_FOUND
+/// - Assert error is due to internal server error
 #[tokio::test]
 async fn get_alliance_information_not_found() {
     // Setup a basic EsiClient & mock HTTP server
@@ -88,17 +88,9 @@ async fn get_alliance_information_not_found() {
 
     // Assert result is error
     assert!(result.is_err());
-    match result {
-        Err(eve_esi::Error::ReqwestError(err)) => {
-            // Assert reqwest error is due to status NOT_FOUND
-            assert!(err.status().is_some());
-            assert_eq!(err.status().unwrap(), reqwest::StatusCode::NOT_FOUND);
-        }
-        err => {
-            panic!(
-                "Expected ReqwestError, got different error type: {:#?}",
-                err
-            )
-        }
-    }
+
+    // Assert error is due to internal server error
+    assert!(
+        matches!(result, Err(eve_esi::Error::ReqwestError(ref e)) if e.status() == Some(reqwest::StatusCode::NOT_FOUND))
+    );
 }
