@@ -208,12 +208,12 @@ impl<'a> OAuth2Api<'a> {
             .await
         {
             Ok(token) => {
-                debug!("{}", "JWT Token fetched successfully");
+                debug!("{}", "JWT Token refreshed successfully");
 
                 Ok(token)
             }
             Err(err) => {
-                let message = format!("Error fetching refresh token: {:#?}", err);
+                let message = format!("Error refreshing JWT token token: {:#?}", err);
                 error!("{}", message);
 
                 Err(Error::OAuthError(OAuthError::RequestTokenError(err)))

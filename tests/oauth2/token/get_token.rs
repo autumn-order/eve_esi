@@ -1,103 +1,87 @@
-use mockito::Server;
 use oauth2::RequestTokenError;
 
-use super::super::util::jwt::create_mock_token;
-use crate::util::setup;
+use crate::{
+    oauth2::token::util::{get_token_bad_request_response, get_token_success_response},
+    util::setup,
+};
 
 /// Tests the successful retrieval of an OAuth2 token
 ///
 /// # Setup
-/// - Create a Client configured with OAuth2 and a mock server
-/// - Configures a mock response with a successful token response
+/// - Create Client configured with OAuth2 & mock server
+/// - Create mock response with 200 success response & mock token
 ///
 /// # Assertions
-/// - Verifies that a request has been made to the mock server
-/// - Verifies that the token response is successful
+/// - Assert only 1 fetch request was made
+/// - Assert result is ok
 #[tokio::test]
 pub async fn test_get_token_success() {
     // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
-    // Create mock response
-    let mock_token = create_mock_token(false);
-    let mock = mock_server
-        .mock("POST", "/v2/oauth/token")
-        .with_status(200)
-        .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&mock_token).unwrap())
-        .create();
-
-    // Create ESI client configured for OAuth2 with mock token endpoint
+    // Create mock response with 200 success response & mock token
+    let mock = get_token_success_response(&mut mock_server, 1);
 
     // Call the get_token method
     let result = client.oauth2().get_token("authorization_code").await;
 
+    // Assert only 1 fetch request was made
     mock.assert();
+
+    // Assert result is ok
     assert!(result.is_ok());
 }
 
 /// Tests error handling when failing to retrieve an OAuth2 token
 ///
 /// # Setup
-/// - Create an Client configured with OAuth2 and a mock server
-/// - Configures a mock response with a bad request status code
+/// - Create Client configured with OAuth2 & mock server
+/// - Create mock response returning a 400 bad request
 ///
 /// # Assertions
-/// - Verifies that a request has been made to the mock server
-/// - Verifies that the error is of the [`RequestTokenError::ServerResponse`] type
+/// - Assert only 1 fetch request was made
+/// - Assert result is err
+/// - Assert error is of type RequestTokenError::ServerResponse
 #[tokio::test]
 pub async fn test_get_token_error() {
     // Create Client configured with OAuth2 & mock server
     let (client, mut mock_server) = setup().await;
 
-    // Create mock response
-    let mock = mock_server
-        .mock("POST", "/v2/oauth/token")
-        .with_status(400)
-        .with_header("content-type", "application/json")
-        .with_body(r#"{"error": "invalid_request"}"#)
-        .create();
+    // Create mock response returning a 400 bad request
+    let mock = get_token_bad_request_response(&mut mock_server, 1);
 
     // Call the get_token method
     let result = client.oauth2().get_token("authorization_code").await;
 
+    // Assert only 1 fetch request was made
     mock.assert();
-    match result {
-        Ok(_) => panic!("Expected an error"),
-        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::RequestTokenError(
-            RequestTokenError::ServerResponse(_),
-        ))) => {}
-        Err(err) => panic!(
-            "Expected error of type RequestTokenError::ServerResponse, received {:#?}",
-            err
-        ),
-    }
+
+    // Assert result is err
+    assert!(result.is_err());
+
+    // Assert error is of type RequestTokenError::ServerResponse
+    assert!(matches!(
+        result,
+        Err(eve_esi::Error::OAuthError(
+            eve_esi::OAuthError::RequestTokenError(RequestTokenError::ServerResponse(_))
+        ))
+    ));
 }
 
 /// Tests error handling when oauth client is missing
 ///
 /// # Setup
-/// - Creates a mock server to simulate the OAuth2 token endpoint
-/// - Configures a mock response with a bad request status code
+/// - Create ESI client without OAuth2 config & with mock token endpoint
+/// - Create mock response which shouldn't be fetched
 /// - Creates an ESI client without oauth configured
 ///
 /// # Assertions
-/// - Verifies that no request has been made to the mock server
-/// - Verifies that the error is of the [`EsiError::OAuthError(OAuthError::OAuth2NotConfigured)`] type
+/// - Assert no fetch request was made
+/// - Assert result is error
+/// - Assert error is of type OAuthError::OAuth2NotConfigured
 #[tokio::test]
 pub async fn test_get_token_oauth_client_missing() {
-    // Setup mock server
-    let mut mock_server = Server::new_async().await;
-
-    // Create mock response
-    let mock_token = create_mock_token(false);
-    let mock = mock_server
-        .mock("POST", "/v2/oauth/token")
-        .with_status(200)
-        .expect(0) // Expect no calls
-        .with_header("content-type", "application/json")
-        .with_body(serde_json::to_string(&mock_token).unwrap())
-        .create();
+    let (_, mut mock_server) = setup().await;
 
     // Create ESI client without OAuth2 config & with mock token endpoint
     let config = eve_esi::Config::builder()
@@ -111,16 +95,23 @@ pub async fn test_get_token_oauth_client_missing() {
         .build()
         .expect("Failed to build Client");
 
+    // Create mock response which shouldn't be fetched
+    let mock = get_token_bad_request_response(&mut mock_server, 0);
+
     // Call the get_token method
     let result = esi_client.oauth2().get_token("authorization_code").await;
 
-    // Assert
+    // Assert no fetch request was made
     mock.assert();
-    match result {
-        Ok(_) => panic!("Expected an error"),
-        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::OAuth2NotConfigured)) => {}
-        Err(_) => {
-            panic!("Expected error of type EsiError::OAuthError(OAuthError::OAuth2NotConfigured)")
-        }
-    }
+
+    // Assert result is error
+    assert!(result.is_err());
+
+    // Assert error is of type OAuthError::OAuth2NotConfigured
+    assert!(matches!(
+        result,
+        Err(eve_esi::Error::OAuthError(
+            eve_esi::OAuthError::OAuth2NotConfigured
+        ))
+    ))
 }
