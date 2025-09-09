@@ -65,12 +65,11 @@
 use jsonwebtoken::{DecodingKey, Validation};
 use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
-use oauth2::{
-    AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse, TokenResponse,
-};
+use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 
 use crate::error::{Error, OAuthError};
 use crate::model::oauth2::{EveJwtClaims, EveJwtKey, EveJwtKeys};
+use crate::oauth2::client::OAuth2Client;
 use crate::oauth2::OAuth2Api;
 use crate::Client;
 
@@ -107,37 +106,19 @@ impl<'a> OAuth2Api<'a> {
         &self,
         code: &str,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
-        // Attempt to retrieve OAuth2 client from ESI client
-
-        trace!("{}", "Attempting to retrieve OAuth2 client from ESI client");
-
-        let client = match &self.client.inner.oauth2_client {
-            Some(client) => {
-                trace!("{}", "Found OAuth2 client on ESI client");
-
-                client
-            }
-            None => {
-                error!("{}", Error::OAuthError(OAuthError::OAuth2NotConfigured));
-
-                // No OAuth2 client was found due to not being configured
-                return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured));
-            }
-        };
+        let oauth_client = get_oauth_client(self.client)?;
 
         // Attempt to fetch token
         let message = "Attempting to fetch JWT token using provided authorization code";
         debug!("{}", message);
 
-        match client
+        match oauth_client
             .exchange_code(AuthorizationCode::new(code.to_string()))
             .request_async(&self.client.inner.reqwest_client)
             .await
         {
             Ok(token) => {
                 debug!("{}", "JWT Token fetched successfully");
-
-                token.refresh_token().unwrap().secret().to_string();
 
                 Ok(token)
             }
@@ -177,23 +158,7 @@ impl<'a> OAuth2Api<'a> {
         &self,
         refresh_token: String,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
-        // Attempt to retrieve OAuth2 client from ESI client
-
-        trace!("{}", "Attempting to retrieve OAuth2 client from ESI client");
-
-        let client = match &self.client.inner.oauth2_client {
-            Some(client) => {
-                trace!("{}", "Found OAuth2 client on ESI client");
-
-                client
-            }
-            None => {
-                error!("{}", Error::OAuthError(OAuthError::OAuth2NotConfigured));
-
-                // No OAuth2 client was found due to not being configured
-                return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured));
-            }
-        };
+        let oauth_client = get_oauth_client(self.client)?;
 
         // Convert refresh_token string to RefreshToken
         let refresh_token = RefreshToken::new(refresh_token);
@@ -202,7 +167,7 @@ impl<'a> OAuth2Api<'a> {
         let message = "Attempting to refresh JWT token using provided refresh token";
         debug!("{}", message);
 
-        match client
+        match oauth_client
             .exchange_refresh_token(&refresh_token)
             .request_async(&self.client.inner.reqwest_client)
             .await
@@ -367,4 +332,24 @@ fn get_first_rs256_key(jwt_keys: &EveJwtKeys) -> Option<&EveJwtKey> {
         .keys
         .iter()
         .find(|key| matches!(key, EveJwtKey::RS256 { .. }))
+}
+
+/// Utility function to retrieve OAuth2 client or return an error
+fn get_oauth_client(client: &Client) -> Result<&OAuth2Client, Error> {
+    // Attempt to retrieve OAuth2 client from ESI client
+    trace!("{}", "Attempting to retrieve OAuth2 client from ESI client");
+
+    match client.inner.oauth2_client {
+        Some(ref client) => {
+            trace!("{}", "Found OAuth2 client on ESI client");
+
+            Ok(client)
+        }
+        None => {
+            error!("{}", Error::OAuthError(OAuthError::OAuth2NotConfigured));
+
+            // No OAuth2 client was found due to not being configured
+            Err(Error::OAuthError(OAuthError::OAuth2NotConfigured))
+        }
+    }
 }
