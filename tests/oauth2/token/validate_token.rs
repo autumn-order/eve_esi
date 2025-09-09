@@ -67,7 +67,7 @@ pub async fn test_validate_token_success() {
 /// # Assertions
 /// - Assert JWT key fetch was attempted
 /// - Assert token validation resulted in an error
-/// - Assert error of type OAuthError::JwtKeyRefreshCooldown
+/// - Assert error is due to a ReqwestError internal server error
 #[tokio::test]
 async fn test_validate_token_get_jwt_key_failure() {
     // Create Client configured with OAuth2 & mock server
@@ -93,9 +93,15 @@ async fn test_validate_token_get_jwt_key_failure() {
 
     // Assert error is reqwest error of type OAuthError::JwtKeyRefreshFailure
     match result {
-        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::JwtKeyRefreshCooldown(_))) => {}
+        Err(eve_esi::Error::ReqwestError(err)) => {
+            assert!(err.is_status());
+            assert_eq!(
+                err.status(),
+                Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR)
+            )
+        }
         err => panic!(
-            "Expected OAuthError::JwtKeyRefreshCooldown, got different error type: {:#?}",
+            "Expected ReqwestError, got different error type: {:#?}",
             err
         ),
     }

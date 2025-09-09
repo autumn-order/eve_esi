@@ -140,10 +140,14 @@ impl<'a> OAuth2Api<'a> {
                 );
 
                 // Clear the cache to trigger a JWT key refresh on next attempt
-                self.client.inner.jwt_key_cache.clear_cache().await;
+                let cache_cleared = self.client.inner.jwt_key_cache.clear_cache().await;
 
-                // Second attempt (retry)
-                attempt_validation(&self.client, &token_secret).await
+                // Second attempt (retry) if cache was successfully cleared
+                if cache_cleared {
+                    attempt_validation(&self.client, &token_secret).await
+                } else {
+                    Err(err)
+                }
             }
         }
     }

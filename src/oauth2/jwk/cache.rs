@@ -228,7 +228,10 @@ impl JwtKeyCache {
     /// avoid accidentally overwriting an update immediately after it occurs. The write lock is
     /// then released once the cache is cleared or it is determined the cache is not yet eligible
     /// to clear due to keys being set recently.
-    pub(crate) async fn clear_cache(self: &Self) {
+    ///
+    /// # Returns
+    /// - [`bool`]: Indicates whether or not the cache was cleared.
+    pub(crate) async fn clear_cache(self: &Self) -> bool {
         debug!("Attempting to clear JWT key cache");
 
         // Acquire write lock first to not accidentally overwrite any updates
@@ -247,15 +250,21 @@ impl JwtKeyCache {
                     elapsed
                 );
 
-                *cache = None
+                *cache = None;
+
+                true
             } else {
                 debug!(
                     "JWT key cache not cleared due to keys being within {} seconds of age",
                     self.config.refresh_cooldown.as_secs()
-                )
+                );
+
+                false
             }
         } else {
-            debug!("JWT key cache is currently empty, no need to clear it.")
+            debug!("JWT key cache is currently empty, no need to clear it.");
+
+            false
         }
     }
 
@@ -487,6 +496,7 @@ mod clear_cache_tests {
     /// - Fill JWT key cache with mock keys older than 60 seconds
     ///
     /// # Assert
+    /// - Assert attempt was made to clear the cache
     /// - Assert cache is now empty
     #[tokio::test]
     async fn cache_clear_success() {
@@ -505,7 +515,10 @@ mod clear_cache_tests {
         } // Write lock released here
 
         // Clear the JWT key cache
-        esi_client.inner.jwt_key_cache.clear_cache().await;
+        let cache_cleared = esi_client.inner.jwt_key_cache.clear_cache().await;
+
+        // Assert attempt was made to clear the cache
+        assert_eq!(cache_cleared, true);
 
         // Assert cache is now empty
         let cache = esi_client.inner.jwt_key_cache.get_keys().await;
@@ -522,6 +535,7 @@ mod clear_cache_tests {
     ///
     /// # Assert
     /// - Assert refresh lock is in place
+    /// - Assert no attempt was made to clear the cache
     /// - Assert cache has not been cleared
     #[tokio::test]
     async fn cache_clear_recent_keys() {
@@ -540,7 +554,10 @@ mod clear_cache_tests {
         assert_eq!(lock_acquired, true);
 
         // Attempt to clear the JWT key cache
-        esi_client.inner.jwt_key_cache.clear_cache().await;
+        let cache_cleared = esi_client.inner.jwt_key_cache.clear_cache().await;
+
+        // Assert no attempt was made to clear the cache
+        assert_eq!(cache_cleared, false);
 
         // Assert cache has not been cleared
         let cache = esi_client.inner.jwt_key_cache.get_keys().await;
