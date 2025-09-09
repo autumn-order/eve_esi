@@ -90,11 +90,12 @@ impl<'a> OAuth2Api<'a> {
         code: &str,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
         // Attempt to retrieve OAuth2 client from ESI client
-        trace!("Attempting to retrieve OAuth2 client from ESI client");
+
+        trace!("{}", "Attempting to retrieve OAuth2 client from ESI client");
 
         let client = match &self.client.inner.oauth2_client {
             Some(client) => {
-                trace!("Found OAuth2 client on ESI client");
+                trace!("{}", "Found OAuth2 client on ESI client");
 
                 client
             }
@@ -107,7 +108,8 @@ impl<'a> OAuth2Api<'a> {
         };
 
         // Attempt to fetch token
-        debug!("Attempting to fetch JWT token using provided authorization code");
+        let message = "Attempting to fetch JWT token using provided authorization code";
+        debug!("{}", message);
 
         match client
             .exchange_code(AuthorizationCode::new(code.to_string()))
@@ -115,12 +117,13 @@ impl<'a> OAuth2Api<'a> {
             .await
         {
             Ok(token) => {
-                debug!("JWT Token fetched successfully");
+                debug!("{}", "JWT Token fetched successfully");
 
                 Ok(token)
             }
             Err(err) => {
-                error!("Error fetching token: {:#?}", err);
+                let message = format!("Error fetching token: {:#?}", err);
+                error!("{}", message);
 
                 Err(Error::OAuthError(OAuthError::RequestTokenError(err)))
             }
@@ -162,14 +165,21 @@ impl<'a> OAuth2Api<'a> {
 
                 // Second attempt (retry) if cache was successfully cleared
                 if cache_cleared {
-                    debug!(
+                    let message = format!(
                         "Making 2nd attempt to validate token due to previous error: {:#?}",
                         &err
                     );
 
+                    debug!("{}", message);
+
                     attempt_validation(&self.client, &token_secret).await
                 } else {
-                    debug!("1st attempt to validate token failed, will not retry due to cache keys still being new: {:#?}", &err);
+                    let message = format!(
+                        "Making 2nd attempt to validate token due to previous error: {:#?}",
+                        &err
+                    );
+
+                    debug!("{}", message);
 
                     Err(err)
                 }
@@ -230,15 +240,19 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
                 let id_str = token_data.claims.sub.split(':').collect::<Vec<&str>>()[2];
                 let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
 
-                info!(
+                let message = format!(
                     "Successfully validated JWT token for character ID: {}",
                     character_id
                 );
 
+                info!("{}", message);
+
                 Ok(token_data.claims)
             }
             Err(err) => {
-                error!("Failed to validate token with RS256 key: {}", &err);
+                let message = format!("Failed to validate token with RS256 key: {}", &err);
+
+                error!("{}", message);
 
                 Err(Error::OAuthError(OAuthError::ValidateTokenError(err)))
             }
