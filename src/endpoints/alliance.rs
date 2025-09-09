@@ -57,7 +57,7 @@ impl<'a> AllianceApi<'a> {
     /// Retrieves a list of IDs of every alliance in EVE Online
     ///
     /// # EVE ESI Reference
-    /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliances)>
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliances>
     ///
     /// # Returns
     /// A result containing either:
@@ -145,6 +145,62 @@ impl<'a> AllianceApi<'a> {
             Err(err) => {
                 let message = format!(
                     "Failed to fetch alliance information for alliance ID {} after {}ms due to error: {:#?}",
+                    alliance_id,
+                    elapsed.as_millis(),
+                    err
+                );
+
+                error!("{}", message);
+
+                Err(err.into())
+            }
+        }
+    }
+
+    /// Retrieves the IDs of all corporations part of the provided alliance_id
+    ///
+    /// # EVE ESI Reference
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceIdCorporations>
+    ///
+    /// # Returns
+    /// A result containing either:
+    /// - `Vec<`[`i32`]`>`: A vec of the ID of every corporation part of the alliance
+    /// - [`Error`]: An error if the fetch request failed
+    pub async fn list_alliance_corporations(&self, alliance_id: i32) -> Result<Vec<i32>, Error> {
+        let url = format!(
+            "{}/alliances/{}/corporations",
+            self.client.inner.esi_url, alliance_id
+        );
+
+        let message = format!(
+            "Fetching IDs of all corporations part of alliance {} from {}",
+            alliance_id, url
+        );
+
+        debug!("{}", message);
+
+        let start_time = Instant::now();
+
+        // Fetch all alliances
+        let result = self.client.get_from_public_esi::<Vec<i32>>(&url).await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(corporations) => {
+                let message = format!(
+                    "Successfully fetched IDs for {} corporation(s) part of alliance {} (took {}ms)",
+                    corporations.len(),
+                    alliance_id,
+                    elapsed.as_millis()
+                );
+
+                info!("{}", message);
+
+                Ok(corporations)
+            }
+            Err(err) => {
+                let message = format!(
+                    "Failed to fetch IDs of all corporations part of alliance {} after {}ms due to error: {:#?}",
                     alliance_id,
                     elapsed.as_millis(),
                     err

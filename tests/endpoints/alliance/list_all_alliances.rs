@@ -10,7 +10,6 @@ use crate::util::setup;
 /// # Assertions
 /// - Assert 1 request was made to the mock server
 /// - Assert result is Ok
-/// - Assert received expected alliance data
 #[tokio::test]
 async fn test_list_all_alliances_success() {
     // Setup a basic EsiClient & mock HTTP server
