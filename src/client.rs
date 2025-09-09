@@ -67,6 +67,10 @@ pub(crate) struct ClientRef {
     /// Cache containing JWT keys for validating OAuth2 tokens and fields for coordinating
     /// cache usage & refreshes across threads.
     pub(crate) jwt_key_cache: JwtKeyCache,
+    /// The EVE Online login server URL which represents the expected issuer of tokens
+    pub(crate) jwt_issuer: String,
+    /// The intended audience which JWT tokens will be used with
+    pub(crate) jwt_audience: String,
 }
 
 impl Client {

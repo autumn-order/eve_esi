@@ -12,6 +12,7 @@
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
 use log::{debug, trace};
+use std::time::Instant;
 
 use crate::oauth2::jwk::cache::JwtKeyCache;
 
@@ -29,11 +30,8 @@ use crate::oauth2::jwk::cache::JwtKeyCache;
 ///   timestamp
 ///
 /// # Arguments
-/// - `jwk_refresh_cooldown` ([`u64`]): Cooldown in seconds between background refresh
-///   attempts as defined by the [`OAuthConfig::jwk_refresh_cooldown`](crate::oauth2::OAuth2Config::jwk_refresh_cooldown)
-///   field used by the [`Client`](crate::Client). By default this is 60 seconds.
-/// - `jwt_key_last_refresh_failure` ([`Client::jwt_keys_last_refresh_failure`](crate::Client::jwt_keys_last_refresh_failure)):
-///   field representing the last failed JWT key refresh attempt.
+/// - `jwt_key_cache` (&[`JwtKeyCache`]): cache which contains the config for JWT key caching &
+///   refreshing policies.
 ///
 /// # Returns
 /// - Some([`u64`]): Indicating the JWT key refresh cooldown remaining
@@ -49,7 +47,6 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
         let is_cooldown = elapsed_secs < config.refresh_cooldown.as_secs();
 
         if is_cooldown {
-            #[cfg(not(tarpaulin_include))]
             debug!(
                 "Respecting background refresh cooldown: {}s elapsed of {}s required",
                 elapsed_secs,
@@ -61,7 +58,6 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
 
             return Some(remaining_cooldown);
         } else {
-            #[cfg(not(tarpaulin_include))]
             trace!(
                 "Background cooldown period elapsed: {}s passed (required {}s)",
                 elapsed_secs,
@@ -87,36 +83,32 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
 /// refresh should be triggered.
 ///
 /// # Parameters
-/// - `jwt_key_cache_ttl` ([`u64`]): Lifetime in seconds before cache is considered expired which
-///   is defined by the [`OAuthConfig::jwk_cache_ttl`](crate::oauth2::OAuth2Config::jwk_cache_ttl)
-///   field used by the [`Client`](crate::Client). By default this 3600 seconds
-///   representing 1 hour.
-/// - `background_refresh_threshold` ([`u64`]): Number representing % when cache is considered
-///   nearing expiry which is defined by the
-///   [`OAuthConfig::jwk_background_refresh_threshold_percent`](crate::oauth2::OAuth2Config::jwk_background_refresh_threshold_percent)
-///   field used by the [`Client`](crate::Client) which represents the percentage of the total
-///   TTL after which we consider the cache to be approaching expiry. By default this is 80%.
-/// - `elapsed_seconds` ([`u64`]): Number of seconds since the cache was last updated
+/// - `jwt_key_cache` (&[`JwtKeyCache`]): cache which contains the config for JWT key caching &
+///   refreshing policies.
+/// - `timestamp` ([`Instant`]): Timestamp of when the keys stored in cache were last updated.
 ///
 /// # Returns
 /// - `true` if the elapsed time exceeds the threshold percentage of the TTL
 /// - `false` if the cache is still well within its valid period
-pub(super) fn is_cache_approaching_expiry(
-    jwt_key_cache: &JwtKeyCache,
-    elapsed_seconds: u64,
-) -> bool {
+pub(super) fn is_cache_approaching_expiry(jwt_key_cache: &JwtKeyCache, timestamp: Instant) -> bool {
     let config = &jwt_key_cache.config;
+
+    // Calculate elasped milliseconds
+    let elapsed_millis = timestamp.elapsed().as_millis();
 
     // Determine how many seconds need to pass for the keys to be considered nearing expiration
     // By default, 80% of 3600 second TTL must have elapsed, 2880 seconds.
-    let threshold_percentage = config.background_refresh_threshold / 100;
-    let threshold_seconds = config.cache_ttl.as_secs() * threshold_percentage;
+    let threshold_percentage = config.background_refresh_threshold as f64 / 100.0;
+    let threshold_millis = (config.cache_ttl.as_millis() as f64 * threshold_percentage) as u128;
 
     // By default, if more than 2880 seconds have elapsed then the keys are nearing expiration.
-    let is_approaching_expiry = elapsed_seconds > threshold_seconds;
+    let is_approaching_expiry = elapsed_millis > threshold_millis;
+
+    // Return result
+    let elapsed_seconds = timestamp.elapsed().as_secs();
+    let threshold_seconds = (config.cache_ttl.as_secs() as f64 * threshold_percentage) as u64;
 
     if is_approaching_expiry {
-        #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
             elapsed_seconds,
@@ -128,7 +120,6 @@ pub(super) fn is_cache_approaching_expiry(
         // Return true if cache is approaching expiry
         true
     } else {
-        #[cfg(not(tarpaulin_include))]
         trace!(
                 "JWT keys cache not yet approaching expiry: elapsed={}s, threshold={}s ({}% of ttl={}s)",
                 elapsed_seconds,
@@ -148,36 +139,31 @@ pub(super) fn is_cache_approaching_expiry(
 /// exceeded the configured JWT key cache lifetime which indicates expiration.
 ///
 /// # Parameters
-/// - `jwt_key_cache_ttl` ([`u64`]): Lifetime in seconds before cache is considered expired
-///   which is defined by the
-///   [`OAuthConfig::jwk_cache_ttl`](crate::oauth2::OAuth2Config::jwk_cache_ttl)
-///   field used by [`Client`](crate::Client). By default this is 3600 seconds
-///   representing 1 hour.
-/// - `elapsed_seconds` ([`u64`]): Number of seconds since the cache was last updated
+/// - `jwt_key_cache` (&[`JwtKeyCache`]): cache which contains the config for JWT key caching &
+///   refreshing policies.
+/// - `timestamp` ([`Instant`]): Timestamp of when the keys stored in cache were last updated.
 ///
 /// # Returns
 /// - `true` if the elapsed time has reached or exceeded the TTL
 /// - `false` if the cache is still within its valid period
-pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, elapsed_seconds: u64) -> bool {
+pub(super) fn is_cache_expired(jwt_key_cache: &JwtKeyCache, timestamp: Instant) -> bool {
     let cache_ttl = jwt_key_cache.config.cache_ttl;
 
-    let is_expired = elapsed_seconds >= cache_ttl.as_secs();
+    let is_expired = timestamp.elapsed().as_millis() >= cache_ttl.as_millis();
 
     if is_expired {
-        #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT keys cache expired: elapsed={}s, ttl={}s",
-            elapsed_seconds,
+            timestamp.elapsed().as_secs(),
             cache_ttl.as_secs()
         );
 
         // Return true if cache is not yet expired
         true
     } else {
-        #[cfg(not(tarpaulin_include))]
         trace!(
             "JWT keys cache valid: elapsed={}s, ttl={}s",
-            elapsed_seconds,
+            timestamp.elapsed().as_secs(),
             cache_ttl.as_secs()
         );
 
@@ -298,6 +284,7 @@ mod is_refresh_cooldown_tests {
 
 #[cfg(test)]
 mod is_cache_approaching_expiry_tests {
+
     use crate::Client;
 
     use super::is_cache_approaching_expiry;
@@ -324,10 +311,9 @@ mod is_cache_approaching_expiry_tests {
         // Set the expiration timestamp to psat default expiry of 2880 seconds
         // Default approaching expiry is 2880 seconds (80% of 3600 seconds default)
         let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(2881);
-        let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert true
         assert_eq!(result, true)
@@ -354,10 +340,9 @@ mod is_cache_approaching_expiry_tests {
 
         // Set the expiration timestamp to represent fresh keys
         let timestamp = std::time::Instant::now();
-        let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert false
         assert_eq!(result, false)
@@ -390,10 +375,9 @@ mod is_cache_expired_tests {
 
         // Set expiration timestamp to past default expiration of 3600 seconds
         let timestamp = std::time::Instant::now() - std::time::Duration::from_secs(3601);
-        let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.inner.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert true
         assert_eq!(result, true)
@@ -420,10 +404,9 @@ mod is_cache_expired_tests {
 
         // Set expiration timestamp to represent fresh keys
         let timestamp = std::time::Instant::now();
-        let elapsed_seconds = timestamp.elapsed().as_secs();
 
         // Test function
-        let result = is_cache_expired(&esi_client.inner.jwt_key_cache, elapsed_seconds);
+        let result = is_cache_expired(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert true
         assert_eq!(result, false)

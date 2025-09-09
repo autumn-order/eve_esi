@@ -9,7 +9,7 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use log::{debug, error};
+use log::{debug, error, trace};
 use std::time::Instant;
 
 use crate::error::{Error, OAuthError};
@@ -94,19 +94,18 @@ impl<'a> JwkApi<'a> {
         let config = &jwt_key_cache.config;
 
         // Check if we have valid keys in the cache
-        #[cfg(not(tarpaulin_include))]
-        debug!("Checking JWT keys cache state");
+
+        trace!("Checking JWT key cache state");
 
         if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
             let elapsed_seconds = timestamp.elapsed().as_secs();
 
             // If the cache is not expired return the keys
-            if !is_cache_expired(&jwt_key_cache, elapsed_seconds) {
+            if !is_cache_expired(&jwt_key_cache, timestamp) {
                 // If background refresh is enabled & the cache is approaching expiry, trigger a background refresh
                 if jwt_key_cache.config.background_refresh_enabled
-                    && is_cache_approaching_expiry(&jwt_key_cache, elapsed_seconds)
+                    && is_cache_approaching_expiry(&jwt_key_cache, timestamp)
                 {
-                    #[cfg(not(tarpaulin_include))]
                     debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
                     // If the cache is 80% to expiration out of 1 hour, start a refresh
@@ -116,23 +115,21 @@ impl<'a> JwkApi<'a> {
                     let _ = self.trigger_background_jwt_refresh().await;
                 }
 
-                #[cfg(not(tarpaulin_include))]
-                debug!(
+                trace!(
                     "JWT keys still valid, using keys from cache (age: {}s)",
                     elapsed_seconds
                 );
 
                 return Ok(keys);
             } else {
-                #[cfg(not(tarpaulin_include))]
                 debug!(
                     "JWT key cache expired (age: {}s)",
                     timestamp.elapsed().as_secs()
                 );
             }
         } else {
-            #[cfg(not(tarpaulin_include))]
-            debug!("JWT key cache is currently empty");
+            // Trace due to `get_keys` logging as debug
+            trace!("JWT key cache is empty, keys need to be fetched");
         };
 
         // Return error if JWT key refresh is still within default 60 second cooldown period
@@ -146,7 +143,6 @@ impl<'a> JwkApi<'a> {
                 &config.refresh_cooldown.as_secs(), cooldown_remaining
             );
 
-            #[cfg(not(tarpaulin_include))]
             error!("{}", error_message);
 
             return Err(Error::OAuthError(OAuthError::JwtKeyRefreshCooldown(
@@ -239,7 +235,6 @@ pub(super) async fn fetch_jwt_keys(
     reqwest_client: &reqwest::Client,
     jwk_url: &str,
 ) -> Result<EveJwtKeys, Error> {
-    #[cfg(not(tarpaulin_include))]
     debug!("Fetching JWT keys from EVE OAuth2 API: {}", jwk_url);
 
     let start_time = Instant::now();
@@ -247,7 +242,6 @@ pub(super) async fn fetch_jwt_keys(
     // Fetch fresh keys from EVE's OAuth2 API
     let response = match reqwest_client.get(jwk_url.to_string()).send().await {
         Ok(resp) => {
-            #[cfg(not(tarpaulin_include))]
             debug!(
                 "Received response from JWT keys endpoint, status: {}",
                 resp.status()
@@ -264,7 +258,6 @@ pub(super) async fn fetch_jwt_keys(
         Err(e) => {
             let elapsed = start_time.elapsed();
 
-            #[cfg(not(tarpaulin_include))]
             error!(
                 "Failed to connect to JWT keys endpoint after {}ms: {:?}",
                 elapsed.as_millis(),
@@ -280,8 +273,7 @@ pub(super) async fn fetch_jwt_keys(
         Ok(keys) => {
             let elapsed = start_time.elapsed();
 
-            #[cfg(not(tarpaulin_include))]
-            debug!(
+            trace!(
                 "Successfully parsed JWT keys response with {} keys (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
@@ -293,7 +285,6 @@ pub(super) async fn fetch_jwt_keys(
         Err(e) => {
             let elapsed = start_time.elapsed();
 
-            #[cfg(not(tarpaulin_include))]
             error!(
                 "Failed to parse JWT keys response after {}ms: {:?}",
                 elapsed.as_millis(),
@@ -330,8 +321,7 @@ pub(super) async fn fetch_and_update_cache(
     reqwest_client: &reqwest::Client,
     jwt_key_cache: &JwtKeyCache,
 ) -> Result<EveJwtKeys, Error> {
-    #[cfg(not(tarpaulin_include))]
-    debug!("Fetching fresh JWT keys and updating cache");
+    trace!("Fetching fresh JWT keys and updating cache");
 
     let start_time = Instant::now();
 
@@ -340,8 +330,7 @@ pub(super) async fn fetch_and_update_cache(
 
     match fetch_result {
         Ok(fresh_keys) => {
-            #[cfg(not(tarpaulin_include))]
-            debug!(
+            trace!(
                 "Successfully fetched {} JWT keys, updating cache",
                 fresh_keys.keys.len()
             );
@@ -351,9 +340,9 @@ pub(super) async fn fetch_and_update_cache(
 
             let elapsed = start_time.elapsed();
 
-            #[cfg(not(tarpaulin_include))]
             debug!(
-                "JWT keys cache updated successfully (took {}ms)",
+                "JWT keys cache updated successfully with {} keys (took {}ms)",
+                fresh_keys.keys.len(),
                 elapsed.as_millis()
             );
 
@@ -362,7 +351,6 @@ pub(super) async fn fetch_and_update_cache(
         Err(e) => {
             let elapsed = start_time.elapsed();
 
-            #[cfg(not(tarpaulin_include))]
             error!(
                 "Failed to fetch JWT keys after {}ms: {:?}",
                 elapsed.as_millis(),

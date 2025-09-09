@@ -17,7 +17,7 @@
 use std::time::Instant;
 use std::{sync::atomic::AtomicBool, time::Duration};
 
-use log::{debug, trace};
+use log::{debug, info, trace};
 use tokio::sync::{Notify, RwLock};
 
 use crate::{
@@ -159,7 +159,6 @@ impl JwtKeyCache {
     /// - [`None`] if the cache is empty (no keys have been fetched yet). This typically
     ///   triggers a fetch operation with retry logic when called from higher-level methods.
     pub(super) async fn get_keys(self: &Self) -> Option<(EveJwtKeys, std::time::Instant)> {
-        #[cfg(not(tarpaulin_include))]
         trace!("Attempting to retrieve JWT keys from cache");
 
         // Retrieve the cache
@@ -169,9 +168,8 @@ impl JwtKeyCache {
         if let Some((keys, timestamp)) = &*cache {
             let elapsed = timestamp.elapsed().as_secs();
 
-            #[cfg(not(tarpaulin_include))]
-            trace!(
-                "Found JWT keys in cache: key_count={}, elapsed={}s",
+            debug!(
+                "Found JWT keys in cache: key_count={}, age={}s",
                 keys.keys.len(),
                 elapsed
             );
@@ -180,7 +178,6 @@ impl JwtKeyCache {
             return Some((keys.clone(), timestamp.clone()));
         }
 
-        #[cfg(not(tarpaulin_include))]
         debug!("JWT keys cache is empty, keys need to be fetched");
 
         // Return None since no data was found in the cache
@@ -206,14 +203,72 @@ impl JwtKeyCache {
     /// # Parameters
     /// - `keys`: The EVE JWT keys to store in the cache
     pub(super) async fn update_keys(self: &Self, keys: EveJwtKeys) {
-        #[cfg(not(tarpaulin_include))]
-        debug!("Updating JWT keys cache with {} keys", keys.keys.len());
+        let key_count = keys.keys.len();
 
         let mut cache = self.cache.write().await;
         *cache = Some((keys, std::time::Instant::now()));
 
-        #[cfg(not(tarpaulin_include))]
-        debug!("JWT keys cache successfully updated");
+        debug!(
+            "JWT keys cache successfully updated with {} keys",
+            &key_count
+        );
+    }
+
+    /// Clears the JWT key cache of any keys present
+    ///
+    /// You would typically use this in the event of a validation failure
+    /// indicating that the JWT keys currently in the cache are out of date
+    /// or are malformed.
+    ///
+    /// The cache will not clear if the keys it contains were set within the 60 second
+    /// refresh cooldown period (default). This is intended in case worst case scenario
+    /// this function is called repetitively. This prevents refresh attempts from occurring back
+    /// to back which are triggered when [`super::JwkApi::get_jwt_keys`] is called and the cache
+    /// is expired or empty.
+    ///
+    /// # Thread Safety
+    /// This method acquires a write lock before checking how recently the keys were updated to
+    /// avoid accidentally overwriting an update immediately after it occurs. The write lock is
+    /// then released once the cache is cleared or it is determined the cache is not yet eligible
+    /// to clear due to keys being set recently.
+    ///
+    /// # Returns
+    /// - [`bool`]: Indicates whether or not the cache was cleared.
+    pub(crate) async fn clear_cache(self: &Self) -> bool {
+        debug!("Attempting to clear JWT key cache");
+
+        // Acquire write lock first to not accidentally overwrite any updates
+        let mut cache = self.cache.write().await;
+
+        // Ensure keys aren't recently updated
+        if let Some((_, timestamp)) = &*cache {
+            // If keys are older than 60 second refresh cooldown period (default) clear cache
+            let sixty_seconds_ago = Instant::now() - self.config.refresh_cooldown;
+
+            if timestamp < &sixty_seconds_ago {
+                // Clear the cache
+                let elapsed = timestamp.elapsed().as_secs();
+                info!(
+                    "Clearing JWT key cache of keys that were set {}s ago",
+                    elapsed
+                );
+
+                *cache = None;
+
+                true
+            } else {
+                debug!(
+                    "JWT key cache not cleared due to keys being within {} seconds of age",
+                    self.config.refresh_cooldown.as_secs()
+                );
+
+                false
+            }
+        } else {
+            debug!("JWT key cache is currently empty, no need to clear it.");
+
+            false
+        }
     }
 
     /// Attempts to atomically acquire the refresh lock for updating JWT keys
@@ -248,13 +303,11 @@ impl JwtKeyCache {
         );
 
         if !lock_acquired.is_err() {
-            #[cfg(not(tarpaulin_include))]
             debug!("Successfully acquired JWT key refresh lock");
 
             // Lock successfully acquired
             true
         } else {
-            #[cfg(not(tarpaulin_include))]
             trace!("Failed to acquire JWT key refresh lock (already held by another thread)");
 
             // Lock already in use
@@ -281,19 +334,12 @@ impl JwtKeyCache {
     /// that subsequently acquire the lock or are notified.
     pub(super) fn refresh_lock_release_and_notify(self: &Self) {
         // Release the lock
-        #[cfg(not(tarpaulin_include))]
-        debug!("Releasing JWT key refresh lock");
-
         self.refresh_lock
             .store(false, std::sync::atomic::Ordering::Release);
 
         // Notify waiters
-        #[cfg(not(tarpaulin_include))]
-        trace!("Notifying waiters about JWT key refresh completion");
-
         self.refresh_notifier.notify_waiters();
 
-        #[cfg(not(tarpaulin_include))]
         debug!("JWT key refresh lock released and waiters notified");
     }
 
@@ -319,7 +365,9 @@ impl JwtKeyCache {
 
 #[cfg(test)]
 mod cache_get_keys_tests {
-    use crate::{model::oauth2::EveJwtKeys, Client};
+    use crate::Client;
+
+    use super::super::tests::create_mock_keys;
 
     /// Validates function returns Some keys when cache has keys
     ///
@@ -344,7 +392,7 @@ mod cache_get_keys_tests {
 
         // Set JWT key cache
         {
-            let keys = (EveJwtKeys::create_mock_keys(), std::time::Instant::now());
+            let keys = (create_mock_keys(), std::time::Instant::now());
 
             let mut cache = jwt_key_cache.cache.write().await;
             *cache = Some(keys);
@@ -390,7 +438,9 @@ mod cache_get_keys_tests {
 
 #[cfg(test)]
 mod cache_update_keys_tests {
-    use crate::{model::oauth2::EveJwtKeys, Client};
+    use crate::Client;
+
+    use super::super::tests::create_mock_keys;
 
     /// Validates that cache properly updates with new keys
     ///
@@ -414,7 +464,7 @@ mod cache_update_keys_tests {
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Create mock keys
-        let mock_keys = EveJwtKeys::create_mock_keys();
+        let mock_keys = create_mock_keys();
 
         // Test function
         jwt_key_cache.update_keys(mock_keys).await;
@@ -424,6 +474,92 @@ mod cache_update_keys_tests {
         let result = &*cache;
 
         assert!(result.is_some())
+    }
+}
+
+#[cfg(test)]
+mod clear_cache_tests {
+    use std::time::{Duration, Instant};
+
+    use super::super::tests::create_mock_keys;
+    use crate::tests::setup;
+
+    /// Cache successfully cleared
+    ///
+    /// Cache will clear so long as keys present are older than 60 seconds.
+    ///
+    /// # Test Setup
+    /// - Setup a basic ESI client
+    /// - Fill JWT key cache with mock keys older than 60 seconds
+    ///
+    /// # Assert
+    /// - Assert attempt was made to clear the cache
+    /// - Assert cache is now empty
+    #[tokio::test]
+    async fn cache_clear_success() {
+        // Setup a basic ESI client
+        let (esi_client, _) = setup().await;
+
+        // Fill JWT key cache with mock keys older than 60 seconds
+        {
+            // Create timestamp older than 60 seconds
+            let mock_keys = create_mock_keys();
+            let timestamp = Instant::now() - Duration::from_secs(61);
+
+            // Acquire write lock & set cache
+            let mut cache = esi_client.inner.jwt_key_cache.cache.write().await;
+            *cache = Some((mock_keys, timestamp))
+        } // Write lock released here
+
+        // Clear the JWT key cache
+        let cache_cleared = esi_client.inner.jwt_key_cache.clear_cache().await;
+
+        // Assert attempt was made to clear the cache
+        assert_eq!(cache_cleared, true);
+
+        // Assert cache is now empty
+        let cache = esi_client.inner.jwt_key_cache.get_keys().await;
+
+        assert!(cache.is_none())
+    }
+
+    /// Cache doesn't clear because keys are recent
+    ///
+    /// # Test Setup
+    /// - Setup a basic ESI client
+    /// - Fill JWT key cache with mock keys
+    /// - Acquire a refresh lock to indicate a refresh is ongoing
+    ///
+    /// # Assert
+    /// - Assert refresh lock is in place
+    /// - Assert no attempt was made to clear the cache
+    /// - Assert cache has not been cleared
+    #[tokio::test]
+    async fn cache_clear_recent_keys() {
+        // Setup a basic ESI client
+        let (esi_client, _) = setup().await;
+
+        // Fill JWT key cache with recent mock keys
+        let mock_keys = create_mock_keys();
+
+        esi_client.inner.jwt_key_cache.update_keys(mock_keys).await;
+
+        // Acquire a refresh lock
+        let lock_acquired = esi_client.inner.jwt_key_cache.refresh_lock_try_acquire();
+
+        // Assert refresh lock is in place
+        assert_eq!(lock_acquired, true);
+
+        // Attempt to clear the JWT key cache
+        let cache_cleared = esi_client.inner.jwt_key_cache.clear_cache().await;
+
+        // Assert no attempt was made to clear the cache
+        assert_eq!(cache_cleared, false);
+
+        // Assert cache has not been cleared
+        let cache = esi_client.inner.jwt_key_cache.get_keys().await;
+
+        assert!(cache.is_some())
     }
 }
 

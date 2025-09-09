@@ -146,6 +146,8 @@ impl ClientBuilder {
             // OAuth2
             oauth2_client: oauth_client,
             jwt_key_cache: jwt_key_cache,
+            jwt_issuer: config.jwt_issuer,
+            jwt_audience: config.jwt_audience,
         };
 
         // Wrap ClientRef in Client
@@ -307,7 +309,6 @@ fn get_or_default_reqwest_client(
     match client {
         Some(client) => {
             if user_agent.is_some() {
-                #[cfg(not(tarpaulin_include))]
                 warn!("user_agent is set on `ClientBuilder` but so is reqwest_client, as a result the user_agent will not be applied and should be instead applied to the provided reqwest client if not done so already.");
             }
 

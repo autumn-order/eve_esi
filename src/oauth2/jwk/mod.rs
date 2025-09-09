@@ -1,12 +1,11 @@
-//! JSON Web Keys (JWK) Management for EVE ESI OAuth2
+//! JSON Web Token Keys (JWK) Management for EVE ESI OAuth2
 //!
 //! This module provides a comprehensive implementation for managing JSON Web Keys (JWKs)
 //! used in OAuth2 authentication with EVE Online's ESI API. It handles fetching, caching,
 //! validation, and automatic background refreshing of JWT keys with thread-safe operations.
 //!
 //! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or
-//! the endpoints used for EVE OAuth2 can be overridden using the
-//! [`Config`](crate::Config).
+//! the endpoints used for EVE OAuth2 can be overridden using the [`Config`](crate::Config).
 //!
 //! # Key Features
 //!
@@ -18,7 +17,9 @@
 //!
 //! # Usage
 //!
-//! The main entry point for this module is the [`JwkApi::get_jwt_keys`] method, which:
+//! The main entry point for this module is through `esi_client.oauth2().jwk()`.
+//!
+//! The primary method is the [`JwkApi::get_jwt_keys`] method, which:
 //! 1. Returns cached keys if they're valid
 //! 2. Triggers background refresh if keys are approaching expiry
 //! 3. Fetches new keys if the cache is empty or expired
@@ -27,6 +28,27 @@
 //! Alternatively you can use:
 //! - [`JwkApi::fetch_jwt_keys`]: If you simply wish to fetch keys with no caching
 //! - [`JwkApi::fetch_and_update_cache`]: If you want to update cache regardless of expiration
+//!
+//! ```no_run
+//! #[tokio::main]
+//! async fn main() {
+//!     let esi_client = eve_esi::Client::builder()
+//!         .user_agent("MyApp/1.0 (contact@example.com)")
+//!         .build()
+//!         .expect("Failed to build ESI client");
+//!
+//!     // Fetch keys, don't update cache
+//!     let jwt_keys = esi_client.oauth2().jwk().fetch_jwt_keys().await.unwrap();
+//!
+//!     // Fetch keys, update cache regardless of expiration
+//!     let jwt_keys = esi_client.oauth2().jwk().fetch_and_update_cache().await.unwrap();
+//!
+//!     // Get keys from cache or refresh if cache is empty or expired
+//!     // Will proactively refresh keys if nearing expiration as well
+//!     let jwt_keys = esi_client.oauth2().jwk().get_jwt_keys().await.unwrap();
+//! }
+//!
+//! ```
 //!
 //! # Thread Safety
 //!

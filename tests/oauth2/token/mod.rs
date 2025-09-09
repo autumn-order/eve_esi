@@ -1,2 +1,2 @@
 mod get_token;
-pub mod util;
+mod validate_token;

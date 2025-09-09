@@ -29,6 +29,8 @@
 //! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_background_refresh_enabled` | Enable/disable background refresh          |
 //! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
+//! | `jwt_issuer`   | Expected issuer of JWT tokens |
+//! | `jwt_audience` | Intended audience JWT tokens are to be used with |
 //!
 //! ## Usage
 //!
@@ -55,7 +57,10 @@ use std::time::Duration;
 use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
-    constant::{DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_TOKEN_URL},
+    constant::{
+        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER,
+        DEFAULT_TOKEN_URL,
+    },
     error::{ConfigError, Error},
     oauth2::jwk::cache::JwtKeyCacheConfig,
 };
@@ -75,6 +80,10 @@ pub struct Config {
     // JWT Key Settings
     /// Config for JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
+    /// The EVE Online login server URL which represents the expected issuer of tokens
+    pub(crate) jwt_issuer: String,
+    /// The intended audience which JWT tokens will be used with
+    pub(crate) jwt_audience: String,
 }
 
 /// Builder struct for configuring & constructing an [`Config`] to override default [`Client`](crate::Client) settings
@@ -92,6 +101,10 @@ pub struct ConfigBuilder {
     // OAuth2 JWT key config
     /// Config for OAuth2 JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
+    /// The EVE Online login server URL which represents the expected issuer of tokens
+    pub(crate) jwt_issuer: String,
+    /// The intended audience which JWT tokens will be used with
+    pub(crate) jwt_audience: String,
 }
 
 impl Config {
@@ -138,6 +151,8 @@ impl ConfigBuilder {
 
             // OAuth2 JWT key config
             jwt_key_cache_config: JwtKeyCacheConfig::new(),
+            jwt_issuer: DEFAULT_JWT_ISSUER.to_string(),
+            jwt_audience: DEFAULT_JWT_AUDIENCE.to_string(),
         }
     }
 
@@ -189,6 +204,8 @@ impl ConfigBuilder {
 
             // JWT key cache settings
             jwt_key_cache_config: self.jwt_key_cache_config,
+            jwt_issuer: self.jwt_issuer,
+            jwt_audience: self.jwt_audience,
         })
     }
 
@@ -401,6 +418,38 @@ impl ConfigBuilder {
         self.jwt_key_cache_config.background_refresh_threshold = threshold_percentage;
         self
     }
+
+    /// Expected issuer of JWT tokens
+    ///
+    /// This is the expected issuer of JSON web tokens used to access
+    /// authenticated ESI routes. Typically the EVE Online login server URL.
+    ///
+    /// # Arguments
+    /// - `issuer` (&[`str`]): The URL for EVE Online's login server.
+    ///   Default is `"https://login.eveonline.com"`.
+    ///
+    /// # Returns
+    /// - [`ConfigBuilder`]: Instance with updated EVE Online login URL.
+    pub fn jwt_issuer(mut self, issuer: &str) -> Self {
+        self.jwt_issuer = issuer.to_string();
+        self
+    }
+
+    /// Intended audience JWT tokens are to be used with
+    ///
+    /// The intended audience which the JSON web tokens (JWTs) used to access authenticated
+    /// ESI routes will be used with. This is primarily used for JWT validation.
+    ///
+    /// # Arguments
+    /// - `audience` (&[`str`]): The audience which tokens will be used with.
+    ///   Default is `"EVE Online"`.
+    ///
+    /// # Returns
+    /// - [`ConfigBuilder`]: Instance with updated JWT audience.
+    pub fn jwt_audience(mut self, audience: &str) -> Self {
+        self.jwt_audience = audience.to_string();
+        self
+    }
 }
 
 #[cfg(test)]
@@ -435,6 +484,9 @@ mod tests {
             // Background refresh settings
             .jwk_background_refresh_enabled(false)
             .jwk_background_refresh_threshold(1)
+            // JWT settings
+            .jwt_issuer("example")
+            .jwt_audience("example")
             .build()
             .expect("Failed to build Config");
 
@@ -459,6 +511,10 @@ mod tests {
             false
         );
         assert_eq!(config.jwt_key_cache_config.background_refresh_threshold, 1);
+
+        // Assert JWT settings were set
+        assert_eq!(config.jwt_issuer, "example");
+        assert_eq!(config.jwt_audience, "example");
     }
 
     /// Expect an error setting the JWK background refresh threshold to 0

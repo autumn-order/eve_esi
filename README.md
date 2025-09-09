@@ -6,7 +6,7 @@
 
 A thread-safe, asynchronous client which provides methods & types for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer) & [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
 
-This crate implements concurrency & caching to provide performance in applications at scale. For example JSON web token keys (JWT keys) are used to validate tokens after a successful single sign-on login, this crate automatically caches the keys and refreshes them proactively before expiry in a background task for mimimal latency with each login.
+This crate implements concurrency & caching to provide performance in applications at scale. For example JSON web token keys (JWT keys) are used to validate tokens after a successful EVE Online single sign-on login, this crate automatically caches the keys and refreshes them proactively before expiry in a background task for mimimal latency.
 
 This crate is still heavily under development and has yet to implement the majority of ESI routes as well as the remainder of the OAuth2 flow such as token validation.
 
@@ -73,6 +73,7 @@ let alliances = esi_client.alliance().list_all_alliances()
 ### OAuth2 (SSO) Login
 
 To access any authenticated ESI routes, your users will first need to sign-in using EVE Online's single-sign on (SSO), also known as OAuth2.
+A complete SSO example can be found at <https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs>.
 
 Anything single sign-on/oauth2 related is accessed with:
 
@@ -80,28 +81,66 @@ Anything single sign-on/oauth2 related is accessed with:
 esi_client.oauth2()
 ```
 
-Creating a URL to redirect your users to the login process would be:
+Login route: create a URL to redirect your users for the login process:
 
 ```rust
 // Set scopes to request
 let scopes = eve_esi::ScopeBuilder::new()
-  .public_data()
+  .public_data() // publicData scope
   .build();
 
 // Create a login URL
 let login = esi_client
   .oauth2()
   .login_url(scopes)
-  .expect("Failed to create a login url"); // Errors if OAuth2 is not configured on client
+  .expect("Failed to create a login url"); // Errors if OAuth2 is not configured on ESI Client
+
+let login_url = login.login_url; // Redirect users to this URL to begin the login process
+let state = login.state; // State code for preventing CSRF which you should validate in your callback route
 ```
 
-TODO: Validate token
+Callback route: retrieving a token, getting the access & refresh token:
+
+```rust
+// Use the authorization code present as the {?code=...} query parameter in your callback route URL
+// See https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs for callback route example
+let token = esi_client
+    .oauth2()
+    .get_token(authorization_code)
+    .await
+    .expect("Failed to fetch token");
+
+let access_token = token.access_token();
+let refresh_token = token.refresh_token();
+```
+
+Callback route: validating a token, accessing character ID & name:
+
+```rust
+// Validate the token to access the claims
+let claims = esi_client
+    .oauth2()
+    .validate_token(token.access_token().secret().to_string())
+    .await
+    .expect("Failed to validate token");
+
+// Access character ID & name
+
+// claims.sub looks like a String: "CHARACTER:EVE:2114794365"
+// We'll extract the ID part and convert it to an i32
+let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
+
+let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
+let character_name: String = claims.name;
+```
 
 ### Making Authenticated ESI Requests
 
 TODO: Work in progress
 
 ## Examples
+
+If you wish to see logs for the steps of how the crate works in the examples, prefix the `cargo run --example sso` command like so `RUST_LOG=eve_esi=debug cargo run --example sso`.
 
 ### Axum
 
@@ -127,6 +166,8 @@ TODO: First half of the login flow is done, second half with the callback route 
 This library uses the [`log`](https://crates.io/crates/log) crate for logging. To capture log output,
 applications using this library should initialize a logger implementation like `env_logger`,
 `simple_logger`, or any other implementation of the `log` crate's facade.
+
+For production, you'll generally want to use log level either `info` or `warn` depending on how much you wish to rely on this crate's logging for your application.
 
 ### Log Levels
 

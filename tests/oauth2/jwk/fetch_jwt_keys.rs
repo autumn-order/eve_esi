@@ -1,6 +1,8 @@
 use eve_esi::model::oauth2::EveJwtKey;
 
-use super::util::{get_jwk_internal_server_error_response, get_jwk_success_response};
+use crate::oauth2::util::jwk_response::{
+    get_jwk_internal_server_error_response, get_jwk_success_response,
+};
 use crate::util::setup;
 
 /// Tests the successful retrieval of JWT keys from a mock EVE SSO server.
@@ -79,16 +81,19 @@ async fn fetch_jwt_keys_server_error() {
     // Assert result is error
     assert!(result.is_err());
 
+    // Assert error is reqwest error of type 500 internal server error
     match result {
         Err(eve_esi::Error::ReqwestError(err)) => {
-            // Assert error is reqwest error of type 500 internal server error
             assert!(err.is_status());
             assert_eq!(
                 err.status(),
                 Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR)
             )
         }
-        _ => panic!("Expected ReqwestError, got different error type"),
+        err => panic!(
+            "Expected ReqwestError, got different error type: {:#?}",
+            err
+        ),
     }
 }
 

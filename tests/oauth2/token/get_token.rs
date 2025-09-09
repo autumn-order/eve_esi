@@ -1,13 +1,13 @@
 use mockito::Server;
 use oauth2::RequestTokenError;
 
-use super::util::create_mock_token;
+use super::super::util::jwt::create_mock_token;
 use crate::util::setup;
 
 /// Tests the successful retrieval of an OAuth2 token
 ///
 /// # Setup
-/// - Create an Client configured with OAuth2 and a mock server
+/// - Create a Client configured with OAuth2 and a mock server
 /// - Configures a mock response with a successful token response
 ///
 /// # Assertions
@@ -19,7 +19,7 @@ pub async fn test_get_token_success() {
     let (client, mut mock_server) = setup().await;
 
     // Create mock response
-    let mock_token = create_mock_token();
+    let mock_token = create_mock_token(false);
     let mock = mock_server
         .mock("POST", "/v2/oauth/token")
         .with_status(200)
@@ -64,10 +64,13 @@ pub async fn test_get_token_error() {
     mock.assert();
     match result {
         Ok(_) => panic!("Expected an error"),
-        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::TokenError(
+        Err(eve_esi::Error::OAuthError(eve_esi::OAuthError::RequestTokenError(
             RequestTokenError::ServerResponse(_),
         ))) => {}
-        Err(err) => panic!("Expected error of type EsiError::ReqwestError: {}", err),
+        Err(err) => panic!(
+            "Expected error of type RequestTokenError::ServerResponse, received {:#?}",
+            err
+        ),
     }
 }
 
@@ -87,7 +90,7 @@ pub async fn test_get_token_oauth_client_missing() {
     let mut mock_server = Server::new_async().await;
 
     // Create mock response
-    let mock_token = create_mock_token();
+    let mock_token = create_mock_token(false);
     let mock = mock_server
         .mock("POST", "/v2/oauth/token")
         .with_status(200)

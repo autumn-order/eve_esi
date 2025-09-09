@@ -55,13 +55,11 @@ impl<'a> JwkApi<'a> {
 
         let start_time = Instant::now();
 
-        #[cfg(not(tarpaulin_include))]
         debug!("Waiting for another thread to refresh JWT keys");
 
         // Create a future that waits for the notification
         let notify_future = jwt_key_cache.refresh_notifier.notified();
 
-        #[cfg(not(tarpaulin_include))]
         trace!("Created notification future for JWT key refresh wait");
 
         let refresh_timeout = config.refresh_timeout;
@@ -78,7 +76,6 @@ impl<'a> JwkApi<'a> {
                 elapsed.as_millis()
             );
 
-            #[cfg(not(tarpaulin_include))]
             debug!("{}", error_message);
 
             // Return error indicating function timed out waiting JWT key refresh
@@ -92,7 +89,6 @@ impl<'a> JwkApi<'a> {
             // Ensure keys are not expired
             let elapsed_seconds = timestamp.elapsed().as_secs();
             if elapsed_seconds < config.cache_ttl.as_secs() {
-                #[cfg(not(tarpaulin_include))]
                 debug!(
                     "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
                     elapsed.as_millis()
@@ -109,7 +105,6 @@ impl<'a> JwkApi<'a> {
             elapsed.as_millis()
         );
 
-        #[cfg(not(tarpaulin_include))]
         debug!("{}", error_message);
 
         // Return an error indicating no keys were found in cache
@@ -152,7 +147,6 @@ impl<'a> JwkApi<'a> {
 
         // Check if we are still in cooldown due to fetch failure within 60 second cooldown period
         if check_refresh_cooldown(&jwt_key_cache).await.is_some() {
-            #[cfg(not(tarpaulin_include))]
             debug!("Respecting refresh cooldown, delaying JWT key refresh");
 
             return false;
@@ -160,13 +154,11 @@ impl<'a> JwkApi<'a> {
 
         // Attempt to acquire a lock to perform the refresh
         if !jwt_key_cache.refresh_lock_try_acquire() {
-            #[cfg(not(tarpaulin_include))]
             debug!("JWT key refresh already in progress");
 
             return false;
         }
 
-        #[cfg(not(tarpaulin_include))]
         debug!("Triggering background JWT refresh task");
 
         // Clone the required components
@@ -177,7 +169,6 @@ impl<'a> JwkApi<'a> {
             refresh_jwt_keys(&client_ref.reqwest_client, &client_ref.jwt_key_cache, 0).await
         });
 
-        #[cfg(not(tarpaulin_include))]
         debug!("Background JWT key refresh task started");
 
         true
@@ -226,8 +217,8 @@ pub(super) async fn refresh_jwt_keys(
     let start_time = std::time::Instant::now();
 
     // Attempt inital JWT key refresh
-    #[cfg(not(tarpaulin_include))]
-    debug!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
+
+    trace!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
 
     let mut result = fetch_and_update_cache(&reqwest_client, &jwt_key_cache).await;
 
@@ -241,7 +232,6 @@ pub(super) async fn refresh_jwt_keys(
             config.refresh_backoff.as_millis() as u64 * 2u64.pow(retry_attempts),
         );
 
-        #[cfg(not(tarpaulin_include))]
         debug!(
             "JWT key fetch failed. Retrying ({}/{}) after {}ms",
             retry_attempts + 1,
@@ -253,7 +243,7 @@ pub(super) async fn refresh_jwt_keys(
         tokio::time::sleep(backoff_duration).await;
 
         // Try to fetch again
-        #[cfg(not(tarpaulin_include))]
+
         debug!(
             "Retry attempt # {}: fetching JWT keys after backoff",
             retry_attempts + 1
@@ -270,7 +260,6 @@ pub(super) async fn refresh_jwt_keys(
     let elapsed = start_time.elapsed();
     match result {
         Ok(keys) => {
-            #[cfg(not(tarpaulin_include))]
             info!(
                 "Successfully fetched and cached {} JWT keys (took {}ms)",
                 keys.keys.len(),
@@ -280,14 +269,12 @@ pub(super) async fn refresh_jwt_keys(
             // Clear any previous refresh failure on success
             jwt_key_cache.set_refresh_failure(None).await;
 
-            #[cfg(not(tarpaulin_include))]
             debug!("Cleared previous JWT key refresh failure timestamp");
 
             // Return JWT keys
             Ok(keys)
         }
         Err(err) => {
-            #[cfg(not(tarpaulin_include))]
             error!(
                 "JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
                 elapsed.as_millis(),
@@ -302,7 +289,6 @@ pub(super) async fn refresh_jwt_keys(
                 .set_refresh_failure(Some(std::time::Instant::now()))
                 .await;
 
-            #[cfg(not(tarpaulin_include))]
             debug!("Recorded JWT key refresh failure timestamp");
 
             // Return Error of type EsiError::ReqwestError
@@ -314,11 +300,10 @@ pub(super) async fn refresh_jwt_keys(
 #[cfg(test)]
 mod wait_for_ongoing_refresh_tests {
     use crate::error::Error;
-    use crate::model::oauth2::EveJwtKeys;
     use crate::oauth2::error::OAuthError;
     use crate::tests::setup;
 
-    use super::super::tests::get_jwk_internal_server_error_response;
+    use super::super::tests::{create_mock_keys, get_jwk_internal_server_error_response};
 
     /// Validates retrieving keys from cache after waiting for refresh.
     ///
@@ -356,7 +341,7 @@ mod wait_for_ongoing_refresh_tests {
         let (tx, rx) = tokio::sync::oneshot::channel();
 
         // Spawn a coroutine to perform the background refresh
-        let keys = EveJwtKeys::create_mock_keys();
+        let keys = create_mock_keys();
 
         let keys_clone = keys.clone();
         let client_ref = esi_client.inner.clone();
@@ -495,7 +480,7 @@ mod wait_for_ongoing_refresh_tests {
             let expired_timestamp =
                 std::time::Instant::now() - std::time::Duration::from_secs(3601);
             let mut cache = jwt_key_cache.cache.write().await;
-            *cache = Some((EveJwtKeys::create_mock_keys(), expired_timestamp));
+            *cache = Some((create_mock_keys(), expired_timestamp));
         }
 
         // Acquire a refresh lock
