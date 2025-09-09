@@ -56,7 +56,7 @@
 //! ```
 
 use jsonwebtoken::{DecodingKey, Validation};
-use log::{debug, error};
+use log::{debug, error, trace};
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, StandardTokenResponse};
 
@@ -89,18 +89,41 @@ impl<'a> OAuth2Api<'a> {
         &self,
         code: &str,
     ) -> Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>, Error> {
+        // Attempt to retrieve OAuth2 client from ESI client
+        trace!("Attempting to retrieve OAuth2 client from ESI client");
+
         let client = match &self.client.inner.oauth2_client {
-            Some(client) => client,
-            None => return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured)),
+            Some(client) => {
+                trace!("Found OAuth2 client on ESI client");
+
+                client
+            }
+            None => {
+                error!("{}", Error::OAuthError(OAuthError::OAuth2NotConfigured));
+
+                // No OAuth2 client was found due to not being configured
+                return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured));
+            }
         };
+
+        // Attempt to fetch token
+        debug!("Attempting to fetch token using provided authorization code");
 
         match client
             .exchange_code(AuthorizationCode::new(code.to_string()))
             .request_async(&self.client.inner.reqwest_client)
             .await
         {
-            Ok(token) => Ok(token),
-            Err(err) => Err(Error::OAuthError(OAuthError::RequestTokenError(err))),
+            Ok(token) => {
+                debug!("Token fetched successfully");
+
+                Ok(token)
+            }
+            Err(err) => {
+                error!("Error fetching token: {:#?}", err);
+
+                Err(Error::OAuthError(OAuthError::RequestTokenError(err)))
+            }
         }
     }
 
@@ -128,24 +151,26 @@ impl<'a> OAuth2Api<'a> {
     /// - [`Error`]: If the retry attempt fails and there is an issue retrieving JWT keys from ESI Client's
     ///   cache or there is an issue validating the token.
     pub async fn validate_token(&self, token_secret: String) -> Result<EveJwtClaims, Error> {
+        debug!("Attempting JWT token validation");
+
         // First attempt
         match attempt_validation(&self.client, &token_secret).await {
             Ok(claims) => Ok(claims),
             Err(err) => {
-                // Log the attempt
-                #[cfg_attr(coverage_nightly, coverage(off))]
-                debug!(
-                    "First attempt to validate token failed, retrying token validation: {:?}",
-                    &err
-                );
-
                 // Clear the cache to trigger a JWT key refresh on next attempt
                 let cache_cleared = self.client.inner.jwt_key_cache.clear_cache().await;
 
                 // Second attempt (retry) if cache was successfully cleared
                 if cache_cleared {
+                    debug!(
+                        "Making 2nd attempt to validate token due to previous error: {:#?}",
+                        &err
+                    );
+
                     attempt_validation(&self.client, &token_secret).await
                 } else {
+                    debug!("1st attempt to validate token failed, will not retry due to cache keys still being new: {:#?}", &err);
+
                     Err(err)
                 }
             }
@@ -168,7 +193,7 @@ impl<'a> OAuth2Api<'a> {
 ///   issue validating the token.
 async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJwtClaims, Error> {
     // Get JWT keys to validate token
-    debug!("Retrieving keys for validation from JWT key cache");
+    trace!("Retrieving keys for validation from JWT key cache");
 
     let jwt_keys = client.oauth2().jwk().get_jwt_keys().await?;
 
@@ -178,14 +203,18 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
     validation.set_issuer(&[client.inner.jwt_issuer.to_string()]);
 
     // Try to find an RS256 key
-    debug!("Checking JWT key cache for RS256 key");
+    trace!("Checking JWT key cache for RS256 key");
 
     if let Some(EveJwtKey::RS256 { ref n, ref e, .. }) = get_first_rs256_key(&jwt_keys) {
         // RS256 key was found, extract n (modulus) and e (exponent) components for the decoding key
-        debug!("Creating a decoding key from RS256 key");
+        trace!("Creating a decoding key from RS256 key");
 
         let decoding_key = match DecodingKey::from_rsa_components(n, e) {
-            Ok(key) => key,
+            Ok(key) => {
+                trace!("Created decoding key from RS256 key successfully");
+
+                key
+            }
             Err(err) => {
                 error!("Failed to decode RS256 key for token validation: {}", &err);
 
@@ -197,7 +226,11 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
         debug!("Validating token using RS256 decoding key");
 
         match jsonwebtoken::decode::<EveJwtClaims>(&token_secret, &decoding_key, &validation) {
-            Ok(token_data) => Ok(token_data.claims),
+            Ok(token_data) => {
+                debug!("Successfully decoded JWT token");
+
+                Ok(token_data.claims)
+            }
             Err(err) => {
                 error!("Failed to validate token with RS256 key: {}", &err);
 
