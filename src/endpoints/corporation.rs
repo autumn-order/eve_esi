@@ -97,10 +97,12 @@ impl<'a> CorporationApi<'a> {
             self.client.inner.esi_url, corporation_id
         );
 
-        debug!(
+        let message = format!(
             "Fetching corporation information for corporation ID {} from {}",
             corporation_id, url
         );
+
+        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -110,19 +112,24 @@ impl<'a> CorporationApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(corporation) => {
-                info!(
+                let message = format!(
                     "Successfully fetched corporation information for corporation ID: {} (took {}ms)",
                     corporation_id,
                     elapsed.as_millis()
                 );
 
+                info!("{}", message);
+
                 Ok(corporation)
             }
             Err(err) => {
-                error!(
-                    "Failed to fetch corporation information for corporation ID {} after {}ms due to error: {:#?}",
-                    corporation_id, elapsed.as_millis(), err
+                let message = format!(
+                    "Successfully fetched corporation information for corporation ID: {} (took {}ms)",
+                    corporation_id,
+                    elapsed.as_millis()
                 );
+
+                error!("{}", message);
 
                 Err(err.into())
             }

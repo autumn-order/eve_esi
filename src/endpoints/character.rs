@@ -97,10 +97,12 @@ impl<'a> CharacterApi<'a> {
     ) -> Result<Character, Error> {
         let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
 
-        debug!(
+        let message = format!(
             "Fetching character information for character ID {} from {}",
             character_id, url
         );
+
+        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -110,20 +112,25 @@ impl<'a> CharacterApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(character) => {
-                info!(
+                let message = format!(
                     "Successfully fetched character information for character ID: {} (took {}ms)",
                     character_id,
                     elapsed.as_millis()
                 );
 
+                info!("{}", message);
+
                 Ok(character)
             }
             Err(err) => {
-                error!("Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
-                    character_id,
-                    elapsed.as_millis(),
-                    err
+                let message = format!(
+                    "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
+                        character_id,
+                        elapsed.as_millis(),
+                        err
                 );
+
+                error!("{}", message);
 
                 Err(err.into())
             }
@@ -173,11 +180,13 @@ impl<'a> CharacterApi<'a> {
     ) -> Result<Vec<CharacterAffiliation>, Error> {
         let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
 
-        debug!(
+        let message = format!(
             "Fetching character affiliations for {} characters from {}",
             character_ids.len(),
             url
         );
+
+        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -190,21 +199,25 @@ impl<'a> CharacterApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(affiliations) => {
-                info!(
+                let message = format!(
                     "Successfully fetched character affiliations for {} character(s) (took {}ms)",
                     elapsed.as_millis(),
                     character_ids.len()
                 );
 
+                info!("{}", message);
+
                 Ok(affiliations)
             }
             Err(err) => {
-                error!(
+                let message = format!(
                     "Failed to fetch character affiliations for {} character(s) after {}ms due to error: {:#?}",
                     character_ids.len(),
                     elapsed.as_millis(),
                     err
                 );
+
+                error!("{}", message);
 
                 Err(err.into())
             }

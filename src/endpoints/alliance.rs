@@ -89,10 +89,12 @@ impl<'a> AllianceApi<'a> {
     pub async fn get_alliance_information(&self, alliance_id: i32) -> Result<Alliance, Error> {
         let url = format!("{}/alliances/{}/", self.client.inner.esi_url, alliance_id);
 
-        debug!(
+        let message = format!(
             "Fetching alliance information for alliance ID {} from {}",
             alliance_id, url
         );
+
+        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -102,21 +104,25 @@ impl<'a> AllianceApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(alliance) => {
-                info!(
+                let message = format!(
                     "Successfully fetched alliance information for alliance ID: {} (took {}ms)",
                     alliance_id,
                     elapsed.as_millis()
                 );
 
+                info!("{}", message);
+
                 Ok(alliance)
             }
             Err(err) => {
-                error!(
+                let message = format!(
                     "Failed to fetch alliance information for alliance ID {} after {}ms due to error: {:#?}",
                     alliance_id,
                     elapsed.as_millis(),
                     err
                 );
+
+                error!("{}", message);
 
                 Err(err.into())
             }
