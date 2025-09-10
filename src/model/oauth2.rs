@@ -137,7 +137,7 @@ pub struct EveJwtClaims {
     /// Issued at time (Unix timestamp)
     pub iat: i64,
     /// The scopes granted by this token
-    pub scp: Option<String>,
+    pub scp: Vec<String>,
     /// The character's name
     pub name: String,
     /// The character's ID
