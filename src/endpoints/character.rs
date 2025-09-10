@@ -62,15 +62,15 @@ impl<'a> CharacterApi<'a> {
     /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
     ///
     /// # Arguments
-    /// - `character_id` (`Vec<`[`i32`]`>`): The ID of the character to retrieve information for.
+    /// - `character_id` ([`i64`]): The ID of the character to retrieve information for.
     ///
     /// # Returns
-    /// Returns a `Result` containing either:
+    /// Returns a [`Result`] containing either:
     /// - [`Character`]: The character's information if successfully retrieved
     /// - [`Error`]: An error if the fetch request fails
     pub async fn get_character_public_information(
         &self,
-        character_id: i32,
+        character_id: i64,
     ) -> Result<Character, Error> {
         let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
 
@@ -120,15 +120,15 @@ impl<'a> CharacterApi<'a> {
     /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
     ///
     /// # Arguments
-    /// - `character_ids` (`Vec<`[`i32`]`): A list of character IDs to retrieve affiliations for.
+    /// - `character_ids` (`Vec<`[`i64`]`): A list of character IDs to retrieve affiliations for.
     ///
     /// # Returns
-    /// Returns a `Result` containing either:
+    /// Returns a [`Result`] containing either:
     /// - `Vec<`[`CharacterAffiliation`]`>`: The affiliations of the characters if successfully retrieved
     /// - [`Error`]: An error if the fetch request fails
     pub async fn character_affiliation(
         &self,
-        character_ids: Vec<i32>,
+        character_ids: Vec<i64>,
     ) -> Result<Vec<CharacterAffiliation>, Error> {
         let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
 
@@ -145,7 +145,7 @@ impl<'a> CharacterApi<'a> {
         // Fetch character affiliations from ESI
         let result = self
             .client
-            .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i32>>(&url, &character_ids)
+            .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i64>>(&url, &character_ids)
             .await;
 
         let elapsed = start_time.elapsed();

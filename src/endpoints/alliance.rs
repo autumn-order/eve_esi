@@ -65,7 +65,7 @@ impl<'a> AllianceApi<'a> {
     /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliances>
     ///
     /// # Returns
-    /// A result containing either:
+    /// Returns a [`Result`] containing either:
     /// - `Vec<`[`i64`]`>`: A vec of every alliance ID in EVE Online
     /// - [`Error`]: An error if the fetch request failed
     pub async fn list_all_alliances(&self) -> Result<Vec<i64>, Error> {
@@ -116,7 +116,7 @@ impl<'a> AllianceApi<'a> {
     /// - `alliance_id` ([`i64`]): The ID of the alliance to retrieve information for
     ///
     /// # Returns
-    /// A result containing either:
+    /// Returns a [`Result`] containing either:
     /// - [`Alliance`]: The alliance data if successfully retrieved
     /// - [`Error`]: An error if the fetch request failed
     pub async fn get_alliance_information(&self, alliance_id: i64) -> Result<Alliance, Error> {
@@ -171,7 +171,7 @@ impl<'a> AllianceApi<'a> {
     /// - `alliance_id` ([`i64`]): ID of the alliance to fetch corporation IDs for
     ///
     /// # Returns
-    /// A result containing either:
+    /// Returns a [`Result`] containing either:
     /// - `Vec<`[`i64`]`>`: A vec of the ID of every corporation part of the alliance
     /// - [`Error`]: An error if the fetch request failed
     pub async fn list_alliance_corporations(&self, alliance_id: i64) -> Result<Vec<i64>, Error> {
@@ -230,7 +230,7 @@ impl<'a> AllianceApi<'a> {
     /// - `alliance_id` ([`i64`]): ID of the alliance to fetch icons for
     ///
     /// # Returns
-    /// A result containing either:
+    /// Returns a [`Result`] containing either:
     /// - [`AllianceIcons`]: A struct with URLs for the 128x128 & 64x64 icons for an alliance
     /// - [`Error`]: An error if the fetch request failed
     pub async fn get_alliance_icon(&self, alliance_id: i64) -> Result<AllianceIcons, Error> {

@@ -90,7 +90,7 @@ impl<'a> CorporationApi<'a> {
     /// ```
     pub async fn get_corporation_information(
         &self,
-        corporation_id: i32,
+        corporation_id: i64,
     ) -> Result<Corporation, Error> {
         let url = format!(
             "{}/corporations/{}/",

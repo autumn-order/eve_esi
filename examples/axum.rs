@@ -18,7 +18,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct GetByIdParams {
-    id: i32,
+    id: i64,
 }
 
 #[tokio::main]
@@ -77,7 +77,7 @@ async fn get_esi_character(
     params: Query<GetByIdParams>,
 ) -> Response {
     // Get character id from request URL
-    let character_id: i32 = params.0.id;
+    let character_id: i64 = params.0.id;
 
     // Request character public information from ESI
     match esi_client
@@ -106,7 +106,7 @@ async fn get_esi_corporation(
     params: Query<GetByIdParams>,
 ) -> Response {
     // Get corporation id from request URL
-    let corporation_id: i32 = params.0.id;
+    let corporation_id: i64 = params.0.id;
 
     // Request corporation information from ESI
     match esi_client

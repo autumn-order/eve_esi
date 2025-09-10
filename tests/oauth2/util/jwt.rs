@@ -100,7 +100,7 @@ pub fn create_mock_token(
         region: "world".to_string(),
         exp: now + 900, // Valid for 15 minutes
         iat: now,
-        scp: Some("publicData".to_string()),
+        scp: vec!["publicData".to_string()],
         name: "Test Character".to_string(),
         owner: "123456789".to_string(),
         azp: TEST_CLIENT_ID.to_string(),
