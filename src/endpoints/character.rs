@@ -62,7 +62,7 @@ impl<'a> CharacterApi<'a> {
         let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
 
         let message = format!(
-            "Fetching character information for character ID {} from {}",
+            "Fetching character information for character ID {} from \"{}\"",
             character_id, url
         );
 
@@ -126,7 +126,7 @@ impl<'a> CharacterApi<'a> {
         let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
 
         let message = format!(
-            "Fetching character affiliations for {} characters from {}",
+            "Fetching character affiliations for {} characters from \"{}\"",
             character_ids.len(),
             url
         );
@@ -200,7 +200,7 @@ impl<'a> CharacterApi<'a> {
         );
 
         let message = format!(
-            "Fetching research agents for character ID {} from {}",
+            "Fetching research agents for character ID {} from \"{}\"",
             character_id, url
         );
 

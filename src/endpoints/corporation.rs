@@ -64,7 +64,7 @@ impl<'a> CorporationApi<'a> {
         );
 
         let message = format!(
-            "Fetching corporation information for corporation ID {} from {}",
+            "Fetching corporation information for corporation ID {} from \"{}\"",
             corporation_id, url
         );
 

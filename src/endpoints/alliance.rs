@@ -56,7 +56,7 @@ impl<'a> AllianceApi<'a> {
     pub async fn list_all_alliances(&self) -> Result<Vec<i64>, Error> {
         let url = format!("{}/alliances", self.client.inner.esi_url);
 
-        let message = format!("Fetching list of all alliance IDs from {}", url);
+        let message = format!("Fetching list of all alliance IDs from \"{}\"", url);
 
         debug!("{}", message);
 
@@ -114,7 +114,7 @@ impl<'a> AllianceApi<'a> {
         let url = format!("{}/alliances/{}/", self.client.inner.esi_url, alliance_id);
 
         let message = format!(
-            "Fetching alliance information for alliance ID {} from {}",
+            "Fetching alliance information for alliance ID {} from \"{}\"",
             alliance_id, url
         );
 
@@ -178,7 +178,7 @@ impl<'a> AllianceApi<'a> {
         );
 
         let message = format!(
-            "Fetching IDs of all corporations part of alliance ID {} from {}",
+            "Fetching IDs of all corporations part of alliance ID {} from \"{}\"",
             alliance_id, url
         );
 
@@ -243,7 +243,7 @@ impl<'a> AllianceApi<'a> {
         );
 
         let message = format!(
-            "Fetching icons URLs for alliance ID {} from {}",
+            "Fetching icons URLs for alliance ID {} from \"{}\"",
             alliance_id, url
         );
 
