@@ -86,9 +86,9 @@ impl<'a> JwkApi<'a> {
 
         // Attempt to retrieve keys from cache
         if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
-            // Ensure keys are not expired
-            let elapsed_seconds = timestamp.elapsed().as_secs();
-            if elapsed_seconds < config.cache_ttl.as_secs() {
+            // Ensure JWT keys are not expired
+            let elapsed_seconds = timestamp.elapsed().as_millis();
+            if elapsed_seconds < config.cache_ttl.as_millis() {
                 let message = format!(
                     "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
                     elapsed.as_millis()

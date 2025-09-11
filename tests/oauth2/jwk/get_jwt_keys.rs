@@ -197,8 +197,8 @@ async fn get_jwt_keys_background_refresh() {
     assert!(result.is_ok());
 
     // Wait a moment for cache to reach background refresh threshold
-    // For testing, we set cache expiry to 1 second & threshold to 50% (500ms)
-    tokio::time::sleep(Duration::from_millis(550)).await;
+    // For testing, we set cache expiry to 900 milliseconds & threshold to 50% (451 milliseconds)
+    tokio::time::sleep(Duration::from_millis(451)).await;
 
     // Call the method under test
     let background_refresh_result = esi_client.oauth2().jwk().get_jwt_keys().await;
