@@ -267,7 +267,7 @@ pub(super) async fn refresh_jwt_keys(
     match result {
         Ok(keys) => {
             let message = format!(
-                "Successfully fetched and cached {} JWT keys (took {}ms)",
+                "Successfully fetched and cached {} JWT keys for token validation (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
             );
