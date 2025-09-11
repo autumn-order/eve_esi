@@ -23,7 +23,7 @@
 //! async fn main() {
 //!     // Setup a basic Client
 //!     let esi_client = eve_esi::Client::builder()
-//!         .user_agent("MyApp/1.0 (contact@example.com")
+//!         .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
 //!         .build()
 //!         .expect("Failed to build ESI Client");
 //!

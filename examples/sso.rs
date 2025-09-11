@@ -62,9 +62,9 @@ async fn main() {
 
     // Always set a user agent for your ESI client
     // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
-    // E.G. "MyApp/1.0 (contact@example.com)"
+    // E.G. "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"
     let user_agent: String = format!(
-        "{}/{} ({}) ({})",
+        "{}/{} ({}; +{})",
         env!("CARGO_PKG_NAME"),
         env!("CARGO_PKG_VERSION"),
         contact_email,

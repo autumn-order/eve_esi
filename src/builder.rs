@@ -32,7 +32,7 @@
 //!
 //! // Set a user agent used to identify the application making ESI requests
 //! let esi_client = Client::builder()
-//!     .user_agent("MyApp/1.0 (contact@example.com)")
+//!     .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
 //!     .build()
 //!     .expect("Failed to build Client");
 //! ```
@@ -41,7 +41,7 @@
 //! EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 //!
-//! Example: "MyApp/1.0 (contact@example.com)"
+//! Example: "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"
 
 use std::sync::Arc;
 
@@ -205,7 +205,7 @@ impl ClientBuilder {
     /// The user agent string is used to identify the client making requests to the EVE Online API.
     /// A proper user agent should include an app name, version, and contact information.
     ///
-    /// Example: `"MyApp/1.0 (contact@example.com)"`
+    /// Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`
     ///
     /// # Warning
     ///

@@ -22,7 +22,7 @@ async fn main() {
     // Build a new ESI Client with the builder method
     let esi_client = eve_esi::Client::builder()
         // Always set a user agent to identify your application
-        .user_agent("MyApp/1.0 (contact@example.com)")
+        .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
         .build()
         .expect("Failed to build Client");
 
@@ -42,7 +42,7 @@ You can build an ESI client with the builder method:
 ```rust
 let esi_client = eve_esi::Client::builder()
   // Always set a user agent to identify your application
-  .user_agent("MyApp/1.0 (contact@example.com)")
+  .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
   // Optional: Set these 3 to configure for single sign-on login & authenticated ESI routes
   // Get them from https://developers.eveonline.com/applications
   .client_id("client_id")
@@ -207,7 +207,7 @@ env_logger::init();
 
 // Now logs from eve_esi will be captured
 let esi_client = eve_esi::Client::builder()
-    .user_agent("MyApp/1.0 (contact@example.com)")
+    .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
     .build()
     .expect("Failed to build Client");
 ```

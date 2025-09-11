@@ -47,7 +47,7 @@
 //! // Apply config settings to Client
 //! let esi_client = eve_esi::Client::builder()
 //!     .config(config)
-//!     .user_agent("MyApp/1.0 (contact@example.com")
+//!     .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository")
 //!     .build()
 //!     .expect("Failed to build ESI Client");
 //! ```
