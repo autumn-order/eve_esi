@@ -32,7 +32,7 @@ use log::{debug, error, info};
 use crate::error::Error;
 use crate::Client;
 
-use crate::model::character::{Character, CharacterAffiliation};
+use crate::model::character::{Character, CharacterAffiliation, CharacterResearchAgent};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
@@ -84,7 +84,11 @@ impl<'a> CharacterApi<'a> {
         let start_time = Instant::now();
 
         // Fetch character information from ESI
-        let result = self.client.get_from_public_esi::<Character>(&url).await;
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Character>(&url)
+            .await;
 
         let elapsed = start_time.elapsed();
         match result {
@@ -145,6 +149,7 @@ impl<'a> CharacterApi<'a> {
         // Fetch character affiliations from ESI
         let result = self
             .client
+            .esi()
             .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i64>>(&url, &character_ids)
             .await;
 

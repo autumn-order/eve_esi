@@ -29,7 +29,7 @@ async fn get_character_public_information() {
         gender: "male".to_string(),
         name: "Hyziri".to_string(),
         race_id: 8,
-        security_status: Some(-0.10037364300000001),
+        security_status: Some(-0.100373643),
         title: Some("Title".to_string()),
     };
 

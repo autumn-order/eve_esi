@@ -78,7 +78,11 @@ impl<'a> AllianceApi<'a> {
         let start_time = Instant::now();
 
         // Fetch all alliances
-        let result = self.client.get_from_public_esi::<Vec<i64>>(&url).await;
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Vec<i64>>(&url)
+            .await;
 
         let elapsed = start_time.elapsed();
         match result {
@@ -132,7 +136,11 @@ impl<'a> AllianceApi<'a> {
         let start_time = Instant::now();
 
         // Fetch alliance information from ESI
-        let result = self.client.get_from_public_esi::<Alliance>(&url).await;
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Alliance>(&url)
+            .await;
 
         let elapsed = start_time.elapsed();
         match result {
@@ -190,7 +198,11 @@ impl<'a> AllianceApi<'a> {
         let start_time = Instant::now();
 
         // Fetch all alliances
-        let result = self.client.get_from_public_esi::<Vec<i64>>(&url).await;
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Vec<i64>>(&url)
+            .await;
 
         let elapsed = start_time.elapsed();
         match result {
@@ -249,7 +261,11 @@ impl<'a> AllianceApi<'a> {
         let start_time = Instant::now();
 
         // Fetch all alliances
-        let result = self.client.get_from_public_esi::<AllianceIcons>(&url).await;
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<AllianceIcons>(&url)
+            .await;
 
         let elapsed = start_time.elapsed();
         match result {

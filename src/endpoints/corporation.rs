@@ -107,7 +107,11 @@ impl<'a> CorporationApi<'a> {
         let start_time = Instant::now();
 
         // Fetch corporation information from ESI
-        let result = self.client.get_from_public_esi::<Corporation>(&url).await;
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Corporation>(&url)
+            .await;
 
         let elapsed = start_time.elapsed();
         match result {

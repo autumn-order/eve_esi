@@ -72,6 +72,7 @@ pub mod client;
 pub mod config;
 pub mod endpoints;
 pub mod error;
+pub mod esi;
 pub mod model;
 pub mod oauth2;
 
@@ -83,7 +84,6 @@ pub use crate::oauth2::error::OAuthError;
 pub use crate::oauth2::ScopeBuilder;
 
 mod constant;
-mod esi;
 
 #[cfg(test)]
 mod tests;
