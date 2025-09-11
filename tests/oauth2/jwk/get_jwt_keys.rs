@@ -72,14 +72,20 @@ async fn get_jwt_keys_expired_cache() {
     // For testing, the cache expiry is set to 1 seconds
     tokio::time::sleep(std::time::Duration::from_millis(1100)).await;
 
-    // Call the method under test
-    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
+    // Call method under test
+    let refresh_result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
-    // Assert mock server received 2 expected fetch requests
+    // Call method again to test caching, no more fetch requests should be made
+    let cache_result = esi_client.oauth2().jwk().get_jwt_keys().await;
+
+    // Assert 2 fetch requests were made, pre-populating the cache & background refresh
     mock.assert();
 
-    // Assert result is Ok
-    assert!(result.is_ok());
+    // Assert refresh result is Ok
+    assert!(refresh_result.is_ok());
+
+    // Assert cache result is Ok
+    assert!(cache_result.is_ok());
 }
 
 /// Tests that get_jwt_keys fetches fresh keys when the cache is empty.
@@ -100,13 +106,19 @@ async fn get_jwt_keys_empty_cache() {
     let mock = get_jwk_success_response(&mut mock_server, 1);
 
     // Call the method under test
-    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
+    let refresh_result = esi_client.oauth2().jwk().get_jwt_keys().await;
+
+    // Call method again to test caching, no more fetch requests should be made
+    let cache_result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Assert mock server received 1 expected fetch request
     mock.assert();
 
-    // Assert result is ok
-    assert!(result.is_ok());
+    // Assert refresh result is Ok
+    assert!(refresh_result.is_ok());
+
+    // Assert cache result is Ok
+    assert!(cache_result.is_ok());
 }
 
 /// An error will be returned due to refresh cooldown still being active
@@ -189,16 +201,22 @@ async fn get_jwt_keys_background_refresh() {
     tokio::time::sleep(Duration::from_millis(550)).await;
 
     // Call the method under test
-    let result = esi_client.oauth2().jwk().get_jwt_keys().await;
+    let background_refresh_result = esi_client.oauth2().jwk().get_jwt_keys().await;
 
     // Wait for background refresh to run
     tokio::time::sleep(Duration::from_millis(100)).await;
 
+    // Call method again to test caching, no more fetch requests should be made
+    let cache_result = esi_client.oauth2().jwk().get_jwt_keys().await;
+
     // Assert 2 fetch requests were made, pre-populating the cache & background refresh
     mock.assert();
 
-    // Assert result is Ok
-    assert!(result.is_ok());
+    // Assert background refresh result is Ok
+    assert!(background_refresh_result.is_ok());
+
+    // Assert cache result is Ok
+    assert!(cache_result.is_ok());
 }
 
 /// Tests only 1 request is made when get_jwt_keys is called concurrently
