@@ -14,23 +14,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Alliance {
     /// The ID of the corporation that created the alliance.
-    pub creator_corporation_id: i32,
+    pub creator_corporation_id: i64,
     /// The ID of the character that created the alliance.
-    pub creator_id: i32,
+    pub creator_id: i64,
     /// The date and time when the alliance was founded.
     pub date_founded: DateTime<Utc>,
     /// The ID of the alliance's executor corporation.
     /// If the alliance is disbanded, this will return as None.
-    pub executor_corporation_id: Option<i32>,
+    pub executor_corporation_id: Option<i64>,
     /// The ID of the alliance's faction if applicable.
-    pub faction_id: Option<i32>,
+    pub faction_id: Option<i64>,
     /// The name of the alliance.
     pub name: String,
     /// The ticker of the alliance.
     pub ticker: String,
 }
 
-/// Reoresents the 128x128 & 64x64 icon URLs for an alliance
+/// Represents the 128x128 & 64x64 icon URLs for an alliance
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdIconsGet>

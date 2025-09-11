@@ -1,28 +1,59 @@
-//! Methods for interacting with EVE Online's ESI API.
+//! # EVE ESI Endpoints
 //!
-//! This module provides access to the various categories of endpoints available in the EVE Online ESI API.
+//! This module provides access to the different categories of endpoints available for EVE Online's ESI API.
 //!
-//! # References
-//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
+//! # ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
 //!
 //! # Modules
+//! - [`alliance`]: Alliance endpoints
+//! - [`character`]: Character endpoints
+//! - [`corporation`]: Corporation endpoints
 //!
-//! - [`alliance`]: Alliance Endpoints for EVE Online's ESI API.
-//! - [`character`]: Character Endpoints for EVE Online's ESI API.
-//! - [`corporation`]: Corporation Endpoints for EVE Online's ESI API.
+//! # Usage
+//! ## Public ESI Endpoints
+//! **Prerequisites:**
+//! - **ESI Client:** Setup a basic ESI client as demonstrated in [`crate::builder`] module docs
 //!
-//! # Example
 //! ```no_run
-//! #[tokio::main]
-//! async fn main() {
-//!     let esi_client = eve_esi::Client::builder()
-//!         .user_agent("MyApp/1.0 (contact@example.com)")
-//!         .build()
-//!         .expect("Failed to build Client");
+//! use eve_esi::Client;
 //!
-//!     // Get information about the corporation The Order of Autumn (id: 98785281)
-//!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
-//!     println!("Corporation name: {}", corporation.name);
+//! // Fetch corporation information from a public ESI endpoint
+//! async fn get_corporation_information(esi_client: Client, corporation_id: i64) {
+//!     // Fetch corporation information with provided corporation_id
+//!     let corporation = esi_client
+//!         .corporation()
+//!         .get_corporation_information(corporation_id)
+//!         .await
+//!         .unwrap();
+//! }
+//! ```
+//!
+//! ## Authenticated ESI Endpoints
+//! **Prerequisites:**
+//! - **ESI Client:** Setup an ESI client for OAuth2 as demonstrated in [`crate::builder`] module docs
+//! - **User Login:** You will need the character to login first in order to get an access token
+//!   using an authorization code. You will need a login route as demonstrated in the [`crate::oauth2::login`]
+//!   module docs.
+//! - **Access Token:** You will get this by getting a character's token in the callback route
+//!   using the authorization code provided after login as demonstrated in the [`crate::oauth2::token`]
+//!   module docs
+//!
+//! ```no_run
+//! use eve_esi::Client;
+//!
+//! // Fetch character research agents from an authenticated ESI endpoint
+//! async fn get_character_research_agents(
+//!     esi_client: Client,
+//!     character_id: i64,
+//!     access_token: &str
+//! ) {
+//!     // Get character research agents for character_id using the access_token
+//!     let research_agents = esi_client
+//!         .character()
+//!         .get_agents_research(character_id, access_token)
+//!         .await
+//!         .unwrap();
 //! }
 //! ```
 

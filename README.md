@@ -8,7 +8,7 @@ A thread-safe, asynchronous client which provides methods & types for interactio
 
 This crate implements concurrency & caching to provide performance in applications at scale. For example JSON web token keys (JWT keys) are used to validate tokens after a successful EVE Online single sign-on login, this crate automatically caches the keys and refreshes them proactively before expiry in a background task for mimimal latency.
 
-This crate is still heavily under development and has yet to implement the majority of ESI routes as well as the remainder of the OAuth2 flow such as token validation.
+This crate is still heavily under development and has yet to implement the majority of ESI routes.
 
 ## Usage
 
@@ -19,12 +19,11 @@ Create a new ESI Client instance and request public information about a corporat
 // You would ideally use esi_client with an async web framework like Axum as shown in examples
 #[tokio::main]
 async fn main() {
-    // Build a new ESI Client with the builder method
-    let esi_client = eve_esi::Client::builder()
-        // Always set a user agent to identify your application
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .build()
-        .expect("Failed to build Client");
+    // Set a user_agent to identify your application when making requests
+    let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
+
+    // Create a basic ESI client with user_agent
+    let esi_client = eve_esi::Client::new(user_agent).expect("Failed to build Client");
 
     // Get information about the corporation The Order of Autumn (id: 98785281)
     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
@@ -42,7 +41,7 @@ You can build an ESI client with the builder method:
 ```rust
 let esi_client = eve_esi::Client::builder()
   // Always set a user agent to identify your application
-  .user_agent("MyApp/1.0 (contact@example.com)")
+  .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
   // Optional: Set these 3 to configure for single sign-on login & authenticated ESI routes
   // Get them from https://developers.eveonline.com/applications
   .client_id("client_id")
@@ -207,7 +206,7 @@ env_logger::init();
 
 // Now logs from eve_esi will be captured
 let esi_client = eve_esi::Client::builder()
-    .user_agent("MyApp/1.0 (contact@example.com)")
+    .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
     .build()
     .expect("Failed to build Client");
 ```

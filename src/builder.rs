@@ -32,7 +32,7 @@
 //!
 //! // Set a user agent used to identify the application making ESI requests
 //! let esi_client = Client::builder()
-//!     .user_agent("MyApp/1.0 (contact@example.com)")
+//!     .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
 //!     .build()
 //!     .expect("Failed to build Client");
 //! ```
@@ -41,7 +41,7 @@
 //! EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 //!
-//! Example: "MyApp/1.0 (contact@example.com)"
+//! Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`
 
 use std::sync::Arc;
 
@@ -146,7 +146,7 @@ impl ClientBuilder {
             // OAuth2
             oauth2_client: oauth_client,
             jwt_key_cache: jwt_key_cache,
-            jwt_issuer: config.jwt_issuer,
+            jwt_issuers: config.jwt_issuers,
             jwt_audience: config.jwt_audience,
         };
 
@@ -205,7 +205,7 @@ impl ClientBuilder {
     /// The user agent string is used to identify the client making requests to the EVE Online API.
     /// A proper user agent should include an app name, version, and contact information.
     ///
-    /// Example: `"MyApp/1.0 (contact@example.com)"`
+    /// Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`
     ///
     /// # Warning
     ///
@@ -215,7 +215,8 @@ impl ClientBuilder {
     /// EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
     ///
     /// # Arguments
-    /// - `user_agent` ([`String`]): user agent string to be used by the reqwest HTTP client.
+    /// - [`user_agent`] (&[`str`]): User agent used to identify your application
+    ///   when making ESI requests. For example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`.
     ///
     /// # Returns
     /// - [`ClientBuilder`]: instance with updated user agent configuration.

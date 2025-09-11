@@ -46,8 +46,8 @@ impl<'a> JwkApi<'a> {
     ///
     /// # Returns
     /// - Ok([`EveJwtKeys`]) if the refresh was successful and keys are now in the cache
-    /// - Err([`EsiError`]) if the refresh attempt failed or timed out after
-    ///   [`DEFAULT_JWK_REFRESH_TIMEOUT`] seconds (5 seconds)
+    /// - Err([`EsiError`]) if the refresh attempt failed or timed out after default of
+    ///   5 seconds.
     pub(super) async fn wait_for_ongoing_refresh(&self) -> Result<EveJwtKeys, Error> {
         let esi_client = self.client;
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
@@ -86,9 +86,9 @@ impl<'a> JwkApi<'a> {
 
         // Attempt to retrieve keys from cache
         if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
-            // Ensure keys are not expired
-            let elapsed_seconds = timestamp.elapsed().as_secs();
-            if elapsed_seconds < config.cache_ttl.as_secs() {
+            // Ensure JWT keys are not expired
+            let elapsed_seconds = timestamp.elapsed().as_millis();
+            if elapsed_seconds < config.cache_ttl.as_millis() {
                 let message = format!(
                     "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
                     elapsed.as_millis()
@@ -103,7 +103,7 @@ impl<'a> JwkApi<'a> {
 
         // If the refresh request failed then no keys will be found in the cache
         let error_message = format!(
-            "JWT key cache still empty of expired after waiting {}ms for refresh. Likely due to a failure to refresh the keys.",
+            "JWT key cache still empty after waiting {}ms for refresh. Likely due to a failure to refresh the keys.",
             elapsed.as_millis()
         );
 
@@ -267,7 +267,7 @@ pub(super) async fn refresh_jwt_keys(
     match result {
         Ok(keys) => {
             let message = format!(
-                "Successfully fetched and cached {} JWT keys (took {}ms)",
+                "Successfully fetched and cached {} JWT keys for token validation (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
             );

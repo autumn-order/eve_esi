@@ -119,7 +119,7 @@ pub enum EveJwtKey {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EveJwtClaims {
     /// The issuer of the JWT token (EVE Online's login service URL)
-    pub iss: String,
+    pub iss: Vec<String>,
     /// ID for the authenticated user (Example: "CHARACTER:EVE:2114794365")
     pub sub: String,
     /// Audience the JWT token is intended for (your client_id, EVE Online)
@@ -137,7 +137,7 @@ pub struct EveJwtClaims {
     /// Issued at time (Unix timestamp)
     pub iat: i64,
     /// The scopes granted by this token
-    pub scp: Option<String>,
+    pub scp: Vec<String>,
     /// The character's name
     pub name: String,
     /// The character's ID

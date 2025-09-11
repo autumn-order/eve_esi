@@ -56,7 +56,7 @@ impl<'a> JwkApi<'a> {
     ///
     /// # Returns
     /// - `Self`: A new instance of [`JwkApi`].
-    pub fn new(client: &'a Client) -> Self {
+    pub(self) fn new(client: &'a Client) -> Self {
         Self { client }
     }
 

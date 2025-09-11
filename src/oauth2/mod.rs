@@ -1,4 +1,4 @@
-//! Methods for OAuth2 authentication with EVE Online SSO
+//! # EVE ESI OAuth2
 //!
 //! This module provides methods for initiating and managing the EVE Online OAuth2 authentication process.
 //! It includes functionality for generating login URLs to initiate the authentication process, building scopes for authorization, and managing tokens.

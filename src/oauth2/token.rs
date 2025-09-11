@@ -266,7 +266,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
     // Configure validation
     let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
     validation.set_audience(&[client.inner.jwt_audience.to_string()]);
-    validation.set_issuer(&[client.inner.jwt_issuer.to_string()]);
+    validation.set_issuer(&client.inner.jwt_issuers);
 
     // Try to find an RS256 key
     trace!("Checking JWT key cache for RS256 key");

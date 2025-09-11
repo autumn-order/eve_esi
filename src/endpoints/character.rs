@@ -1,33 +1,17 @@
-//! Character Endpoints for EVE Online's ESI API.
+//! # EVE ESI Character Endpoints
 //!
 //! This module provides the [`CharacterApi`] struct and associated methods for accessing
-//! character-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
+//! character-related ESI endpoints.
 //!
-//! The [`CharacterApi`] acts as a high-level interface for retrieving public information
-//! and affiliations for EVE Online characters. It requires an [`Client`] instance
-//! to perform HTTP requests to the ESI endpoints.
+//! For an overview & usage examples, see the [endpoints module documentation](super)
 //!
-//! # Features
-//! - Fetch public information about a character by character ID
-//! - Retrieve affiliations (corporation, alliance, faction) for a list of characters
+//! # ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # References
-//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
-//!
-//! # Usage Example
-//! ```no_run
-//! #[tokio::main]
-//! async fn main() {
-//!     let esi_client = eve_esi::Client::builder()
-//!         .user_agent("MyApp/1.0 (contact@example.com)")
-//!         .build()
-//!         .expect("Failed to build Client");
-//!
-//!     // Get public information for a character
-//!     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
-//!     println!("Character name: {}", character.name);
-//! }
-//! ```
+//! # Methods
+//! - [`CharacterApi::get_character_public_information`]: Retrieves the public information of a specific character
+//! - [`CharacterApi::character_affiliation`]: Retrieve affiliations for a list of characters
+//! - [`CharacterApi::get_agents_research`]: Retrieves character's research agents using the character's ID
 
 use std::time::Instant;
 
@@ -36,14 +20,11 @@ use log::{debug, error, info};
 use crate::error::Error;
 use crate::Client;
 
-use crate::model::character::{Character, CharacterAffiliation};
+use crate::model::character::{Character, CharacterAffiliation, CharacterResearchAgent};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
-/// The `CharacterApi` struct acts as an interface for retrieving information about EVE Online characters
-/// using the ESI API. It requires an [`Client`] for making HTTP requests to the ESI endpoints.
-///
-/// See the [module-level documentation](self) for an overview and usage example.
+/// For an overview & usage examples, see the [endpoints module documentation](super)
 pub struct CharacterApi<'a> {
     client: &'a Client,
 }
@@ -52,53 +33,36 @@ impl<'a> CharacterApi<'a> {
     /// Creates a new instance of `CharacterApi`.
     ///
     /// # Arguments
-    /// - `client` - The [`Client`] used for making HTTP requests to the ESI endpoints.
+    /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
     ///
     /// # Returns
-    /// Returns a new instance of `CharacterApi`.
-    pub fn new(client: &'a Client) -> Self {
+    /// - [`CharacterApi`]: Struct providing methods to interact with character ESI endpoints
+    pub(super) fn new(client: &'a Client) -> Self {
         Self { client }
     }
 
-    /// Retrieves information about a specific character from EVE Online's ESI API.
+    /// Retrieves the public information of a specific character
     ///
-    /// This endpoint fetches character information based on the provided character ID.
-    /// The endpoint returns data such as the character's name, corporation, alliance_id,
-    /// and other relevant information.
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
     ///
     /// # Arguments
-    /// - `character_id` (`Vec<`[`i32`]`>`): The ID of the character to retrieve information for.
+    /// - `character_id` ([`i64`]): The ID of the character to retrieve information for.
     ///
     /// # Returns
-    /// Returns a `Result` containing either:
-    /// - [`Character`] - The character data if successfully retrieved
-    /// - [`Error`] - An error if the request failed (e.g., character not found, network issues)
-    ///
-    /// # EVE ESI Reference
-    /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId).
-    ///
-    /// # Example
-    /// ```no_run
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let esi_client = eve_esi::Client::builder()
-    ///         .user_agent("MyApp/1.0 (contact@example.com)")
-    ///         .build()
-    ///         .expect("Failed to build Client");
-    ///
-    ///     // Get information about the character Hyziri (id: 2114794365)
-    ///     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
-    ///     println!("Character name: {}", character.name);
-    /// }
-    /// ```
+    /// Returns a [`Result`] containing either:
+    /// - [`Character`]: The character's information if successfully retrieved
+    /// - [`Error`]: An error if the fetch request fails
     pub async fn get_character_public_information(
         &self,
-        character_id: i32,
+        character_id: i64,
     ) -> Result<Character, Error> {
         let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
 
         let message = format!(
-            "Fetching character information for character ID {} from {}",
+            "Fetching character information for character ID {} from \"{}\"",
             character_id, url
         );
 
@@ -107,7 +71,11 @@ impl<'a> CharacterApi<'a> {
         let start_time = Instant::now();
 
         // Fetch character information from ESI
-        let result = self.client.get_from_public_esi::<Character>(&url).await;
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Character>(&url)
+            .await;
 
         let elapsed = start_time.elapsed();
         match result {
@@ -137,51 +105,28 @@ impl<'a> CharacterApi<'a> {
         }
     }
 
-    /// Retrieve affiliations for a list of characters.
+    /// Retrieve affiliations for a list of characters
     ///
-    /// This endpoint returns a list of affiliations for the requested characters.
-    /// Each affiliation includes the character's corporation, alliance, and faction IDs.
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
     ///
     /// # Arguments
-    /// - `character_ids` (`Vec<`[`i32`]`): A list of character IDs to retrieve affiliations for.
+    /// - `character_ids` (Vec<[`i64`]>): A list of character IDs to retrieve affiliations for.
     ///
     /// # Returns
-    /// Returns a `Result` containing either:
-    /// - `Vec<`[`CharacterAffiliation`]`>` - The affiliations for the characters if successfully retrieved
-    /// - [`Error`] - An error if the request failed (network issues)
-    ///
-    /// # EVE ESI Reference
-    /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation).
-    ///
-    /// # Example
-    /// ```no_run
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let esi_client = eve_esi::Client::builder()
-    ///         .user_agent("MyApp/1.0 (contact@example.com)")
-    ///         .build()
-    ///         .expect("Failed to build Client");
-    ///
-    ///     // Get affiliations for characters with IDs 2114794365 and 2117053828
-    ///     let affiliations = esi_client.character().character_affiliation(vec![2114794365, 2117053828]).await.unwrap();
-    ///     for affiliation in affiliations {
-    ///         let alliance_id = if let Some(alliance_id) = affiliation.alliance_id {
-    ///             alliance_id.to_string()
-    ///         } else {
-    ///             "None".to_string()
-    ///         };
-    ///
-    ///         println!("Character ID: {}, Alliance ID: {}, Corporation ID: {}", affiliation.character_id, alliance_id, affiliation.corporation_id);
-    ///     }
-    /// }
+    /// Returns a [`Result`] containing either:
+    /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
+    /// - [`Error`]: An error if the fetch request fails
     pub async fn character_affiliation(
         &self,
-        character_ids: Vec<i32>,
+        character_ids: Vec<i64>,
     ) -> Result<Vec<CharacterAffiliation>, Error> {
         let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
 
         let message = format!(
-            "Fetching character affiliations for {} characters from {}",
+            "Fetching character affiliations for {} characters from \"{}\"",
             character_ids.len(),
             url
         );
@@ -193,7 +138,8 @@ impl<'a> CharacterApi<'a> {
         // Fetch character affiliations from ESI
         let result = self
             .client
-            .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i32>>(&url, &character_ids)
+            .esi()
+            .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i64>>(&url, &character_ids)
             .await;
 
         let elapsed = start_time.elapsed();
@@ -215,6 +161,80 @@ impl<'a> CharacterApi<'a> {
                     character_ids.len(),
                     elapsed.as_millis(),
                     err
+                );
+
+                error!("{}", message);
+
+                Err(err.into())
+            }
+        }
+    }
+
+    /// Retrieves character's research agents using the character's ID
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
+    ///
+    /// # Required Scopes
+    /// - [`CharacterScopes::read_agents_research`](crate::oauth2::scope::CharacterScopes::read_agents_research):
+    ///   `esi-characters.read_agents_research.v1`
+    ///
+    /// # Arguments
+    /// - `character_id` ([`i64`]): The ID of the character to retrieve research agent information for.
+    /// - `access_token` (&[`str`]): Access token used for authenticated ESI routes in string format.
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - Vec<[`CharacterResearchAgent`]>: A Vec of the character's research agents
+    /// - [`Error`]: An error if the fetch request fails
+    pub async fn get_agents_research(
+        &self,
+        character_id: i64,
+        access_token: &str,
+    ) -> Result<Vec<CharacterResearchAgent>, Error> {
+        let url = format!(
+            "{}/characters/{}/agents_research",
+            self.client.inner.esi_url, character_id
+        );
+
+        let message = format!(
+            "Fetching research agents for character ID {} from \"{}\"",
+            character_id, url
+        );
+
+        debug!("{}", message);
+
+        let start_time = Instant::now();
+
+        // Fetch character research agents from ESI
+        let result = self
+            .client
+            .esi()
+            .get_from_authenticated_esi::<Vec<CharacterResearchAgent>>(&url, access_token)
+            .await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(research_agents) => {
+                let message = format!(
+                    "Successfully fetched {} research agents for character ID: {} (took {}ms)",
+                    research_agents.len(),
+                    character_id,
+                    elapsed.as_millis()
+                );
+
+                info!("{}", message);
+
+                Ok(research_agents)
+            }
+            Err(err) => {
+                let message = format!(
+                    "Failed to fetch research agents for character ID {} after {}ms due to error: {:#?}",
+                        character_id,
+                        elapsed.as_millis(),
+                        err
                 );
 
                 error!("{}", message);
