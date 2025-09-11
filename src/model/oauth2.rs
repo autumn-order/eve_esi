@@ -6,6 +6,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use super::util::deserialize_scp;
+
 /// Represents the data needed to begin an OAuth2 authentication flow
 ///
 /// This struct contains the URL where users should be redirected to login
@@ -113,13 +115,15 @@ pub enum EveJwtKey {
 /// This struct contains the standard JWT claims as well as EVE Online specific
 /// claims that are used to identify the character and other information.
 ///
-/// # Documentation
-/// See [EVE SSO documentation](https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens)
-/// for details about JWT claims.
+/// # ESI Documentation
+/// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
+///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EveJwtClaims {
+    // There are two possible issuers but only 1 will be present at a time
+    // See `constant.rs`, `DEFAULT_JWT_ISSUERS` for possible issuers.
     /// The issuer of the JWT token (EVE Online's login service URL)
-    pub iss: Vec<String>,
+    pub iss: String,
     /// ID for the authenticated user (Example: "CHARACTER:EVE:2114794365")
     pub sub: String,
     /// Audience the JWT token is intended for (your client_id, EVE Online)
@@ -136,7 +140,15 @@ pub struct EveJwtClaims {
     pub exp: i64,
     /// Issued at time (Unix timestamp)
     pub iat: i64,
+    // This field behaves oddly when deserializing due to:
+    // - 0 scopes requested: `scp` field won't exist on claims body
+    // - 1 scope requested: Field exists as String
+    // - 2 scopes requested: Field exists as an array of Strings
+    //
+    // As a result, we need to use a custom deserializer function to handle this
     /// The scopes granted by this token
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_scp")]
     pub scp: Vec<String>,
     /// The character's name
     pub name: String,

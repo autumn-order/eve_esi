@@ -230,10 +230,7 @@ impl<'a> OAuth2Api<'a> {
 
                     attempt_validation(&self.client, &token_secret).await
                 } else {
-                    let message = format!(
-                        "Making 2nd attempt to validate token due to previous error: {:#?}",
-                        &err
-                    );
+                    let message = format!("Failed to validate JWT token due to error: {:#?}", &err);
 
                     debug!("{}", message);
 
