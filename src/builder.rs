@@ -41,7 +41,7 @@
 //! EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string.
 //!
-//! Example: "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"
+//! Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`
 
 use std::sync::Arc;
 
