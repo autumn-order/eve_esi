@@ -215,7 +215,8 @@ impl ClientBuilder {
     /// EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
     ///
     /// # Arguments
-    /// - `user_agent` ([`String`]): user agent string to be used by the reqwest HTTP client.
+    /// - [`user_agent`] (&[`str`]): User agent used to identify your application
+    ///   when making ESI requests. For example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`.
     ///
     /// # Returns
     /// - [`ClientBuilder`]: instance with updated user agent configuration.

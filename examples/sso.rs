@@ -95,15 +95,20 @@ async fn main() {
     // In production, you'd typically use a Valkey/Redis instance instead of a MemoryStore.
     let session_store = MemoryStore::default();
     let session_layer = SessionManagerLayer::new(session_store)
+        // You would set this to true for a production application
         .with_secure(false)
         .with_same_site(SameSite::Lax)
         .with_expiry(Expiry::OnInactivity(Duration::seconds(120)));
 
-    // Access the esi_client from an Axum extension to share it across threads
+    // Share the ESI client across threads with .layer(Extension)
+    // Not doing this will result in JWT key caching for token validation not working
+    // & requests taking longer.
     let app = Router::new()
         .route("/login", get(login))
         .route("/callback", get(callback))
         .layer(Extension(esi_client))
+        // Share reqwest_client across threads as well if your app needs it to share HTTP pool
+        .layer(Extension(reqwest_client))
         .layer(session_layer);
 
     // Start the API server

@@ -37,30 +37,16 @@ async fn main() {
         env!("CARGO_PKG_REPOSITORY")
     );
 
-    // Optional: Build a reqwest client, share it with ESI client to share an HTTP request pool for performance
-    // Only do this if your app uses reqwest client elsewhere beyond ESI requests
-    let reqwest_client = reqwest::Client::builder()
-        .user_agent(&user_agent)
-        .build()
-        .expect("Failed to build reqwest client");
-
-    // Build an ESI client with a user agent & optional reqwest client
-    let esi_client: eve_esi::Client = eve_esi::Client::builder()
-        // Always set a user agent to identify your application
-        .user_agent(&user_agent)
-        .reqwest_client(reqwest_client.clone())
-        .build()
-        .expect("Failed to build ESI client");
+    // Create a basic ESI client with a user agent to identify your application
+    let esi_client = eve_esi::Client::new(&user_agent).expect("Failed to create new ESI client");
 
     // Share the ESI client across threads with .layer(Extension)
-    // Not doing this will result in caching not working properly & requests taking longer
+    // Not doing this will result in JWT key caching for token validation not working
+    // & requests taking longer.
     let app = Router::new()
         .route("/character", get(get_esi_character))
         .route("/corporation", get(get_esi_corporation))
-        .layer(Extension(esi_client))
-        // Optional: Share reqwest client across threads if your application uses it
-        // You'll access it the same way you do for the esi_client
-        .layer(Extension(reqwest_client));
+        .layer(Extension(esi_client));
 
     // Start the API server
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
