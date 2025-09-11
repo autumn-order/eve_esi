@@ -136,4 +136,33 @@ impl<'a> EsiApi<'a> {
         let result: T = req.json().await?;
         Ok(result)
     }
+
+    /// Makes an authenticated GET request to the ESI API.
+    ///
+    /// # Arguments
+    /// - `url` ([`DeserializeOwned`]): The ESI API endpoint URL to request.
+    ///
+    /// # Returns
+    /// A Result containing the deserialized response data or a reqwest error.
+    ///
+    /// # Type Parameters
+    /// - `T` - The expected return type that implements `DeserializeOwned`
+    pub async fn get_from_authenticated_esi<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        access_token: &str,
+    ) -> Result<T, reqwest::Error> {
+        let reqwest_client = &self.client.inner.reqwest_client;
+
+        let bearer = format!("Bearer {}", access_token);
+
+        let req = reqwest_client
+            .get(url)
+            .header("Authorization", bearer)
+            .send()
+            .await?;
+        req.error_for_status_ref()?;
+        let result: T = req.json().await?;
+        Ok(result)
+    }
 }

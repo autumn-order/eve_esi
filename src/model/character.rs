@@ -51,5 +51,23 @@ pub struct CharacterAffiliation {
     /// The ID of the corporation the character is a member of.
     pub corporation_id: i64,
     /// The ID of the faction the character is associated with, if applicable.
-    pub faction_id: Option<i32>,
+    pub faction_id: Option<i64>,
+}
+
+/// Information regarding a character's research agent
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterResearchAgent {
+    /// ID of the research agent
+    pub agent_id: i64,
+    /// Research points accumulated per day
+    pub points_per_day: f64,
+    /// Remaining research points available to spend
+    pub remainder_points: f64,
+    /// Specialty skill of the research agent
+    pub skill_type_id: i64,
+    /// Date and time the research agent was started
+    pub started_at: DateTime<Utc>,
 }

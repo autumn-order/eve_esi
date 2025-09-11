@@ -180,4 +180,75 @@ impl<'a> CharacterApi<'a> {
             }
         }
     }
+
+    /// Retrieves information about a character's research agents
+    ///
+    /// # Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
+    ///
+    /// # Required Scopes
+    /// - `esi-characters.read_agents_research.v1`
+    ///
+    /// # Arguments
+    /// - `character_id` ([`i64`]): The ID of the character to retrieve research agent information for.
+    /// - `access_token` (&[`str`]): Access token used for authenticated ESI routes in string format.
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - `Vec<`[`CharacterResearchAgent`]`>`: A vec of information about character's research agents.
+    /// - [`Error`]: An error if the fetch request fails
+    pub async fn get_agents_research(
+        &self,
+        character_id: i64,
+        access_token: &str,
+    ) -> Result<Vec<CharacterResearchAgent>, Error> {
+        let url = format!(
+            "{}/characters/{}/agents_research",
+            self.client.inner.esi_url, character_id
+        );
+
+        let message = format!(
+            "Fetching research agents for character ID {} from {}",
+            character_id, url
+        );
+
+        debug!("{}", message);
+
+        let start_time = Instant::now();
+
+        // Fetch character research agents from ESI
+        let result = self
+            .client
+            .esi()
+            .get_from_authenticated_esi::<Vec<CharacterResearchAgent>>(&url, access_token)
+            .await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(research_agents) => {
+                let message = format!(
+                    "Successfully fetched {} research agents for character ID: {} (took {}ms)",
+                    research_agents.len(),
+                    character_id,
+                    elapsed.as_millis()
+                );
+
+                info!("{}", message);
+
+                Ok(research_agents)
+            }
+            Err(err) => {
+                let message = format!(
+                    "Failed to fetch research agents for character ID {} after {}ms due to error: {:#?}",
+                        character_id,
+                        elapsed.as_millis(),
+                        err
+                );
+
+                error!("{}", message);
+
+                Err(err.into())
+            }
+        }
+    }
 }
