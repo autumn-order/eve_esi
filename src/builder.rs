@@ -146,7 +146,7 @@ impl ClientBuilder {
             // OAuth2
             oauth2_client: oauth_client,
             jwt_key_cache: jwt_key_cache,
-            jwt_issuer: config.jwt_issuer,
+            jwt_issuers: config.jwt_issuers,
             jwt_audience: config.jwt_audience,
         };
 

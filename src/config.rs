@@ -29,7 +29,7 @@
 //! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_background_refresh_enabled` | Enable/disable background refresh          |
 //! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
-//! | `jwt_issuer`   | Expected issuer of JWT tokens |
+//! | `jwt_issuers`   | Expected issuer(s) of JWT tokens |
 //! | `jwt_audience` | Intended audience JWT tokens are to be used with |
 //!
 //! ## Usage
@@ -58,7 +58,7 @@ use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
     constant::{
-        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER,
+        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUERS,
         DEFAULT_TOKEN_URL,
     },
     error::{ConfigError, Error},
@@ -80,8 +80,8 @@ pub struct Config {
     // JWT Key Settings
     /// Config for JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
-    /// The EVE Online login server URL which represents the expected issuer of tokens
-    pub(crate) jwt_issuer: String,
+    /// The EVE Online login server which represents the expected issuer of tokens
+    pub(crate) jwt_issuers: Vec<String>,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
 }
@@ -102,7 +102,7 @@ pub struct ConfigBuilder {
     /// Config for OAuth2 JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
     /// The EVE Online login server URL which represents the expected issuer of tokens
-    pub(crate) jwt_issuer: String,
+    pub(crate) jwt_issuers: Vec<String>,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
 }
@@ -143,6 +143,13 @@ impl ConfigBuilder {
     /// # Returns
     /// - [`ConfigBuilder`]: Instance with the default settings that can be modified with the setter methods.
     pub fn new() -> Self {
+        // Convert default JWT issuers into Vec<String>
+        let issuers: Vec<String> = DEFAULT_JWT_ISSUERS
+            .to_vec()
+            .iter()
+            .map(|str| str.to_string())
+            .collect();
+
         Self {
             // URL settings
             esi_url: DEFAULT_ESI_URL.to_string(),
@@ -151,7 +158,7 @@ impl ConfigBuilder {
 
             // OAuth2 JWT key config
             jwt_key_cache_config: JwtKeyCacheConfig::new(),
-            jwt_issuer: DEFAULT_JWT_ISSUER.to_string(),
+            jwt_issuers: issuers,
             jwt_audience: DEFAULT_JWT_AUDIENCE.to_string(),
         }
     }
@@ -204,7 +211,7 @@ impl ConfigBuilder {
 
             // JWT key cache settings
             jwt_key_cache_config: self.jwt_key_cache_config,
-            jwt_issuer: self.jwt_issuer,
+            jwt_issuers: self.jwt_issuers,
             jwt_audience: self.jwt_audience,
         })
     }
@@ -419,19 +426,20 @@ impl ConfigBuilder {
         self
     }
 
-    /// Expected issuer of JWT tokens
+    /// Expected issuer(s) of JWT tokens
     ///
-    /// This is the expected issuer of JSON web tokens used to access
-    /// authenticated ESI routes. Typically the EVE Online login server URL.
+    /// This is the expected issuer(s) of JSON web tokens used to access
+    /// authenticated ESI routes. This would be the EVE Online login server URL.
+    /// At least 1 of the issuers provided must be present for token validation to be
+    /// successful.
     ///
     /// # Arguments
-    /// - `issuer` (&[`str`]): The URL for EVE Online's login server.
-    ///   Default is `"https://login.eveonline.com"`.
+    /// - `issuers` (Vec<String>): The expected issuer(s) of the JWT token.
     ///
     /// # Returns
     /// - [`ConfigBuilder`]: Instance with updated EVE Online login URL.
-    pub fn jwt_issuer(mut self, issuer: &str) -> Self {
-        self.jwt_issuer = issuer.to_string();
+    pub fn jwt_issuers(mut self, issuers: Vec<String>) -> Self {
+        self.jwt_issuers = issuers;
         self
     }
 
@@ -485,7 +493,7 @@ mod tests {
             .jwk_background_refresh_enabled(false)
             .jwk_background_refresh_threshold(1)
             // JWT settings
-            .jwt_issuer("example")
+            .jwt_issuers(vec!["example".to_string()])
             .jwt_audience("example")
             .build()
             .expect("Failed to build Config");
@@ -513,7 +521,7 @@ mod tests {
         assert_eq!(config.jwt_key_cache_config.background_refresh_threshold, 1);
 
         // Assert JWT settings were set
-        assert_eq!(config.jwt_issuer, "example");
+        assert_eq!(config.jwt_issuers, vec!["example"]);
         assert_eq!(config.jwt_audience, "example");
     }
 

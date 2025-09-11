@@ -91,7 +91,9 @@ pub fn create_mock_token(
         .as_secs() as i64;
 
     let claims = EveJwtClaims {
-        iss: "https://login.eveonline.com".to_string(),
+        // ESI SSO docs defines 2 different JWT issuers but typically only returns 1 of them at a time
+        // The default defines 2 but for tests we'll define 1 to ensure validation works
+        iss: vec!["https://login.eveonline.com".to_string()],
         sub: "CHARACTER:EVE:123456789".to_string(),
         aud: vec![TEST_CLIENT_ID.to_string(), "EVE Online".to_string()],
         jti: "abc123def456".to_string(),
