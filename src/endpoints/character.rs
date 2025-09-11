@@ -1,29 +1,17 @@
-//! Character Endpoints for EVE Online's ESI API.
+//! # EVE ESI Character Endpoints
 //!
 //! This module provides the [`CharacterApi`] struct and associated methods for accessing
-//! character-related endpoints of the EVE Online ESI (EVE Stable Infrastructure) API.
+//! character-related ESI endpoints.
 //!
-//! # Documentation
+//! For an overview & usage examples, see the [endpoints module documentation](super)
+//!
+//! # ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
 //! # Methods
 //! - [`CharacterApi::get_character_public_information`]: Retrieves the public information of a specific character
 //! - [`CharacterApi::character_affiliation`]: Retrieve affiliations for a list of characters
-//!
-//! # Usage Example
-//! ```no_run
-//! #[tokio::main]
-//! async fn main() {
-//!     let esi_client = eve_esi::Client::builder()
-//!         .user_agent("MyApp/1.0 (contact@example.com)")
-//!         .build()
-//!         .expect("Failed to build Client");
-//!
-//!     // Get public information for a character
-//!     let character = esi_client.character().get_character_public_information(2114794365).await.unwrap();
-//!     println!("Character name: {}", character.name);
-//! }
-//! ```
+//! - [`CharacterApi::get_agents_research`]: Retrieves character's research agents using the character's ID
 
 use std::time::Instant;
 
@@ -36,10 +24,7 @@ use crate::model::character::{Character, CharacterAffiliation, CharacterResearch
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
-/// The `CharacterApi` struct acts as an interface for retrieving information about EVE Online characters
-/// using the ESI API. It requires an [`Client`] for making HTTP requests to the ESI endpoints.
-///
-/// See the [module-level documentation](self) for an overview and usage example.
+/// For an overview & usage examples, see the [endpoints module documentation](super)
 pub struct CharacterApi<'a> {
     client: &'a Client,
 }
@@ -48,17 +33,19 @@ impl<'a> CharacterApi<'a> {
     /// Creates a new instance of `CharacterApi`.
     ///
     /// # Arguments
-    /// - `client` - The [`Client`] used for making HTTP requests to the ESI endpoints.
+    /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
     ///
     /// # Returns
-    /// Returns a new instance of `CharacterApi`.
-    pub fn new(client: &'a Client) -> Self {
+    /// - [`CharacterApi`]: Struct providing methods to interact with character ESI endpoints
+    pub(super) fn new(client: &'a Client) -> Self {
         Self { client }
     }
 
     /// Retrieves the public information of a specific character
     ///
-    /// # Documentation
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
     /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
     ///
     /// # Arguments
@@ -120,15 +107,17 @@ impl<'a> CharacterApi<'a> {
 
     /// Retrieve affiliations for a list of characters
     ///
-    /// # Documentation
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
     /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
     ///
     /// # Arguments
-    /// - `character_ids` (`Vec<`[`i64`]`): A list of character IDs to retrieve affiliations for.
+    /// - `character_ids` (Vec<[`i64`]>): A list of character IDs to retrieve affiliations for.
     ///
     /// # Returns
     /// Returns a [`Result`] containing either:
-    /// - `Vec<`[`CharacterAffiliation`]`>`: The affiliations of the characters if successfully retrieved
+    /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
     /// - [`Error`]: An error if the fetch request fails
     pub async fn character_affiliation(
         &self,
@@ -181,13 +170,16 @@ impl<'a> CharacterApi<'a> {
         }
     }
 
-    /// Retrieves information about a character's research agents
+    /// Retrieves character's research agents using the character's ID
     ///
-    /// # Documentation
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
     /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
     ///
     /// # Required Scopes
-    /// - `esi-characters.read_agents_research.v1`
+    /// - [`CharacterScopes::read_agents_research`](crate::oauth2::scope::CharacterScopes::read_agents_research):
+    ///   `esi-characters.read_agents_research.v1`
     ///
     /// # Arguments
     /// - `character_id` ([`i64`]): The ID of the character to retrieve research agent information for.
@@ -195,7 +187,7 @@ impl<'a> CharacterApi<'a> {
     ///
     /// # Returns
     /// Returns a [`Result`] containing either:
-    /// - `Vec<`[`CharacterResearchAgent`]`>`: A vec of information about character's research agents.
+    /// - Vec<[`CharacterResearchAgent`]>: A Vec of the character's research agents
     /// - [`Error`]: An error if the fetch request fails
     pub async fn get_agents_research(
         &self,

@@ -1,32 +1,15 @@
-//! Corporation Endpoints for EVE Online's ESI API.
+//! # EVE ESI Corporation Endpoints
 //!
 //! This module provides the [`CorporationApi`] struct and associated methods for accessing
-//! corporation-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
+//! corporation-related ESI endpoints.
 //!
-//! The [`CorporationApi`] acts as a high-level interface for retrieving public information
-//! and affiliations for EVE Online corporations. It requires an [`Client`] instance
-//! to perform HTTP requests to the ESI endpoints.
+//! For an overview & usage examples, see the [endpoints module documentation](super)
 //!
-//! # Features
-//! - Fetch public information about a corporation by corporation ID
+//! # ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # References
-//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
-//!
-//! # Usage Example
-//! ```no_run
-//! #[tokio::main]
-//! async fn main() {
-//!     let esi_client = eve_esi::Client::builder()
-//!         .user_agent("MyApp/1.0 (contact@example.com)")
-//!         .build()
-//!         .expect("Failed to build Client");
-//!
-//!     // Get information about the corporation The Order of Autumn (id: 98785281)
-//!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
-//!     println!("Corporation name: {}", corporation.name);
-//! }
-//! ```
+//! # Methods
+//! - [`CorporationApi::get_corporation_information`]: Fetches a corporation’s public information from ESI using the corporation ID
 
 use std::time::Instant;
 
@@ -38,10 +21,7 @@ use crate::Client;
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
 ///
-/// The `CorporationApi` struct acts as an interface for retrieving information about EVE Online corporations
-/// using the ESI API. It requires an [`Client`] for making HTTP requests to the ESI endpoints.
-///
-/// See the [module-level documentation](self) for an overview and usage example.
+/// For an overview & usage examples, see the [endpoints module documentation](super)
 pub struct CorporationApi<'a> {
     client: &'a Client,
 }
@@ -49,45 +29,31 @@ pub struct CorporationApi<'a> {
 impl<'a> CorporationApi<'a> {
     /// Creates a new instance of `CorporationApi`.
     ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
     /// # Arguments
-    /// - `client` - The [`Client`] used for making HTTP requests to the ESI endpoints.
+    /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
     ///
     /// # Returns
-    /// Returns a new instance of `CorporationApi`.
-    pub fn new(client: &'a Client) -> Self {
+    /// - [`CorporationApi`]: Struct providing methods to interact with corporation ESI endpoints
+    pub(super) fn new(client: &'a Client) -> Self {
         Self { client }
     }
 
-    /// Retrieves information about a corporation from EVE Online's ESI API using the provided corporation ID.
+    /// Fetches a corporation's public information from ESI using the corporation ID
     ///
-    /// This endpoint fetches corporation information, returning data such as name, ticker, member count
-    /// and other relevant information.
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationId>
     ///
     /// # Arguments
     /// - `corporation_id` ([`i32`]): The ID of the corporation to retrieve information for.
     ///
     /// # Returns
-    /// Returns a `Result` containing either:
+    /// Returns a [`Result`] containing either:
     /// - [`Corporation`] - The corporation information if the request was successful.
-    /// - [`Error`] - An error if the request failed (e.g. corporation not found, network issues)
-    ///
-    /// # EVE ESI Reference
-    /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationId)
-    ///
-    /// # Example
-    /// ```no_run
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let esi_client = eve_esi::Client::builder()
-    ///         .user_agent("MyApp/1.0 (contact@example.com)")
-    ///         .build()
-    ///         .expect("Failed to build Client");
-    ///
-    ///     // Get information about the corporation The Order of Autumn (id: 98785281)
-    ///     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
-    ///     println!("Corporation name: {}", corporation.name);
-    /// }
-    /// ```
+    /// - [`Error`]: An error if the fetch request fails
     pub async fn get_corporation_information(
         &self,
         corporation_id: i64,
