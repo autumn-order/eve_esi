@@ -71,7 +71,7 @@ pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
 ///
 /// # arguments
 /// - `use_alternate_key` ([`bool`]): Indicates whether or not to use an alternate key, indicating `true` will
-///   cause JWT key validations to fail as the public key used to decode will be different than the private key
+///   cause JWT key validations to fail if the public key used to decode is different than the private key
 ///   used to encode.
 ///
 /// # Returns
@@ -80,10 +80,6 @@ pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
 pub fn create_mock_token(
     use_alternate_key: bool,
 ) -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
-    // Create header with algorithm and key id
-    let mut header = Header::new(Algorithm::RS256);
-    header.kid = Some(RSA_KEY_ID.to_string());
-
     // Create JWT claims matching what EVE Online would return
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -110,6 +106,31 @@ pub fn create_mock_token(
         owner: "123456789".to_string(),
         azp: TEST_CLIENT_ID.to_string(),
     };
+
+    create_mock_token_with_claims(use_alternate_key, claims)
+}
+
+/// Creates a mock token using the provided mock [`EveJwtClaims`]
+///
+/// Uses a test RS256 private key for the purposes of validation with the keys created by the
+/// [`create_mock_token_keys`] function.
+///
+/// # arguments
+/// - `use_alternate_key` ([`bool`]): Indicates whether or not to use an alternate key, indicating `true` will
+///   cause JWT key validations to fail if the public key used to decode is different than the private key
+///   used to encode.
+/// - `claims` ([`EveJwtClaims`]): The claims within the access token.
+///
+/// # Returns
+/// - [`StandardTokenResponse`]<[`EmptyExtraTokenFields`], [`BasicTokenType`]>: A token which
+///   contains [`EveJwtClaims`] and is encoded with a test RS256 private key for testing validation.
+pub fn create_mock_token_with_claims(
+    use_alternate_key: bool,
+    claims: EveJwtClaims,
+) -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
+    // Create header with algorithm and key id
+    let mut header = Header::new(Algorithm::RS256);
+    header.kid = Some(RSA_KEY_ID.to_string());
 
     // Select which key to use
     let private_key = match use_alternate_key {

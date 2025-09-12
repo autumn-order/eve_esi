@@ -6,9 +6,10 @@
 //! - [OAuth2Api::get_token]: Retrieves a token from EVE Online's OAuth2 API
 //! - [OAuth2Api::get_token_refresh]: Retrieves a new token using a refresh token
 //! - [OAuth2Api::validate_token]: Validates token retrieved via the [`OAuth2Api::get_token`] method
+//! - [OAuth2Api::check_token_expiration]: Checks if the provided access token is expired
 //!
-//! ## Documentation
-//! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
+//! ## ESI Documentation
+//! - <https://developers.eveonline.com/docs/services/sso/>
 //!
 //! ## Usage
 //!
@@ -62,10 +63,14 @@
 //! }
 //! ```
 
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
 use jsonwebtoken::{DecodingKey, Validation};
 use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
-use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
+use oauth2::{
+    AccessToken, AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse,
+};
 
 use crate::error::{Error, OAuthError};
 use crate::model::oauth2::{EveJwtClaims, EveJwtKey, EveJwtKeys};
@@ -238,6 +243,41 @@ impl<'a> OAuth2Api<'a> {
                 }
             }
         }
+    }
+
+    /// Checks if the provided access token is expired
+    ///
+    /// Use this method before fetching data from an authenticated ESI route to ensure your access
+    /// token is not expired.
+    ///
+    /// # Arguments
+    /// - `access_token`: An access token in string format. If you haven't converted the
+    ///   token to string yet, you can do so with `token.access_token().secret().to_string()`.
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - [`bool`]: A bool indicating whether or not the token is expired
+    /// - [`Error`]: An error if the token validation used to retrieve the expiration from claims
+    ///   fails. This generally happens if the access token provided is not a valid access
+    ///   token.
+    pub async fn check_token_expiration(&self, access_token: &str) -> Result<bool, Error> {
+        // Validate token to get claims
+        let access_token = AccessToken::new(access_token.to_string());
+
+        let claims = self
+            .validate_token(access_token.secret().to_string())
+            .await?;
+
+        // Check expiry
+        let expiration = UNIX_EPOCH + Duration::from_secs(claims.exp as u64);
+
+        if SystemTime::now() < expiration {
+            // Return None, token is not yet expired
+            return Ok(false);
+        }
+
+        // Token is expired, refresh the token
+        Ok(true)
     }
 }
 
