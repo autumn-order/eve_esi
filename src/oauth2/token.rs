@@ -248,7 +248,8 @@ impl<'a> OAuth2Api<'a> {
     /// Checks if the provided access token is expired
     ///
     /// Use this method before fetching data from an authenticated ESI route to ensure your access
-    /// token is not expired.
+    /// token is not expired. This method uses the [`Self::validate_token`] method internally to access
+    /// the claims and ensure the claims have not been modified.
     ///
     /// # Arguments
     /// - `access_token`: An access token in string format. If you haven't converted the
@@ -259,24 +260,63 @@ impl<'a> OAuth2Api<'a> {
     /// - [`bool`]: A bool indicating whether or not the token is expired
     /// - [`Error`]: An error if the token validation used to retrieve the expiration from claims
     ///   fails. This generally happens if the access token provided is not a valid access
-    ///   token.
+    ///   token or there is an issue fetching the JWT keys to validate the token.
     pub async fn check_token_expiration(&self, access_token: &str) -> Result<bool, Error> {
+        let message =
+            "Checking token expiration, attempting to validate token prior to expiration check.";
+        log::debug!("{}", message);
+
         // Validate token to get claims
         let access_token = AccessToken::new(access_token.to_string());
 
-        let claims = self
-            .validate_token(access_token.secret().to_string())
-            .await?;
+        let claims = match self.validate_token(access_token.secret().to_string()).await {
+            Ok(claims) => claims,
+            Err(err) => {
+                // Trace because the validate_token method already logs an error for this
+                let message = format!(
+                    "Failed to validate token for expiration check due to error: {}",
+                    err
+                );
+                log::trace!("{}", message);
 
-        // Check expiry
-        let expiration = UNIX_EPOCH + Duration::from_secs(claims.exp as u64);
+                return Err(err);
+            }
+        };
+
+        // Logging: Get character ID for debug logging
+        let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
+        let character_id: i64 = id_str.parse().expect("Failed to parse character id to i64");
+
+        // Trace because validate_token already logs info for this
+        let message = format!(
+            "Successfully validated token for character ID {} prior to token expiration check",
+            character_id
+        );
+        log::trace!("{}", message);
+
+        // Check token expiration
+        let expiration_secs = Duration::from_secs(claims.exp as u64);
+        let expiration = UNIX_EPOCH + expiration_secs;
 
         if SystemTime::now() < expiration {
-            // Return None, token is not yet expired
+            let message = format!(
+                "Checked token for expiration, token for character ID {} is not yet expired, expiration in {}s",
+                character_id,
+                expiration_secs.as_secs()
+            );
+            log::debug!("{}", message);
+
+            // Return false, token is not yet expired
             return Ok(false);
         }
 
-        // Token is expired, refresh the token
+        let message = format!(
+            "Checked token for expiration, token for character ID {} is expired",
+            character_id
+        );
+        log::debug!("{}", message);
+
+        // Return true, token is expired
         Ok(true)
     }
 }

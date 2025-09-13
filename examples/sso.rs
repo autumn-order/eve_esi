@@ -225,7 +225,7 @@ async fn callback(
     // Extract character id & name from token
     let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
 
-    let character_id: i64 = id_str.parse().expect("Failed to parse id to i64");
+    let character_id: i64 = id_str.parse().expect("Failed to parse character id to i64");
     let character_name: String = claims.name;
 
     let character = Character {
