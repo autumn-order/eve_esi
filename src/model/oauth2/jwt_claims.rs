@@ -143,7 +143,6 @@ impl EveJwtClaims {
         }
 
         // Token is expired
-
         let message = format!(
             "Checked token for expiration, token for character ID {} is expired",
             character_id
@@ -167,12 +166,12 @@ impl EveJwtClaims {
     ///
     /// # Returns
     /// - `bool`: Indicating if all scopes provided are present.
-    pub fn has_scopes(&self, scopes: Vec<String>) -> bool {
+    pub fn has_scopes(&self, scopes: &Vec<String>) -> bool {
         // Set character_id for logging to 0 if `sub` field can't be parsed to id
         let character_id = self.character_id().unwrap_or(0);
 
         // Check if `claims.scp` contains all expected scopes
-        for expected_scope in &scopes {
+        for expected_scope in scopes {
             if !self.scp.iter().any(|scope| scope == expected_scope) {
                 // One of the expected scopes is missing
                 let message = format!(
@@ -333,6 +332,81 @@ mod claims_character_id_tests {
 }
 
 #[cfg(test)]
+mod is_expired_tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use crate::model::oauth2::EveJwtClaims;
+
+    /// Ensures that when token is not expired, function returns false
+    #[tokio::test]
+    pub async fn test_is_expired_false() {
+        // Create new mock token which is not expired
+        let mock_claims = EveJwtClaims::mock();
+
+        // Test function
+        let result = mock_claims.is_expired();
+
+        // Assert result is false
+        assert_eq!(result, false);
+    }
+
+    /// Ensures that when token is expired, function returns true
+    #[tokio::test]
+    async fn test_is_expired_true() {
+        // Create new mock token which is expired
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.exp = now - 60;
+        mock_claims.iat = now - 960;
+
+        // Test function
+        let result = mock_claims.is_expired();
+
+        // Assert result is true
+        assert_eq!(result, true);
+    }
+}
+
+#[cfg(test)]
+mod has_scopes_tests {
+    use crate::model::oauth2::EveJwtClaims;
+
+    /// Test that function returns true since all scopes are present
+    #[test]
+    fn test_has_scopes_true() {
+        // Create mock token claims with expected scopes
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.scp = vec!["publicData".to_string()];
+
+        // Test function
+        let expected_scopes = vec!["publicData".to_string()];
+        let result = mock_claims.has_scopes(&expected_scopes);
+
+        // Assert result is true
+        assert_eq!(result, true);
+    }
+
+    /// Test that function returns false due to missing scopes
+    #[test]
+    fn test_has_scopes_false() {
+        // Create mock token claims missing expected scopes
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.scp = vec!["".to_string()];
+
+        // Test function
+        let expected_scopes = vec!["publicData".to_string()];
+        let result = mock_claims.has_scopes(&expected_scopes);
+
+        // Assert result is false
+        assert_eq!(result, false);
+    }
+}
+
+#[cfg(test)]
 mod deserialize_scp_tests {
     use super::EveJwtClaims;
 
@@ -430,80 +504,5 @@ mod deserialize_scp_tests {
         );
         assert_eq!(claims.scp[0], "publicData");
         assert_eq!(claims.scp[1], "esi-characters.read_agents_research.v1");
-    }
-}
-
-#[cfg(test)]
-mod is_expired_tests {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    use crate::model::oauth2::EveJwtClaims;
-
-    /// Ensures that when token is not expired, function returns false
-    #[tokio::test]
-    pub async fn test_is_expired_false() {
-        // Create new mock token which is not expired
-        let mock_claims = EveJwtClaims::mock();
-
-        // Test function
-        let result = mock_claims.is_expired();
-
-        // Assert result is false
-        assert_eq!(result, false);
-    }
-
-    /// Ensures that when token is expired, function returns true
-    #[tokio::test]
-    async fn test_is_expired_true() {
-        // Create new mock token which is expired
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-
-        let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.exp = now - 60;
-        mock_claims.iat = now - 960;
-
-        // Test function
-        let result = mock_claims.is_expired();
-
-        // Assert result is true
-        assert_eq!(result, true);
-    }
-}
-
-#[cfg(test)]
-mod has_scopes_tests {
-    use crate::model::oauth2::EveJwtClaims;
-
-    /// Test that function returns true since all scopes are present
-    #[test]
-    fn test_has_scopes_true() {
-        // Create mock token claims with expected scopes
-        let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.scp = vec!["publicData".to_string()];
-
-        // Test function
-        let expected_scopes = vec!["publicData".to_string()];
-        let result = mock_claims.has_scopes(expected_scopes);
-
-        // Assert result is true
-        assert_eq!(result, true);
-    }
-
-    /// Test that function returns false due to missing scopes
-    #[test]
-    fn test_has_scopes_false() {
-        // Create mock token claims missing expected scopes
-        let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.scp = vec!["".to_string()];
-
-        // Test function
-        let expected_scopes = vec!["publicData".to_string()];
-        let result = mock_claims.has_scopes(expected_scopes);
-
-        // Assert result is false
-        assert_eq!(result, false);
     }
 }

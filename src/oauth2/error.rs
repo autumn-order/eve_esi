@@ -133,6 +133,27 @@ pub enum OAuthError {
     #[error("No valid token key for validation found in cache: {0:?}")]
     NoValidKeyFound(String),
 
+    /// Error when attempting to fetch from an authenticated route with an expired access token
+    ///
+    /// See [`crate::oauth2::token`] docs for instructions on how to refresh an expired token.
+    #[error("Access token is expired\n
+        \n
+        See instructions on how to refresh an expired token here: <https://docs.rs/eve_esi/latest/eve_esi/oauth2/index.html>")]
+    AccessTokenExpired(),
+
+    /// Error when attempting to fetch from an authenticated route without the required scopes
+    ///
+    /// You will need to update your application at <https://developers.eveonline.com/applications>
+    /// to include the missing scopes.
+    #[error(
+        "Missing required scopes for access token\n
+        \n\
+        Update your application at <https://developers.eveonline.com/applications>
+        to include the missing scopes:\n
+        {0:?}"
+    )]
+    AccessTokenMissingScopes(Vec<String>),
+
     /// Error when failing to parse character ID from JWT token claims
     ///
     /// This would be an internal error in this crate, should it occur please submit an
