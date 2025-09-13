@@ -4,6 +4,8 @@
 //!
 //! See [EVE SSO documentation](https://developers.eveonline.com/docs/services/sso/)
 
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use serde::{Deserialize, Serialize};
 
 use super::util::deserialize_scp;

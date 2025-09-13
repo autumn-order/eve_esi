@@ -321,6 +321,44 @@ impl<'a> OAuth2Api<'a> {
     }
 }
 
+/// Utility function to validate that the scopes in the provided token claims matches those expected
+///
+/// # Arguments
+/// - `expected_scopes` (Vec<String>): An array of scope strings validated against the
+///   claims.scp field to ensure it contains all expected scopes.
+/// - `claims` ([`EveJwtClaims`]): The claims of a token obtained via the [`Self::validate_token`]
+///   method to be checked for the expected scopes.
+///
+/// # Returns
+/// - `bool`: Bool indicating whether or not all expected scopes are present.
+pub fn check_token_scopes(expected_scopes: Vec<String>, claims: EveJwtClaims) -> bool {
+    // Logging: Get character ID for debug logging
+    let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
+    let character_id: i64 = id_str.parse().expect("Failed to parse character id to i64");
+
+    for expected_scope in &expected_scopes {
+        if !claims.scp.iter().any(|scope| scope == expected_scope) {
+            // One of the expected scopes is missing
+            let message = format!(
+                "Token for character ID {} is missing scope: {}",
+                character_id, expected_scope
+            );
+            log::debug!("{}", message);
+
+            return false;
+        }
+    }
+
+    // All expected scopes were found
+    let message = format!(
+        "Token for character ID {} has all expected scopes",
+        character_id
+    );
+    debug!("{}", message);
+
+    true
+}
+
 /// Attempts to validate a token retrieved via the [`Self::get_token`] method
 ///
 /// This is the internal utility method for token validation, see [`OAuth2Api::validate_token`]
@@ -428,5 +466,52 @@ fn get_oauth_client(client: &Client) -> Result<&OAuth2Client, Error> {
             // No OAuth2 client was found due to not being configured
             Err(Error::OAuthError(OAuthError::OAuth2NotConfigured))
         }
+    }
+}
+
+#[cfg(test)]
+mod check_token_scopes_tests {
+    use crate::{model::oauth2::EveJwtClaims, oauth2::token::check_token_scopes};
+
+    /// Test that function returns true since all scopes are present
+    ///
+    /// # Test Setup
+    /// - Create mock token claims with expected scopes
+    ///
+    /// # Assert
+    /// - Assert result is true
+    #[test]
+    fn test_check_token_scopes_true() {
+        // Create mock token claims with expected scopes
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.scp = vec!["publicData".to_string()];
+
+        // Test function
+        let expected_scopes = vec!["publicData".to_string()];
+        let result = check_token_scopes(expected_scopes, mock_claims);
+
+        // Assert result is true
+        assert_eq!(result, true);
+    }
+
+    /// Test that function returns false due to missing scopes
+    ///
+    /// # Test Setup
+    /// - Create mock token claims with expected scopes
+    ///
+    /// # Assert
+    /// - Assert result is false
+    #[test]
+    fn test_check_token_scopes_false() {
+        // Create mock token claims missing expected scopes
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.scp = vec!["".to_string()];
+
+        // Test function
+        let expected_scopes = vec!["publicData".to_string()];
+        let result = check_token_scopes(expected_scopes, mock_claims);
+
+        // Assert result is false
+        assert_eq!(result, false);
     }
 }
