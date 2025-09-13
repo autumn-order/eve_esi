@@ -8,10 +8,14 @@
 //! For usage of OAuth2 in the `eve_esi` crate, please see the [`crate::oauth2`]
 //! module documentation.
 //!
-//! ## EVE Online OAuth2 Documentation
-//! - <https://developers.eveonline.com/docs/services/sso/>
-
-use std::time::{SystemTime, UNIX_EPOCH};
+//! ## Methods
+//! The [`EveJwtClaims`] struct has the following utility methods:
+//! - [`EveJwtClaims::character_id`]: Utility function to parse the [`EveJwtClaims::sub`] field into a character ID
+//! - [`EveJwtClaims::is_expired`]: Utility function to check token claims to see if it is expired
+//!
+/// ## EVE Online OAuth2 Documentation
+/// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 
@@ -22,9 +26,8 @@ use crate::{Error, OAuthError};
 /// This struct contains the standard JWT claims as well as EVE Online specific
 /// claims that are used to identify the character and other information.
 ///
-/// # ESI Documentation
+/// # EVE Online OAuth2 Documentation
 /// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
-///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EveJwtClaims {
     // There are two possible issuers but only 1 will be present at a time
@@ -103,6 +106,51 @@ impl EveJwtClaims {
                 )))
             }
         }
+    }
+
+    /// Utility function to check token claims to see if it is expired
+    ///
+    /// If your token is expired then a request to an authenticated ESI route will return an error. It is ideal to
+    /// stop the request from happening on the client side to not incur ESI error limits.
+    ///
+    /// # Returns
+    /// - `bool`: indicating whether or not token is expired
+    pub fn is_expired(&self) -> bool {
+        // Set character_id for logging to 0 if `sub` field can't be parsed to id
+        let character_id = self.character_id().unwrap_or(0);
+
+        // Trace because validate_token already logs info for this
+        let message = format!(
+            "Successfully validated token for character ID {} prior to token expiration check",
+            character_id
+        );
+        log::trace!("{}", message);
+
+        // Check token expiration
+        let expiration_secs = Duration::from_secs(self.exp as u64);
+        let expiration = UNIX_EPOCH + expiration_secs;
+
+        if SystemTime::now() < expiration {
+            // Token is not yet expired
+            let message = format!(
+                "Checked token for expiration, token for character ID {} is not yet expired, expiration in {}s",
+                character_id,
+                expiration_secs.as_secs()
+            );
+            log::debug!("{}", message);
+
+            return false;
+        }
+
+        // Token is expired
+
+        let message = format!(
+            "Checked token for expiration, token for character ID {} is expired",
+            character_id
+        );
+        log::debug!("{}", message);
+
+        true
     }
 
     /// Utility function to create a mock of EveJwtClaims
@@ -340,5 +388,45 @@ mod deserialize_scp_tests {
         );
         assert_eq!(claims.scp[0], "publicData");
         assert_eq!(claims.scp[1], "esi-characters.read_agents_research.v1");
+    }
+}
+
+#[cfg(test)]
+mod is_expired_tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use crate::model::oauth2::EveJwtClaims;
+
+    /// Ensures that when token is not expired, function returns false
+    #[tokio::test]
+    pub async fn test_is_expired_false() {
+        // Create new mock token which is not expired
+        let mock_claims = EveJwtClaims::mock();
+
+        // Test function
+        let result = mock_claims.is_expired();
+
+        // Assert result is false
+        assert_eq!(result, false);
+    }
+
+    /// Ensures that when token is expired, function returns true
+    #[tokio::test]
+    async fn test_is_expired_true() {
+        // Create new mock token which is expired
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.exp = now - 60;
+        mock_claims.iat = now - 960;
+
+        // Test function
+        let result = mock_claims.is_expired();
+
+        // Assert result is true
+        assert_eq!(result, true);
     }
 }

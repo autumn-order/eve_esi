@@ -62,8 +62,6 @@
 //! }
 //! ```
 
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
 use jsonwebtoken::{DecodingKey, Validation};
 use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
@@ -241,55 +239,6 @@ impl<'a> OAuth2Api<'a> {
             }
         }
     }
-}
-
-/// Utility function to check if token is expired using provided claims
-///
-/// If your token is expired then a request to an authenticated ESI route will return an error. It is ideal to
-/// stop the request from happening on the client side to not incur ESI error limits.
-///
-/// # Arguments
-/// - `claims` ([`EveJwtClaims`]): The claims of a token obtained via the [`Self::validate_token`]
-///   method to be checked if the token is expired.
-///
-/// # Returns
-/// - `bool`: Bool indicating whether or not token is expired
-pub fn check_token_expiration(claims: EveJwtClaims) -> bool {
-    // Set character_id for logging to 0 if `sub` field can't be parsed to id
-    let character_id = claims.character_id().unwrap_or(0);
-
-    // Trace because validate_token already logs info for this
-    let message = format!(
-        "Successfully validated token for character ID {} prior to token expiration check",
-        character_id
-    );
-    log::trace!("{}", message);
-
-    // Check token expiration
-    let expiration_secs = Duration::from_secs(claims.exp as u64);
-    let expiration = UNIX_EPOCH + expiration_secs;
-
-    if SystemTime::now() < expiration {
-        // Token is not yet expired
-        let message = format!(
-            "Checked token for expiration, token for character ID {} is not yet expired, expiration in {}s",
-            character_id,
-            expiration_secs.as_secs()
-        );
-        log::debug!("{}", message);
-
-        return false;
-    }
-
-    // Token is expired
-
-    let message = format!(
-        "Checked token for expiration, token for character ID {} is expired",
-        character_id
-    );
-    log::debug!("{}", message);
-
-    true
 }
 
 /// Utility function to check if token has expected scopes
@@ -485,62 +434,5 @@ mod check_token_scopes_tests {
 
         // Assert result is false
         assert_eq!(result, false);
-    }
-}
-
-#[cfg(test)]
-mod check_token_expiration_tests {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    use crate::model::oauth2::EveJwtClaims;
-    use crate::oauth2::token::check_token_expiration;
-
-    /// Test that function returns false due to token not being expired
-    ///
-    /// # Test Setup
-    /// - Create new mock token which is not expired
-    ///
-    /// # Assert
-    /// - Assert result is false
-    #[tokio::test]
-    pub async fn test_check_token_expiration_not_expired() {
-        // Create new mock token which is not expired
-        let mock_claims = EveJwtClaims::mock();
-
-        // Test function
-        let result = check_token_expiration(mock_claims);
-
-        // Assert result is false
-        assert_eq!(result, false);
-    }
-
-    /// Ensures that an expired token returns as expired.
-    ///
-    /// Uses a mock token & mock JWT keys created with a test pair of RSA public & private
-    /// keys. The function under test checks the expiration by validating the mock token to get the
-    /// claims first using the mock JWT keys.
-    ///
-    /// # Test Setup
-    /// - Create new mock token which is expired
-    ///
-    /// # Assert
-    /// - Assert result is true
-    #[tokio::test]
-    async fn test_check_token_expiration_expired() {
-        // Create new mock token which is expired
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-
-        let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.exp = now - 60;
-        mock_claims.iat = now - 960;
-
-        // Test function
-        let result = check_token_expiration(mock_claims);
-
-        // Assert result is true
-        assert_eq!(result, true);
     }
 }
