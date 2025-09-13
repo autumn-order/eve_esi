@@ -30,36 +30,35 @@
 //! async fn callback_route(
 //!     Extension(esi_client): Extension<eve_esi::Client>,
 //!     params: Query<CallbackParams>,
-//! ) {
+//! ) -> Result<(), eve_esi::Error> {
 //!     ///Validate state to prevent CSRF...
 //!
 //!     // Fetch the token
 //!     let token = esi_client
 //!         .oauth2()
 //!         .get_token(&params.0.code)
-//!         .await
-//!         .expect("Failed to get token");
+//!         .await?;
 //!
 //!     let access_token = token.access_token();
-//!     let refresh_token = token.refresh_token().unwrap();
+//!     // Refresh token should always be Some for EVE Online's OAuth2
+//!     let refresh_token = token.refresh_token().expect("Expected refresh token, found None");
 //!
 //!     // Validate the token
 //!     let claims = esi_client
 //!         .oauth2()
 //!         .validate_token(access_token.secret().to_string())
-//!         .await
-//!         .expect("Failed to validate token");
+//!         .await?;
 //!
 //!     // Extract character ID
-//!     let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
-//!     let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
+//!     let character_id = claims.character_id()?;
 //!
 //!     // Refresh the token
 //!     let new_token = esi_client
 //!         .oauth2()
 //!         .get_token_refresh(refresh_token.secret().to_string())
-//!         .await
-//!         .expect("Failed to get refresh token");
+//!         .await?;
+//!
+//!     Ok(())
 //! }
 //! ```
 
@@ -256,9 +255,8 @@ impl<'a> OAuth2Api<'a> {
 /// # Returns
 /// - `bool`: Bool indicating whether or not token is expired
 pub fn check_token_expiration(claims: EveJwtClaims) -> bool {
-    // Logging: Get character ID for debug logging
-    let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
-    let character_id: i64 = id_str.parse().expect("Failed to parse character id to i64");
+    // Set character_id for logging to 0 if `sub` field can't be parsed to id
+    let character_id = claims.character_id().unwrap_or(0);
 
     // Trace because validate_token already logs info for this
     let message = format!(
@@ -308,10 +306,10 @@ pub fn check_token_expiration(claims: EveJwtClaims) -> bool {
 /// # Returns
 /// - `bool`: true if all expected scopes are present.
 pub fn check_token_scopes(expected_scopes: Vec<String>, claims: EveJwtClaims) -> bool {
-    // Logging: Get character ID for debug logging
-    let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
-    let character_id: i64 = id_str.parse().expect("Failed to parse character id to i64");
+    // Set character_id for logging to 0 if `sub` field can't be parsed to id
+    let character_id = claims.character_id().unwrap_or(0);
 
+    // Check if `claims.scp` contains all expected scopes
     for expected_scope in &expected_scopes {
         if !claims.scp.iter().any(|scope| scope == expected_scope) {
             // One of the expected scopes is missing
@@ -384,9 +382,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
 
         match jsonwebtoken::decode::<EveJwtClaims>(&token_secret, &decoding_key, &validation) {
             Ok(token_data) => {
-                let id_str = token_data.claims.sub.split(':').collect::<Vec<&str>>()[2];
-                let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
-
+                let character_id = token_data.claims.character_id()?;
                 let message = format!(
                     "Successfully validated JWT token for character ID: {}",
                     character_id

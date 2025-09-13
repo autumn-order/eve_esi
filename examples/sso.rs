@@ -222,16 +222,32 @@ async fn callback(
         }
     };
 
-    // Extract character id & name from token
-    let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
+    // Use utility function to parse `sub` field of claims to a character ID
+    // The `sub` field is a string: "CHARACTER:EVE:123456789"
+    // The `character_id()` function turns it into an i64: 123456789
+    match claims.character_id() {
+        Ok(character_id) => {
+            let character_name = claims.name;
+            let character = Character {
+                character_id,
+                character_name,
+            };
 
-    let character_id: i64 = id_str.parse().expect("Failed to parse character id to i64");
-    let character_name: String = claims.name;
+            (StatusCode::OK, Json(character)).into_response()
+        }
+        Err(err) => {
+            // Error if the sub field can't be parsed to a character ID
+            // This shouldn't occur unless EVE changes their sub field format
+            println!(
+                "Error parsing JWT claims `sub` field to character id: {}",
+                err
+            );
 
-    let character = Character {
-        character_id,
-        character_name,
-    };
-
-    (StatusCode::OK, Json(character)).into_response()
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "Internal Server Error" })),
+            )
+                .into_response();
+        }
+    }
 }
