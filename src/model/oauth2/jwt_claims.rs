@@ -111,10 +111,10 @@ impl EveJwtClaims {
     /// Utility function to check token claims to see if it is expired
     ///
     /// If your token is expired then a request to an authenticated ESI route will return an error. It is ideal to
-    /// stop the request from happening on the client side to not incur ESI error limits.
+    /// stop the request from happening within your application to not incur ESI error limits.
     ///
     /// # Returns
-    /// - `bool`: indicating whether or not token is expired
+    /// - `bool`: Indicating whether or not token is expired
     pub fn is_expired(&self) -> bool {
         // Set character_id for logging to 0 if `sub` field can't be parsed to id
         let character_id = self.character_id().unwrap_or(0);
@@ -146,6 +146,48 @@ impl EveJwtClaims {
 
         let message = format!(
             "Checked token for expiration, token for character ID {} is expired",
+            character_id
+        );
+        log::debug!("{}", message);
+
+        true
+    }
+
+    /// Utility function to check if claims has provided scopes
+    ///
+    /// If your token is missing the scopes required for an authenticated ESI route your request will return
+    /// an error. It is ideal to stop the request from happening within your application to not incur ESI error limits.
+    ///
+    /// You can use the [`crate::ScopeBuilder`] with this method, calling [`crate::ScopeBuilder::build`] will
+    /// convert it into a Vec<String> as required by this method's arguments.
+    ///
+    /// # Arguments
+    /// - `scopes` (Vec<String>): An array of scope strings validated against the `claims.scp` field to ensure it contains
+    ///   all provided scopes.
+    ///
+    /// # Returns
+    /// - `bool`: Indicating if all scopes provided are present.
+    pub fn has_scopes(&self, scopes: Vec<String>) -> bool {
+        // Set character_id for logging to 0 if `sub` field can't be parsed to id
+        let character_id = self.character_id().unwrap_or(0);
+
+        // Check if `claims.scp` contains all expected scopes
+        for expected_scope in &scopes {
+            if !self.scp.iter().any(|scope| scope == expected_scope) {
+                // One of the expected scopes is missing
+                let message = format!(
+                    "Token for character ID {} is missing scope: {}",
+                    character_id, expected_scope
+                );
+                log::debug!("{}", message);
+
+                return false;
+            }
+        }
+
+        // All expected scopes were found
+        let message = format!(
+            "Token for character ID {} has all expected scopes",
             character_id
         );
         log::debug!("{}", message);
@@ -428,5 +470,40 @@ mod is_expired_tests {
 
         // Assert result is true
         assert_eq!(result, true);
+    }
+}
+
+#[cfg(test)]
+mod has_scopes_tests {
+    use crate::model::oauth2::EveJwtClaims;
+
+    /// Test that function returns true since all scopes are present
+    #[test]
+    fn test_has_scopes_true() {
+        // Create mock token claims with expected scopes
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.scp = vec!["publicData".to_string()];
+
+        // Test function
+        let expected_scopes = vec!["publicData".to_string()];
+        let result = mock_claims.has_scopes(expected_scopes);
+
+        // Assert result is true
+        assert_eq!(result, true);
+    }
+
+    /// Test that function returns false due to missing scopes
+    #[test]
+    fn test_has_scopes_false() {
+        // Create mock token claims missing expected scopes
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.scp = vec!["".to_string()];
+
+        // Test function
+        let expected_scopes = vec!["publicData".to_string()];
+        let result = mock_claims.has_scopes(expected_scopes);
+
+        // Assert result is false
+        assert_eq!(result, false);
     }
 }
