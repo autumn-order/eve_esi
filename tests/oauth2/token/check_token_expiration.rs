@@ -127,3 +127,55 @@ async fn test_check_token_expiration_expired() {
     let token_expired = result.unwrap();
     assert_eq!(token_expired, true)
 }
+
+/// Tests error handling when token validation fails
+///
+/// Ensures that error is handled correctly when token validation fails due to the
+/// public key used to validate the token differs from the private key used to
+/// create the token.
+///
+/// # Test Setup
+/// - Create an ESI Client configured with OAuth2 and a mock server
+/// - Create a mock JWT key response the Client will fetch for the JWT key cache
+/// - Create a mock token created with a different private key than the JWT keys
+///
+/// # Assertions
+/// - Assert mock JWT keys were fetched and cached for validation
+/// - Assert token expiry check returned an error
+/// - Assert error is of type OAuthError::ValidateTokenError
+#[tokio::test]
+async fn test_check_token_expiration_error() {
+    // Create Client configured with OAuth2 & mock server
+    let (client, mut mock_server) = setup().await;
+
+    // Create a mock JWT key response the Client will fetch when validating token prior
+    // to checking expiration
+    let mock = get_jwk_success_response(&mut mock_server, 1);
+
+    // Create a mock token created with a different private key than the JWT keys
+    let token = create_mock_token(true);
+
+    // Check token expiry
+    let result = client
+        .oauth2()
+        .check_token_expiration(&token.access_token().secret().to_string())
+        .await;
+
+    // Assert mock JWT keys were fetched for validation
+    mock.assert();
+
+    // Assert token expiry check returned an error
+    assert!(
+        result.is_err(),
+        "Expected an error checking token for expiration, instead got: {:#?}",
+        result
+    );
+
+    // Assert error is of type OAuthError::ValidateTokenError
+    assert!(matches!(
+        result,
+        Err(eve_esi::Error::OAuthError(
+            eve_esi::OAuthError::ValidateTokenError(_)
+        ))
+    ))
+}
