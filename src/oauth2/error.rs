@@ -9,15 +9,21 @@
 //! a JWT token, or an issue fetching the JWT keys used to validate the token.
 //!
 //! # Variants
+//! ## Configuration Error
 //! - [`OAuthError::OAuth2NotConfigured`]: Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
+//!
+//! ## JWT Key Refresh Errors
 //! - [`OAuthError::JwtKeyRefreshTimeout`]: Error when waiting for another thread to refresh JWT key cache times out
 //! - [`OAuthError::JwtKeyRefreshFailure`]: Error when waiting for another thread to refresh JWT key cache fails
 //! - [`OAuthError::JwtKeyRefreshCooldown`]: Error when JWT key refresh is still in cooldown
+//!
+//! ## JWT Token Errors
 //! - [`OAuthError::RequestTokenError`]: Error when an OAuth2 token fetch request fails
 //! - [`OAuthError::ValidateTokenError`]: Error when JWT key refresh is still in cooldown
 //! - [`OAuthError::NoValidKeyFound`]: Error returned when JWT key cache does not have the ES256 token key needed for validation
+//! - [`OAuthError::CharacterIdParseError]: Error when failing to parse character ID from JWT token claims
 //!
-//! # Example
+//! # Usage
 //! ```
 //! let esi_client = eve_esi::Client::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
@@ -126,4 +132,14 @@ pub enum OAuthError {
     /// of both an ES256 and RS256 key as expected to be returned by EVE Online's JWT key API.
     #[error("No valid token key for validation found in cache: {0:?}")]
     NoValidKeyFound(String),
+
+    /// Error when failing to parse character ID from JWT token claims
+    ///
+    /// This would be an internal error in this crate, should it occur please submit an
+    /// issue on this crate's repository. This would only happen if EVE Online changes the
+    /// format of the sub field in their JWT token claims.
+    ///
+    /// Returned when using [`crate::model::oauth2::EveJwtClaims::character_id`] method.
+    #[error("Failed to parse character ID from EveJwtClaims due to error: {0:?}")]
+    CharacterIdParseError(String),
 }

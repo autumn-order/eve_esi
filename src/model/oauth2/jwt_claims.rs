@@ -15,6 +15,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 
+use crate::{Error, OAuthError};
+
 /// Represents the claims in an EVE Online JWT access token
 ///
 /// This struct contains the standard JWT claims as well as EVE Online specific
@@ -64,6 +66,45 @@ pub struct EveJwtClaims {
 }
 
 impl EveJwtClaims {
+    /// Utility function to parse the [`EveJwtClaims::sub`] field into a character ID
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - [`i64`]: The Character ID present in the [`EveJwtClaims::sub`] field
+    /// - [`Error`]: An error if the [`EveJwtClaims::sub`] field can't be parsed into an [`i64`].
+    ///   This shouldn't occur unless EVE Online changes the format of the field.
+    pub fn character_id(&self) -> Result<i64, Error> {
+        // Split the ID from the text
+        let segments = self.sub.split(':').collect::<Vec<&str>>();
+
+        // Return error if `sub` field does not match expected format
+        // This is necessary otherwise the function will panic
+        let segments_len = segments.len();
+        if segments_len != 3 {
+            let message = format!(
+                "The `sub` field segment length is {} but the expected length is 2",
+                segments_len,
+            );
+            log::error!("{}", message);
+
+            return Err(Error::OAuthError(OAuthError::CharacterIdParseError(
+                message,
+            )));
+        }
+
+        match segments[2].parse::<i64>() {
+            Ok(character_id) => Ok(character_id),
+            Err(err) => {
+                let message = format!("Failed to parse `sub` field to i64 due to error: {}", err);
+                log::error!("{}", message);
+
+                Err(Error::OAuthError(OAuthError::CharacterIdParseError(
+                    message,
+                )))
+            }
+        }
+    }
+
     /// Utility function to create a mock of EveJwtClaims
     pub fn mock() -> Self {
         // Get current unix timestamp
@@ -102,7 +143,7 @@ impl EveJwtClaims {
 /// - 0 scopes requested: `scp` field won't exist on claims body
 /// - 1 scope requested: Field exists as String
 /// - 2 scopes requested: Field exists as an array of Strings
-pub(super) fn deserialize_scp<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+fn deserialize_scp<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
@@ -139,6 +180,65 @@ where
                 "Expected null, string, or string array for `scp` field",
             )),
         },
+    }
+}
+
+#[cfg(test)]
+mod claims_character_id_tests {
+    use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
+
+    /// Ensures success when parsing properly formatted`sub` field to character ID
+    #[test]
+    fn test_claims_character_id_success() {
+        // Create mock EveJwtClaims & set sub field
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.sub = "CHARACTER:EVE:123456789".to_string();
+
+        // Attempt to parse character ID from mock_claims
+        let result = mock_claims.character_id();
+
+        // Assert result is ok
+        assert!(
+            result.is_ok(),
+            "Expected Ok, instead got err: {:#?}",
+            result
+        );
+
+        // Assert character id matches expected result
+        let character_id = result.unwrap();
+        assert_eq!(
+            character_id, 123456789,
+            "Expected character ID 123456789, instead got {:#?}",
+            character_id
+        );
+    }
+
+    /// Ensures parse error is returned due to unexpected `sub` field format
+    #[test]
+    fn test_claims_character_id_error() {
+        // Create mock EveJwtClaims & set sub field
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.sub = "123456789".to_string();
+
+        // Test function
+        let result = mock_claims.character_id();
+
+        // Attempt to parse character ID from mock_claims
+        assert!(
+            result.is_err(),
+            "Expected error, instead got: {:#?}",
+            result
+        );
+
+        // Assert error is of expected type
+        assert!(
+            matches!(
+                result,
+                Err(Error::OAuthError(OAuthError::CharacterIdParseError(_)))
+            ),
+            "Expected error of type OAuthError::JwtClaimsCharacterIdParseError, instead got: {:#?}",
+            result
+        )
     }
 }
 
