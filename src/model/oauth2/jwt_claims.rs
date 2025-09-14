@@ -158,10 +158,10 @@ impl EveJwtClaims {
     /// an error. It is ideal to stop the request from happening within your application to not incur ESI error limits.
     ///
     /// You can use the [`crate::ScopeBuilder`] with this method, calling [`crate::ScopeBuilder::build`] will
-    /// convert it into a Vec<String> as required by this method's arguments.
+    /// convert it into a `Vec<String>` as required by this method's arguments.
     ///
     /// # Arguments
-    /// - `scopes` (Vec<String>): An array of scope strings validated against the `claims.scp` field to ensure it contains
+    /// - `scopes` (`Vec<String>`): An array of scope strings validated against the `claims.scp` field to ensure it contains
     ///   all provided scopes.
     ///
     /// # Returns

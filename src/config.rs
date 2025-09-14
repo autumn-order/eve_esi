@@ -434,7 +434,7 @@ impl ConfigBuilder {
     /// successful.
     ///
     /// # Arguments
-    /// - `issuers` (Vec<String>): The expected issuer(s) of the JWT token.
+    /// - `issuers` (`Vec<String>`): The expected issuer(s) of the JWT token.
     ///
     /// # Returns
     /// - [`ConfigBuilder`]: Instance with updated EVE Online login URL.

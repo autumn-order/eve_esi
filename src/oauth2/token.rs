@@ -3,10 +3,9 @@
 //! Methods for fetching, refreshing, & validating tokens retrieved from EVE Online's OAuth2 API.
 //!
 //! ## Methods
-//! - [OAuth2Api::get_token]: Retrieves a token from EVE Online's OAuth2 API
-//! - [OAuth2Api::get_token_refresh]: Retrieves a new token using a refresh token
-//! - [OAuth2Api::validate_token]: Validates token retrieved via the [`OAuth2Api::get_token`] method
-//! - [OAuth2Api::check_token_expiration]: Checks if the provided access token is expired
+//! - [`OAuth2Api::get_token`]: Retrieves a token from EVE Online's OAuth2 API
+//! - [`OAuth2Api::get_token_refresh`]: Retrieves a new token using a refresh token
+//! - [`OAuth2Api::validate_token`]: Validates token retrieved via the [`OAuth2Api::get_token`] method
 //!
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/docs/services/sso/>

@@ -140,7 +140,7 @@ impl<'a> EsiApi<'a> {
     /// Makes an authenticated GET request to the ESI API.
     ///
     /// You can use the [`crate::ScopeBuilder`] with this method, calling [`crate::ScopeBuilder::build`] will
-    /// convert it into a Vec<String> as required by this method's arguments.
+    /// convert it into a `Vec<String>` as required by this method's arguments.
     ///
     /// # Arguments
     /// - `url` ([`DeserializeOwned`]): The ESI API endpoint URL to request.

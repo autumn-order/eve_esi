@@ -78,7 +78,7 @@ impl Client {
     /// For an overview & usage example, see the [module-level documentation](self)
     ///
     /// # Arguments
-    /// - [`user_agent`] (&[`str`]): User agent used to identify your application
+    /// - `user_agent` (`&str`): User agent used to identify your application
     ///   when making ESI requests. For example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`.
     ///
     /// # Returns
