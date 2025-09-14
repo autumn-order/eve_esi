@@ -142,6 +142,7 @@ impl ClientBuilder {
         let client_ref = ClientRef {
             reqwest_client,
             esi_url: config.esi_url,
+            esi_validate_token_before_request: config.esi_validate_token_before_request,
 
             // OAuth2
             oauth2_client: oauth_client,

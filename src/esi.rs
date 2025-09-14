@@ -159,21 +159,23 @@ impl<'a> EsiApi<'a> {
         access_token: &str,
         scopes: Vec<String>,
     ) -> Result<T, Error> {
-        // Ensure provided access token is valid
-        let message = "Validating token prior to expiration & scope checks";
-        log::debug!("{}", message);
+        if self.client.inner.esi_validate_token_before_request {
+            // Ensure provided access token is valid
+            let message = "Validating token prior to expiration & scope checks";
+            log::debug!("{}", message);
 
-        let claims = self
-            .client
-            .oauth2()
-            .validate_token(access_token.to_string())
-            .await?;
+            let claims = self
+                .client
+                .oauth2()
+                .validate_token(access_token.to_string())
+                .await?;
 
-        // Check token claims to ensure token is not expired and it has required scopes
-        self.check_token_claims(claims, scopes)?;
+            // Check token claims to ensure token is not expired and it has required scopes
+            self.check_token_claims(claims, scopes)?;
 
-        let message = "Access token passed validation, expiration, and scope checks successfully prior to authenticated ESI request.";
-        log::debug!("{}", message);
+            let message = "Access token passed validation, expiration, and scope checks successfully prior to authenticated ESI request.";
+            log::debug!("{}", message);
+        };
 
         // Make the request
         let reqwest_client = &self.client.inner.reqwest_client;

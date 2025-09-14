@@ -31,6 +31,7 @@
 //! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
 //! | `jwt_issuers`   | Expected issuer(s) of JWT tokens |
 //! | `jwt_audience` | Intended audience JWT tokens are to be used with |
+//! | `esi_validate_token_before_request` | Toggle validating tokens before authenticated ESI requests |
 //!
 //! ## Usage
 //!
@@ -84,6 +85,10 @@ pub struct Config {
     pub(crate) jwt_issuers: Vec<String>,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
+
+    // ESI Request Settings
+    /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
+    pub(crate) esi_validate_token_before_request: bool,
 }
 
 /// Builder struct for configuring & constructing an [`Config`] to override default [`Client`](crate::Client) settings
@@ -105,6 +110,10 @@ pub struct ConfigBuilder {
     pub(crate) jwt_issuers: Vec<String>,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
+
+    // ESI Request Settings
+    /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
+    pub(crate) esi_validate_token_before_request: bool,
 }
 
 impl Config {
@@ -160,6 +169,9 @@ impl ConfigBuilder {
             jwt_key_cache_config: JwtKeyCacheConfig::new(),
             jwt_issuers: issuers,
             jwt_audience: DEFAULT_JWT_AUDIENCE.to_string(),
+
+            // ESI Request Settings
+            esi_validate_token_before_request: true,
         }
     }
 
@@ -213,6 +225,9 @@ impl ConfigBuilder {
             jwt_key_cache_config: self.jwt_key_cache_config,
             jwt_issuers: self.jwt_issuers,
             jwt_audience: self.jwt_audience,
+
+            // ESI Request Settings
+            esi_validate_token_before_request: self.esi_validate_token_before_request,
         })
     }
 
@@ -458,6 +473,20 @@ impl ConfigBuilder {
         self.jwt_audience = audience.to_string();
         self
     }
+
+    /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
+    ///
+    /// Enabled by default, disable this if you would prefer to do the checks manually or not at all. Please see
+    /// the ESI Error Rates Limits section of [`crate::endpoints`] module documentation for the implications of
+    /// disabling this.
+    ///
+    /// # Arguments
+    /// - `enabled` (`bool`): indicates whether or not access tokens are validated prior to authenticated ESI route
+    ///   requests.
+    pub fn esi_validate_token_before_request(mut self, enabled: bool) -> Self {
+        self.esi_validate_token_before_request = enabled;
+        self
+    }
 }
 
 #[cfg(test)]
@@ -495,6 +524,8 @@ mod tests {
             // JWT settings
             .jwt_issuers(vec!["example".to_string()])
             .jwt_audience("example")
+            // ESI Request Settings
+            .esi_validate_token_before_request(false)
             .build()
             .expect("Failed to build Config");
 
@@ -523,6 +554,9 @@ mod tests {
         // Assert JWT settings were set
         assert_eq!(config.jwt_issuers, vec!["example"]);
         assert_eq!(config.jwt_audience, "example");
+
+        // Assert ESI request settings was set
+        assert_eq!(config.esi_validate_token_before_request, false)
     }
 
     /// Expect an error setting the JWK background refresh threshold to 0
