@@ -146,7 +146,7 @@ impl<'a> EsiApi<'a> {
     /// - `url` ([`DeserializeOwned`]): The ESI API endpoint URL to request.
     /// - `access_token` (`&str`): Access token in &str format for making requests to authenticated ESI routes,
     ///   see [`crate::oauth2`] module docs for how to obtain an access token.
-    /// - `scopes` (`Vec<String>`): Vec of strings representing the required scopes for an authenticated ESI route.
+    /// - `required_scopes` (`Vec<String>`): Vec of strings representing the required scopes for an authenticated ESI endpoint.
     ///
     /// # Returns
     /// A Result containing the deserialized response data or a reqwest error.
@@ -157,27 +157,11 @@ impl<'a> EsiApi<'a> {
         &self,
         url: &str,
         access_token: &str,
-        scopes: Vec<String>,
+        required_scopes: Vec<String>,
     ) -> Result<T, Error> {
-        if self.client.inner.esi_validate_token_before_request {
-            // Ensure provided access token is valid
-            let message = "Validating token prior to expiration & scope checks";
-            log::debug!("{}", message);
+        self.validate_token_before_request(access_token, required_scopes)
+            .await?;
 
-            let claims = self
-                .client
-                .oauth2()
-                .validate_token(access_token.to_string())
-                .await?;
-
-            // Check token claims to ensure token is not expired and it has required scopes
-            self.check_token_claims(claims, scopes)?;
-
-            let message = "Access token passed validation, expiration, and scope checks successfully prior to authenticated ESI request.";
-            log::debug!("{}", message);
-        };
-
-        // Make the request
         let reqwest_client = &self.client.inner.reqwest_client;
 
         let bearer = format!("Bearer {}", access_token);
@@ -189,163 +173,149 @@ impl<'a> EsiApi<'a> {
             .await?;
         req.error_for_status_ref()?;
         let result: T = req.json().await?;
+
         Ok(result)
     }
 
-    /// Utility function for authenticated routes to ensure access token is valid, has expected scopes, and is not expired
-    ///
-    /// You can use the [`crate::ScopeBuilder`] with this method, calling [`crate::ScopeBuilder::build`] will
-    /// convert it into a Vec<String> as required by this method's arguments.
-    ///
-    /// # Arguments
-    /// - `claims` ([`EveJwtClaims`]): Access token in &str format for making requests to authenticated ESI routes,
-    ///   see [`crate::oauth2`] module docs for how to obtain an access token.
-    /// - `scopes` (`Vec<String>`): Vec of strings representing the required scopes for an authenticated ESI route.
-    ///
-    /// # Returns
-    /// - [`Error`] if either the token validation was unsuccessful, the token is expired, or the token is missing
-    ///   required scopes.
-    fn check_token_claims(&self, claims: EveJwtClaims, scopes: Vec<String>) -> Result<(), Error> {
-        // Ensure token is not expired
-        if claims.is_expired() {
-            let error = OAuthError::AccessTokenExpired();
+    /// Utilty function which ensures token is valid, not expired, and has all required scopes
+    async fn validate_token_before_request(
+        &self,
+        access_token: &str,
+        scopes: Vec<String>,
+    ) -> Result<(), Error> {
+        if self.client.inner.esi_validate_token_before_request {
+            let message = "Validating token prior to expiration & scope checks";
+            log::debug!("{}", message);
 
-            let message = format!("Failed to make request to authenticated ESI route due to token being expired: {:?}",
-            error);
-            log::error!("{}", message);
+            let claims = self
+                .client
+                .oauth2()
+                .validate_token(access_token.to_string())
+                .await?;
 
-            return Err(Error::OAuthError(error));
-        } else {
-            let message = "Checked access token for expiration prior to authenticated ESI request, token is not expired.";
+            check_token_expiration(&claims)?;
 
-            log::trace!("{}", message);
-        }
+            check_token_scopes(&claims, scopes)?;
 
-        // Ensure token has required scopes
-        if !claims.has_scopes(&scopes) {
-            let error = OAuthError::AccessTokenMissingScopes(scopes);
-
-            let message = format!(
-                "Failed to make request to authenticated ESI route due to missing required scopes: {:?}", error
-
-            );
-            log::error!("{}", message);
-
-            return Err(Error::OAuthError(error));
-        } else {
-            let message = format!("Checked access token for required scopes prior to authenticated ESI request, all required scopes are present: {:?}", scopes);
-            log::trace!("{}", message);
-        }
+            let message = "Access token passed validation, expiration, and scope checks successfully prior to authenticated ESI request.";
+            log::debug!("{}", message);
+        };
 
         Ok(())
     }
 }
 
-#[cfg(test)]
-mod check_token_claims_tests {
-    use std::time::{SystemTime, UNIX_EPOCH};
+/// Utility function for authenticated routes to ensure provided claims is not expired
+fn check_token_expiration(claims: &EveJwtClaims) -> Result<(), Error> {
+    if claims.is_expired() {
+        let error = OAuthError::AccessTokenExpired();
 
-    use crate::{model::oauth2::EveJwtClaims, tests::setup, Error, OAuthError};
+        let message = format!(
+            "Failed to make request to authenticated ESI route due to token being expired: {:?}",
+            error
+        );
+        log::error!("{}", message);
 
-    /// No errors should occur when checking token claims
-    #[tokio::test]
-    async fn test_check_token_claims_success() {
-        // Setup basic ESI client for testing
-        let (esi_client, _) = setup().await;
-
-        // Create mock claims
-        let required_scopes = vec!["publicData".to_string()];
-
-        let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.scp = required_scopes.clone();
-
-        // Check token claims
-        let result = esi_client
-            .esi()
-            .check_token_claims(mock_claims, required_scopes);
-
-        // Assert result is not error
-        assert!(
-            result.is_ok(),
-            "Expected result Ok, instead got error: {:?}",
-            result
-        )
+        return Err(Error::OAuthError(error));
     }
 
-    /// An error should occur due to token being expired
-    #[tokio::test]
-    async fn test_check_token_claims_expiration_error() {
-        // Setup basic ESI client for testing
-        let (esi_client, _) = setup().await;
+    let message = "Checked access token for expiration prior to authenticated ESI request, token is not expired.";
+    log::trace!("{}", message);
 
-        // Create mock claims that are expired
-        let required_scopes = vec!["publicData".to_string()];
+    Ok(())
+}
 
+/// Utility function for authenticated routes to ensure provided claims has required scopes
+fn check_token_scopes(claims: &EveJwtClaims, scopes: Vec<String>) -> Result<(), Error> {
+    if !claims.has_scopes(&scopes) {
+        let error = OAuthError::AccessTokenMissingScopes(scopes);
+
+        let message = format!(
+            "Failed to make request to authenticated ESI route due to missing required scopes: {:?}", error
+
+        );
+        log::error!("{}", message);
+
+        return Err(Error::OAuthError(error));
+    }
+
+    let message = format!("Checked access token for required scopes prior to authenticated ESI request, all required scopes are present: {:?}", scopes);
+    log::trace!("{}", message);
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod check_token_expiration_tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use super::check_token_expiration;
+    use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
+
+    /// No errors due to token not being expired
+    #[test]
+    fn test_check_token_expiration_success() {
+        let mock_claims = EveJwtClaims::mock();
+
+        let result = check_token_expiration(&mock_claims);
+
+        assert!(result.is_ok())
+    }
+
+    /// Error occurs due to token being expired
+    #[test]
+    fn test_check_token_expiration_error() {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
 
         let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.exp = now - 60;
-        mock_claims.iat = now - 960;
+        mock_claims.exp = now - 60; // expired 1 minute ago
+        mock_claims.iat = now - 960; // created 16 minutes ago
+
+        let result = check_token_expiration(&mock_claims);
+
+        assert!(result.is_err());
+        assert!(matches!(
+            result,
+            Err(Error::OAuthError(OAuthError::AccessTokenExpired()))
+        ))
+    }
+}
+
+#[cfg(test)]
+mod test_check_token_scopes {
+    use super::check_token_scopes;
+    use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
+
+    /// No errors due to token having all required scopes
+    #[test]
+    fn test_check_token_claims_success() {
+        let required_scopes = vec!["publicData".to_string()];
+
+        let mut mock_claims = EveJwtClaims::mock();
         mock_claims.scp = required_scopes.clone();
 
-        // Check token claims
-        let result = esi_client
-            .esi()
-            .check_token_claims(mock_claims, required_scopes);
+        let result = check_token_scopes(&mock_claims, required_scopes);
 
-        // Assert result is error
-        assert!(
-            result.is_err(),
-            "Expected error, instead got ok: {:?}",
-            result
-        );
-
-        // Assert error is of type OAuthError::AccessTokenExpired
-        assert!(
-            matches!(
-                result,
-                Err(Error::OAuthError(OAuthError::AccessTokenExpired()))
-            ),
-            "Expected error of type OAuthError::AccessTokenExpired, instead got: {:?}",
-            result
-        )
+        assert!(result.is_ok())
     }
 
-    /// An error should occur due to token being expired
+    /// Error occurs due to token missing required scopes
     #[tokio::test]
     async fn test_check_token_claims_scope_error() {
-        // Setup basic ESI client for testing
-        let (esi_client, _) = setup().await;
-
-        // Create mock claims missing the required "publicData" scope
         let required_scopes = vec!["publicData".to_string()];
 
         let mut mock_claims = EveJwtClaims::mock();
         mock_claims.scp = Vec::new();
 
-        // Check token claims
-        let result = esi_client
-            .esi()
-            .check_token_claims(mock_claims, required_scopes);
+        let result = check_token_scopes(&mock_claims, required_scopes);
 
-        // Assert result is error
-        assert!(
-            result.is_err(),
-            "Expected error, instead got ok: {:?}",
-            result
-        );
-
-        // Assert error is of type OAuthError::AccessTokenMissingScopes
-        assert!(
-            matches!(
-                result,
-                Err(Error::OAuthError(OAuthError::AccessTokenMissingScopes(_)))
-            ),
-            "Expected error of type OAuthError::AccessTokenMissingScopes, instead got: {:?}",
-            result
-        )
+        assert!(result.is_err());
+        assert!(matches!(
+            result,
+            Err(Error::OAuthError(OAuthError::AccessTokenMissingScopes(_)))
+        ))
     }
 }
