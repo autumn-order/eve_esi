@@ -1,7 +1,10 @@
 use eve_esi::model::character::CharacterResearchAgent;
 use oauth2::TokenResponse;
 
-use crate::{oauth2::util::jwt::create_mock_token, util::setup};
+use crate::{
+    oauth2::util::{jwk_response::get_jwk_success_response, jwt::create_mock_token},
+    util::setup,
+};
 
 /// Successful retrieval of character research agents via authenticated ESI route
 ///
@@ -9,9 +12,11 @@ use crate::{oauth2::util::jwt::create_mock_token, util::setup};
 /// - Setup a basic EsiClient & mock HTTP server
 /// - Create mock character research agents
 /// - Create a mock token for authenticated route
+/// - Add mock JWT key endpoint as authenticated ESI endpoints validate with keys before request
 /// - Configure mock server with authenticated ESI endpoint returning the research agents
 ///
 /// # Assertions
+/// - Assert JWT keys were fetched for token validation prior to request
 /// - Assert 1 request & expected access token was sent to the mock server
 /// - Assert result is Ok
 /// - Assert received expected character research agents
@@ -33,6 +38,9 @@ async fn test_get_agents_research_success() {
     let token = create_mock_token(false);
     let access_token = token.access_token().secret().to_string();
 
+    // Add mock JWT key endpoint as authenticated ESI endpoints validate with keys before request
+    let mock_jwk = get_jwk_success_response(&mut mock_server, 1);
+
     // Configure mock server with authenticated ESI endpoint returning the research agents
     let mock = mock_server
         .mock("GET", "/characters/2114794365/agents_research")
@@ -49,6 +57,9 @@ async fn test_get_agents_research_success() {
         .get_agents_research(2114794365, &access_token)
         .await;
 
+    // Assert JWT keys were fetched for token validation prior to request
+    mock_jwk.assert();
+
     // Assert 1 request & expected access token was sent to the mock server
     mock.assert();
 
@@ -60,34 +71,47 @@ async fn test_get_agents_research_success() {
     assert_eq!(research_agents, mock_research_agents);
 }
 
-/// 401 error due to providing an invalid access token
+/// Error handling when server returns 500 internal error
 ///
 /// # Test Setup
 /// - Setup a basic EsiClient & mock HTTP server
-/// - Configure mock server with an authenticated ESI endpoint returning 401 unauthorized
+/// - Create a mock token for authenticated route
+/// - Add mock JWT key endpoint as authenticated ESI endpoints validate with keys before request
+/// - Configure mock server with an authenticated ESI endpoint returning 500 internal server error
 ///
 /// # Assertions
+/// - Assert JWT keys were fetched for token validation prior to request
 /// - Assert 1 request was made to the mock server
 /// - Assert result is error
-/// - Assert reqwest error is due to status UNAUTHORIZED
+/// - Assert reqwest error is due to status INTERNAL_SERVER_ERROR
 #[tokio::test]
-async fn test_get_agents_research_401_unauthorized() {
+async fn test_get_agents_research_500_internal_error() {
     // Setup a basic EsiClient & mock HTTP server
     let (esi_client, mut mock_server) = setup().await;
 
-    // Configure mock server with an authenticated ESI endpoint returning 401 unauthorized
+    // Add mock JWT key endpoint as authenticated ESI endpoints validate with keys before request
+    let mock_jwk = get_jwk_success_response(&mut mock_server, 1);
+
+    // Configure mock server with an authenticated ESI endpoint returning 500 internal server error
     let mock = mock_server
         .mock("GET", "/characters/2114794365/agents_research")
-        .with_status(401)
+        .with_status(500)
         .with_header("content-type", "application/json")
-        .with_body(r#"{"error": "Unauthorized - Access token invalid"}"#)
+        .with_body(r#"{"error": "Internal server error"}"#)
         .create();
+
+    // Create a mock token for authenticated route
+    let token = create_mock_token(false);
+    let access_token = token.access_token().secret().to_string();
 
     // Attempt to retrieve research agents
     let result = esi_client
         .character()
-        .get_agents_research(2114794365, "ffff")
+        .get_agents_research(2114794365, &access_token)
         .await;
+
+    // Assert JWT keys were fetched for token validation prior to request
+    mock_jwk.assert();
 
     // Assert 1 request was made to the mock server
     mock.assert();
@@ -96,9 +120,12 @@ async fn test_get_agents_research_401_unauthorized() {
     assert!(result.is_err());
     match result {
         Err(eve_esi::Error::ReqwestError(err)) => {
-            // Assert reqwest error is due to status UNAUTHORIZED
+            // Assert reqwest error is due to status INTERNAL_SERVER_ERROR
             assert!(err.status().is_some());
-            assert_eq!(err.status().unwrap(), reqwest::StatusCode::UNAUTHORIZED);
+            assert_eq!(
+                err.status().unwrap(),
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR
+            );
         }
         err => {
             panic!(

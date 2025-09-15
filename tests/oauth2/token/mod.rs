@@ -1,4 +1,3 @@
-mod check_token_expiration;
 mod get_token;
 mod get_token_refresh;
 mod util;

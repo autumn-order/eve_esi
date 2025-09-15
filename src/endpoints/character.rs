@@ -18,7 +18,8 @@ use std::time::Instant;
 use log::{debug, error, info};
 
 use crate::error::Error;
-use crate::Client;
+use crate::oauth2::scope::CharacterScopes;
+use crate::{Client, ScopeBuilder};
 
 use crate::model::character::{Character, CharacterAffiliation, CharacterResearchAgent};
 
@@ -198,12 +199,14 @@ impl<'a> CharacterApi<'a> {
             "{}/characters/{}/agents_research",
             self.client.inner.esi_url, character_id
         );
+        let required_scopes = ScopeBuilder::new()
+            .character(CharacterScopes::new().read_agents_research())
+            .build();
 
         let message = format!(
             "Fetching research agents for character ID {} from \"{}\"",
             character_id, url
         );
-
         debug!("{}", message);
 
         let start_time = Instant::now();
@@ -212,7 +215,11 @@ impl<'a> CharacterApi<'a> {
         let result = self
             .client
             .esi()
-            .get_from_authenticated_esi::<Vec<CharacterResearchAgent>>(&url, access_token)
+            .get_from_authenticated_esi::<Vec<CharacterResearchAgent>>(
+                &url,
+                access_token,
+                required_scopes,
+            )
             .await;
 
         let elapsed = start_time.elapsed();

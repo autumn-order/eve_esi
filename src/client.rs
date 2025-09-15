@@ -53,6 +53,8 @@ pub(crate) struct ClientRef {
     pub(crate) reqwest_client: reqwest::Client,
     /// The base EVE Online ESI API URL
     pub(crate) esi_url: String,
+    /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
+    pub(crate) esi_validate_token_before_request: bool,
 
     // OAuth2 Settings
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints
@@ -78,7 +80,7 @@ impl Client {
     /// For an overview & usage example, see the [module-level documentation](self)
     ///
     /// # Arguments
-    /// - [`user_agent`] (&[`str`]): User agent used to identify your application
+    /// - `user_agent` (`&str`): User agent used to identify your application
     ///   when making ESI requests. For example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`.
     ///
     /// # Returns

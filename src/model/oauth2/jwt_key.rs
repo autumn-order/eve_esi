@@ -1,32 +1,19 @@
-//! Data structures and types for representing oauth2 authentication data in EVE Online.
+//! # EVE Online OAuth2 JWT Key Models
 //!
-//! This module defines the `AuthenticationData` struct, which models the authentication data needed to begin an OAuth2 authentication flow.
+//! Provides the [`EveJwtKeys`] struct & [`EveJwtKey`] enum to represent the JWT keys
+//! used to validate tokens returned from EVE Online's OAuth2 API.
 //!
-//! See [EVE SSO documentation](https://developers.eveonline.com/docs/services/sso/)
+//! For usage of OAuth2 in the `eve_esi` crate, please see the [`crate::oauth2`]
+//! module documentation.
+//!
+//! ## EVE Online OAuth2 Documentation
+//! - <https://developers.eveonline.com/docs/services/sso/>
+//!
+//! ## Models:
+//! - [`EveJwtKeys`]: Represents the EVE Online JSON Web Token (JWT) keys used for validating authentication tokens
+//! - [`EveJwtKey`]: Represents the types of EVE Online JSON Web Token (JWT) keys used for token validation
 
 use serde::{Deserialize, Serialize};
-
-use super::util::deserialize_scp;
-
-/// Represents the data needed to begin an OAuth2 authentication flow
-///
-/// This struct contains the URL where users should be redirected to login
-/// and a random state parameter for CSRF protection.
-///
-/// # Documentation
-/// See [EVE SSO documentation](https://developers.eveonline.com/docs/services/sso/)
-/// for details related to the oauth2 authentication flow.
-///
-/// # Fields
-/// - `login_url`: The URL where users should be redirected to login
-/// - `state`: A random state parameter used to prevent CSRF attacks
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuthenticationData {
-    /// The URL where users should be redirected to login
-    pub login_url: String,
-    /// A random state parameter used to prevent CSRF attacks
-    pub state: String,
-}
 
 /// Represents the EVE Online JSON Web Token (JWT) keys used for validating authentication tokens
 ///
@@ -49,7 +36,7 @@ pub struct EveJwtKeys {
     pub keys: Vec<EveJwtKey>,
 }
 
-/// Represents a single EVE Online JSON Web Token (JWT) key used for token validation
+/// Represents the types of EVE Online JSON Web Token (JWT) keys used for token validation
 ///
 /// This enum represents different types of cryptographic keys used by EVE Online's SSO service
 /// for signing JWTs. It supports both RSA (RS256) and Elliptic Curve (ES256) algorithms.
@@ -108,52 +95,4 @@ pub enum EveJwtKey {
         /// The y coordinate of the elliptic curve point as a Base64URL-encoded value
         y: String,
     },
-}
-
-/// Represents the claims in an EVE Online JWT access token
-///
-/// This struct contains the standard JWT claims as well as EVE Online specific
-/// claims that are used to identify the character and other information.
-///
-/// # ESI Documentation
-/// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
-///
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EveJwtClaims {
-    // There are two possible issuers but only 1 will be present at a time
-    // See `constant.rs`, `DEFAULT_JWT_ISSUERS` for possible issuers.
-    /// The issuer of the JWT token (EVE Online's login service URL)
-    pub iss: String,
-    /// ID for the authenticated user (Example: "CHARACTER:EVE:2114794365")
-    pub sub: String,
-    /// Audience the JWT token is intended for (your client_id, EVE Online)
-    pub aud: Vec<String>,
-    /// JWT token ID, a unique identifier for this specific token
-    pub jti: String,
-    /// Key ID identifying which key was used to sign this JWT
-    pub kid: String,
-    /// The EVE Online server the key is for (tranquility)
-    pub tenant: String,
-    /// The region from which the token was issued (world)
-    pub region: String,
-    /// Expiration time (Unix timestamp)
-    pub exp: i64,
-    /// Issued at time (Unix timestamp)
-    pub iat: i64,
-    // This field behaves oddly when deserializing due to:
-    // - 0 scopes requested: `scp` field won't exist on claims body
-    // - 1 scope requested: Field exists as String
-    // - 2 scopes requested: Field exists as an array of Strings
-    //
-    // As a result, we need to use a custom deserializer function to handle this
-    /// The scopes granted by this token
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_scp")]
-    pub scp: Vec<String>,
-    /// The character's name
-    pub name: String,
-    /// The character's ID
-    pub owner: String,
-    /// The character's organization (corporation/alliance) ID
-    pub azp: String,
 }

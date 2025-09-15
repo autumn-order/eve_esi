@@ -3,10 +3,9 @@
 //! Methods for fetching, refreshing, & validating tokens retrieved from EVE Online's OAuth2 API.
 //!
 //! ## Methods
-//! - [OAuth2Api::get_token]: Retrieves a token from EVE Online's OAuth2 API
-//! - [OAuth2Api::get_token_refresh]: Retrieves a new token using a refresh token
-//! - [OAuth2Api::validate_token]: Validates token retrieved via the [`OAuth2Api::get_token`] method
-//! - [OAuth2Api::check_token_expiration]: Checks if the provided access token is expired
+//! - [`OAuth2Api::get_token`]: Retrieves a token from EVE Online's OAuth2 API
+//! - [`OAuth2Api::get_token_refresh`]: Retrieves a new token using a refresh token
+//! - [`OAuth2Api::validate_token`]: Validates token retrieved via the [`OAuth2Api::get_token`] method
 //!
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/docs/services/sso/>
@@ -30,47 +29,42 @@
 //! async fn callback_route(
 //!     Extension(esi_client): Extension<eve_esi::Client>,
 //!     params: Query<CallbackParams>,
-//! ) {
+//! ) -> Result<(), eve_esi::Error> {
 //!     ///Validate state to prevent CSRF...
 //!
 //!     // Fetch the token
 //!     let token = esi_client
 //!         .oauth2()
 //!         .get_token(&params.0.code)
-//!         .await
-//!         .expect("Failed to get token");
+//!         .await?;
 //!
 //!     let access_token = token.access_token();
-//!     let refresh_token = token.refresh_token().unwrap();
+//!     // Refresh token should always be Some for EVE Online's OAuth2
+//!     let refresh_token = token.refresh_token().expect("Expected refresh token, found None");
 //!
 //!     // Validate the token
 //!     let claims = esi_client
 //!         .oauth2()
 //!         .validate_token(access_token.secret().to_string())
-//!         .await
-//!         .expect("Failed to validate token");
+//!         .await?;
 //!
 //!     // Extract character ID
-//!     let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
-//!     let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
+//!     let character_id = claims.character_id()?;
 //!
 //!     // Refresh the token
 //!     let new_token = esi_client
 //!         .oauth2()
 //!         .get_token_refresh(refresh_token.secret().to_string())
-//!         .await
-//!         .expect("Failed to get refresh token");
+//!         .await?;
+//!
+//!     Ok(())
 //! }
 //! ```
-
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use jsonwebtoken::{DecodingKey, Validation};
 use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
-use oauth2::{
-    AccessToken, AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse,
-};
+use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 
 use crate::error::{Error, OAuthError};
 use crate::model::oauth2::{EveJwtClaims, EveJwtKey, EveJwtKeys};
@@ -244,41 +238,6 @@ impl<'a> OAuth2Api<'a> {
             }
         }
     }
-
-    /// Checks if the provided access token is expired
-    ///
-    /// Use this method before fetching data from an authenticated ESI route to ensure your access
-    /// token is not expired.
-    ///
-    /// # Arguments
-    /// - `access_token`: An access token in string format. If you haven't converted the
-    ///   token to string yet, you can do so with `token.access_token().secret().to_string()`.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - [`bool`]: A bool indicating whether or not the token is expired
-    /// - [`Error`]: An error if the token validation used to retrieve the expiration from claims
-    ///   fails. This generally happens if the access token provided is not a valid access
-    ///   token.
-    pub async fn check_token_expiration(&self, access_token: &str) -> Result<bool, Error> {
-        // Validate token to get claims
-        let access_token = AccessToken::new(access_token.to_string());
-
-        let claims = self
-            .validate_token(access_token.secret().to_string())
-            .await?;
-
-        // Check expiry
-        let expiration = UNIX_EPOCH + Duration::from_secs(claims.exp as u64);
-
-        if SystemTime::now() < expiration {
-            // Return None, token is not yet expired
-            return Ok(false);
-        }
-
-        // Token is expired, refresh the token
-        Ok(true)
-    }
 }
 
 /// Attempts to validate a token retrieved via the [`Self::get_token`] method
@@ -330,9 +289,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
 
         match jsonwebtoken::decode::<EveJwtClaims>(&token_secret, &decoding_key, &validation) {
             Ok(token_data) => {
-                let id_str = token_data.claims.sub.split(':').collect::<Vec<&str>>()[2];
-                let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
-
+                let character_id = token_data.claims.character_id()?;
                 let message = format!(
                     "Successfully validated JWT token for character ID: {}",
                     character_id

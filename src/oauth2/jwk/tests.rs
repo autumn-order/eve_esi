@@ -15,7 +15,7 @@ use crate::model::oauth2::{EveJwtKey, EveJwtKeys};
 /// # Returns
 /// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
 ///   were received.
-pub(super) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
+pub(crate) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
     let mock_keys = create_mock_keys();
 
     let mock = server
