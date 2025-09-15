@@ -306,7 +306,7 @@ impl<'a> CharacterApi<'a> {
     /// For an overview & usage examples, see the [endpoints module documentation](super)
     ///
     /// # ESI Documentation
-    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdCorporationhistory>
     ///
     /// # Arguments
     /// - `character_id` (`i64`): The ID of the character to retrieve corporation history for.
@@ -331,7 +331,6 @@ impl<'a> CharacterApi<'a> {
 
         let start_time = Instant::now();
 
-        // Fetch character information from ESI
         let result = self
             .client
             .esi()
@@ -353,6 +352,71 @@ impl<'a> CharacterApi<'a> {
             Err(err) => {
                 error!(
                     "Failed to fetch character corporation history for character ID {} after {}ms due to error: {:#?}",
+                    character_id,
+                    elapsed.as_millis(),
+                    err);
+
+                Err(err.into())
+            }
+        }
+    }
+
+    /// Retrieves the CSPA charge cost for evemailing the provided character ID
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <developers.eveonline.com/api-explorer#/operations/PostCharactersCharacterIdCspa>
+    ///
+    /// # Arguments
+    /// - `character_id` (`i64`): The ID of the character to retrieve the CSPA charge cost for
+    ///   evemailing the character.
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - `i64`: The CSPA charge cost for evemailing the character
+    /// - [`Error`]: An error if the fetch request fails
+    pub async fn calculate_a_cspa_charge_cost(&self, character_id: i64) -> Result<i64, Error> {
+        let url = format!(
+            "{}/characters/{}/cspa",
+            self.client.inner.esi_url, character_id
+        );
+
+        debug!(
+            "Fetching character CSPA charge cost for character ID {} from \"{}\"",
+            character_id, url
+        );
+
+        let start_time = Instant::now();
+
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Vec<i64>>(&url)
+            .await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(cspa_charge_cost) => {
+                info!(
+                    "Successfully fetched character CSPA charge cost for character ID: {} (took {}ms)",
+                    character_id,
+                    elapsed.as_millis()
+                );
+
+                // CSPA charge cost returns as an array despite only ever having 1 value present
+                // Convert it to an i64
+                let cspa_charge_cost = if cspa_charge_cost.len() == 1 {
+                    cspa_charge_cost[0]
+                } else {
+                    0
+                };
+
+                Ok(cspa_charge_cost)
+            }
+            Err(err) => {
+                error!(
+                    "Failed to fetch character CSPA charge cost for character ID {} after {}ms due to error: {:#?}",
                     character_id,
                     elapsed.as_millis(),
                     err);
