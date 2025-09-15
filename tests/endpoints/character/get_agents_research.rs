@@ -1,8 +1,12 @@
-use eve_esi::model::character::CharacterResearchAgent;
+use eve_esi::{
+    model::{character::CharacterResearchAgent, oauth2::EveJwtClaims},
+    oauth2::scope::CharacterScopes,
+    ScopeBuilder,
+};
 use oauth2::TokenResponse;
 
 use crate::{
-    oauth2::util::{jwk_response::get_jwk_success_response, jwt::create_mock_token},
+    oauth2::util::{jwk_response::get_jwk_success_response, jwt::create_mock_token_with_claims},
     util::setup,
 };
 
@@ -35,7 +39,12 @@ async fn test_get_agents_research_success() {
     }];
 
     // Create a mock token for authenticated route
-    let token = create_mock_token(false);
+    let mut mock_claims = EveJwtClaims::mock();
+    mock_claims.scp = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_agents_research())
+        .build();
+
+    let token = create_mock_token_with_claims(false, mock_claims);
     let access_token = token.access_token().secret().to_string();
 
     // Add mock JWT key endpoint as authenticated ESI endpoints validate with keys before request
@@ -101,7 +110,12 @@ async fn test_get_agents_research_500_internal_error() {
         .create();
 
     // Create a mock token for authenticated route
-    let token = create_mock_token(false);
+    let mut mock_claims = EveJwtClaims::mock();
+    mock_claims.scp = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_agents_research())
+        .build();
+
+    let token = create_mock_token_with_claims(false, mock_claims);
     let access_token = token.access_token().secret().to_string();
 
     // Attempt to retrieve research agents

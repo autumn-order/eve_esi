@@ -78,9 +78,9 @@ pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
 pub fn create_mock_token(
     use_alternate_key: bool,
 ) -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
-    let claims = EveJwtClaims::mock();
+    let mock_claims = EveJwtClaims::mock();
 
-    create_mock_token_with_claims(use_alternate_key, claims)
+    create_mock_token_with_claims(use_alternate_key, mock_claims)
 }
 
 /// Creates a mock token using the provided mock [`EveJwtClaims`]

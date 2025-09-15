@@ -205,10 +205,7 @@ impl EveJwtClaims {
             region: "world".to_string(),
             exp: expires_in_fifteen_minutes,
             iat: created_now,
-            scp: vec![
-                "publicData".to_string(),
-                "esi-characters.read_agents_research.v1".to_string(),
-            ],
+            scp: vec![],
             name: "Test Character".to_string(),
             owner: "123456789".to_string(),
             azp: "client_id".to_string(),
