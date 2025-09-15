@@ -154,33 +154,9 @@ As of August 17th, 2025, `Claude Sonnet 3.7` is the recommended model to use.
 
 ## cargo-llvm-cov Code Coverage & Log Macros
 
-**You may notice that logs are not written as one would expect in the format of:**
-
-```rust
-info!(
-    "Successfully fetched alliance information for alliance ID: {} (took {}ms)",
-    alliance_id,
-    elapsed.as_millis()
-);
-```
-
-**Instead they are written as:**
-
-```rust
-let message = format!(
-    "Successfully fetched alliance information for alliance ID: {} (took {}ms)",
-    alliance_id,
-    elapsed.as_millis()
-);
-
-info!("{}", message);
-```
-
-Why? The tool we use for code coverage, [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov), has issues with
-determing code coverage for multi-line log crate macros. As a result, declaring the message as a variable and passing
-it to the log macro that way has been found to be an acceptable solution until the issue may one day be resolved.
-
-Unfortunately, using `#[cfg_attr(coverage_nightly, coverage(off))]` flag does not work either.
+The tool we use for code coverage, [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov), has issues with
+determing code coverage for multi-line log crate macros. We've written wrapper macros contained in `src/logging.rs`
+which should be used instead as they resolve the issue with a workaround described in the module documentation.
 
 ## cargo-llvm-cov Code Coverage & Test Assertions
 
