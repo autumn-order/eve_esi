@@ -83,7 +83,9 @@ pub(super) fn check_token_scopes(
 
 #[cfg(test)]
 mod check_token_expiration_tests {
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::time::Duration;
+
+    use chrono::Utc;
 
     use super::check_token_expiration;
     use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
@@ -101,14 +103,9 @@ mod check_token_expiration_tests {
     /// Error occurs due to token being expired
     #[test]
     fn test_check_token_expiration_error() {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-
         let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.exp = now - 60; // expired 1 minute ago
-        mock_claims.iat = now - 960; // created 16 minutes ago
+        mock_claims.exp = Utc::now() - Duration::from_secs(60); // expired 1 minute ago
+        mock_claims.iat = Utc::now() - Duration::from_secs(960); // created 16 minutes ago
 
         let result = check_token_expiration(&mock_claims);
 
