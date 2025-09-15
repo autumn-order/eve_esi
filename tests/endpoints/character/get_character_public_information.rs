@@ -1,9 +1,9 @@
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// Tests the successful retrieval of character information from a mock EVE ESI server.
 #[tokio::test]
 async fn get_character_public_information() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mock_character = serde_json::json!({
         "alliance_id": 99013534,
@@ -41,7 +41,7 @@ async fn get_character_public_information() {
 /// Failed retrieval of character information due to 404 not found error
 #[tokio::test]
 async fn get_character_public_information_not_found() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mock_character_endpoint = mock_server
         .mock("GET", "/characters/2114794365/")

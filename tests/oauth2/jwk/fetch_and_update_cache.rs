@@ -1,7 +1,7 @@
 use crate::oauth2::util::jwk_response::{
     get_jwk_internal_server_error_response, get_jwk_success_response,
 };
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// Tests that JWK keys are properly fetched & cache is updated
 ///
@@ -14,7 +14,7 @@ use crate::util::setup;
 #[tokio::test]
 async fn test_fetch_and_update_cache_success() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -42,7 +42,7 @@ async fn test_fetch_and_update_cache_success() {
 #[tokio::test]
 async fn test_fetch_and_update_cache_request_error() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create mock response with error 500 and expecting 1 request
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 1);

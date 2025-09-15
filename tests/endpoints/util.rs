@@ -4,12 +4,12 @@ use oauth2::TokenResponse;
 
 use crate::{
     oauth2::util::{jwk_response::get_jwk_success_response, jwt::create_mock_token_with_claims},
-    util::setup,
+    util::integration_test_setup,
 };
 
 /// Utility to setup JWT key endpoint for validation to test authenticated ESI routes
 pub(super) async fn authenticated_endpoint_test_setup() -> (eve_esi::Client, ServerGuard, Mock) {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create JWT key endpoint for token validation before request
     let mock_jwt_key_endpoint = get_jwk_success_response(&mut mock_server, 1);

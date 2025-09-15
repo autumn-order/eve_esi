@@ -2,7 +2,7 @@ use oauth2::RequestTokenError;
 
 use crate::{
     oauth2::token::util::{get_token_bad_request_response, get_token_success_response},
-    util::setup,
+    util::integration_test_setup,
 };
 
 /// Tests the successful retrieval of a JWT token
@@ -17,7 +17,7 @@ use crate::{
 #[tokio::test]
 pub async fn test_get_token_success() {
     // Create Client configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await;
+    let (client, mut mock_server) = integration_test_setup().await;
 
     // Create mock response with 200 success response & mock token
     let mock = get_token_success_response(&mut mock_server, 1);
@@ -45,7 +45,7 @@ pub async fn test_get_token_success() {
 #[tokio::test]
 pub async fn test_get_token_error() {
     // Create Client configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await;
+    let (client, mut mock_server) = integration_test_setup().await;
 
     // Create mock response returning a 400 bad request
     let mock = get_token_bad_request_response(&mut mock_server, 1);
@@ -68,7 +68,7 @@ pub async fn test_get_token_error() {
     ));
 }
 
-/// Returns an error if OAuth2 is not setup on ESI client
+/// Returns an error if OAuth2 is not integration_test_setup on ESI client
 ///
 /// # Setup
 /// - Create an ESI client without OAuth2 configured
@@ -80,7 +80,7 @@ pub async fn test_get_token_error() {
 /// - Assert error is of type OAuthError::OAuth2NotConfigured
 #[tokio::test]
 pub async fn test_get_token_oauth_client_missing() {
-    let (_, mut mock_server) = setup().await;
+    let (_, mut mock_server) = integration_test_setup().await;
 
     // Create ESI client without OAuth2 config & with mock token endpoint
     let config = eve_esi::Config::builder()

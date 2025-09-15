@@ -4,7 +4,7 @@ use oauth2::TokenResponse;
 use crate::{
     endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes},
     oauth2::util::{jwk_response::get_jwk_success_response, jwt::create_mock_token_with_claims},
-    util::setup,
+    util::integration_test_setup,
 };
 
 /// Successful retrieval of character research agents
@@ -53,7 +53,7 @@ async fn test_get_agents_research_success() {
 /// Failed retrieval of character affiliations due to an internal server error
 #[tokio::test]
 async fn test_get_agents_research_500_internal_error() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mut mock_access_token_claims = EveJwtClaims::mock();
     mock_access_token_claims.scp = ScopeBuilder::new()

@@ -1,9 +1,9 @@
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// Successful retrieval of character affiliations
 #[tokio::test]
 async fn character_affiliation() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mock_character_affiliations = serde_json::json!([
         {
@@ -42,7 +42,7 @@ async fn character_affiliation() {
 /// Failed retrieval of character affiliations due to a bad request error
 #[tokio::test]
 async fn character_affiliation_bad_request() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mock_character_affiliations_endpoint = mock_server
         .mock("POST", "/characters/affiliation/")
