@@ -15,8 +15,7 @@
 //!
 /// ## EVE Online OAuth2 Documentation
 /// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, OAuthError};
@@ -46,10 +45,12 @@ pub struct EveJwtClaims {
     pub tenant: String,
     /// The region from which the token was issued (world)
     pub region: String,
-    /// Expiration time (Unix timestamp)
-    pub exp: i64,
-    /// Issued at time (Unix timestamp)
-    pub iat: i64,
+    /// Expiration time
+    #[serde(with = "jwt_timestamp_format")]
+    pub exp: DateTime<Utc>,
+    /// Issued at time
+    #[serde(with = "jwt_timestamp_format")]
+    pub iat: DateTime<Utc>,
     // This field behaves oddly when deserializing due to:
     // - 0 scopes requested: `scp` field won't exist on claims body
     // - 1 scope requested: Field exists as String
@@ -116,36 +117,28 @@ impl EveJwtClaims {
     /// # Returns
     /// - `bool`: Indicating whether or not token is expired
     pub fn is_expired(&self) -> bool {
-        // Set character_id for logging to 0 if `sub` field can't be parsed to id
         let character_id = self.character_id().unwrap_or(0);
 
-        // Trace because validate_token already logs info for this
-        let message = format!(
-            "Successfully validated token for character ID {} prior to token expiration check",
-            character_id
-        );
-        log::trace!("{}", message);
+        let now = Utc::now();
+        let token_expiration = self.exp;
 
-        // Check token expiration
-        let expiration_secs = Duration::from_secs(self.exp as u64);
-        let expiration = UNIX_EPOCH + expiration_secs;
-
-        if SystemTime::now() < expiration {
-            // Token is not yet expired
+        if now < token_expiration {
+            let time_remaining = self.exp - now;
             let message = format!(
                 "Checked token for expiration, token for character ID {} is not yet expired, expiration in {}s",
                 character_id,
-                expiration_secs.as_secs()
+                time_remaining.num_seconds()
             );
             log::debug!("{}", message);
 
             return false;
         }
 
-        // Token is expired
+        let time_remaining = now - self.exp;
         let message = format!(
-            "Checked token for expiration, token for character ID {} is expired",
-            character_id
+            "Checked token for expiration, token for character ID {} is expired, expired {}s ago",
+            character_id,
+            time_remaining.num_seconds()
         );
         log::debug!("{}", message);
 
@@ -196,11 +189,8 @@ impl EveJwtClaims {
 
     /// Utility function to create a mock of EveJwtClaims
     pub fn mock() -> Self {
-        // Get current unix timestamp
-        let unix_timstamp_now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let expires_in_fifteen_minutes = Utc::now() + Duration::seconds(900);
+        let created_now = Utc::now();
 
         // Create JWT mock claims matching what EVE Online would return
         EveJwtClaims {
@@ -213,8 +203,8 @@ impl EveJwtClaims {
             kid: "JWT-Signature-Key-1".to_string(),
             tenant: "tranquility".to_string(),
             region: "world".to_string(),
-            exp: unix_timstamp_now + 900, // Valid for 15 minutes
-            iat: unix_timstamp_now,
+            exp: expires_in_fifteen_minutes,
+            iat: created_now,
             scp: vec![
                 "publicData".to_string(),
                 "esi-characters.read_agents_research.v1".to_string(),
@@ -272,6 +262,32 @@ where
     }
 }
 
+/// Deserializes i64 unix timestamp common for JWTs into DateTime<Utc>
+mod jwt_timestamp_format {
+    use chrono::{DateTime, TimeZone, Utc};
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    /// Converts DateTime<Utc> into an i64 unix timestamp for serializing token claims primarily used in tests
+    pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_i64(date.timestamp())
+    }
+
+    /// Converts i64 unix timestamp into a DateTime<Utc> for the EveJwtClaims struct
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let timestamp = i64::deserialize(deserializer)?;
+        Ok(Utc
+            .timestamp_opt(timestamp, 0)
+            .single()
+            .ok_or_else(|| serde::de::Error::custom("Invalid timestamp"))?)
+    }
+}
+
 #[cfg(test)]
 mod claims_character_id_tests {
     use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
@@ -325,7 +341,8 @@ mod claims_character_id_tests {
 
 #[cfg(test)]
 mod is_expired_tests {
-    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use chrono::{Duration, Utc};
 
     use crate::model::oauth2::EveJwtClaims;
 
@@ -342,14 +359,9 @@ mod is_expired_tests {
     /// Ensures that when token is expired, function returns true
     #[tokio::test]
     async fn test_is_expired_true() {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-
         let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.exp = now - 60; // Expired 1 minute ago
-        mock_claims.iat = now - 960; // Created 16 minutes ago
+        mock_claims.exp = Utc::now() - Duration::seconds(60); // Expired 1 minute ago
+        mock_claims.iat = Utc::now() - Duration::seconds(960); // Created 16 minutes ago
 
         let result = mock_claims.is_expired();
 
@@ -388,12 +400,22 @@ mod has_scopes_tests {
 
 #[cfg(test)]
 mod deserialize_scp_tests {
+    use std::time::Duration;
+
+    use chrono::Utc;
+    use serde_json::Value;
+
     use super::EveJwtClaims;
 
-    /// Test direct deserialization of JSON into EveJwtClaims with null scp field
-    #[test]
-    fn test_deserialize_scp_null() {
-        let json_data = serde_json::json!({
+    /// Helper function to create mock JSON data for tests with configurable `scp` field
+    fn create_mock_json<T>(scp: T) -> serde_json::Value
+    where
+        T: serde::Serialize,
+    {
+        let expires_in_fifteen_minutes = Utc::now() + Duration::from_secs(900);
+        let created_now = Utc::now();
+
+        serde_json::json!({
             "iss": "https://login.eveonline.com",
             "sub": "CHARACTER:EVE:123456789",
             "aud": ["client_id".to_string(), "EVE Online"],
@@ -401,13 +423,19 @@ mod deserialize_scp_tests {
             "kid": "JWT-Signature-Key-1",
             "tenant": "tranquility",
             "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": null,
+            "exp": expires_in_fifteen_minutes.timestamp(),
+            "iat": created_now.timestamp(),
+            "scp": scp,
             "name": "Test Character",
             "owner": "123456789",
             "azp": "client_id"
-        });
+        })
+    }
+
+    /// Test direct deserialization of JSON into EveJwtClaims with null scp field
+    #[test]
+    fn test_deserialize_scp_null() {
+        let json_data = create_mock_json(Value::Null);
 
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
@@ -419,21 +447,7 @@ mod deserialize_scp_tests {
     /// Test direct deserialization of JSON into EveJwtClaims with a single string scp field
     #[test]
     fn test_deserialize_scp_single_string() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": "publicData",  // single string scope
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data = create_mock_json("publicData");
 
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
@@ -445,21 +459,8 @@ mod deserialize_scp_tests {
     /// Test direct deserialization of JSON into EveJwtClaims with multiple scopes in an array
     #[test]
     fn test_deserialize_scp_string_array() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveoonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": ["publicData", "esi-characters.read_agents_research.v1"],  // Array of scopes
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data =
+            create_mock_json(vec!["publicData", "esi-characters.read_agents_research.v1"]);
 
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
@@ -472,21 +473,7 @@ mod deserialize_scp_tests {
     /// Error when `scp` field is not null, string, or array
     #[test]
     fn test_deserialize_scp_not_string() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": 488,
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data = create_mock_json(488);
 
         let result = serde_json::from_value::<EveJwtClaims>(json_data);
 
@@ -500,21 +487,7 @@ mod deserialize_scp_tests {
     /// Error when `scp` field is an array but not of strings
     #[test]
     fn test_deserialize_scp_not_string_array() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": [9,9,9],
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data = create_mock_json(vec![9, 9, 9]);
 
         let result = serde_json::from_value::<EveJwtClaims>(json_data);
 
@@ -522,6 +495,60 @@ mod deserialize_scp_tests {
 
         assert!(matches!(result,
             Err(err) if err.to_string().contains("Expected string array for scopes")
+        ));
+    }
+}
+
+#[cfg(test)]
+mod test_jwt_timestamp_format {
+    use super::EveJwtClaims;
+
+    use chrono::{Duration, Utc};
+
+    /// Helper function to create JSON test data with a customizable exp field
+    fn create_test_jwt_json(exp_value: impl Into<serde_json::Value>) -> serde_json::Value {
+        let created_now = Utc::now();
+
+        serde_json::json!({
+            "iss": "https://login.eveonline.com",
+            "sub": "CHARACTER:EVE:123456789",
+            "aud": ["client_id".to_string(), "EVE Online"],
+            "jti": "abc123def456",
+            "kid": "JWT-Signature-Key-1",
+            "tenant": "tranquility",
+            "region": "world",
+            "exp": exp_value.into(),
+            "iat": created_now.timestamp(),
+            "scp": [],
+            "name": "Test Character",
+            "owner": "123456789",
+            "azp": "client_id"
+        })
+    }
+
+    /// Error due to invalid i64 unix timestamp
+    #[test]
+    fn test_jwt_timestamp_format_success() {
+        // Valid for 15 minutes
+        let exp = Utc::now() + Duration::seconds(900);
+
+        let json_data = create_test_jwt_json(exp.timestamp());
+        let result = serde_json::from_value::<EveJwtClaims>(json_data);
+
+        assert!(result.is_ok());
+    }
+
+    /// Error due to invalid i64 unix timestamp
+    #[test]
+    fn test_jwt_timestamp_format_invalid_timestamp() {
+        // Falls outside of DateTime<Utc> representable range
+        let json_data = create_test_jwt_json(i64::MAX);
+        let result = serde_json::from_value::<EveJwtClaims>(json_data);
+
+        assert!(result.is_err());
+
+        assert!(matches!(result,
+            Err(err) if err.to_string().contains("Invalid timestamp")
         ));
     }
 }

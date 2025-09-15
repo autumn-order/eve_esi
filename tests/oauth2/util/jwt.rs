@@ -1,5 +1,5 @@
 use std::fs;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -8,8 +8,6 @@ use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use oauth2::basic::BasicTokenType;
 use oauth2::{AccessToken, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 use openssl::rsa::Rsa;
-
-use crate::constant::TEST_CLIENT_ID;
 
 pub const RSA_KEY_ID: &str = "JWT-Signature-Key-1";
 
@@ -80,32 +78,7 @@ pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
 pub fn create_mock_token(
     use_alternate_key: bool,
 ) -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
-    // Create JWT claims matching what EVE Online would return
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs() as i64;
-
-    let claims = EveJwtClaims {
-        // ESI SSO docs defines 2 different JWT issuers but typically only returns 1 of them at a time
-        // The default defines 2 but for tests we'll define 1 to ensure validation works
-        iss: "https://login.eveonline.com".to_string(),
-        sub: "CHARACTER:EVE:123456789".to_string(),
-        aud: vec![TEST_CLIENT_ID.to_string(), "EVE Online".to_string()],
-        jti: "abc123def456".to_string(),
-        kid: RSA_KEY_ID.to_string(),
-        tenant: "tranquility".to_string(),
-        region: "world".to_string(),
-        exp: now + 900, // Valid for 15 minutes
-        iat: now,
-        scp: vec![
-            "publicData".to_string(),
-            "esi-characters.read_agents_research.v1".to_string(),
-        ],
-        name: "Test Character".to_string(),
-        owner: "123456789".to_string(),
-        azp: TEST_CLIENT_ID.to_string(),
-    };
+    let claims = EveJwtClaims::mock();
 
     create_mock_token_with_claims(use_alternate_key, claims)
 }
