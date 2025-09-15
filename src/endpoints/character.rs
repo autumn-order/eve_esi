@@ -15,8 +15,6 @@
 
 use std::time::Instant;
 
-use log::{debug, error, info};
-
 use crate::error::Error;
 use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
@@ -62,12 +60,10 @@ impl<'a> CharacterApi<'a> {
     ) -> Result<Character, Error> {
         let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
 
-        let message = format!(
+        debug!(
             "Fetching character information for character ID {} from \"{}\"",
             character_id, url
         );
-
-        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -81,25 +77,19 @@ impl<'a> CharacterApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(character) => {
-                let message = format!(
+                info!(
                     "Successfully fetched character information for character ID: {} (took {}ms)",
                     character_id,
                     elapsed.as_millis()
                 );
 
-                info!("{}", message);
-
                 Ok(character)
             }
             Err(err) => {
-                let message = format!(
-                    "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
-                        character_id,
-                        elapsed.as_millis(),
-                        err
-                );
-
-                error!("{}", message);
+                error!(          "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
+                    character_id,
+                    elapsed.as_millis(),
+                    err);
 
                 Err(err.into())
             }
@@ -126,13 +116,11 @@ impl<'a> CharacterApi<'a> {
     ) -> Result<Vec<CharacterAffiliation>, Error> {
         let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
 
-        let message = format!(
+        debug!(
             "Fetching character affiliations for {} characters from \"{}\"",
             character_ids.len(),
             url
         );
-
-        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -146,25 +134,19 @@ impl<'a> CharacterApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(affiliations) => {
-                let message = format!(
+                info!(
                     "Successfully fetched character affiliations for {} character(s) (took {}ms)",
                     elapsed.as_millis(),
                     character_ids.len()
                 );
 
-                info!("{}", message);
-
                 Ok(affiliations)
             }
             Err(err) => {
-                let message = format!(
-                    "Failed to fetch character affiliations for {} character(s) after {}ms due to error: {:#?}",
-                    character_ids.len(),
-                    elapsed.as_millis(),
-                    err
-                );
-
-                error!("{}", message);
+                error!(                    "Failed to fetch character affiliations for {} character(s) after {}ms due to error: {:#?}",
+                character_ids.len(),
+                elapsed.as_millis(),
+                err);
 
                 Err(err.into())
             }
@@ -203,11 +185,10 @@ impl<'a> CharacterApi<'a> {
             .character(CharacterScopes::new().read_agents_research())
             .build();
 
-        let message = format!(
+        debug!(
             "Fetching research agents for character ID {} from \"{}\"",
             character_id, url
         );
-        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -225,26 +206,20 @@ impl<'a> CharacterApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(research_agents) => {
-                let message = format!(
+                info!(
                     "Successfully fetched {} research agents for character ID: {} (took {}ms)",
                     research_agents.len(),
                     character_id,
                     elapsed.as_millis()
                 );
 
-                info!("{}", message);
-
                 Ok(research_agents)
             }
             Err(err) => {
-                let message = format!(
-                    "Failed to fetch research agents for character ID {} after {}ms due to error: {:#?}",
-                        character_id,
-                        elapsed.as_millis(),
-                        err
-                );
-
-                error!("{}", message);
+                error!(                  "Failed to fetch research agents for character ID {} after {}ms due to error: {:#?}",
+                    character_id,
+                    elapsed.as_millis(),
+                    err);
 
                 Err(err.into())
             }

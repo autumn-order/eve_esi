@@ -5,7 +5,6 @@
 //!
 //! See the [module-level documentation](super) for an overview of EVE Online OAuth2 and usage example.
 
-use log::error;
 use oauth2::{CsrfToken, Scope};
 
 use crate::error::{Error, OAuthError};
@@ -66,12 +65,10 @@ impl<'a> OAuth2Api<'a> {
             // Returns an error if the OAuth2 client is not found due to it not having been configured when
             // building the Client.
             None => {
-                let message = format!(
+                error!(
                     "Error building a login URL: {:#?}",
                     OAuthError::OAuth2NotConfigured
                 );
-
-                error!("{}", message);
 
                 return Err(Error::OAuthError(OAuthError::OAuth2NotConfigured));
             }

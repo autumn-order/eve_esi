@@ -89,7 +89,8 @@ impl EveJwtClaims {
                 "The `sub` field segment length is {} but the expected length is 2",
                 segments_len,
             );
-            log::error!("{}", message);
+
+            error!(message);
 
             return Err(Error::OAuthError(OAuthError::CharacterIdParseError(
                 message,
@@ -100,7 +101,8 @@ impl EveJwtClaims {
             Ok(character_id) => Ok(character_id),
             Err(err) => {
                 let message = format!("Failed to parse `sub` field to i64 due to error: {}", err);
-                log::error!("{}", message);
+
+                error!(message);
 
                 Err(Error::OAuthError(OAuthError::CharacterIdParseError(
                     message,
@@ -124,23 +126,22 @@ impl EveJwtClaims {
 
         if now < token_expiration {
             let time_remaining = self.exp - now;
-            let message = format!(
+
+            debug!(
                 "Checked token for expiration, token for character ID {} is not yet expired, expiration in {}s",
                 character_id,
                 time_remaining.num_seconds()
             );
-            log::debug!("{}", message);
 
             return false;
         }
 
         let time_remaining = now - self.exp;
-        let message = format!(
+        debug!(
             "Checked token for expiration, token for character ID {} is expired, expired {}s ago",
             character_id,
             time_remaining.num_seconds()
         );
-        log::debug!("{}", message);
 
         true
     }
@@ -167,22 +168,20 @@ impl EveJwtClaims {
         for expected_scope in scopes {
             if !self.scp.iter().any(|scope| scope == expected_scope) {
                 // One of the expected scopes is missing
-                let message = format!(
+                debug!(
                     "Token for character ID {} is missing scope: {}",
                     character_id, expected_scope
                 );
-                log::debug!("{}", message);
 
                 return false;
             }
         }
 
         // All expected scopes were found
-        let message = format!(
+        debug!(
             "Token for character ID {} has all expected scopes",
             character_id
         );
-        log::debug!("{}", message);
 
         true
     }

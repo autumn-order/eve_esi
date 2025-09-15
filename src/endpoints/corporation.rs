@@ -13,8 +13,6 @@
 
 use std::time::Instant;
 
-use log::{debug, error, info};
-
 use crate::error::Error;
 use crate::model::corporation::Corporation;
 use crate::Client;
@@ -63,12 +61,10 @@ impl<'a> CorporationApi<'a> {
             self.client.inner.esi_url, corporation_id
         );
 
-        let message = format!(
+        debug!(
             "Fetching corporation information for corporation ID {} from \"{}\"",
             corporation_id, url
         );
-
-        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -82,24 +78,16 @@ impl<'a> CorporationApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(corporation) => {
-                let message = format!(
-                    "Successfully fetched corporation information for corporation ID: {} (took {}ms)",
-                    corporation_id,
-                    elapsed.as_millis()
-                );
-
-                info!("{}", message);
+                info!(                    "Successfully fetched corporation information for corporation ID: {} (took {}ms)",
+                corporation_id,
+                elapsed.as_millis());
 
                 Ok(corporation)
             }
             Err(err) => {
-                let message = format!(
-                    "Successfully fetched corporation information for corporation ID: {} (took {}ms)",
-                    corporation_id,
-                    elapsed.as_millis()
-                );
-
-                error!("{}", message);
+                error!(                    "Successfully fetched corporation information for corporation ID: {} (took {}ms)",
+                corporation_id,
+                elapsed.as_millis());
 
                 Err(err.into())
             }
