@@ -123,7 +123,6 @@ impl EveJwtClaims {
         let token_expiration = self.exp;
 
         if now < token_expiration {
-            // Token is not yet expired
             let time_remaining = self.exp - now;
             let message = format!(
                 "Checked token for expiration, token for character ID {} is not yet expired, expiration in {}s",
@@ -135,10 +134,11 @@ impl EveJwtClaims {
             return false;
         }
 
-        // Token is expired
+        let time_remaining = now - self.exp;
         let message = format!(
-            "Checked token for expiration, token for character ID {} is expired",
-            character_id
+            "Checked token for expiration, token for character ID {} is expired, expired {}s ago",
+            character_id,
+            time_remaining.num_seconds()
         );
         log::debug!("{}", message);
 
