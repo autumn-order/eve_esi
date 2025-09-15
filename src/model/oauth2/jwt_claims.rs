@@ -189,6 +189,9 @@ impl EveJwtClaims {
 
     /// Utility function to create a mock of EveJwtClaims
     pub fn mock() -> Self {
+        let expires_in_fifteen_minutes = Utc::now() + Duration::seconds(900);
+        let created_now = Utc::now();
+
         // Create JWT mock claims matching what EVE Online would return
         EveJwtClaims {
             // ESI SSO docs defines 2 different JWT issuers but typically only returns 1 of them at a time
@@ -200,8 +203,8 @@ impl EveJwtClaims {
             kid: "JWT-Signature-Key-1".to_string(),
             tenant: "tranquility".to_string(),
             region: "world".to_string(),
-            exp: Utc::now() + Duration::seconds(900), // Valid for 15 minutes
-            iat: Utc::now(),
+            exp: expires_in_fifteen_minutes,
+            iat: created_now,
             scp: vec![
                 "publicData".to_string(),
                 "esi-characters.read_agents_research.v1".to_string(),
@@ -397,12 +400,22 @@ mod has_scopes_tests {
 
 #[cfg(test)]
 mod deserialize_scp_tests {
+    use std::time::Duration;
+
+    use chrono::Utc;
+    use serde_json::Value;
+
     use super::EveJwtClaims;
 
-    /// Test direct deserialization of JSON into EveJwtClaims with null scp field
-    #[test]
-    fn test_deserialize_scp_null() {
-        let json_data = serde_json::json!({
+    /// Helper function to create mock JSON data for tests with configurable `scp` field
+    fn create_mock_json<T>(scp: T) -> serde_json::Value
+    where
+        T: serde::Serialize,
+    {
+        let expires_in_fifteen_minutes = Utc::now() + Duration::from_secs(900);
+        let created_now = Utc::now();
+
+        serde_json::json!({
             "iss": "https://login.eveonline.com",
             "sub": "CHARACTER:EVE:123456789",
             "aud": ["client_id".to_string(), "EVE Online"],
@@ -410,13 +423,19 @@ mod deserialize_scp_tests {
             "kid": "JWT-Signature-Key-1",
             "tenant": "tranquility",
             "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": null,
+            "exp": expires_in_fifteen_minutes.timestamp(),
+            "iat": created_now.timestamp(),
+            "scp": scp,
             "name": "Test Character",
             "owner": "123456789",
             "azp": "client_id"
-        });
+        })
+    }
+
+    /// Test direct deserialization of JSON into EveJwtClaims with null scp field
+    #[test]
+    fn test_deserialize_scp_null() {
+        let json_data = create_mock_json(Value::Null);
 
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
@@ -428,21 +447,7 @@ mod deserialize_scp_tests {
     /// Test direct deserialization of JSON into EveJwtClaims with a single string scp field
     #[test]
     fn test_deserialize_scp_single_string() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": "publicData",  // single string scope
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data = create_mock_json("publicData");
 
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
@@ -454,21 +459,8 @@ mod deserialize_scp_tests {
     /// Test direct deserialization of JSON into EveJwtClaims with multiple scopes in an array
     #[test]
     fn test_deserialize_scp_string_array() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveoonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": ["publicData", "esi-characters.read_agents_research.v1"],  // Array of scopes
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data =
+            create_mock_json(vec!["publicData", "esi-characters.read_agents_research.v1"]);
 
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
@@ -481,21 +473,7 @@ mod deserialize_scp_tests {
     /// Error when `scp` field is not null, string, or array
     #[test]
     fn test_deserialize_scp_not_string() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": 488,
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data = create_mock_json(488);
 
         let result = serde_json::from_value::<EveJwtClaims>(json_data);
 
@@ -509,21 +487,7 @@ mod deserialize_scp_tests {
     /// Error when `scp` field is an array but not of strings
     #[test]
     fn test_deserialize_scp_not_string_array() {
-        let json_data = serde_json::json!({
-            "iss": "https://login.eveonline.com",
-            "sub": "CHARACTER:EVE:123456789",
-            "aud": ["client_id".to_string(), "EVE Online"],
-            "jti": "abc123def456",
-            "kid": "JWT-Signature-Key-1",
-            "tenant": "tranquility",
-            "region": "world",
-            "exp": 1,
-            "iat": 1,
-            "scp": [9,9,9],
-            "name": "Test Character",
-            "owner": "123456789",
-            "azp": "client_id"
-        });
+        let json_data = create_mock_json(vec![9, 9, 9]);
 
         let result = serde_json::from_value::<EveJwtClaims>(json_data);
 
@@ -543,7 +507,7 @@ mod test_jwt_timestamp_format {
 
     /// Helper function to create JSON test data with a customizable exp field
     fn create_test_jwt_json(exp_value: impl Into<serde_json::Value>) -> serde_json::Value {
-        let iat = Utc::now();
+        let created_now = Utc::now();
 
         serde_json::json!({
             "iss": "https://login.eveonline.com",
@@ -554,7 +518,7 @@ mod test_jwt_timestamp_format {
             "tenant": "tranquility",
             "region": "world",
             "exp": exp_value.into(),
-            "iat": iat.timestamp(),
+            "iat": created_now.timestamp(),
             "scp": [],
             "name": "Test Character",
             "owner": "123456789",
