@@ -3,9 +3,6 @@
 //! Provides the underlying utility methods used to make requests to
 //! ESI routes.
 //!
-//! For an overview and usage examples of making authenticated ESI endpoints with the eve_esi crate,
-//! see the [endpoints module documentation](crate::endpoints)
-//!
 //! See the [module-level documentation](super) for an overview, methods, & usage example.
 //!
 //! ## Methods
