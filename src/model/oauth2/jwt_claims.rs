@@ -276,58 +276,50 @@ where
 mod claims_character_id_tests {
     use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
 
-    /// Ensures success when parsing properly formatted`sub` field to character ID
+    /// Success when `sub` field is properly formatted
     #[test]
     fn test_claims_character_id_success() {
-        // Create mock EveJwtClaims & set sub field
         let mut mock_claims = EveJwtClaims::mock();
         mock_claims.sub = "CHARACTER:EVE:123456789".to_string();
 
-        // Attempt to parse character ID from mock_claims
         let result = mock_claims.character_id();
 
-        // Assert result is ok
-        assert!(
-            result.is_ok(),
-            "Expected Ok, instead got err: {:#?}",
-            result
-        );
+        assert!(result.is_ok());
 
-        // Assert character id matches expected result
         let character_id = result.unwrap();
-        assert_eq!(
-            character_id, 123456789,
-            "Expected character ID 123456789, instead got {:#?}",
-            character_id
-        );
+        assert_eq!(character_id, 123456789);
     }
 
-    /// Ensures parse error is returned due to unexpected `sub` field format
+    /// Error when sub field is not segmented into 3 parts by ":"
     #[test]
-    fn test_claims_character_id_error() {
-        // Create mock EveJwtClaims & set sub field
+    fn test_claims_character_id_segment_error() {
         let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.sub = "123456789".to_string();
+        mock_claims.sub = "not_segmented".to_string();
 
-        // Test function
         let result = mock_claims.character_id();
 
-        // Attempt to parse character ID from mock_claims
-        assert!(
-            result.is_err(),
-            "Expected error, instead got: {:#?}",
-            result
-        );
+        assert!(result.is_err());
 
-        // Assert error is of expected type
-        assert!(
-            matches!(
-                result,
-                Err(Error::OAuthError(OAuthError::CharacterIdParseError(_)))
-            ),
-            "Expected error of type OAuthError::JwtClaimsCharacterIdParseError, instead got: {:#?}",
-            result
-        )
+        assert!(matches!(
+            result,
+            Err(Error::OAuthError(OAuthError::CharacterIdParseError(_)))
+        ))
+    }
+
+    /// Error when `sub` field is properly segmented but expected ID is not a number
+    #[test]
+    fn test_claims_character_id_i64_parse_error() {
+        let mut mock_claims = EveJwtClaims::mock();
+        mock_claims.sub = "CHARACTER:EVE:not_a_number".to_string();
+
+        let result = mock_claims.character_id();
+
+        assert!(result.is_err());
+
+        assert!(matches!(
+            result,
+            Err(Error::OAuthError(OAuthError::CharacterIdParseError(_)))
+        ))
     }
 }
 
@@ -340,33 +332,27 @@ mod is_expired_tests {
     /// Ensures that when token is not expired, function returns false
     #[tokio::test]
     pub async fn test_is_expired_false() {
-        // Create new mock token which is not expired
         let mock_claims = EveJwtClaims::mock();
 
-        // Test function
         let result = mock_claims.is_expired();
 
-        // Assert result is false
         assert_eq!(result, false);
     }
 
     /// Ensures that when token is expired, function returns true
     #[tokio::test]
     async fn test_is_expired_true() {
-        // Create new mock token which is expired
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
 
         let mut mock_claims = EveJwtClaims::mock();
-        mock_claims.exp = now - 60;
-        mock_claims.iat = now - 960;
+        mock_claims.exp = now - 60; // Expired 1 minute ago
+        mock_claims.iat = now - 960; // Created 16 minutes ago
 
-        // Test function
         let result = mock_claims.is_expired();
 
-        // Assert result is true
         assert_eq!(result, true);
     }
 }
@@ -378,30 +364,24 @@ mod has_scopes_tests {
     /// Test that function returns true since all scopes are present
     #[test]
     fn test_has_scopes_true() {
-        // Create mock token claims with expected scopes
         let mut mock_claims = EveJwtClaims::mock();
         mock_claims.scp = vec!["publicData".to_string()];
 
-        // Test function
         let expected_scopes = vec!["publicData".to_string()];
         let result = mock_claims.has_scopes(&expected_scopes);
 
-        // Assert result is true
         assert_eq!(result, true);
     }
 
     /// Test that function returns false due to missing scopes
     #[test]
     fn test_has_scopes_false() {
-        // Create mock token claims missing expected scopes
         let mut mock_claims = EveJwtClaims::mock();
         mock_claims.scp = vec!["".to_string()];
 
-        // Test function
         let expected_scopes = vec!["publicData".to_string()];
         let result = mock_claims.has_scopes(&expected_scopes);
 
-        // Assert result is false
         assert_eq!(result, false);
     }
 }
@@ -412,7 +392,7 @@ mod deserialize_scp_tests {
 
     /// Test direct deserialization of JSON into EveJwtClaims with null scp field
     #[test]
-    fn test_deserialize_scp_no_scopes() {
+    fn test_deserialize_scp_null() {
         let json_data = serde_json::json!({
             "iss": "https://login.eveonline.com",
             "sub": "CHARACTER:EVE:123456789",
@@ -423,27 +403,22 @@ mod deserialize_scp_tests {
             "region": "world",
             "exp": 1,
             "iat": 1,
-            // scp field does not exist when no scopes are requested
+            "scp": null,
             "name": "Test Character",
             "owner": "123456789",
             "azp": "client_id"
         });
 
-        // Deserialize directly from JSON
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
 
         // Verify the scp field was deserialized to an empty vector
-        assert!(
-            claims.scp.is_empty(),
-            "Expected empty vector for null scopes, got: {:?}",
-            claims.scp
-        );
+        assert!(claims.scp.is_empty());
     }
 
     /// Test direct deserialization of JSON into EveJwtClaims with a single string scp field
     #[test]
-    fn test_deserialize_scp_single_scope() {
+    fn test_deserialize_scp_single_string() {
         let json_data = serde_json::json!({
             "iss": "https://login.eveonline.com",
             "sub": "CHARACTER:EVE:123456789",
@@ -460,22 +435,16 @@ mod deserialize_scp_tests {
             "azp": "client_id"
         });
 
-        // Deserialize directly from JSON
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
 
-        // Verify the scp field was deserialized to a vector with a single element
-        assert_eq!(
-            claims.scp.len(),
-            1,
-            "Expected vector with 1 element for single scope"
-        );
-        assert_eq!(claims.scp[0], "publicData", "Expected 'publicData' scope");
+        assert_eq!(claims.scp.len(), 1);
+        assert_eq!(claims.scp[0], "publicData");
     }
 
     /// Test direct deserialization of JSON into EveJwtClaims with multiple scopes in an array
     #[test]
-    fn test_deserialize_scp_multiple_scopes() {
+    fn test_deserialize_scp_string_array() {
         let json_data = serde_json::json!({
             "iss": "https://login.eveoonline.com",
             "sub": "CHARACTER:EVE:123456789",
@@ -492,17 +461,67 @@ mod deserialize_scp_tests {
             "azp": "client_id"
         });
 
-        // Deserialize directly from JSON
         let claims: EveJwtClaims =
             serde_json::from_value(json_data).expect("Failed to deserialize claims");
 
-        // Verify the scp field was deserialized to a vector with multiple elements
-        assert_eq!(
-            claims.scp.len(),
-            2,
-            "Expected vector with 2 elements for multiple scopes"
-        );
+        assert_eq!(claims.scp.len(), 2);
         assert_eq!(claims.scp[0], "publicData");
         assert_eq!(claims.scp[1], "esi-characters.read_agents_research.v1");
+    }
+
+    /// Error when `scp` field is not null, string, or array
+    #[test]
+    fn test_deserialize_scp_not_string() {
+        let json_data = serde_json::json!({
+            "iss": "https://login.eveonline.com",
+            "sub": "CHARACTER:EVE:123456789",
+            "aud": ["client_id".to_string(), "EVE Online"],
+            "jti": "abc123def456",
+            "kid": "JWT-Signature-Key-1",
+            "tenant": "tranquility",
+            "region": "world",
+            "exp": 1,
+            "iat": 1,
+            "scp": 488,
+            "name": "Test Character",
+            "owner": "123456789",
+            "azp": "client_id"
+        });
+
+        let result = serde_json::from_value::<EveJwtClaims>(json_data);
+
+        assert!(result.is_err());
+
+        assert!(matches!(result,
+            Err(err) if err.to_string().contains("Expected null, string, or string array for `scp` field")
+        ));
+    }
+
+    /// Error when `scp` field is an array but not of strings
+    #[test]
+    fn test_deserialize_scp_not_string_array() {
+        let json_data = serde_json::json!({
+            "iss": "https://login.eveonline.com",
+            "sub": "CHARACTER:EVE:123456789",
+            "aud": ["client_id".to_string(), "EVE Online"],
+            "jti": "abc123def456",
+            "kid": "JWT-Signature-Key-1",
+            "tenant": "tranquility",
+            "region": "world",
+            "exp": 1,
+            "iat": 1,
+            "scp": [9,9,9],
+            "name": "Test Character",
+            "owner": "123456789",
+            "azp": "client_id"
+        });
+
+        let result = serde_json::from_value::<EveJwtClaims>(json_data);
+
+        assert!(result.is_err());
+
+        assert!(matches!(result,
+            Err(err) if err.to_string().contains("Expected string array for scopes")
+        ));
     }
 }
