@@ -19,7 +19,9 @@ use crate::error::Error;
 use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
-use crate::model::character::{Blueprint, Character, CharacterAffiliation, CharacterResearchAgent};
+use crate::model::character::{
+    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory, CharacterResearchAgent,
+};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
@@ -86,7 +88,8 @@ impl<'a> CharacterApi<'a> {
                 Ok(character)
             }
             Err(err) => {
-                error!(          "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
+                error!(
+                    "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
                     character_id,
                     elapsed.as_millis(),
                     err);
@@ -292,6 +295,67 @@ impl<'a> CharacterApi<'a> {
                     elapsed.as_millis(),
                     err
                 );
+
+                Err(err.into())
+            }
+        }
+    }
+
+    /// Retrieves the public corporation history of the provided character ID
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
+    ///
+    /// # Arguments
+    /// - `character_id` (`i64`): The ID of the character to retrieve corporation history for.
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - [`CharacterCorporationHistory`]: The character's corporation history if request is successful
+    /// - [`Error`]: An error if the fetch request fails
+    pub async fn get_corporation_history(
+        &self,
+        character_id: i64,
+    ) -> Result<Vec<CharacterCorporationHistory>, Error> {
+        let url = format!(
+            "{}/characters/{}/corporationhistory",
+            self.client.inner.esi_url, character_id
+        );
+
+        debug!(
+            "Fetching character corporation history for character ID {} from \"{}\"",
+            character_id, url
+        );
+
+        let start_time = Instant::now();
+
+        // Fetch character information from ESI
+        let result = self
+            .client
+            .esi()
+            .get_from_public_esi::<Vec<CharacterCorporationHistory>>(&url)
+            .await;
+
+        let elapsed = start_time.elapsed();
+        match result {
+            Ok(corporation_history) => {
+                info!(
+                    "Successfully fetched character corporation history with {} entries for character ID: {} (took {}ms)",
+                    corporation_history.len(),
+                    character_id,
+                    elapsed.as_millis()
+                );
+
+                Ok(corporation_history)
+            }
+            Err(err) => {
+                error!(
+                    "Failed to fetch character corporation history for character ID {} after {}ms due to error: {:#?}",
+                    character_id,
+                    elapsed.as_millis(),
+                    err);
 
                 Err(err.into())
             }

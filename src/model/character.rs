@@ -100,3 +100,19 @@ pub struct Blueprint {
     /// Represents the type of blueprint
     type_id: i64,
 }
+
+/// Represents a character's corporation history
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdCorporationhistoryGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterCorporationHistory {
+    /// The ID of the corporation
+    corporation_id: i64,
+    /// Bool indicating whether or not corporation has been deleted
+    is_deleted: bool,
+    /// An incrementing ID representing the order of the corporation in the history
+    record_id: i64,
+    /// The date of when the character joined the corporation
+    start_date: DateTime<Utc>,
+}
