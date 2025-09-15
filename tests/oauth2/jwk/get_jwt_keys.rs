@@ -3,7 +3,7 @@ use std::time::Duration;
 use crate::oauth2::util::jwk_response::{
     get_jwk_internal_server_error_response, get_jwk_success_response,
 };
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// Tests that get_jwt_keys returns cached keys when they are not expired.
 ///
@@ -19,7 +19,7 @@ use crate::util::setup;
 #[tokio::test]
 async fn get_jwt_keys_valid_cache() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock response expecting 1 request for initial cache population
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -55,7 +55,7 @@ async fn get_jwt_keys_valid_cache() {
 #[tokio::test]
 async fn get_jwt_keys_expired_cache() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create mock success response expecting 2 requests:
     // - Pre-populating the cache
@@ -100,7 +100,7 @@ async fn get_jwt_keys_expired_cache() {
 #[tokio::test]
 async fn get_jwt_keys_empty_cache() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -135,7 +135,7 @@ async fn get_jwt_keys_empty_cache() {
 #[tokio::test]
 async fn get_jwt_keys_refresh_cooldown() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock response expecting 3 requests
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 3);
@@ -183,7 +183,7 @@ async fn get_jwt_keys_refresh_cooldown() {
 #[tokio::test]
 async fn get_jwt_keys_background_refresh() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock response expecting 2 requests:
     // - Pre-populate the cache
@@ -238,7 +238,7 @@ async fn get_jwt_keys_background_refresh() {
 #[tokio::test]
 async fn get_jwt_keys_concurrency() {
     // Setup a basic EsiClient & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock response expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);

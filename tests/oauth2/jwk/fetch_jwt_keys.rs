@@ -3,7 +3,7 @@ use eve_esi::model::oauth2::EveJwtKey;
 use crate::oauth2::util::jwk_response::{
     get_jwk_internal_server_error_response, get_jwk_success_response,
 };
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// Tests the successful retrieval of JWT keys from a mock EVE SSO server.
 ///
@@ -19,7 +19,7 @@ use crate::util::setup;
 #[tokio::test]
 async fn fetch_jwt_keys_success() {
     // Setup a basic Client & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create mock response with mock keys & expecting 1 request
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -67,7 +67,7 @@ async fn fetch_jwt_keys_success() {
 #[tokio::test]
 async fn fetch_jwt_keys_server_error() {
     // Setup a basic Client & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create mock response with error 500 and expecting 1 request
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 1);
@@ -163,7 +163,7 @@ async fn fetch_jwt_keys_network_error() {
 #[tokio::test]
 async fn fetch_jwt_keys_parse_error() {
     // Setup a basic Client & mock HTTP server
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     // Create mock success response with unexpected body
     let mock = mock_server

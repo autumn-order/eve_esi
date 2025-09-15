@@ -8,7 +8,7 @@ use crate::oauth2::util::jwk_response::{
     get_jwk_internal_server_error_response, get_jwk_success_response,
 };
 use crate::oauth2::util::jwt::{create_mock_token, create_mock_token_keys, RSA_KEY_ID};
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// Tests successful validation of a JWT token
 ///
@@ -27,7 +27,7 @@ use crate::util::setup;
 #[tokio::test]
 pub async fn test_validate_token_success() {
     // Create Client configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await;
+    let (client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock JWT key response the Client will fetch for the JWT key cache
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -78,7 +78,7 @@ pub async fn test_validate_token_success() {
 #[tokio::test]
 async fn test_validate_token_get_jwt_key_failure() {
     // Create Client configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await;
+    let (client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock JWT key response that will return an error after 3 attempts
     let mock = get_jwk_internal_server_error_response(&mut mock_server, 3);
@@ -137,7 +137,7 @@ async fn test_validate_token_get_jwt_key_failure() {
 #[tokio::test]
 async fn test_validate_token_no_rs256_key() {
     // Create Client configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await;
+    let (client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock EveJwtKeys struct that only contains an ES256 key
     let only_es256_key = EveJwtKeys {
@@ -213,7 +213,7 @@ async fn test_validate_token_no_rs256_key() {
 #[tokio::test]
 async fn test_validate_token_decoding_key_error() {
     // Create Client configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await;
+    let (client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock EveJwtKeys struct that only contains a malformed RS256 key (invalid modulus)
     let malformed_rs256 = EveJwtKeys {
@@ -288,7 +288,7 @@ async fn test_validate_token_decoding_key_error() {
 #[tokio::test]
 async fn test_validate_token_validation_error() {
     // Create Client configured with OAuth2 & mock server
-    let (client, mut mock_server) = setup().await;
+    let (client, mut mock_server) = integration_test_setup().await;
 
     // Create a mock JWT key response the Client will fetch for the JWT key cache
     let mock = get_jwk_success_response(&mut mock_server, 1);
@@ -352,7 +352,7 @@ async fn test_validate_token_validation_error() {
 #[tokio::test]
 async fn test_validate_token_key_rotation() {
     // Create Client configured with no refresh cooldown to immediately clear & refresh cache on validation failure
-    let (_, mut mock_server) = setup().await;
+    let (_, mut mock_server) = integration_test_setup().await;
 
     let config = eve_esi::Config::builder()
         // Set endpoint to mock server

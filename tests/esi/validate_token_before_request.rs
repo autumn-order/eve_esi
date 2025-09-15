@@ -2,12 +2,12 @@ use oauth2::TokenResponse;
 
 use crate::oauth2::util::jwk_response::get_jwk_success_response;
 use crate::oauth2::util::jwt::create_mock_token;
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// No validation will be made due to ESI client config diabling it
 #[tokio::test]
 async fn test_validate_token_before_request_disabled() {
-    let (_, mut mock_server) = setup().await;
+    let (_, mut mock_server) = integration_test_setup().await;
 
     let config = eve_esi::Config::builder()
         .esi_validate_token_before_request(false)

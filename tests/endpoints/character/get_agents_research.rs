@@ -2,14 +2,21 @@ use eve_esi::{model::oauth2::EveJwtClaims, oauth2::scope::CharacterScopes, Scope
 use oauth2::TokenResponse;
 
 use crate::{
+    endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes},
     oauth2::util::{jwk_response::get_jwk_success_response, jwt::create_mock_token_with_claims},
-    util::setup,
+    util::integration_test_setup,
 };
 
 /// Successful retrieval of character research agents
 #[tokio::test]
 async fn test_get_agents_research_success() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server, mock_jwt_key_endpoint) =
+        authenticated_endpoint_test_setup().await;
+    let access_token = mock_access_token_with_scopes(
+        ScopeBuilder::new()
+            .character(CharacterScopes::new().read_agents_research())
+            .build(),
+    );
 
     let mock_research_agents = serde_json::json!([{
         "agent_id": 100,
@@ -18,17 +25,6 @@ async fn test_get_agents_research_success() {
         "skill_type_id": 100,
         "started_at": "2018-12-20T16:11:54Z",
     }]);
-
-    let mut mock_access_token_claims = EveJwtClaims::mock();
-    mock_access_token_claims.scp = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_agents_research())
-        .build();
-    let token = create_mock_token_with_claims(false, mock_access_token_claims);
-
-    let access_token = token.access_token().secret().to_string();
-
-    // Create JWT key endpoint for token validation before request
-    let mock_jwt_key_endpoint = get_jwk_success_response(&mut mock_server, 1);
 
     let mock_research_agents_endpoint = mock_server
         .mock("GET", "/characters/2114794365/agents_research")
@@ -57,7 +53,7 @@ async fn test_get_agents_research_success() {
 /// Failed retrieval of character affiliations due to an internal server error
 #[tokio::test]
 async fn test_get_agents_research_500_internal_error() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mut mock_access_token_claims = EveJwtClaims::mock();
     mock_access_token_claims.scp = ScopeBuilder::new()

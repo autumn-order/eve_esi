@@ -1,9 +1,9 @@
-use crate::util::setup;
+use crate::util::integration_test_setup;
 
 /// Successful retrieval of alliance information
 #[tokio::test]
 async fn get_alliance_information() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mock_alliance = serde_json::json!({
         "creator_corporation_id": 98784257,
@@ -36,7 +36,7 @@ async fn get_alliance_information() {
 /// Receiving a 404 error when attempting to retrieve alliance information
 #[tokio::test]
 async fn get_alliance_information_not_found() {
-    let (esi_client, mut mock_server) = setup().await;
+    let (esi_client, mut mock_server) = integration_test_setup().await;
 
     let mock_alliance_endpoint = mock_server
         .mock("GET", "/alliances/99999999/")
