@@ -20,4 +20,5 @@
 pub mod alliance;
 pub mod character;
 pub mod corporation;
+pub mod enums;
 pub mod oauth2;
