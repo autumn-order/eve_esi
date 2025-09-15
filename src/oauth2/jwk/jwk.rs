@@ -9,7 +9,6 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use log::{debug, error, trace};
 use std::time::Instant;
 
 use crate::error::{Error, OAuthError};
@@ -115,26 +114,19 @@ impl<'a> JwkApi<'a> {
                     let _ = self.trigger_background_jwt_refresh().await;
                 }
 
-                let message = format!(
+                trace!(
                     "JWT keys still valid, using keys from cache (age: {}s)",
                     elapsed_seconds
                 );
 
-                trace!("{}", message);
-
                 return Ok(keys);
             } else {
-                let message = format!(
+                debug!(
                     "JWT key cache expired (age: {}s)",
                     timestamp.elapsed().as_secs()
                 );
-
-                debug!("{}", message);
             }
-        } else {
-            // Trace due to `get_keys` logging as debug
-            trace!("JWT key cache is empty, keys need to be fetched");
-        };
+        }
 
         // Return error if JWT key refresh is still within default 60 second cooldown period
         //
@@ -147,7 +139,7 @@ impl<'a> JwkApi<'a> {
                 &config.refresh_cooldown.as_secs(), cooldown_remaining
             );
 
-            error!("{}", message);
+            error!(message);
 
             return Err(Error::OAuthError(OAuthError::JwtKeyRefreshCooldown(
                 message,
@@ -249,13 +241,11 @@ pub(super) async fn fetch_jwt_keys(
     let elapsed = start_time.elapsed();
     let response = match result {
         Ok(resp) => {
-            let message = format!(
+            debug!(
                 "Received response from JWT keys endpoint, status: {} (took {}ms)",
                 resp.status(),
                 elapsed.as_millis()
             );
-
-            debug!("{}", message);
 
             // If server response status code is an error, return an error
             if let Err(err) = resp.error_for_status_ref() {
@@ -272,7 +262,7 @@ pub(super) async fn fetch_jwt_keys(
                 e
             );
 
-            error!("{}", message);
+            error!(message);
 
             return Err(e.into());
         }
@@ -284,25 +274,21 @@ pub(super) async fn fetch_jwt_keys(
     let elapsed = start_time.elapsed();
     let jwt_keys = match result {
         Ok(keys) => {
-            let message = format!(
+            trace!(
                 "Successfully parsed JWT keys response with {} keys (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
             );
 
-            trace!("{}", message);
-
             keys
         }
         // Error related to parsing the body to the EveJwtKeys struct
         Err(e) => {
-            let message = format!(
+            error!(
                 "Failed to parse JWT keys response after {}ms: {:?}",
                 elapsed.as_millis(),
                 e
             );
-
-            error!("{}", message);
 
             return Err(e.into());
         }
@@ -343,38 +329,32 @@ pub(super) async fn fetch_and_update_cache(
 
     match fetch_result {
         Ok(fresh_keys) => {
-            let message = format!(
+            trace!(
                 "Successfully fetched {} JWT keys, updating cache",
                 fresh_keys.keys.len()
             );
-
-            trace!("{}", message);
 
             // Update the cache with the new keys
             jwt_key_cache.update_keys(fresh_keys.clone()).await;
 
             let elapsed = start_time.elapsed();
 
-            let message = format!(
+            debug!(
                 "JWT keys cache updated successfully with {} keys (took {}ms)",
                 fresh_keys.keys.len(),
                 elapsed.as_millis()
             );
-
-            debug!("{}", message);
 
             Ok(fresh_keys)
         }
         Err(e) => {
             let elapsed = start_time.elapsed();
 
-            let message = format!(
+            error!(
                 "Failed to fetch JWT keys after {}ms: {:?}",
                 elapsed.as_millis(),
                 e
             );
-
-            error!("{}", message);
 
             Err(e)
         }

@@ -62,7 +62,6 @@
 //! ```
 
 use jsonwebtoken::{DecodingKey, Validation};
-use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 
@@ -312,7 +311,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
         let message: &str =
             "Failed to find RS256 key in JWT key cache when attempting to validate a JWT token.";
 
-        error!("{}", message);
+        error!(message);
 
         Err(Error::OAuthError(OAuthError::NoValidKeyFound(
             message.to_string(),
@@ -323,7 +322,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
 /// Utility function to retrieve OAuth2 client or return an error
 fn get_oauth_client(client: &Client) -> Result<&OAuth2Client, Error> {
     // Attempt to retrieve OAuth2 client from ESI client
-    trace!("{}", "Attempting to retrieve OAuth2 client from ESI client");
+    trace!("Attempting to retrieve OAuth2 client from ESI client");
 
     match client.inner.oauth2_client {
         Some(ref client) => {

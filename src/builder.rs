@@ -45,8 +45,6 @@
 
 use std::sync::Arc;
 
-use log::warn;
-
 use crate::client::ClientRef;
 use crate::config::Config;
 use crate::error::Error;
@@ -309,9 +307,9 @@ fn get_or_default_reqwest_client(
     user_agent: &Option<String>,
 ) -> Result<reqwest::Client, Error> {
     if user_agent.is_some() && client.is_some() {
-        let message = "user_agent is set on `ClientBuilder` but so is reqwest_client. The user_agent will not be applied and should be instead applied to the provided reqwest client if not done so already.";
-
-        warn!("{}", message);
+        warn!(
+            "user_agent is set on `ClientBuilder` but so is reqwest_client. The user_agent will not be applied and should be instead applied to the provided reqwest client if not done so already."
+        );
     }
 
     match client {

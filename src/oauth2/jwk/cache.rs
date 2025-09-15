@@ -17,7 +17,6 @@
 use std::time::Instant;
 use std::{sync::atomic::AtomicBool, time::Duration};
 
-use log::{debug, info, trace};
 use tokio::sync::{Notify, RwLock};
 
 use crate::{
@@ -159,9 +158,7 @@ impl JwtKeyCache {
     /// - [`None`] if the cache is empty (no keys have been fetched yet). This typically
     ///   triggers a fetch operation with retry logic when called from higher-level methods.
     pub(super) async fn get_keys(self: &Self) -> Option<(EveJwtKeys, std::time::Instant)> {
-        let message = "Attempting to retrieve JWT keys from cache";
-
-        trace!("{}", message);
+        trace!("Attempting to retrieve JWT keys from cache");
 
         // Retrieve the cache
         let cache = self.cache.read().await;
@@ -170,21 +167,17 @@ impl JwtKeyCache {
         if let Some((keys, timestamp)) = &*cache {
             let elapsed = timestamp.elapsed().as_secs();
 
-            let message = format!(
+            debug!(
                 "Found JWT keys in cache: key_count={}, age={}s",
                 keys.keys.len(),
                 elapsed
             );
 
-            debug!("{}", message);
-
             // Return the keys found in cache
             return Some((keys.clone(), timestamp.clone()));
         }
 
-        let message = "JWT keys cache is empty, keys need to be fetched";
-
-        debug!("{}", message);
+        debug!("JWT keys cache is empty, keys need to be fetched");
 
         // Return None since no data was found in the cache
         None

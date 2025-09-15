@@ -21,8 +21,6 @@ use crate::{
     Client, Error,
 };
 
-use log::{debug, error, info};
-
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
 /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -56,9 +54,7 @@ impl<'a> AllianceApi<'a> {
     pub async fn list_all_alliances(&self) -> Result<Vec<i64>, Error> {
         let url = format!("{}/alliances", self.client.inner.esi_url);
 
-        let message = format!("Fetching list of all alliance IDs from \"{}\"", url);
-
-        debug!("{}", message);
+        debug!("Fetching list of all alliance IDs from \"{}\"", url);
 
         let start_time = Instant::now();
 
@@ -72,24 +68,20 @@ impl<'a> AllianceApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(alliances) => {
-                let message = format!(
+                info!(
                     "Successfully fetched IDs for {} alliances (took {}ms)",
                     alliances.len(),
                     elapsed.as_millis()
                 );
 
-                info!("{}", message);
-
                 Ok(alliances)
             }
             Err(err) => {
-                let message = format!(
+                error!(
                     "Failed to fetch list of all alliance IDs after {}ms due to error: {:#?}",
                     elapsed.as_millis(),
                     err
                 );
-
-                error!("{}", message);
 
                 Err(err.into())
             }
@@ -113,12 +105,10 @@ impl<'a> AllianceApi<'a> {
     pub async fn get_alliance_information(&self, alliance_id: i64) -> Result<Alliance, Error> {
         let url = format!("{}/alliances/{}/", self.client.inner.esi_url, alliance_id);
 
-        let message = format!(
+        debug!(
             "Fetching alliance information for alliance ID {} from \"{}\"",
             alliance_id, url
         );
-
-        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -132,25 +122,20 @@ impl<'a> AllianceApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(alliance) => {
-                let message = format!(
+                info!(
                     "Successfully fetched alliance information for alliance ID: {} (took {}ms)",
                     alliance_id,
                     elapsed.as_millis()
                 );
 
-                info!("{}", message);
-
                 Ok(alliance)
             }
             Err(err) => {
-                let message = format!(
-                    "Failed to fetch alliance information for alliance ID {} after {}ms due to error: {:#?}",
-                    alliance_id,
-                    elapsed.as_millis(),
-                    err
-                );
-
-                error!("{}", message);
+                error!(
+                "Failed to fetch alliance information for alliance ID {} after {}ms due to error: {:#?}",
+                alliance_id,
+                elapsed.as_millis(),
+                err);
 
                 Err(err.into())
             }
@@ -177,12 +162,10 @@ impl<'a> AllianceApi<'a> {
             self.client.inner.esi_url, alliance_id
         );
 
-        let message = format!(
+        debug!(
             "Fetching IDs of all corporations part of alliance ID {} from \"{}\"",
             alliance_id, url
         );
-
-        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -196,26 +179,18 @@ impl<'a> AllianceApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(corporations) => {
-                let message = format!(
-                    "Successfully fetched IDs for {} corporation(s) part of alliance ID {} (took {}ms)",
-                    corporations.len(),
-                    alliance_id,
-                    elapsed.as_millis()
-                );
-
-                info!("{}", message);
+                info!(     "Successfully fetched IDs for {} corporation(s) part of alliance ID {} (took {}ms)",
+                corporations.len(),
+                alliance_id,
+                elapsed.as_millis());
 
                 Ok(corporations)
             }
             Err(err) => {
-                let message = format!(
-                    "Failed to fetch IDs of all corporations part of alliance ID {} after {}ms due to error: {:#?}",
-                    alliance_id,
-                    elapsed.as_millis(),
-                    err
-                );
-
-                error!("{}", message);
+                error!("Failed to fetch IDs of all corporations part of alliance ID {} after {}ms due to error: {:#?}",
+                alliance_id,
+                elapsed.as_millis(),
+                err);
 
                 Err(err.into())
             }
@@ -242,12 +217,10 @@ impl<'a> AllianceApi<'a> {
             self.client.inner.esi_url, alliance_id
         );
 
-        let message = format!(
+        debug!(
             "Fetching icons URLs for alliance ID {} from \"{}\"",
             alliance_id, url
         );
-
-        debug!("{}", message);
 
         let start_time = Instant::now();
 
@@ -261,25 +234,21 @@ impl<'a> AllianceApi<'a> {
         let elapsed = start_time.elapsed();
         match result {
             Ok(icons) => {
-                let message = format!(
+                info!(
                     "Successfully fetched icon URLs for alliance ID {} (took {}ms)",
                     alliance_id,
                     elapsed.as_millis()
                 );
 
-                info!("{}", message);
-
                 Ok(icons)
             }
             Err(err) => {
-                let message = format!(
+                error!(
                     "Failed to fetch icon URLs for alliance ID {} after {}ms due to error: {:#?}",
                     alliance_id,
                     elapsed.as_millis(),
                     err
                 );
-
-                error!("{}", message);
 
                 Err(err.into())
             }
