@@ -67,7 +67,7 @@ use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 
 use crate::error::{Error, OAuthError};
-use crate::model::oauth2::{EveJwtClaims, EveJwtKey, EveJwtKeys};
+use crate::model::oauth2::{EveJwtClaims, EveJwtKey};
 use crate::oauth2::client::OAuth2Client;
 use crate::oauth2::OAuth2Api;
 use crate::Client;
@@ -267,7 +267,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
     // Try to find an RS256 key
     trace!("Checking JWT key cache for RS256 key");
 
-    if let Some(EveJwtKey::RS256 { ref n, ref e, .. }) = get_first_rs256_key(&jwt_keys) {
+    if let Some(EveJwtKey::RS256 { ref n, ref e, .. }) = &jwt_keys.get_first_rs256_key() {
         // RS256 key was found, extract n (modulus) and e (exponent) components for the decoding key
         trace!("Creating a decoding key from RS256 key");
 
@@ -318,14 +318,6 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
             message.to_string(),
         )))
     }
-}
-
-/// Get the first RS256 key (if any) from [`EveJwtKeys`]
-fn get_first_rs256_key(jwt_keys: &EveJwtKeys) -> Option<&EveJwtKey> {
-    jwt_keys
-        .keys
-        .iter()
-        .find(|key| matches!(key, EveJwtKey::RS256 { .. }))
 }
 
 /// Utility function to retrieve OAuth2 client or return an error

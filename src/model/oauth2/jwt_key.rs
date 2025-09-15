@@ -96,3 +96,12 @@ pub enum EveJwtKey {
         y: String,
     },
 }
+
+impl EveJwtKeys {
+    /// Utility function to get the first RS256 key (if any) from [`EveJwtKeys`]
+    pub(crate) fn get_first_rs256_key(&self) -> Option<&EveJwtKey> {
+        self.keys
+            .iter()
+            .find(|key| matches!(key, EveJwtKey::RS256 { .. }))
+    }
+}
