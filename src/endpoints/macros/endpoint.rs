@@ -12,7 +12,7 @@ macro_rules! esi_common_impl {
 
             let start_time = std::time::Instant::now();
 
-            let result = $api_call;
+            let result = $api_call.await;
 
             let elapsed = start_time.elapsed();
             match result {
@@ -52,11 +52,9 @@ macro_rules! define_endpoint {
         pub async fn $fn_name(&self, $($param_name: $param_type),*) -> Result<$return_type, Error> {
             let url = format!($url, self.client.inner.esi_url, $($param_name),*);
 
-            let api_call = self
-                .client
-                .esi()
-                .get_from_public_esi::<$return_type>(&url)
-                .await;
+            let esi = self.client.esi();
+            let api_call = esi
+                .get_from_public_esi::<$return_type>(&url);
 
             esi_common_impl!($label, url, api_call, ($($param_name),*) $(, $handler)?)
         }
@@ -78,11 +76,9 @@ macro_rules! define_endpoint {
         pub async fn $fn_name(&self, body: $body_type, $($param_name: $param_type),*) -> Result<$return_type, Error> {
             let url = format!($url, self.client.inner.esi_url, $($param_name),*);
 
-            let api_call = self
-                .client
-                .esi()
-                .post_to_public_esi::<$return_type, $body_type>(&url, &body)
-                .await;
+            let esi = self.client.esi();
+            let api_call = esi
+                .post_to_public_esi::<$return_type, $body_type>(&url, &body);
 
             esi_common_impl!($label, url, api_call, ($($param_name),*) $(, $handler)?)
         }
@@ -105,11 +101,9 @@ macro_rules! define_endpoint {
         pub async fn $fn_name(&self, access_token: &str, $($param_name: $param_type),*) -> Result<$return_type, Error> {
             let url = format!($url, self.client.inner.esi_url, $($param_name),*);
 
-            let api_call = self
-                .client
-                .esi()
-                .get_from_authenticated_esi::<$return_type>(&url, &access_token, $required_scopes)
-                .await;
+            let esi = self.client.esi();
+            let api_call = esi
+                .get_from_authenticated_esi::<$return_type>(&url, &access_token, $required_scopes);
 
             esi_common_impl!($label, url, api_call, ($($param_name),*) $(, $handler)?)
         }
