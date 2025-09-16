@@ -31,7 +31,7 @@ async fn test_validate_token_before_request_disabled() {
     let character_id = 123456789;
     let _ = esi_client
         .character()
-        .get_agents_research(character_id, &access_token)
+        .get_agents_research(&access_token, character_id)
         .await;
 
     // Assert no requests were made due to validation being disabled

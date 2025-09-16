@@ -5,6 +5,4 @@
 #[macro_use]
 mod logging;
 #[macro_use]
-mod common;
-#[macro_use]
-mod public;
+mod endpoint;

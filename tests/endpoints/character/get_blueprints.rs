@@ -42,10 +42,8 @@ async fn test_get_blueprints_success() {
     let page = 0;
     let result = esi_client
         .character()
-        .get_blueprints(character_id, page, &access_token)
+        .get_blueprints(&access_token, character_id, page)
         .await;
-
-    println!("{:?}", result);
 
     // Assert JWT keys were fetched for token validation prior to request
     mock_jwt_key_endpoint.assert();
@@ -85,7 +83,7 @@ async fn test_get_blueprints_internal_error() {
     let page = 0;
     let result = esi_client
         .character()
-        .get_blueprints(character_id, page, &access_token)
+        .get_blueprints(&access_token, character_id, page)
         .await;
 
     // Assert JWT keys were fetched for token validation prior to request

@@ -20,7 +20,7 @@ macro_rules! endpoint_debug_log {
 
     // Handle multiple parameters by using the first one
     ($label:expr, $url:expr, ($param_name:ident), $($rest:tt)*) => {
-        esi_debug_log!($label, $url, ($param_name));
+        endpoint_debug_log!($label, $url, ($param_name));
     };
 }
 
@@ -46,7 +46,7 @@ macro_rules! endpoint_info_log {
 
     // Handle multiple parameters by using the first one
     ($label:expr, $elapsed:expr, ($param_name:ident), $($rest:tt)*) => {
-        esi_info_log!($label, $elapsed, ($param_name));
+        endpoint_info_log!($label, $elapsed, ($param_name));
     };
 }
 
@@ -75,6 +75,6 @@ macro_rules! endpoint_error_log {
 
     // Handle multiple parameters by using the first one
     ($label:expr, $elapsed:expr, $err:expr, ($param_name:ident), $($rest:tt)*) => {
-        esi_error_log!($label, $elapsed, $err, ($param_name));
+        endpoint_error_log!($label, $elapsed, $err, ($param_name));
     };
 }

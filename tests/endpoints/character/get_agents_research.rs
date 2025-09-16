@@ -38,7 +38,7 @@ async fn test_get_agents_research_success() {
     let character_id = 2114794365;
     let result = esi_client
         .character()
-        .get_agents_research(character_id, &access_token)
+        .get_agents_research(&access_token, character_id)
         .await;
 
     // Assert JWT keys were fetched for token validation prior to request
@@ -78,7 +78,7 @@ async fn test_get_agents_research_500_internal_error() {
     let character_id = 2114794365;
     let result = esi_client
         .character()
-        .get_agents_research(character_id, &access_token)
+        .get_agents_research(&access_token, character_id)
         .await;
 
     // Assert JWT keys were fetched for token validation prior to request
