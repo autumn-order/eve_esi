@@ -1,0 +1,121 @@
+use eve_esi::{oauth2::scope::CharacterScopes, ScopeBuilder};
+
+use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
+use crate::util::integration_test_setup;
+
+public_endpoint_test! {
+    get_character_public_information,
+    |esi_client: eve_esi::Client | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_character_public_information(character_id)
+            .await
+    },
+    request_type = "GET",
+    mock_response = serde_json::json!({
+        "alliance_id": 99013534,
+        "birthday": "2018-12-20T16:11:54Z",
+        "bloodline_id": 7,
+        "corporation_id": 98785281,
+        "description": "description",
+        "faction_id": null,
+        "gender": "male",
+        "name": "Hyziri",
+        "race_id": 8,
+        "security_status": -0.100373643,
+        "title": "Title",
+    }),
+    url = "/characters/2114794365/"
+}
+
+authenticated_endpoint_test! {
+    get_agents_research,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_agents_research(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    mock_response = serde_json::json!([{
+        "agent_id": 100,
+        "points_per_day": 1.07832178,
+        "remainder_points": 1.07832178,
+        "skill_type_id": 100,
+        "started_at": "2018-12-20T16:11:54Z",
+    }]),
+    url = "/characters/2114794365/agents_research",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_agents_research())
+        .build();
+}
+
+authenticated_endpoint_test! {
+    get_blueprints,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        let page = 0;
+        esi_client
+            .character()
+            .get_blueprints(&access_token, character_id, page)
+            .await
+    },
+    request_type = "GET",
+    mock_response = serde_json::json!([{
+        "item_id": 0,
+        "location_flag": "Hangar",
+        "location_id": 0,
+        "material_efficiency": 0,
+        "quantity": -1,
+        "runs": -1,
+        "time_efficiency": 0,
+        "type_id": 0
+    }]),
+    url = "/characters/2114794365/blueprints?page=0",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_blueprints())
+        .build();
+}
+
+public_endpoint_test! {
+    get_character_corporation_history,
+    |esi_client: eve_esi::Client | async move {
+        let character_ids = vec![2114794365, 2117053828];
+        esi_client
+            .character()
+            .character_affiliation(character_ids)
+            .await
+    },
+    request_type = "POST",
+    mock_response = serde_json::json!([
+        {
+            "character_id": 2114794365,
+            "corporation_id": 98785281,
+            "alliance_id": 99013534,
+            "faction_id": null,
+        },
+        {
+            "character_id": 2117053828,
+            "corporation_id": 98785281,
+            "alliance_id": 99013534,
+            "faction_id": null,
+        },
+    ]),
+    url = "/characters/affiliation/"
+}
+
+public_endpoint_test! {
+    calculate_a_cspa_charge_cost,
+    |esi_client: eve_esi::Client | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .calculate_a_cspa_charge_cost(character_id)
+            .await
+    },
+    request_type = "GET",
+    mock_response = serde_json::json!([5000000]),
+    url = "/characters/2114794365/cspa"
+}
