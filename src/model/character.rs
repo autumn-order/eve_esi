@@ -81,24 +81,24 @@ pub struct CharacterResearchAgent {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Blueprint {
     /// Unique ID for the item
-    item_id: i64,
+    pub item_id: i64,
     /// Type of the location_id
-    location_flag: LocationFlag,
+    pub location_flag: LocationFlag,
     /// References a station, ship, or an item_id if the blueprint is within a container. If the return
     /// value is an item_id then the [Character AssetList API](https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdAssets)
     /// must be queried to find the container using the given item_id to determine the correct location of the blueprint.
-    location_id: i64,
+    pub location_id: i64,
     /// Material efficiency level of the blueprint
-    material_efficiency: i64,
+    pub material_efficiency: i64,
     /// A range of numbers with a minimum of -2 and no maximum value where -1 is an original and -2 is a copy.
     /// It can be a positive integer if it is a stack of blueprint originals fresh from the market (e.g. no activities performed on them yet).
-    quantity: i64,
+    pub quantity: i64,
     /// Number of runs remaining if the blueprint is a copy, -1 if it is an original.
-    runs: i64,
+    pub runs: i64,
     /// Time Efficiency Level of the blueprint.
-    time_efficiency: i64,
+    pub time_efficiency: i64,
     /// Represents the type of blueprint
-    type_id: i64,
+    pub type_id: i64,
 }
 
 /// Represents a character's corporation history
@@ -108,11 +108,25 @@ pub struct Blueprint {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterCorporationHistory {
     /// The ID of the corporation
-    corporation_id: i64,
+    pub corporation_id: i64,
     /// Bool indicating whether or not corporation has been deleted
-    is_deleted: bool,
+    pub is_deleted: bool,
     /// An incrementing ID representing the order of the corporation in the history
-    record_id: i64,
+    pub record_id: i64,
     /// The date of when the character joined the corporation
-    start_date: DateTime<Utc>,
+    pub start_date: DateTime<Utc>,
+}
+
+/// Represents a character's jump fatigue status
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdFatigueGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterJumpFatigue {
+    /// Character's jump fatigue expiry
+    pub jump_fatigue_expire_date: DateTime<Utc>,
+    /// Character's last jump activation
+    pub last_jump_date: DateTime<Utc>,
+    /// Character's last jump update
+    pub last_update_date: DateTime<Utc>,
 }

@@ -18,7 +18,8 @@ use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
 use crate::model::character::{
-    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory, CharacterResearchAgent,
+    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory, CharacterJumpFatigue,
+    CharacterResearchAgent,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -189,5 +190,33 @@ impl<'a> CharacterApi<'a> {
         ) -> Result<Vec<i64>, Error>
         url = "{}/characters/{}/cspa";
         label = "CSPA charge cost";
+    }
+
+    define_endpoint! {
+        /// Retrieves jump fatigue for the provided character's ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdFatigue>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_fatigue`](crate::oauth2::scope::CharacterScopes::read_fatigue):
+        ///   `esi-characters.read_fatigue.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CharacterJumpFatigue`]: The character's jump fatigue status
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_jump_fatigue(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterJumpFatigue>, Error>
+        url = "{}/characters/{}/fatigue";
+        label = "jump fatigue";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_fatigue()).build();
     }
 }

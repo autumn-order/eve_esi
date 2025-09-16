@@ -119,3 +119,24 @@ public_endpoint_test! {
     url = "/characters/2114794365/cspa",
     mock_response = serde_json::json!([5000000])
 }
+
+authenticated_endpoint_test! {
+    get_jump_fatigue,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_jump_fatigue(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/fatigue",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_fatigue())
+        .build();
+    mock_response = serde_json::json!([{
+        "jump_fatigue_expire_date": "2018-12-20T16:11:54Z",
+        "last_jump_date": "2018-12-20T16:11:54Z",
+        "last_update_date": "2018-12-20T16:11:54Z",
+    }]),
+}
