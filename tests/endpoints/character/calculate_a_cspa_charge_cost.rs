@@ -5,7 +5,7 @@ use crate::util::integration_test_setup;
 async fn test_calculate_a_cspa_charge_cost_success() {
     let (esi_client, mut mock_server) = integration_test_setup().await;
 
-    let mock_cspa_charge_cost = serde_json::json!([]);
+    let mock_cspa_charge_cost = serde_json::json!([5000000]);
 
     let mock_cspa_charge_cost_endpoint = mock_server
         .mock("GET", "/characters/2114794365/cspa")

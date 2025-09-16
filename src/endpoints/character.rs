@@ -97,8 +97,8 @@ impl<'a> CharacterApi<'a> {
         ///   `esi-characters.read_agents_research.v1`
         ///
         /// # Arguments
-        /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -128,9 +128,9 @@ impl<'a> CharacterApi<'a> {
         ///   `esi-characters.read_blueprints.v1`
         ///
         /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
         /// - `page`         (`i32`): The page of blueprints to retrieve
-        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -182,11 +182,11 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `i64`: The CSPA charge cost for evemailing the character
+        /// - `Vec<i64>`: The CSPA charge cost for evemailing the character
         /// - [`Error`]: An error if the fetch request fails
         pub_get calculate_a_cspa_charge_cost(
             character_id: i64
-        ) -> Result<Vec<CharacterCorporationHistory>, Error>
+        ) -> Result<Vec<i64>, Error>
         url = "{}/characters/{}/cspa";
         label = "CSPA charge cost";
     }
