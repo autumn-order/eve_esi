@@ -5,7 +5,6 @@ macro_rules! esi_common_impl {
         $url:expr,
         $api_call:expr,
         ($($param_name:ident),*)
-        $(, $handler:expr)?
     ) => {
         {
             endpoint_debug_log!($label, $url $(, ($param_name))*);
@@ -18,10 +17,6 @@ macro_rules! esi_common_impl {
             match result {
                 Ok(response) => {
                     endpoint_info_log!($label, elapsed.as_millis() $(, ($param_name))*);
-
-                    $(
-                        let response = ($handler)(response);
-                    )?
 
                     Ok(response)
                 }
@@ -46,7 +41,6 @@ macro_rules! define_endpoint {
         ) -> Result<$return_type:ty, Error>
         url = $url:expr;
         label = $label:expr;
-        $(response_handler = $handler:expr;)?
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, $($param_name: $param_type),*) -> Result<$return_type, Error> {
@@ -56,7 +50,7 @@ macro_rules! define_endpoint {
             let api_call = esi
                 .get_from_public_esi::<$return_type>(&url);
 
-            esi_common_impl!($label, url, api_call, ($($param_name),*) $(, $handler)?)
+            esi_common_impl!($label, url, api_call, ($($param_name),*))
         }
     };
 
@@ -70,7 +64,6 @@ macro_rules! define_endpoint {
         ) -> Result<$return_type:ty, Error>
         url = $url:expr;
         label = $label:expr;
-        $(response_handler = $handler:expr;)?
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, body: $body_type, $($param_name: $param_type),*) -> Result<$return_type, Error> {
@@ -80,7 +73,7 @@ macro_rules! define_endpoint {
             let api_call = esi
                 .post_to_public_esi::<$return_type, $body_type>(&url, &body);
 
-            esi_common_impl!($label, url, api_call, ($($param_name),*) $(, $handler)?)
+            esi_common_impl!($label, url, api_call, ($($param_name),*))
         }
     };
 
@@ -95,7 +88,6 @@ macro_rules! define_endpoint {
         url = $url:expr;
         label = $label:expr;
         required_scopes = $required_scopes:expr;
-        $(response_handler = $handler:expr;)?
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, access_token: &str, $($param_name: $param_type),*) -> Result<$return_type, Error> {
@@ -105,7 +97,7 @@ macro_rules! define_endpoint {
             let api_call = esi
                 .get_from_authenticated_esi::<$return_type>(&url, &access_token, $required_scopes);
 
-            esi_common_impl!($label, url, api_call, ($($param_name),*) $(, $handler)?)
+            esi_common_impl!($label, url, api_call, ($($param_name),*))
         }
     };
 }
