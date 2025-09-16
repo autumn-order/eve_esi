@@ -9,8 +9,8 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
-    mock_response = serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-    url = "/alliances"
+    url = "/alliances",
+    mock_response = serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 9])
 }
 
 public_endpoint_test! {
@@ -23,6 +23,7 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
+    url = "/alliances/99013534",
     mock_response = serde_json::json!({
         "creator_corporation_id": 98784257,
         "creator_id": 2114794365,
@@ -31,8 +32,7 @@ public_endpoint_test! {
         "executor_corporation_id": 98787881,
         "name": "Autumn.",
         "ticker": "AUTMN",
-    }),
-    url = "/alliances/99013534"
+    })
 }
 
 public_endpoint_test! {
@@ -45,8 +45,8 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
-    mock_response = serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-    url = "/alliances/99013534/corporations"
+    url = "/alliances/99013534/corporations",
+    mock_response = serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 9])
 }
 
 public_endpoint_test! {
@@ -59,9 +59,9 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
+    url = "/alliances/99013534/icons",
     mock_response = serde_json::json!({
         "px128x128": "ABCD",
         "px64x64":"ABCD"
-    }),
-    url = "/alliances/99013534/icons"
+    })
 }

@@ -5,8 +5,8 @@ macro_rules! public_success_test {
         $test_name:ident,
         $call:expr,
         $request_type:expr,
-        $mock_response:expr,
-        $url:expr
+        $url:expr,
+        $mock_response:expr
     ) => {
         paste::paste! {
             #[tokio::test]
@@ -70,10 +70,10 @@ macro_rules! public_endpoint_test {
         $test_name:ident,
         $call:expr,
         request_type = $request_type:expr,
-        mock_response = $mock_response:expr,
-        url = $url:expr
+        url = $url:expr,
+        mock_response = $mock_response:expr
     ) => {
-        public_success_test! {$test_name, $call, $request_type, $mock_response, $url}
+        public_success_test! {$test_name, $call, $request_type, $url, $mock_response}
         public_error_test! {$test_name, $call, $request_type, $url}
     };
 }

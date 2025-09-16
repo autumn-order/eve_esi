@@ -13,6 +13,7 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
+    url = "/characters/2114794365",
     mock_response = serde_json::json!({
         "alliance_id": 99013534,
         "birthday": "2018-12-20T16:11:54Z",
@@ -25,8 +26,7 @@ public_endpoint_test! {
         "race_id": 8,
         "security_status": -0.100373643,
         "title": "Title",
-    }),
-    url = "/characters/2114794365"
+    })
 }
 
 authenticated_endpoint_test! {
@@ -39,6 +39,10 @@ authenticated_endpoint_test! {
             .await
     },
     request_type = "GET",
+    url = "/characters/2114794365/agents_research",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_agents_research())
+        .build();
     mock_response = serde_json::json!([{
         "agent_id": 100,
         "points_per_day": 1.07832178,
@@ -46,10 +50,6 @@ authenticated_endpoint_test! {
         "skill_type_id": 100,
         "started_at": "2018-12-20T16:11:54Z",
     }]),
-    url = "/characters/2114794365/agents_research",
-    required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_agents_research())
-        .build();
 }
 
 authenticated_endpoint_test! {
@@ -63,6 +63,10 @@ authenticated_endpoint_test! {
             .await
     },
     request_type = "GET",
+    url = "/characters/2114794365/blueprints?page=0",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_blueprints())
+        .build();
     mock_response = serde_json::json!([{
         "item_id": 0,
         "location_flag": "Hangar",
@@ -73,10 +77,6 @@ authenticated_endpoint_test! {
         "time_efficiency": 0,
         "type_id": 0
     }]),
-    url = "/characters/2114794365/blueprints?page=0",
-    required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_blueprints())
-        .build();
 }
 
 public_endpoint_test! {
@@ -89,6 +89,7 @@ public_endpoint_test! {
             .await
     },
     request_type = "POST",
+    url = "/characters/affiliation",
     mock_response = serde_json::json!([
         {
             "character_id": 2114794365,
@@ -102,8 +103,7 @@ public_endpoint_test! {
             "alliance_id": 99013534,
             "faction_id": null,
         },
-    ]),
-    url = "/characters/affiliation"
+    ])
 }
 
 public_endpoint_test! {
@@ -116,6 +116,6 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
-    mock_response = serde_json::json!([5000000]),
-    url = "/characters/2114794365/cspa"
+    url = "/characters/2114794365/cspa",
+    mock_response = serde_json::json!([5000000])
 }

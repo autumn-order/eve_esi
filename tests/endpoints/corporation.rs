@@ -10,6 +10,7 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
+    url = "/corporations/98785281",
     mock_response = serde_json::json!({
         "alliance_id": 99013534,
         "ceo_id": 2114794365,
@@ -25,6 +26,5 @@ public_endpoint_test! {
         "url": "https://autumn-order.com",
         "war_eligible": true,
         "faction_id": null,
-    }),
-    url = "/corporations/98785281"
+    })
 }

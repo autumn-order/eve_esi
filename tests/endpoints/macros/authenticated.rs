@@ -5,9 +5,9 @@ macro_rules! authenticated_success_test {
         $test_name:ident,
         $call:expr,
         $request_type:expr,
-        $mock_response:expr,
         $url:expr,
-        $required_scopes:expr
+        $required_scopes:expr,
+        $mock_response:expr
     ) => {
         paste::paste! {
             #[tokio::test]
@@ -86,11 +86,11 @@ macro_rules! authenticated_endpoint_test {
         $test_name:ident,
         $call:expr,
         request_type = $request_type:expr,
-        mock_response = $mock_response:expr,
         url = $url:expr,
         required_scopes = $required_scopes:expr;
+        mock_response = $mock_response:expr,
     ) => {
-        authenticated_success_test! {$test_name, $call, $request_type, $mock_response, $url, $required_scopes}
+        authenticated_success_test! {$test_name, $call, $request_type, $url, $required_scopes, $mock_response}
         authenticated_error_test! {$test_name, $call, $request_type, $url, $required_scopes}
     };
 }
