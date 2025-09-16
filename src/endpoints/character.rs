@@ -58,7 +58,7 @@ impl<'a> CharacterApi<'a> {
         pub_get get_character_public_information(
             character_id: i64
         ) -> Result<Character, Error>
-        url = "{}/characters/{}/";
+        url = "{}/characters/{}";
         label = "public information";
     }
 
@@ -80,7 +80,7 @@ impl<'a> CharacterApi<'a> {
         pub_post character_affiliation(
             body: Vec<i64>,
         ) -> Result<Vec<CharacterAffiliation>, Error>
-        url = "{}/characters/affiliation/";
+        url = "{}/characters/affiliation";
         label = "character affiliation";
     }
 

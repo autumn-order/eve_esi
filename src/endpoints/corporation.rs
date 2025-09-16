@@ -54,7 +54,7 @@ impl<'a> CorporationApi<'a> {
         pub_get get_corporation_information(
             corporation_id: i64
         ) -> Result<Corporation, Error>
-        url = "{}/corporations/{}/";
+        url = "{}/corporations/{}";
         label = "public information";
     }
 }

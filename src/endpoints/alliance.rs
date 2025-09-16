@@ -73,7 +73,7 @@ impl<'a> AllianceApi<'a> {
         pub_get get_alliance_information(
             alliance_id: i64
         ) -> Result<Alliance, Error>
-        url = "{}/alliances/{}/";
+        url = "{}/alliances/{}";
         label = "public information";
     }
 

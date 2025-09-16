@@ -26,7 +26,7 @@ public_endpoint_test! {
         "security_status": -0.100373643,
         "title": "Title",
     }),
-    url = "/characters/2114794365/"
+    url = "/characters/2114794365"
 }
 
 authenticated_endpoint_test! {
@@ -103,7 +103,7 @@ public_endpoint_test! {
             "faction_id": null,
         },
     ]),
-    url = "/characters/affiliation/"
+    url = "/characters/affiliation"
 }
 
 public_endpoint_test! {
