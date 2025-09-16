@@ -130,3 +130,57 @@ pub struct CharacterJumpFatigue {
     /// Character's last jump update
     pub last_update_date: DateTime<Utc>,
 }
+
+/// Represents the graphics configuration for a character's medal
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdMedalsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterMedalGraphics {
+    /// Color of the medal graphic
+    pub color: i64,
+    /// The name of the graphic
+    pub graphic: String,
+    /// The layer of the graphic on the medal
+    pub layer: i64,
+    /// The part of the medal the graphic is on
+    pub part: i64,
+}
+
+/// Represents the visbility status of a character's medal
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdMedalsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CharacterMedalStatus {
+    /// Medal visibility is set to public
+    Public,
+    /// Medal visibility is set to private
+    Private,
+}
+
+/// Represents an entry for a character's medals
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdMedalsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterMedal {
+    /// The corporation which had issued the medal
+    pub corporation_id: i64,
+    /// The date which the medal was issued
+    pub date: DateTime<Utc>,
+    /// Description for the medal
+    pub description: String,
+    /// The graphic configuration of the medal
+    pub graphics: Vec<CharacterMedalGraphics>,
+    /// The character who had issued the medal
+    pub issuer_id: i64,
+    /// The unique ID of the medal
+    pub medal_id: i64,
+    /// The reason the medal was issued
+    pub reason: String,
+    /// The visibility status of the medal
+    pub status: CharacterMedalStatus,
+    /// The name of the medal
+    pub title: String,
+}

@@ -11,8 +11,10 @@
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";
 /// Access to retrieve information on character's blueprints
 pub const READ_BLUEPRINTS: &str = "esi-characters.read_blueprints.v1";
-/// Access to retrieve information on character's jump fatigue stats
+/// Access to retrieve information on character's jump fatigue status
 pub const READ_FATIGUE: &str = "esi-characters.read_fatigue.v1";
+/// Access to retrieve information on character's medals
+pub const READ_MEDALS: &str = "esi-characters.read_medals.v1";
 
 /// Struct with methods for listing character scopes to request for OAuth2
 pub struct CharacterScopes {
@@ -40,6 +42,12 @@ impl CharacterScopes {
     /// Adds the `esi-characters.read_fatigue.v1` scope
     pub fn read_fatigue(mut self) -> Self {
         self.scopes.push(READ_FATIGUE.to_string());
+        self
+    }
+
+    /// Adds the `esi-characters.read_medals.v1` scope
+    pub fn read_medals(mut self) -> Self {
+        self.scopes.push(READ_MEDALS.to_string());
         self
     }
 }

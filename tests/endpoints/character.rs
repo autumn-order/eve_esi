@@ -134,9 +134,45 @@ authenticated_endpoint_test! {
     required_scopes = ScopeBuilder::new()
         .character(CharacterScopes::new().read_fatigue())
         .build();
-    mock_response = serde_json::json!([{
+    mock_response = serde_json::json!({
         "jump_fatigue_expire_date": "2018-12-20T16:11:54Z",
         "last_jump_date": "2018-12-20T16:11:54Z",
         "last_update_date": "2018-12-20T16:11:54Z",
-    }]),
+    }),
+}
+
+authenticated_endpoint_test! {
+    get_medals,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_medals(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/medals",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_medals())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "corporation_id": 98785281,
+            "date": "2018-12-20T16:11:54Z",
+            "description": "medal description",
+            "graphics": [
+                {
+                    "color": 1,
+                    "graphic": "graphic name",
+                    "layer": 1,
+                    "part": 1
+                }
+            ],
+            "issuer_id": 2114794365,
+            "medal_id": 1,
+            "reason": "Reason medal was issued",
+            "status": "Public",
+            "title": "Medal name"
+        }
+    ]),
 }

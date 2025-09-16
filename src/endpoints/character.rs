@@ -19,7 +19,7 @@ use crate::{Client, ScopeBuilder};
 
 use crate::model::character::{
     Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory, CharacterJumpFatigue,
-    CharacterResearchAgent,
+    CharacterMedal, CharacterResearchAgent,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -214,9 +214,37 @@ impl<'a> CharacterApi<'a> {
         auth_get get_jump_fatigue(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterJumpFatigue>, Error>
+        ) -> Result<CharacterJumpFatigue, Error>
         url = "{}/characters/{}/fatigue";
         label = "jump fatigue";
         required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_fatigue()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of medals for the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdMedals>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_medals`](crate::oauth2::scope::CharacterScopes::read_medals):
+        ///   `esi-characters.read_medals.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterMedal`]`>`: The character's jump fatigue status
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_medals(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterMedal>, Error>
+        url = "{}/characters/{}/medals";
+        label = "medals";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_medals()).build();
     }
 }
