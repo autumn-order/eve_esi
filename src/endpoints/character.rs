@@ -42,118 +42,48 @@ impl<'a> CharacterApi<'a> {
         Self { client }
     }
 
-    /// Retrieves the public information of the provided character ID
-    ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
-    ///
-    /// # ESI Documentation
-    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
-    ///
-    /// # Arguments
-    /// - `character_id` (`i64`): The ID of the character to retrieve information for.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - [`Character`]: The character's information if successfully retrieved
-    /// - [`Error`]: An error if the fetch request fails
-    pub async fn get_character_public_information(
-        &self,
-        character_id: i64,
-    ) -> Result<Character, Error> {
-        let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
-
-        debug!(
-            "Fetching character information for character ID {} from \"{}\"",
-            character_id, url
-        );
-
-        let start_time = Instant::now();
-
-        // Fetch character information from ESI
-        let result = self
-            .client
-            .esi()
-            .get_from_public_esi::<Character>(&url)
-            .await;
-
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(character) => {
-                info!(
-                    "Successfully fetched character information for character ID: {} (took {}ms)",
-                    character_id,
-                    elapsed.as_millis()
-                );
-
-                Ok(character)
-            }
-            Err(err) => {
-                error!(
-                    "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
-                    character_id,
-                    elapsed.as_millis(),
-                    err);
-
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Retrieves the public information of the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve information for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`Character`]: The character's information if successfully retrieved
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_character_public_information(
+            character_id: i64
+        ) -> Result<Character, Error>
+        url = "{}/characters/{}/";
+        label = "public information";
     }
 
-    /// Retrieve affiliations for a list of characters
-    ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
-    ///
-    /// # ESI Documentation
-    /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
-    ///
-    /// # Arguments
-    /// - `character_ids` (Vec<[`i64`]>): A list of character IDs to retrieve affiliations for.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
-    /// - [`Error`]: An error if the fetch request fails
-    pub async fn character_affiliation(
-        &self,
-        character_ids: Vec<i64>,
-    ) -> Result<Vec<CharacterAffiliation>, Error> {
-        let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
-
-        debug!(
-            "Fetching character affiliations for {} characters from \"{}\"",
-            character_ids.len(),
-            url
-        );
-
-        let start_time = Instant::now();
-
-        // Fetch character affiliations from ESI
-        let result = self
-            .client
-            .esi()
-            .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i64>>(&url, &character_ids)
-            .await;
-
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(affiliations) => {
-                info!(
-                    "Successfully fetched character affiliations for {} character(s) (took {}ms)",
-                    elapsed.as_millis(),
-                    character_ids.len()
-                );
-
-                Ok(affiliations)
-            }
-            Err(err) => {
-                error!(                    "Failed to fetch character affiliations for {} character(s) after {}ms due to error: {:#?}",
-                character_ids.len(),
-                elapsed.as_millis(),
-                err);
-
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Retrieve affiliations for a list of characters
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
+        ///
+        /// # Arguments
+        /// - `body` (Vec<[`i64`]>): A vec of character IDs to retrieve affiliations for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
+        /// - [`Error`]: An error if the fetch request fails
+        pub_post character_affiliation(
+            body: Vec<i64>,
+        ) -> Result<Vec<CharacterAffiliation>, Error>
+        url = "{}/characters/affiliation/";
+        label = "character affiliation";
     }
 
     /// Retrieves character's research agents using the character's ID
@@ -301,128 +231,48 @@ impl<'a> CharacterApi<'a> {
         }
     }
 
-    /// Retrieves the public corporation history of the provided character ID
-    ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
-    ///
-    /// # ESI Documentation
-    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdCorporationhistory>
-    ///
-    /// # Arguments
-    /// - `character_id` (`i64`): The ID of the character to retrieve corporation history for.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - [`CharacterCorporationHistory`]: The character's corporation history if request is successful
-    /// - [`Error`]: An error if the fetch request fails
-    pub async fn get_corporation_history(
-        &self,
-        character_id: i64,
-    ) -> Result<Vec<CharacterCorporationHistory>, Error> {
-        let url = format!(
-            "{}/characters/{}/corporationhistory",
-            self.client.inner.esi_url, character_id
-        );
-
-        debug!(
-            "Fetching character corporation history for character ID {} from \"{}\"",
-            character_id, url
-        );
-
-        let start_time = Instant::now();
-
-        let result = self
-            .client
-            .esi()
-            .get_from_public_esi::<Vec<CharacterCorporationHistory>>(&url)
-            .await;
-
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(corporation_history) => {
-                info!(
-                    "Successfully fetched character corporation history with {} entries for character ID: {} (took {}ms)",
-                    corporation_history.len(),
-                    character_id,
-                    elapsed.as_millis()
-                );
-
-                Ok(corporation_history)
-            }
-            Err(err) => {
-                error!(
-                    "Failed to fetch character corporation history for character ID {} after {}ms due to error: {:#?}",
-                    character_id,
-                    elapsed.as_millis(),
-                    err);
-
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Retrieves the public corporation history of the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdCorporationhistory>
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve corporation history for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [Vec<`CharacterCorporationHistory`>]: The character's corporation history if request is successful
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_corporation_history(
+            character_id: i64
+        ) -> Result<Vec<CharacterCorporationHistory>, Error>
+        url = "{}/characters/{}/corporationhistory";
+        label = "corporation history";
     }
 
-    /// Retrieves the CSPA charge cost for evemailing the provided character ID
-    ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
-    ///
-    /// # ESI Documentation
-    /// - <developers.eveonline.com/api-explorer#/operations/PostCharactersCharacterIdCspa>
-    ///
-    /// # Arguments
-    /// - `character_id` (`i64`): The ID of the character to retrieve the CSPA charge cost for
-    ///   evemailing the character.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - `i64`: The CSPA charge cost for evemailing the character
-    /// - [`Error`]: An error if the fetch request fails
-    pub async fn calculate_a_cspa_charge_cost(&self, character_id: i64) -> Result<i64, Error> {
-        let url = format!(
-            "{}/characters/{}/cspa",
-            self.client.inner.esi_url, character_id
-        );
-
-        debug!(
-            "Fetching character CSPA charge cost for character ID {} from \"{}\"",
-            character_id, url
-        );
-
-        let start_time = Instant::now();
-
-        let result = self
-            .client
-            .esi()
-            .get_from_public_esi::<Vec<i64>>(&url)
-            .await;
-
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(cspa_charge_cost) => {
-                info!(
-                    "Successfully fetched character CSPA charge cost for character ID: {} (took {}ms)",
-                    character_id,
-                    elapsed.as_millis()
-                );
-
-                // CSPA charge cost returns as an array despite only ever having 1 value present
-                // Convert it to an i64
-                let cspa_charge_cost = if cspa_charge_cost.len() == 1 {
-                    cspa_charge_cost[0]
-                } else {
-                    0
-                };
-
-                Ok(cspa_charge_cost)
-            }
-            Err(err) => {
-                error!(
-                    "Failed to fetch character CSPA charge cost for character ID {} after {}ms due to error: {:#?}",
-                    character_id,
-                    elapsed.as_millis(),
-                    err);
-
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Retrieves the CSPA charge cost for evemailing the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <developers.eveonline.com/api-explorer#/operations/PostCharactersCharacterIdCspa>
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve the CSPA charge cost for
+        ///   evemailing the character.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `i64`: The CSPA charge cost for evemailing the character
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get calculate_a_cspa_charge_cost(
+            character_id: i64
+        ) -> Result<Vec<CharacterCorporationHistory>, Error>
+        url = "{}/characters/{}/cspa";
+        label = "CSPA charge cost";
     }
 }
