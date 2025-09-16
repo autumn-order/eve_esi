@@ -50,8 +50,7 @@ impl<'a> AllianceApi<'a> {
         /// Returns a [`Result`] containing either:
         /// - Vec<[`i64`]>: A vec of every alliance ID in EVE Online
         /// - [`Error`]: An error if the fetch request failed
-        pub_get list_all_alliances(
-        ) -> Result<Vec<i64>, Error>
+        pub_get list_all_alliances() -> Result<Vec<i64>, Error>
         url = "{}/alliances";
         label = "list of all alliance IDs";
     }
@@ -75,7 +74,7 @@ impl<'a> AllianceApi<'a> {
             alliance_id: i64
         ) -> Result<Alliance, Error>
         url = "{}/alliances/{}/";
-        label = "alliance information";
+        label = "public information";
     }
 
     define_endpoint! {
