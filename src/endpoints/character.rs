@@ -20,7 +20,7 @@ use crate::{Client, ScopeBuilder};
 use crate::model::character::{
     Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory,
     CharacterCorporationRole, CharacterJumpFatigue, CharacterMedal, CharacterNotification,
-    CharacterPortraits, CharacterResearchAgent,
+    CharacterPortraits, CharacterResearchAgent, CharacterStanding,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -329,5 +329,34 @@ impl<'a> CharacterApi<'a> {
         url = "{}/characters/{}/roles";
         label = "corporation roles";
         required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_corporation_roles()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of the provided character ID's standings
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdStandings>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_standings`](crate::oauth2::scope::CharacterScopes::read_standings):
+        ///   `esi-characters.read_standings.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve standings for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterStanding`]`>`: List of structs containing information on the
+        ///   character's standings
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_standings(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterStanding>, Error>
+        url = "{}/characters/{}/standings";
+        label = "standings";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_standings()).build();
     }
 }

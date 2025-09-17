@@ -244,3 +244,24 @@ authenticated_endpoint_test! {
         "roles_at_other": ["Brand_Manager"],
     }]),
 }
+
+authenticated_endpoint_test! {
+    get_standings,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_standings(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/standings",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_standings())
+        .build();
+    mock_response = serde_json::json!([{
+        "from_id": 1,
+        "from_type": "npc_corp",
+        "standing": -0.12312385
+    }]),
+}

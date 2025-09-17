@@ -247,8 +247,43 @@ pub struct CharacterPortraits {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdRolesGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterCorporationRole {
-    roles: Vec<CorporationRole>,
-    roles_at_base: Vec<CorporationRole>,
-    roles_at_hq: Vec<CorporationRole>,
-    roles_at_other: Vec<CorporationRole>,
+    /// Roles applicable across the entire corp
+    pub roles: Vec<CorporationRole>,
+    /// Roles only applicable to a corporation base
+    pub roles_at_base: Vec<CorporationRole>,
+    /// Roles applicable to only the corporation HQ
+    pub roles_at_hq: Vec<CorporationRole>,
+    /// Roles applicable at all other locations
+    pub roles_at_other: Vec<CorporationRole>,
+}
+
+/// The type of character standing entry (Agent, NpcCorp, or Faction)
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CharacterStandingType {
+    /// Standing type is with an NPC agent
+    #[serde(rename = "agent")]
+    Agent,
+    /// Standing type is with an NPC corporation
+    #[serde(rename = "npc_corp")]
+    NpcCorp,
+    /// Standing type is with an NPC faction
+    #[serde(rename = "faction")]
+    Faction,
+}
+
+/// A character's standings with either an agent, NPC corp, or faction
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterStanding {
+    /// The ID of the entity the standing is with
+    from_id: i64,
+    /// The type of entity the standing entry is with (Agent, NpcCorp, or Faction)
+    from_type: CharacterStandingType,
+    /// The character's standing with the listed entity
+    standing: f64,
 }
