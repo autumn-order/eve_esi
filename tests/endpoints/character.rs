@@ -241,12 +241,12 @@ authenticated_endpoint_test! {
     required_scopes = ScopeBuilder::new()
         .character(CharacterScopes::new().read_corporation_roles())
         .build();
-    mock_response = serde_json::json!([{
+    mock_response = serde_json::json!({
         "roles": ["Brand_Manager"],
         "roles_at_base": ["Brand_Manager"],
         "roles_at_hq": ["Brand_Manager"],
         "roles_at_other": ["Brand_Manager"],
-    }]),
+    }),
 }
 
 authenticated_endpoint_test! {

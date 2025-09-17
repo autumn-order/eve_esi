@@ -171,7 +171,7 @@ impl<'a> CharacterApi<'a> {
     }
 
     define_endpoint! {
-        /// Calculates CSPA cost for evemailing a list of characters using the provided character ID
+        /// Calculates CSPA cost for evemailing a list of characters with the provided character ID
         ///
         /// This ESI route is used to calculate the CSPA cost for a list of characters based upon the
         /// contacts of the provided character ID which could affect the cost based upon standing.
@@ -327,12 +327,12 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterCorporationRole`]`>`: List of entires for the provided character ID's corporation roles.
+        /// - [`CharacterCorporationRole`]: Struct containing entries for the provided character ID's corporation roles.
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_character_corporation_roles(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterCorporationRole>, Error>
+        ) -> Result<CharacterCorporationRole, Error>
         url = "{}/characters/{}/roles";
         label = "corporation roles";
         required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_corporation_roles()).build();
