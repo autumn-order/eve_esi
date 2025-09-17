@@ -224,3 +224,19 @@ pub struct CharacterNotification {
     /// The type of notification
     pub r#type: NotificationType,
 }
+
+/// A character's portrait URLs with various dimensions
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdPortrait>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterPortraits {
+    /// Character's portrait URL in 64x64px
+    pub px64x64: String,
+    /// Character's portrait URL in 128x128px
+    pub px128x128: String,
+    /// Character's portrait URL in 256x256px
+    pub px256x256: String,
+    /// Character's portrait URL in 512x512px
+    pub px512x512: String,
+}

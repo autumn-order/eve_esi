@@ -203,3 +203,22 @@ authenticated_endpoint_test! {
         }
     ]),
 }
+
+public_endpoint_test! {
+    get_character_portraits,
+    |esi_client: eve_esi::Client | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_character_portraits(character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/portrait",
+    mock_response = serde_json::json!({
+        "px64x64": "ABCD",
+        "px128x128": "ABCD",
+        "px256x256": "ABCD",
+        "px512x512": "ABCD",
+    })
+}

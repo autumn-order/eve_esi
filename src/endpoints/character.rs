@@ -19,7 +19,7 @@ use crate::{Client, ScopeBuilder};
 
 use crate::model::character::{
     Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory, CharacterJumpFatigue,
-    CharacterMedal, CharacterNotification, CharacterResearchAgent,
+    CharacterMedal, CharacterNotification, CharacterPortraits, CharacterResearchAgent,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -205,6 +205,7 @@ impl<'a> CharacterApi<'a> {
         ///   `esi-characters.read_fatigue.v1`
         ///
         /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
         ///
         /// # Returns
@@ -233,6 +234,7 @@ impl<'a> CharacterApi<'a> {
         ///   `esi-characters.read_medals.v1`
         ///
         /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
         ///
         /// # Returns
@@ -261,7 +263,8 @@ impl<'a> CharacterApi<'a> {
         ///   `esi-characters.read_notifications.v1`
         ///
         /// # Arguments
-        /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve notifications for
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -274,5 +277,27 @@ impl<'a> CharacterApi<'a> {
         url = "{}/characters/{}/notifications";
         label = "notifications";
         required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_notifications()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves the image URLs of a chacter's portraits with various dimensions
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdPortrait>
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve portrait image URLs for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CharacterPortraits`]: Struct of character's portrait URLs with various dimensions
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_character_portraits(
+            character_id: i64
+        ) -> Result<CharacterPortraits, Error>
+        url = "{}/characters/{}/portrait";
+        label = "portraits";
     }
 }
