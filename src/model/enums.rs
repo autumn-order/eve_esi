@@ -175,9 +175,6 @@ pub enum LocationFlag {
 
 /// Indicates the type of notification
 ///
-/// Note: most fields have documentation, if they are documented with `???` then it is unknown
-/// what exactly this location field actually applies to in-game.
-///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]

@@ -8,7 +8,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::enums::LocationFlag;
+use crate::model::enums::{LocationFlag, NotificationType};
 
 /// Represents a character in EVE Online.
 ///
@@ -183,4 +183,44 @@ pub struct CharacterMedal {
     pub status: CharacterMedalStatus,
     /// The name of the medal
     pub title: String,
+}
+
+/// The type of sender for a notification
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum NotificationSenderType {
+    /// Notification was sent by character
+    Character,
+    /// Notification was sent by corporation
+    Corporation,
+    /// Notification was sent by alliance
+    Alliance,
+    /// Notification was sent by faction
+    Faction,
+    /// Notification was sent by other
+    Other,
+}
+
+/// Represents a character notification entry
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterNotification {
+    /// Character's jump fatigue expiry
+    pub is_read: bool,
+    /// The unique ID of the notification
+    pub notification_id: i64,
+    /// ID of the sender (character, corporation, alliance, faction, other)
+    pub sender: i64,
+    /// The type of sender (character, corporation, alliance, faction, other)
+    pub sender_type: NotificationSenderType,
+    /// The text content of the notification
+    pub text: String,
+    /// The timestamp the notification was sent
+    pub timestamp: DateTime<Utc>,
+    /// The type of notification
+    pub r#type: NotificationType,
 }

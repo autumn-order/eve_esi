@@ -176,3 +176,30 @@ authenticated_endpoint_test! {
         }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_character_notifications,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_character_notifications(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/notifications",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_notifications())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "is_read": false,
+            "notification_id": 1,
+            "sender": 2114794365,
+            "sender_type": "Character",
+            "text": "Notification text",
+            "timestamp": "2018-12-20T16:11:54Z",
+            "type": "AcceptedAlly"
+        }
+    ]),
+}
