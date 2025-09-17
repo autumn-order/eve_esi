@@ -73,14 +73,14 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
         ///
         /// # Arguments
-        /// - `body` (Vec<[`i64`]>): A vec of character IDs to retrieve affiliations for.
+        /// - `character_ids` (Vec<[`i64`]>): A vec of character IDs to retrieve affiliations for.
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
         /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
         /// - [`Error`]: An error if the fetch request fails
         pub_post character_affiliation(
-            body: Vec<i64>,
+            character_ids: Vec<i64>,
         ) -> Result<Vec<CharacterAffiliation>, Error>
         url = "{}/characters/affiliation";
         label = "character affiliation";

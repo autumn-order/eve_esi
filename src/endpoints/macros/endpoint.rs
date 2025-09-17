@@ -59,19 +59,19 @@ macro_rules! define_endpoint {
         $(#[$attr:meta])*
         pub_post $fn_name:ident(
             $(&self,)?
-            body: $body_type:ty,
+            $body_name:ident: $body_type:ty,
             $($param_name:ident: $param_type:ty),* $(,)?
         ) -> Result<$return_type:ty, Error>
         url = $url:expr;
         label = $label:expr;
     ) => {
         $(#[$attr])*
-        pub async fn $fn_name(&self, body: $body_type, $($param_name: $param_type),*) -> Result<$return_type, Error> {
+        pub async fn $fn_name(&self, $body_name: $body_type, $($param_name: $param_type),*) -> Result<$return_type, Error> {
             let url = format!($url, self.client.inner.esi_url, $($param_name),*);
 
             let esi = self.client.esi();
             let api_call = esi
-                .post_to_public_esi::<$return_type, $body_type>(&url, &body);
+                .post_to_public_esi::<$return_type, $body_type>(&url, &$body_name);
 
             esi_common_impl!($label, url, api_call, ($($param_name),*))
         }
