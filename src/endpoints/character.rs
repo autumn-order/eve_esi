@@ -13,13 +13,15 @@
 //! - [`CharacterApi::character_affiliation`]: Retrieve affiliations for a list of characters
 //! - [`CharacterApi::get_agents_research`]: Retrieves character's research agents using the character's ID
 
-use std::time::Instant;
-
 use crate::error::Error;
 use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
-use crate::model::character::{Character, CharacterAffiliation, CharacterResearchAgent};
+use crate::model::character::{
+    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory,
+    CharacterCorporationRole, CharacterCorporationTitle, CharacterJumpFatigue, CharacterMedal,
+    CharacterNotification, CharacterPortraits, CharacterResearchAgent, CharacterStanding,
+};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
@@ -40,189 +42,356 @@ impl<'a> CharacterApi<'a> {
         Self { client }
     }
 
-    /// Retrieves the public information of a specific character
-    ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
-    ///
-    /// # ESI Documentation
-    /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
-    ///
-    /// # Arguments
-    /// - `character_id` ([`i64`]): The ID of the character to retrieve information for.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - [`Character`]: The character's information if successfully retrieved
-    /// - [`Error`]: An error if the fetch request fails
-    pub async fn get_character_public_information(
-        &self,
-        character_id: i64,
-    ) -> Result<Character, Error> {
-        let url = format!("{}/characters/{}/", self.client.inner.esi_url, character_id);
-
-        debug!(
-            "Fetching character information for character ID {} from \"{}\"",
-            character_id, url
-        );
-
-        let start_time = Instant::now();
-
-        // Fetch character information from ESI
-        let result = self
-            .client
-            .esi()
-            .get_from_public_esi::<Character>(&url)
-            .await;
-
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(character) => {
-                info!(
-                    "Successfully fetched character information for character ID: {} (took {}ms)",
-                    character_id,
-                    elapsed.as_millis()
-                );
-
-                Ok(character)
-            }
-            Err(err) => {
-                error!(          "Failed to fetch character information for character ID {} after {}ms due to error: {:#?}",
-                    character_id,
-                    elapsed.as_millis(),
-                    err);
-
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Retrieves the public information of the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterId>
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve information for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`Character`]: The character's information if successfully retrieved
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_character_public_information(
+            character_id: i64
+        ) -> Result<Character, Error>
+        url = "{}/characters/{}";
+        label = "public information";
     }
 
-    /// Retrieve affiliations for a list of characters
-    ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
-    ///
-    /// # ESI Documentation
-    /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
-    ///
-    /// # Arguments
-    /// - `character_ids` (Vec<[`i64`]>): A list of character IDs to retrieve affiliations for.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
-    /// - [`Error`]: An error if the fetch request fails
-    pub async fn character_affiliation(
-        &self,
-        character_ids: Vec<i64>,
-    ) -> Result<Vec<CharacterAffiliation>, Error> {
-        let url = format!("{}/characters/affiliation/", self.client.inner.esi_url);
-
-        debug!(
-            "Fetching character affiliations for {} characters from \"{}\"",
-            character_ids.len(),
-            url
-        );
-
-        let start_time = Instant::now();
-
-        // Fetch character affiliations from ESI
-        let result = self
-            .client
-            .esi()
-            .post_to_public_esi::<Vec<CharacterAffiliation>, Vec<i64>>(&url, &character_ids)
-            .await;
-
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(affiliations) => {
-                info!(
-                    "Successfully fetched character affiliations for {} character(s) (took {}ms)",
-                    elapsed.as_millis(),
-                    character_ids.len()
-                );
-
-                Ok(affiliations)
-            }
-            Err(err) => {
-                error!(                    "Failed to fetch character affiliations for {} character(s) after {}ms due to error: {:#?}",
-                character_ids.len(),
-                elapsed.as_millis(),
-                err);
-
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Retrieve affiliations for a list of characters
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersAffiliation>
+        ///
+        /// # Arguments
+        /// - `character_ids` (Vec<[`i64`]>): A vec of character IDs to retrieve affiliations for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
+        /// - [`Error`]: An error if the fetch request fails
+        pub_post character_affiliation(
+            character_ids: Vec<i64>,
+        ) -> Result<Vec<CharacterAffiliation>, Error>
+        url = "{}/characters/affiliation";
+        label = "character affiliation";
     }
 
-    /// Retrieves character's research agents using the character's ID
-    ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
-    ///
-    /// # ESI Documentation
-    /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
-    ///
-    /// # Required Scopes
-    /// - [`CharacterScopes::read_agents_research`](crate::oauth2::scope::CharacterScopes::read_agents_research):
-    ///   `esi-characters.read_agents_research.v1`
-    ///
-    /// # Arguments
-    /// - `character_id` ([`i64`]): The ID of the character to retrieve research agent information for.
-    /// - `access_token` (&[`str`]): Access token used for authenticated ESI routes in string format.
-    ///
-    /// # Returns
-    /// Returns a [`Result`] containing either:
-    /// - Vec<[`CharacterResearchAgent`]>: A Vec of the character's research agents
-    /// - [`Error`]: An error if the fetch request fails
-    pub async fn get_agents_research(
-        &self,
-        character_id: i64,
-        access_token: &str,
-    ) -> Result<Vec<CharacterResearchAgent>, Error> {
-        let url = format!(
-            "{}/characters/{}/agents_research",
-            self.client.inner.esi_url, character_id
-        );
-        let required_scopes = ScopeBuilder::new()
+    define_endpoint! {
+        /// Retrieves character's research agents using the character's ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_agents_research`](crate::oauth2::scope::CharacterScopes::read_agents_research):
+        ///   `esi-characters.read_agents_research.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - Vec<[`CharacterResearchAgent`]>: A Vec of the character's research agents
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_agents_research(
+            access_token: &str,
+            character_id: i64,
+        ) -> Result<Vec<CharacterResearchAgent>, Error>
+        url = "{}/characters/{}/agents_research";
+        label = "research agents";
+        required_scopes = ScopeBuilder::new()
             .character(CharacterScopes::new().read_agents_research())
             .build();
+    }
 
-        debug!(
-            "Fetching research agents for character ID {} from \"{}\"",
-            character_id, url
-        );
+    define_endpoint! {
+        /// Retrieves character's blueprints using the character's ID & page to fetch of the blueprint list
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdBlueprints>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_blueprints`](crate::oauth2::scope::CharacterScopes::read_blueprints):
+        ///   `esi-characters.read_blueprints.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
+        /// - `page`         (`i32`): The page of blueprints to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - Vec<[`Blueprint`]>: A Vec of the character's blueprints
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_blueprints(
+            access_token: &str,
+            character_id: i64,
+            page: i32,
+        ) -> Result<Vec<Blueprint>, Error>
+        url = "{}/characters/{}/blueprints?page={}";
+        label = "blueprints";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_blueprints()).build();
+    }
 
-        let start_time = Instant::now();
+    define_endpoint! {
+        /// Retrieves the public corporation history of the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdCorporationhistory>
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve corporation history for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [Vec<`CharacterCorporationHistory`>]: The character's corporation history if request is successful
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_corporation_history(
+            character_id: i64
+        ) -> Result<Vec<CharacterCorporationHistory>, Error>
+        url = "{}/characters/{}/corporationhistory";
+        label = "corporation history";
+    }
 
-        // Fetch character research agents from ESI
-        let result = self
-            .client
-            .esi()
-            .get_from_authenticated_esi::<Vec<CharacterResearchAgent>>(
-                &url,
-                access_token,
-                required_scopes,
-            )
-            .await;
+    define_endpoint! {
+        /// Calculates CSPA cost for evemailing a list of characters with the provided character ID
+        ///
+        /// This ESI route is used to calculate the CSPA cost for a list of characters based upon the
+        /// contacts of the provided character ID which could affect the cost based upon standing.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <developers.eveonline.com/api-explorer#/operations/PostCharactersCharacterIdCspa>
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format
+        /// - `character_ids` (`Vec<i64>`): List of character IDs to calculate the CSPA cost to
+        ///   evemail.
+        /// - `character_id` (`i64`): ID of the character who would be sending the evemails
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `f64`: An f64 representing the total cost to evemail the list of characters
+        /// - [`Error`]: An error if the fetch request fails
+        auth_post calculate_a_cspa_charge_cost(
+            access_token: &str,
+            character_ids: Vec<i64>,
+            character_id: i64
+        ) -> Result<f64, Error>
+        url = "{}/characters/{}/cspa";
+        label = "CSPA charge cost";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_contacts()).build();
+    }
 
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(research_agents) => {
-                info!(
-                    "Successfully fetched {} research agents for character ID: {} (took {}ms)",
-                    research_agents.len(),
-                    character_id,
-                    elapsed.as_millis()
-                );
+    define_endpoint! {
+        /// Retrieves jump fatigue for the provided character's ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdFatigue>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_fatigue`](crate::oauth2::scope::CharacterScopes::read_fatigue):
+        ///   `esi-characters.read_fatigue.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CharacterJumpFatigue`]: The character's jump fatigue status
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_jump_fatigue(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<CharacterJumpFatigue, Error>
+        url = "{}/characters/{}/fatigue";
+        label = "jump fatigue";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_fatigue()).build();
+    }
 
-                Ok(research_agents)
-            }
-            Err(err) => {
-                error!(                  "Failed to fetch research agents for character ID {} after {}ms due to error: {:#?}",
-                    character_id,
-                    elapsed.as_millis(),
-                    err);
+    define_endpoint! {
+        /// Retrieves a list of medals for the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdMedals>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_medals`](crate::oauth2::scope::CharacterScopes::read_medals):
+        ///   `esi-characters.read_medals.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterMedal`]`>`: A list of the character's medals
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_medals(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterMedal>, Error>
+        url = "{}/characters/{}/medals";
+        label = "medals";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_medals()).build();
+    }
 
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Retrieves a list of character's notifications
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdNotifications>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_notifications`](crate::oauth2::scope::CharacterScopes::read_notifications):
+        ///   `esi-characters.read_notifications.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve notifications for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterNotification`]`>`: A list of the character's notifications
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_character_notifications(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterNotification>, Error>
+        url = "{}/characters/{}/notifications";
+        label = "notifications";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_notifications()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves the image URLs of a chacter's portraits with various dimensions
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdPortrait>
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve portrait image URLs for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CharacterPortraits`]: Struct of character's portrait URLs with various dimensions
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_character_portraits(
+            character_id: i64
+        ) -> Result<CharacterPortraits, Error>
+        url = "{}/characters/{}/portrait";
+        label = "portraits";
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of the provided character ID's corporation roles
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdRoles>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_corporation_roles`](crate::oauth2::scope::CharacterScopes::read_corporation_roles):
+        ///   `esi-characters.read_corporation_roles.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve corporation roles for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CharacterCorporationRole`]: Struct containing entries for the provided character ID's corporation roles.
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_character_corporation_roles(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<CharacterCorporationRole, Error>
+        url = "{}/characters/{}/roles";
+        label = "corporation roles";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_corporation_roles()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of the provided character ID's standings
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdStandings>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_standings`](crate::oauth2::scope::CharacterScopes::read_standings):
+        ///   `esi-characters.read_standings.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve standings for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterStanding`]`>`: List of entries for the provided character ID's standings
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_standings(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterStanding>, Error>
+        url = "{}/characters/{}/standings";
+        label = "standings";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_standings()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of the provided character ID's corporation titles
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdTitles>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_titles`](crate::oauth2::scope::CharacterScopes::read_titles):
+        ///   `esi-characters.read_titles.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve corporation titles for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterCorporationTitle`]`>`: List of entries for the provided character ID's
+        ///   corporation titles
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_character_corporation_titles(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterCorporationTitle>, Error>
+        url = "{}/characters/{}/titles";
+        label = "standings";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_titles()).build();
     }
 }

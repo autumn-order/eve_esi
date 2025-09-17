@@ -12,6 +12,7 @@
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::EsiApi;
+use crate::Error;
 
 impl<'a> EsiApi<'a> {
     /// Makes an unauthenticated GET request to the ESI API.
@@ -26,10 +27,7 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Type Parameters
     /// - `T` - The expected return type that implements `DeserializeOwned`
-    pub async fn get_from_public_esi<T: DeserializeOwned>(
-        &self,
-        url: &str,
-    ) -> Result<T, reqwest::Error> {
+    pub async fn get_from_public_esi<T: DeserializeOwned>(&self, url: &str) -> Result<T, Error> {
         let reqwest_client = &self.client.inner.reqwest_client;
 
         let req = reqwest_client.get(url).send().await?;
@@ -56,7 +54,7 @@ impl<'a> EsiApi<'a> {
         &self,
         url: &str,
         data: &U,
-    ) -> Result<T, reqwest::Error> {
+    ) -> Result<T, Error> {
         let reqwest_client = &self.client.inner.reqwest_client;
 
         let req = reqwest_client.post(url).json(data).send().await?;

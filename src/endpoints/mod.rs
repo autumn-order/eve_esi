@@ -63,11 +63,14 @@
 //!     // Get character research agents for character_id using the access_token
 //!     let research_agents = esi_client
 //!         .character()
-//!         .get_agents_research(character_id, access_token)
+//!         .get_agents_research(&access_token, character_id)
 //!         .await
 //!         .unwrap();
 //! }
 //! ```
+
+#[macro_use]
+mod macros;
 
 pub mod alliance;
 pub mod character;
