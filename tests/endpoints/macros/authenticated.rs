@@ -33,7 +33,7 @@ macro_rules! authenticated_success_test {
                 // Assert 1 request & expected access token was received for mock endpoint
                 mock_endpoint.assert();
 
-                assert!(result.is_ok());
+                assert!(result.is_ok(), "Error: {:?}", result);
             }
         }
     };

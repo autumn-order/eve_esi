@@ -11,6 +11,8 @@
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";
 /// Access to retrieve information on character's blueprints
 pub const READ_BLUEPRINTS: &str = "esi-characters.read_blueprints.v1";
+/// Access to read a character's contacts
+pub const READ_CONTACTS: &str = "esi-characters.read_contacts.v1";
 /// Access to retrieve information on character's jump fatigue status
 pub const READ_FATIGUE: &str = "esi-characters.read_fatigue.v1";
 /// Access to retrieve information on character's medals
@@ -44,6 +46,12 @@ impl CharacterScopes {
     /// Adds the `esi-characters.read_blueprints.v1` scope
     pub fn read_blueprints(mut self) -> Self {
         self.scopes.push(READ_BLUEPRINTS.to_string());
+        self
+    }
+
+    /// Adds the `esi-characters.read_contacts.v1` scope
+    pub fn read_contacts(mut self) -> Self {
+        self.scopes.push(READ_CONTACTS.to_string());
         self
     }
 

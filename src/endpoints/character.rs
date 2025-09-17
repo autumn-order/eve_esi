@@ -132,7 +132,7 @@ impl<'a> CharacterApi<'a> {
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
-        /// - `page`         (`i32`): The page of blueprints to retrieve
+        /// - `page`         (`i32`): The page of blueprints to retrieve, page numbers start at `1`
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -171,7 +171,10 @@ impl<'a> CharacterApi<'a> {
     }
 
     define_endpoint! {
-        /// Retrieves the CSPA charge cost for evemailing the provided character ID
+        /// Calculates CSPA cost for evemailing a list of characters using the provided character ID
+        ///
+        /// This ESI route is used to calculate the CSPA cost for a list of characters based upon the
+        /// contacts of the provided character ID which could affect the cost based upon standing.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -179,18 +182,23 @@ impl<'a> CharacterApi<'a> {
         /// - <developers.eveonline.com/api-explorer#/operations/PostCharactersCharacterIdCspa>
         ///
         /// # Arguments
-        /// - `character_id` (`i64`): The ID of the character to retrieve the CSPA charge cost for
-        ///   evemailing the character.
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format
+        /// - `character_ids` (`Vec<i64>`): List of character IDs to calculate the CSPA cost to
+        ///   evemail.
+        /// - `character_id` (`i64`): ID of the character who would be sending the evemails
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<i64>`: The CSPA charge cost for evemailing the character
+        /// - `f64`: An f64 representing the total cost to evemail the list of characters
         /// - [`Error`]: An error if the fetch request fails
-        pub_get calculate_a_cspa_charge_cost(
+        auth_post calculate_a_cspa_charge_cost(
+            access_token: &str,
+            character_ids: Vec<i64>,
             character_id: i64
-        ) -> Result<Vec<i64>, Error>
+        ) -> Result<f64, Error>
         url = "{}/characters/{}/cspa";
         label = "CSPA charge cost";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_contacts()).build();
     }
 
     define_endpoint! {

@@ -106,18 +106,22 @@ public_endpoint_test! {
     ])
 }
 
-public_endpoint_test! {
+authenticated_endpoint_test! {
     calculate_a_cspa_charge_cost,
-    |esi_client: eve_esi::Client | async move {
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_ids = vec![2117053828];
         let character_id = 2114794365;
         esi_client
             .character()
-            .calculate_a_cspa_charge_cost(character_id)
+            .calculate_a_cspa_charge_cost(&access_token, character_ids, character_id)
             .await
     },
-    request_type = "GET",
+    request_type = "POST",
     url = "/characters/2114794365/cspa",
-    mock_response = serde_json::json!([5000000])
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_contacts())
+        .build();
+    mock_response = serde_json::json!(5000000),
 }
 
 authenticated_endpoint_test! {
@@ -196,7 +200,7 @@ authenticated_endpoint_test! {
             "is_read": false,
             "notification_id": 1,
             "sender": 2114794365,
-            "sender_type": "Character",
+            "sender_type": "character",
             "text": "Notification text",
             "timestamp": "2018-12-20T16:11:54Z",
             "type": "AcceptedAlly"
