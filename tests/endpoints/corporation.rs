@@ -1,6 +1,19 @@
 use crate::util::integration_test_setup;
 
 public_endpoint_test! {
+    get_npc_corporations,
+    |esi_client: eve_esi::Client | async move {
+        esi_client
+            .corporation()
+            .get_npc_corporations()
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/npccorps",
+    mock_response = serde_json::json!([98785281])
+}
+
+public_endpoint_test! {
     get_corporation,
     |esi_client: eve_esi::Client | async move {
         let corporation_id = 98785281;

@@ -37,6 +37,24 @@ impl<'a> CorporationApi<'a> {
     }
 
     define_endpoint! {
+        /// Fetches a list of all NPC corporation IDs in EVE Online
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsNpccorps>
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<i64>`: List of IDs of all NPC corporations in EVE Online
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_npc_corporations(
+        ) -> Result<Vec<i64>, Error>
+        url = "{}/corporations/npccorps";
+        label = "NPC corporations";
+    }
+
+    define_endpoint! {
         /// Fetches a corporation's public information from ESI using the corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -49,7 +67,7 @@ impl<'a> CorporationApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - [`Corporation`] - The corporation information if the request was successful.
+        /// - [`Corporation`]: The corporation information if the request was successful.
         /// - [`Error`]: An error if the fetch request fails
         pub_get get_corporation_information(
             corporation_id: i64
