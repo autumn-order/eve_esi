@@ -12,8 +12,10 @@
 //! - [`CorporationApi::get_corporation_information`]: Fetches a corporation’s public information from ESI using the corporation ID
 
 use crate::error::Error;
+use crate::model::asset::Blueprint;
 use crate::model::corporation::{Corporation, CorporationAllianceHistory};
-use crate::Client;
+use crate::oauth2::scope::CorporationScopes;
+use crate::{Client, ScopeBuilder};
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
 ///
@@ -97,5 +99,32 @@ impl<'a> CorporationApi<'a> {
         ) -> Result<Vec<CorporationAllianceHistory>, Error>
         url = "{}/corporations/{}/alliancehistory";
         label = "alliance history";
+    }
+
+    define_endpoint! {
+        /// Fetches a list of blueprint entries for the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdAlliancehistory>
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve blueprints for.
+        /// - `page`            (`i32`): The page of blueprints to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`Blueprint`]`>`: List of blueprint entries for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_blueprints(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<Blueprint>, Error>
+        url = "{}/corporations/{}/blueprints?page={}";
+        label = "blueprints";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_blueprints()).build();
     }
 }

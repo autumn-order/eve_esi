@@ -12,6 +12,8 @@
 //!
 //! For an overview & usage, see the [module-level documentation](super).
 
+use crate::oauth2::scope::CorporationScopes;
+
 use super::character::CharacterScopes;
 
 /// `publicData` scope
@@ -44,6 +46,12 @@ impl ScopeBuilder {
     /// Adds scopes from [`CharacterScopes`]
     pub fn character(mut self, character_scopes: CharacterScopes) -> Self {
         self.scopes.extend(character_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`CorporationScopes`]
+    pub fn corporation(mut self, corporation_scopes: CorporationScopes) -> Self {
+        self.scopes.extend(corporation_scopes.scopes);
         self
     }
 

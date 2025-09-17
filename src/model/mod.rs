@@ -18,6 +18,7 @@
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 
 pub mod alliance;
+pub mod asset;
 pub mod character;
 pub mod corporation;
 pub mod enums;

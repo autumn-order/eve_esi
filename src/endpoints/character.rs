@@ -17,10 +17,11 @@ use crate::error::Error;
 use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
+use crate::model::asset::Blueprint;
 use crate::model::character::{
-    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory,
-    CharacterCorporationRole, CharacterCorporationTitle, CharacterJumpFatigue, CharacterMedal,
-    CharacterNotification, CharacterPortraits, CharacterResearchAgent, CharacterStanding,
+    Character, CharacterAffiliation, CharacterCorporationHistory, CharacterCorporationRole,
+    CharacterCorporationTitle, CharacterJumpFatigue, CharacterMedal, CharacterNotification,
+    CharacterPortraits, CharacterResearchAgent, CharacterStanding,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -131,7 +132,7 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
+        /// - `character_id` (`i64`): The ID of the character to retrieve blueprints for
         /// - `page`         (`i32`): The page of blueprints to retrieve, page numbers start at `1`
         ///
         /// # Returns
