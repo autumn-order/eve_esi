@@ -8,7 +8,12 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::enums::{CorporationRole, LocationFlag, NotificationType};
+use crate::model::enums::{
+    asset::LocationFlag,
+    character::{CharacterMedalStatus, CharacterStandingType},
+    corporation::CorporationRole,
+    notification::{NotificationSenderType, NotificationType},
+};
 
 /// Represents a character in EVE Online.
 ///
@@ -147,18 +152,6 @@ pub struct CharacterMedalGraphics {
     pub part: i64,
 }
 
-/// Represents the visbility status of a character's medal
-///
-/// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdMedalsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum CharacterMedalStatus {
-    /// Medal visibility is set to public
-    Public,
-    /// Medal visibility is set to private
-    Private,
-}
-
 /// Represents an entry for a character's medals
 ///
 /// # Documentation
@@ -183,24 +176,6 @@ pub struct CharacterMedal {
     pub status: CharacterMedalStatus,
     /// The name of the medal
     pub title: String,
-}
-
-/// The type of sender for a notification
-///
-/// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum NotificationSenderType {
-    /// Notification was sent by character
-    Character,
-    /// Notification was sent by corporation
-    Corporation,
-    /// Notification was sent by alliance
-    Alliance,
-    /// Notification was sent by faction
-    Faction,
-    /// Notification was sent by other
-    Other,
 }
 
 /// Represents a character notification entry
@@ -255,23 +230,6 @@ pub struct CharacterCorporationRole {
     pub roles_at_hq: Vec<CorporationRole>,
     /// Roles applicable at all other locations
     pub roles_at_other: Vec<CorporationRole>,
-}
-
-/// The type of character standing entry (Agent, NpcCorp, or Faction)
-///
-/// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum CharacterStandingType {
-    /// Standing type is with an NPC agent
-    #[serde(rename = "agent")]
-    Agent,
-    /// Standing type is with an NPC corporation
-    #[serde(rename = "npc_corp")]
-    NpcCorp,
-    /// Standing type is with an NPC faction
-    #[serde(rename = "faction")]
-    Faction,
 }
 
 /// A character's standings with either an agent, NPC corp, or faction
