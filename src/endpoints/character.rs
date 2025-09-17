@@ -19,8 +19,8 @@ use crate::{Client, ScopeBuilder};
 
 use crate::model::character::{
     Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory,
-    CharacterCorporationRole, CharacterJumpFatigue, CharacterMedal, CharacterNotification,
-    CharacterPortraits, CharacterResearchAgent, CharacterStanding,
+    CharacterCorporationRole, CharacterCorporationTitle, CharacterJumpFatigue, CharacterMedal,
+    CharacterNotification, CharacterPortraits, CharacterResearchAgent, CharacterStanding,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -319,8 +319,7 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterCorporationRole`]`>`: List of structs containing information on the
-        ///   character's corporation roles.
+        /// - `Vec<`[`CharacterCorporationRole`]`>`: List of entires for the provided character ID's corporation roles.
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_character_corporation_roles(
             access_token: &str,
@@ -348,8 +347,7 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterStanding`]`>`: List of structs containing information on the
-        ///   character's standings
+        /// - `Vec<`[`CharacterStanding`]`>`: List of entries for the provided character ID's standings
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_standings(
             access_token: &str,
@@ -358,5 +356,34 @@ impl<'a> CharacterApi<'a> {
         url = "{}/characters/{}/standings";
         label = "standings";
         required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_standings()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of the provided character ID's corporation titles
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdTitles>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_titles`](crate::oauth2::scope::CharacterScopes::read_titles):
+        ///   `esi-characters.read_titles.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve corporation titles for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterCorporationTitle`]`>`: List of entries for the provided character ID's
+        ///   corporation titles
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_character_corporation_titles(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterCorporationTitle>, Error>
+        url = "{}/characters/{}/titles";
+        label = "standings";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_titles()).build();
     }
 }

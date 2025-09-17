@@ -265,3 +265,23 @@ authenticated_endpoint_test! {
         "standing": -0.12312385
     }]),
 }
+
+authenticated_endpoint_test! {
+    get_character_corporation_titles,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_character_corporation_titles(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/titles",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_titles())
+        .build();
+    mock_response = serde_json::json!([{
+        "name": "Title",
+        "title_id": 1
+    }]),
+}

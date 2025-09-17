@@ -281,9 +281,21 @@ pub enum CharacterStandingType {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterStanding {
     /// The ID of the entity the standing is with
-    from_id: i64,
+    pub from_id: i64,
     /// The type of entity the standing entry is with (Agent, NpcCorp, or Faction)
-    from_type: CharacterStandingType,
+    pub from_type: CharacterStandingType,
     /// The character's standing with the listed entity
-    standing: f64,
+    pub standing: f64,
+}
+
+/// An entry for a character's corporation titles
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdTitlesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterCorporationTitle {
+    /// The title content
+    pub name: String,
+    /// The unique ID of the title
+    pub title_id: i64,
 }
