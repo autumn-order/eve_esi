@@ -15,14 +15,19 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum NotificationSenderType {
     /// Notification was sent by character
+    #[serde(rename = "character")]
     Character,
     /// Notification was sent by corporation
+    #[serde(rename = "corporation")]
     Corporation,
     /// Notification was sent by alliance
+    #[serde(rename = "alliance")]
     Alliance,
     /// Notification was sent by faction
+    #[serde(rename = "faction")]
     Faction,
     /// Notification was sent by other
+    #[serde(rename = "other")]
     Other,
 }
 
@@ -507,6 +512,8 @@ pub enum NotificationType {
     /// Starter tutorial message
     TutorialMsg,
     /// War declaration has been inherited from corporation joining alliance
+    // ESI returns a space in this variant for some reason
+    #[serde(rename = "WarAdopted ")]
     WarAdopted,
     /// War declaration ally has been inherited from corporation joining alliance
     WarAllyInherited,

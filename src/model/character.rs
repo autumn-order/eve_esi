@@ -116,6 +116,8 @@ pub struct CharacterCorporationHistory {
     pub corporation_id: i64,
     #[serde(default)] // Field will not be present if character has not been deleted, we'll default to false in that case
     /// Bool indicating whether or not corporation has been deleted
+    // Field will not be present if character has not been deleted, we'll default to false in that case
+    #[serde(default)]
     pub is_deleted: bool,
     /// An incrementing ID representing the order of the corporation in the history
     pub record_id: i64,
@@ -186,13 +188,15 @@ pub struct CharacterMedal {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterNotification {
     /// Character's jump fatigue expiry
+    // Field will not be present if notification has not been read, we'll default to false in that case
+    #[serde(default)]
     pub is_read: bool,
     /// The unique ID of the notification
     pub notification_id: i64,
-    /// ID of the sender (character, corporation, alliance, faction, other)
-    pub sender: i64,
-    /// The type of sender (character, corporation, alliance, faction, other)
-    pub sender_type: NotificationSenderType,
+    /// ID of the sender if applicable (character, corporation, alliance, faction, other)
+    pub sender: Option<i64>,
+    /// The type of sender if applicable (character, corporation, alliance, faction, other)
+    pub sender_type: Option<NotificationSenderType>,
     /// The text content of the notification
     pub text: String,
     /// The timestamp the notification was sent
