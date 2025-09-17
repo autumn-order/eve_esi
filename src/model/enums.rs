@@ -349,99 +349,193 @@ pub enum CorporationRole {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum NotificationType {
+    /// Accepted alliance request for corporation war
     AcceptedAlly,
+    /// Accepted surrender for corporation war
     AcceptedSurrender,
+    /// Agent retired due to system falling under triglavian control
     AgentRetiredTrigravian,
+    /// Structure anchoring in alliance space
     AllAnchoringMsg,
+    /// Alliance maintenance bill-related message
     AllMaintenanceBillMsg,
+    /// Alliance structure invulnerable
     AllStrucInvulnerableMsg,
+    /// Alliance structure vulnerable
     AllStructVulnerableMsg,
+    /// Corporation at war joined the alliance
     AllWarCorpJoinedAllianceMsg,
+    /// War has been declared involving character's alliance
     AllWarDeclaredMsg,
+    /// War involving character's alliance has been invalidated
     AllWarInvalidatedMsg,
+    /// War involving character's alliance has been retracted
     AllWarRetractedMsg,
+    /// War involving character's alliance has surrendered
     AllWarSurrenderMsg,
+    /// Alliance capital system has been changed
     AllianceCapitalChanged,
+    /// V2 War has been declared involving character's alliance
     AllianceWarDeclaredV2,
+    /// Contract involving character's alliance has been cancelled
     AllyContractCancelled,
+    /// War aggressor has had an ally join the war
     AllyJoinedWarAggressorMsg,
+    /// Ally has joined war against aggressor
     AllyJoinedWarAllyMsg,
+    /// Ally has joined war as a defender
     AllyJoinedWarDefenderMsg,
+    /// Punishment for friendly fire
     BattlePunishFriendlyFire,
+    /// Unable to pay corporation bill due to lack of funds
     BillOutOfMoneyMsg,
+    /// Corporation bill has been paid
     BillPaidCorpAllMsg,
+    /// Bounty on player has been claimed
     BountyClaimMsg,
+    /// Funds within ESS have been paid out
     BountyESSShared,
+    /// Funds within ESS have been stolen
     BountyESSTaken,
+    /// Bounty has been placed on alliance
     BountyPlacedAlliance,
+    /// Bounty has been placed on character
     BountyPlacedChar,
+    /// Bounty has been placed on corporation
     BountyPlacedCorp,
+    /// Bounty on notification receiver has been claimed
     BountyYourBountyClaimed,
+    /// Contact has been added as buddy
     BuddyConnectContactAdd,
+    /// Character application to corporation has been accepted
     CharAppAcceptMsg,
+    /// Character application to corporation has been rejected
     CharAppRejectMsg,
+    /// Character application to corporation has been withdrawn
     CharAppWithdrawMsg,
+    /// Character has left corporation
     CharLeftCorpMsg,
+    /// Character has received a medal from corporation
     CharMedalMsg,
+    /// Character in corporation has been biomassed
     CharTerminationMsg,
+    /// Clone has been activated (capsule death/jump clone)
     CloneActivationMsg,
+    /// Clone has been activated (capsule death/jump clone)
     CloneActivationMsg2,
+    /// Character's clone has been moved
     CloneMovedMsg,
+    /// Character's clone has been revoked (lost access to station facilities)
     CloneRevokedMsg1,
+    /// Character's clone has been revoked (lost access to station facilities)
     CloneRevokedMsg2,
+    /// ???
     CombatOperationFinished,
+    /// Character notified they have been added as contact
     ContactAdd,
+    /// Character notified their contact info has been edited
     ContactEdit,
+    /// ???
     ContainerPasswordMsg,
+    /// Contract was moved to Pochven due to system falling under Triglavian control
     ContractRegionChangedToPochven,
+    /// Corporation alliance bill notification
     CorpAllBillMsg,
+    /// Applicant to the corporation has been accepted
     CorpAppAcceptMsg,
+    /// Applicant has been invited to join corporation
     CorpAppInvitedMsg,
+    /// Corporation has received new character application
     CorpAppNewMsg,
+    /// Applicant to the corporation has been rejected with custom message
     CorpAppRejectCustomMsg,
+    /// Applicant to the corporation has been rejected with default message
     CorpAppRejectMsg,
+    /// Corporation has become war eligible
     CorpBecameWarEligible,
+    /// Corporation dividend has been paid out
     CorpDividendMsg,
+    /// Corporation friendly fire disabled is now active
     CorpFriendlyFireDisableTimerCompleted,
+    /// Corporation friendly fire disabled countdown has started
     CorpFriendlyFireDisableTimerStarted,
+    /// Croporation friendly fire enabled is now active
     CorpFriendlyFireEnableTimerCompleted,
+    /// Corporation friendly fire enabled countdown has started
     CorpFriendlyFireEnableTimerStarted,
+    /// Corporation has been kicked from alliance
     CorpKicked,
+    /// Corporation has been liquidated due to being disbanded
     CorpLiquidationMsg,
+    /// Corporation has new CEO
     CorpNewCEOMsg,
+    /// ???
     CorpNewsMsg,
+    /// Corporation is not longer war eligible
     CorpNoLongerWarEligible,
+    /// Corporation office has expired
     CorpOfficeExpirationMsg,
+    /// Corporation has lost a structure
     CorpStructLostMsg,
+    /// Corporation tax rate has been changed
     CorpTaxChangeMsg,
+    /// Corporation change CEO vote has been revoked
     CorpVoteCEORevokedMsg,
+    /// Corporation change CEO vote has been started
     CorpVoteMsg,
+    /// Corporation has declared war
     CorpWarDeclaredMsg,
+    /// V2 corporation has declared war
     CorpWarDeclaredV2,
+    /// Corporaiton war declaration is now active
     CorpWarFightingLegalMsg,
+    /// Corporation's war declaration has been invalidated
     CorpWarInvalidatedMsg,
+    /// Corporation's war declaration has been retracted
     CorpWarRetractedMsg,
+    /// Corporation has surrendered in war declaration
     CorpWarSurrenderMsg,
+    /// Corporation projects goal has been closed
     CorporationGoalClosed,
+    /// Corporation projects goal completed
     CorporationGoalCompleted,
+    /// Corporation projects goal has been created
     CorporationGoalCreated,
+    /// Corporation projects goal has expired
     CorporationGoalExpired,
+    /// Corporation projects goal limit has been reached
     CorporationGoalLimitReached,
+    /// Corporation projects goal name has been changed
     CorporationGoalNameChange,
+    /// Corporation has left alliance
     CorporationLeft,
+    /// ???
     CustomsMsg,
+    /// Daily reward item has been automatically claimed
     DailyItemRewardAutoClaimed,
+    /// ???
     DeclareWar,
+    /// ???
     DistrictAttacked,
+    /// ???
     DustAppAcceptedMsg,
+    /// ESS main bank has been linked with
     ESSMainBankLink,
+    /// Entosis capture of sovreignty hub has started
     EntosisCaptureStarted,
+    /// Expert system has expired
     ExpertSystemExpired,
+    /// Expert system is nearing expiry
     ExpertSystemExpiryImminent,
+    /// Alliance kicked from faction warfare due to standings
     FWAllianceKickMsg,
+    /// Alliance warned for nearing removal from faction warfare due to standings
     FWAllianceWarningMsg,
+    /// Character kicked from faction warfare due to standings
     FWCharKickMsg,
+    /// Character has gained a rank in faction warfare
     FWCharRankGainMsg,
+    /// Character has lost a rank in faction warfare
     FWCharRankLossMsg,
     FWCharWarningMsg,
     FWCorpJoinMsg,
