@@ -173,6 +173,116 @@ pub enum LocationFlag {
     Module,
 }
 
+/// Indicates the type of corporation role
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdRolesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationRole {
+    #[serde(rename = "Account_Take_1")]
+    AccountTake1,
+    #[serde(rename = "Account_Take_2")]
+    AccountTake2,
+    #[serde(rename = "Account_Take_3")]
+    AccountTake3,
+    #[serde(rename = "Account_Take_4")]
+    AccountTake4,
+    #[serde(rename = "Account_Take_5")]
+    AccountTake5,
+    #[serde(rename = "Account_Take_6")]
+    AccountTake6,
+    #[serde(rename = "Account_Take_7")]
+    AccountTake7,
+    Accountant,
+    Auditor,
+    #[serde(rename = "Brand_Manager")]
+    BrandManager,
+    #[serde(rename = "Communications_Officer")]
+    CommunicationsOfficer,
+    #[serde(rename = "Config_Equipment")]
+    ConfigEquipment,
+    #[serde(rename = "Config_Starbase_Equipment")]
+    ConfigStarbaseEquipment,
+    #[serde(rename = "Container_Take_1")]
+    ContainerTake1,
+    #[serde(rename = "Container_Take_2")]
+    ContainerTake2,
+    #[serde(rename = "Container_Take_3")]
+    ContainerTake3,
+    #[serde(rename = "Container_Take_4")]
+    ContainerTake4,
+    #[serde(rename = "Container_Take_5")]
+    ContainerTake5,
+    #[serde(rename = "Container_Take_6")]
+    ContainerTake6,
+    #[serde(rename = "Container_Take_7")]
+    ContainerTake7,
+    #[serde(rename = "Contract_Manager")]
+    ContractManager,
+    #[serde(rename = "Deliveries_Container_Take")]
+    DeliveriesContainerTake,
+    #[serde(rename = "Deliveries_Query")]
+    DeliveriesQuery,
+    #[serde(rename = "Deliveries_Take")]
+    DeliveriesTake,
+    Diplomat,
+    Director,
+    #[serde(rename = "Factory_Manager")]
+    FactoryManager,
+    #[serde(rename = "Fitting_Manager")]
+    FittingManager,
+    #[serde(rename = "Hangar_Query_1")]
+    HangarQuery1,
+    #[serde(rename = "Hangar_Query_2")]
+    HangarQuery2,
+    #[serde(rename = "Hangar_Query_3")]
+    HangarQuery3,
+    #[serde(rename = "Hangar_Query_4")]
+    HangarQuery4,
+    #[serde(rename = "Hangar_Query_5")]
+    HangarQuery5,
+    #[serde(rename = "Hangar_Query_6")]
+    HangarQuery6,
+    #[serde(rename = "Hangar_Query_7")]
+    HangarQuery7,
+    #[serde(rename = "Hangar_Take_1")]
+    HangarTake1,
+    #[serde(rename = "Hangar_Take_2")]
+    HangarTake2,
+    #[serde(rename = "Hangar_Take_3")]
+    HangarTake3,
+    #[serde(rename = "Hangar_Take_4")]
+    HangarTake4,
+    #[serde(rename = "Hangar_Take_5")]
+    HangarTake5,
+    #[serde(rename = "Hangar_Take_6")]
+    HangarTake6,
+    #[serde(rename = "Hangar_Take_7")]
+    HangarTake7,
+    #[serde(rename = "Junior_Accountant")]
+    JuniorAccountant,
+    #[serde(rename = "Personnel_Manager")]
+    PersonnelManager,
+    #[serde(rename = "Project_Manager")]
+    ProjectManager,
+    #[serde(rename = "Rent_Factory_Facility")]
+    RentFactoryFacility,
+    #[serde(rename = "Rent_Office")]
+    RentOffice,
+    #[serde(rename = "Rent_Research_Facility")]
+    RentResearchFacility,
+    #[serde(rename = "Security_Officer")]
+    SecurityOfficer,
+    #[serde(rename = "Skill_Plan_Manager")]
+    SkillPlanManager,
+    #[serde(rename = "Starbase_Defense_Operator")]
+    StarbaseDefenseOperator,
+    #[serde(rename = "Starbase_Fuel_Technician")]
+    StarbaseFuelTechnician,
+    #[serde(rename = "Station_ManagerTrader")]
+    StationManagerTrader,
+}
+
 /// Indicates the type of notification
 ///
 /// # Documentation
