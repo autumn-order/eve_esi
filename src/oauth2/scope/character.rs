@@ -17,6 +17,8 @@ pub const READ_FATIGUE: &str = "esi-characters.read_fatigue.v1";
 pub const READ_MEDALS: &str = "esi-characters.read_medals.v1";
 /// Access to retrieve the character's notifications
 pub const READ_NOTIFICATIONS: &str = "esi-characters.read_notifications.v1";
+/// Access to read the character's corporation roles
+pub const READ_CORPORATION_ROLES: &str = "esi-characters.read_corporation_roles.v1";
 
 /// Struct with methods for listing character scopes to request for OAuth2
 pub struct CharacterScopes {
@@ -56,6 +58,12 @@ impl CharacterScopes {
     /// Adds the `esi-characters.read_notifications.v1` scope
     pub fn read_notifications(mut self) -> Self {
         self.scopes.push(READ_NOTIFICATIONS.to_string());
+        self
+    }
+
+    /// Adds the `esi-characters.read_corporation_roles.v1` scope
+    pub fn read_corporation_roles(mut self) -> Self {
+        self.scopes.push(READ_CORPORATION_ROLES.to_string());
         self
     }
 }

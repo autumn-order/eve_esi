@@ -18,8 +18,9 @@ use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
 use crate::model::character::{
-    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory, CharacterJumpFatigue,
-    CharacterMedal, CharacterNotification, CharacterPortraits, CharacterResearchAgent,
+    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory,
+    CharacterCorporationRole, CharacterJumpFatigue, CharacterMedal, CharacterNotification,
+    CharacterPortraits, CharacterResearchAgent,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -299,5 +300,34 @@ impl<'a> CharacterApi<'a> {
         ) -> Result<CharacterPortraits, Error>
         url = "{}/characters/{}/portrait";
         label = "portraits";
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of the provided character ID's corporation roles
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdRoles>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_corporation_roles`](crate::oauth2::scope::CharacterScopes::read_corporation_roles):
+        ///   `esi-characters.read_corporation_roles.v1`
+        ///
+        /// # Arguments
+        /// - `character_id` (`i64`): The ID of the character to retrieve corporation roles for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterCorporationRole`]`>`: List of structs containing information on the
+        ///   character's corporation roles.
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_character_corporation_roles(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterCorporationRole>, Error>
+        url = "{}/characters/{}/roles";
+        label = "corporation roles";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_corporation_roles()).build();
     }
 }

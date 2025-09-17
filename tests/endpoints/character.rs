@@ -222,3 +222,25 @@ public_endpoint_test! {
         "px512x512": "ABCD",
     })
 }
+
+authenticated_endpoint_test! {
+    read_corporation_roles,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_character_corporation_roles(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/roles",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_corporation_roles())
+        .build();
+    mock_response = serde_json::json!([{
+        "roles": ["Brand_Manager"],
+        "roles_at_base": ["Brand_Manager"],
+        "roles_at_hq": ["Brand_Manager"],
+        "roles_at_other": ["Brand_Manager"],
+    }]),
+}

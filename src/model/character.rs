@@ -8,7 +8,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::enums::{LocationFlag, NotificationType};
+use crate::model::enums::{CorporationRole, LocationFlag, NotificationType};
 
 /// Represents a character in EVE Online.
 ///
@@ -239,4 +239,16 @@ pub struct CharacterPortraits {
     pub px256x256: String,
     /// Character's portrait URL in 512x512px
     pub px512x512: String,
+}
+
+/// A character's portrait URLs with various dimensions
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdRolesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterCorporationRole {
+    roles: Vec<CorporationRole>,
+    roles_at_base: Vec<CorporationRole>,
+    roles_at_hq: Vec<CorporationRole>,
+    roles_at_other: Vec<CorporationRole>,
 }
