@@ -177,110 +177,170 @@ pub enum LocationFlag {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdRolesGet>
+/// - <https://support.eveonline.com/hc/en-us/articles/203217712-Roles-Listing>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum CorporationRole {
+    /// Access to take funds from master corporation wallet
     #[serde(rename = "Account_Take_1")]
     AccountTake1,
+    /// Access to take funds from corporaiton wallet division #2
     #[serde(rename = "Account_Take_2")]
     AccountTake2,
+    /// Access to take funds from corporaiton wallet division #3
     #[serde(rename = "Account_Take_3")]
     AccountTake3,
+    /// Access to take funds from corporaiton wallet division #4
     #[serde(rename = "Account_Take_4")]
     AccountTake4,
+    /// Access to take funds from corporaiton wallet division #5
     #[serde(rename = "Account_Take_5")]
     AccountTake5,
+    /// Access to take funds from corporaiton wallet division #6
     #[serde(rename = "Account_Take_6")]
     AccountTake6,
+    /// Access to take funds from corporaiton wallet division #7
     #[serde(rename = "Account_Take_7")]
     AccountTake7,
+    /// View-only access to wallets & transactions
     Accountant,
+    /// View-only access to the auditing tab of the corporation management screen to see role
+    /// assignments & removals
     Auditor,
+    /// Ability to create & apply SKINR to Upwell structures
     #[serde(rename = "Brand_Manager")]
     BrandManager,
+    /// Ability to send corporation/alliance evemails as well as modify corporation chat MOTDz
     #[serde(rename = "Communications_Officer")]
     CommunicationsOfficer,
+    /// Ability to deploy & configure deployables on behalf of the corporation, does not
+    /// apply to Upwell Structures which instead require [`CorporationRole::StationManager`]
     #[serde(rename = "Config_Equipment")]
     ConfigEquipment,
+    /// Ability to modify POS tower equipment
     #[serde(rename = "Config_Starbase_Equipment")]
     ConfigStarbaseEquipment,
+    /// Ability to remove items from containers within corporation hangar divison #1
     #[serde(rename = "Container_Take_1")]
     ContainerTake1,
+    /// Ability to remove items from containers within corporation hangar divison #2
     #[serde(rename = "Container_Take_2")]
     ContainerTake2,
+    /// Ability to remove items from containers within corporation hangar divison #3
     #[serde(rename = "Container_Take_3")]
     ContainerTake3,
+    /// Ability to remove items from containers within corporation hangar divison #4
     #[serde(rename = "Container_Take_4")]
     ContainerTake4,
+    /// Ability to remove items from containers within corporation hangar divison #5
     #[serde(rename = "Container_Take_5")]
     ContainerTake5,
+    /// Ability to remove items from containers within corporation hangar divison #6
     #[serde(rename = "Container_Take_6")]
     ContainerTake6,
+    /// Ability to remove items from containers within corporation hangar divison #7
     #[serde(rename = "Container_Take_7")]
     ContainerTake7,
+    /// Access to manage corporation contracts and contracts assigned to the corporation
     #[serde(rename = "Contract_Manager")]
     ContractManager,
+    /// Ability to remove items from containers within the corporation deliveries hangar
     #[serde(rename = "Deliveries_Container_Take")]
     DeliveriesContainerTake,
+    /// View-only access to the corporation deliveries hangar
     #[serde(rename = "Deliveries_Query")]
     DeliveriesQuery,
+    /// Ability to remove items from the corporation deliveries hangar
     #[serde(rename = "Deliveries_Take")]
     DeliveriesTake,
+    /// Access to manage corporation standings
     Diplomat,
+    /// Access to all corporation permissions aside from those exclusive to CEO
     Director,
     #[serde(rename = "Factory_Manager")]
+    /// Access to manage corporation industry jobs, even those created by other members
     FactoryManager,
+    /// Access to manage corporation fittings
     #[serde(rename = "Fitting_Manager")]
     FittingManager,
+    /// View-only access for corporation hangar division #1
     #[serde(rename = "Hangar_Query_1")]
     HangarQuery1,
+    /// View-only access for corporation hangar division #2
     #[serde(rename = "Hangar_Query_2")]
     HangarQuery2,
+    /// View-only access for corporation hangar division #3
     #[serde(rename = "Hangar_Query_3")]
     HangarQuery3,
+    /// View-only access for corporation hangar division #4
     #[serde(rename = "Hangar_Query_4")]
     HangarQuery4,
+    /// View-only access for corporation hangar division #5
     #[serde(rename = "Hangar_Query_5")]
     HangarQuery5,
+    /// View-only access for corporation hangar division #6
     #[serde(rename = "Hangar_Query_6")]
     HangarQuery6,
+    /// View-only access for corporation hangar division #7
     #[serde(rename = "Hangar_Query_7")]
     HangarQuery7,
+    /// Ability to remove items from corporation hangar divison #1
     #[serde(rename = "Hangar_Take_1")]
     HangarTake1,
+    /// Ability to remove items from corporation hangar divison #2
     #[serde(rename = "Hangar_Take_2")]
     HangarTake2,
+    /// Ability to remove items from corporation hangar divison #3
     #[serde(rename = "Hangar_Take_3")]
     HangarTake3,
+    /// Ability to remove items from corporation hangar divison #4
     #[serde(rename = "Hangar_Take_4")]
     HangarTake4,
+    /// Ability to remove items from corporation hangar divison #5
     #[serde(rename = "Hangar_Take_5")]
     HangarTake5,
+    /// Ability to remove items from corporation hangar divison #6
     #[serde(rename = "Hangar_Take_6")]
     HangarTake6,
+    /// Ability to remove items from corporation hangar divison #7
     #[serde(rename = "Hangar_Take_7")]
     HangarTake7,
+    /// View-only access to wallets, transactions, & assets
     #[serde(rename = "Junior_Accountant")]
     JuniorAccountant,
+    /// Ability to invite players and accept applications to the corporation
     #[serde(rename = "Personnel_Manager")]
     PersonnelManager,
+    /// Ability to manage corporation projects
     #[serde(rename = "Project_Manager")]
     ProjectManager,
+    /// Ability to start manufacturing jobs on behalf of the corporation
     #[serde(rename = "Rent_Factory_Facility")]
     RentFactoryFacility,
+    /// Ability to rent corporation offices
     #[serde(rename = "Rent_Office")]
     RentOffice,
+    /// Ability to start research jobs on behalf of the corporation
     #[serde(rename = "Rent_Research_Facility")]
     RentResearchFacility,
+    /// Can view contents of member's hangars in NPC stations where the corporation owns an
+    /// office, does not apply to structures
     #[serde(rename = "Security_Officer")]
     SecurityOfficer,
+    /// Can manage corporation skill plans
     #[serde(rename = "Skill_Plan_Manager")]
     SkillPlanManager,
+    /// Can take control of POS tower weapons
     #[serde(rename = "Starbase_Defense_Operator")]
     StarbaseDefenseOperator,
+    /// Access to the fuel bays & silos of a POS tower
     #[serde(rename = "Starbase_Fuel_Technician")]
     StarbaseFuelTechnician,
-    #[serde(rename = "Station_ManagerTrader")]
-    StationManagerTrader,
+    /// Full access to manage & deploy Upwell Structures
+    #[serde(rename = "Station_Manager")]
+    StationManager,
+    /// Full access to corporation deliveries and ability to create market orders on behalf
+    /// of the corporation.
+    Trader,
 }
 
 /// Indicates the type of notification
