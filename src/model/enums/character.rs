@@ -15,8 +15,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum CharacterMedalStatus {
     /// Medal visibility is set to public
+    #[serde(rename = "public")]
     Public,
     /// Medal visibility is set to private
+    #[serde(rename = "private")]
     Private,
 }
 

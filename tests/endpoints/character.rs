@@ -171,7 +171,7 @@ authenticated_endpoint_test! {
             "issuer_id": 2114794365,
             "medal_id": 1,
             "reason": "Reason medal was issued",
-            "status": "Public",
+            "status": "public",
             "title": "Medal name"
         }
     ]),
