@@ -42,3 +42,20 @@ pub struct Corporation {
     /// Whether or not the corporation is eligible for war.
     pub war_eligible: Option<bool>,
 }
+
+/// Entry for a corporation's alliance history
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdAlliancehistoryGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationAllianceHistory {
+    /// The ID of the alliance
+    pub alliance_id: i64,
+    /// Bool indicating whether or not the alliance has been closed
+    #[serde(default)]
+    pub is_deleted: bool,
+    /// An incrementing ID representing the order of the alliance in the history
+    pub record_id: i64,
+    /// The date of when the corporation joined the alliance
+    pub start_date: DateTime<Utc>,
+}

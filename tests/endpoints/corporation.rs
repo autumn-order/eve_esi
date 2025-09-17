@@ -41,3 +41,23 @@ public_endpoint_test! {
         "faction_id": null,
     })
 }
+
+public_endpoint_test! {
+    get_alliance_history,
+    |esi_client: eve_esi::Client | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_alliance_history(corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/alliancehistory",
+    mock_response = serde_json::json!([
+        {
+            "alliance_id": 1,
+            "record_id": 1,
+            "start_date": "2018-12-20T16:11:54Z"
+        }
+    ])
+}

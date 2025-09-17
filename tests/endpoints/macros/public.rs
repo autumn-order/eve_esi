@@ -25,7 +25,7 @@ macro_rules! public_success_test {
                 // Assert 1 request was received for mock endpoint
                 mock_endpoint.assert();
 
-                assert!(result.is_ok());
+                assert!(result.is_ok(), "Error: {:?}", result);
             }
         }
     };

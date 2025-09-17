@@ -12,7 +12,7 @@
 //! - [`CorporationApi::get_corporation_information`]: Fetches a corporation’s public information from ESI using the corporation ID
 
 use crate::error::Error;
-use crate::model::corporation::Corporation;
+use crate::model::corporation::{Corporation, CorporationAllianceHistory};
 use crate::Client;
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
@@ -63,7 +63,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationId>
         ///
         /// # Arguments
-        /// - `corporation_id` ([`i32`]): The ID of the corporation to retrieve information for.
+        /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve information for.
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -74,5 +74,28 @@ impl<'a> CorporationApi<'a> {
         ) -> Result<Corporation, Error>
         url = "{}/corporations/{}";
         label = "public information";
+    }
+
+    define_endpoint! {
+        /// Fetches a corporation's alliance history using the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdAlliancehistory>
+        ///
+        /// # Arguments
+        /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve alliance history for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationAllianceHistory`]`>`: List of entries for the corporation's alliance
+        ///   history.
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_alliance_history(
+            corporation_id: i64
+        ) -> Result<Vec<CorporationAllianceHistory>, Error>
+        url = "{}/corporations/{}/alliancehistory";
+        label = "alliance history";
     }
 }
