@@ -114,6 +114,7 @@ pub struct Blueprint {
 pub struct CharacterCorporationHistory {
     /// The ID of the corporation
     pub corporation_id: i64,
+    #[serde(default)] // Field will not be present if character has not been deleted, we'll default to false in that case
     /// Bool indicating whether or not corporation has been deleted
     pub is_deleted: bool,
     /// An incrementing ID representing the order of the corporation in the history
