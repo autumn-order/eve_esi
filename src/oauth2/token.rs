@@ -90,7 +90,7 @@ impl<'a> OAuth2Api<'a> {
     /// - Access token: `token.access_token()`
     /// - Refresh token: `token.refresh_token()`
     ///
-    /// The access token expires after 15 minutes, you can use [Self::get_token_refresh]
+    /// The access token expires after 20 minutes, you can use [Self::get_token_refresh]
     /// to get a new token.
     ///
     /// # Arguments

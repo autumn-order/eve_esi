@@ -525,8 +525,8 @@ mod test_jwt_timestamp_format {
     /// Error due to invalid i64 unix timestamp
     #[test]
     fn test_jwt_timestamp_format_success() {
-        // Valid for 15 minutes
-        let exp = Utc::now() + Duration::seconds(900);
+        // Valid for 20 minutes
+        let exp = Utc::now() + Duration::seconds(1200);
 
         let json_data = create_test_jwt_json(exp.timestamp());
         let result = serde_json::from_value::<EveJwtClaims>(json_data);
