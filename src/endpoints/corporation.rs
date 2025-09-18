@@ -349,4 +349,36 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/members";
         label = "character IDs of all members";
     }
+
+    define_endpoint! {
+        /// Fetches the member limit of the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembersLimit>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::track_members`](crate::oauth2::scope::CorporationScopes::track_members):
+        ///   `esi-corporations.track_members.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member limit for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `i64`: Integer representing the member limit of the corporation not including the CEO
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_member_limit(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<i64, Error>
+        url = "{}/corporations/{}/members/limit";
+        label = "member limit";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().track_members()).build();
+    }
 }

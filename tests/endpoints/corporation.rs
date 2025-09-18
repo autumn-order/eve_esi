@@ -256,3 +256,20 @@ public_endpoint_test! {
     url = "/corporations/98785281/members",
     mock_response = serde_json::json!([2114794365, 2117053828])
 }
+
+authenticated_endpoint_test! {
+    get_corporation_member_limit,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_member_limit(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/members/limit",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().track_members())
+        .build();
+    mock_response = serde_json::json!(20),
+}
