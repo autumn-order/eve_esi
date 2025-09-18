@@ -16,7 +16,7 @@ use crate::model::asset::Blueprint;
 use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
     CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberTitles,
-    CorporationSecureContainerLog,
+    CorporationMemberTracking, CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -413,5 +413,38 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/members/titles";
         label = "member titles";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_titles()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches a list of tracking information for each character part of the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembertracking>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::track_members`](crate::oauth2::scope::CorporationScopes::track_members):
+        ///   `esi-corporations.track_members.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member tracking for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationMemberTracking`]`>`: List of tracking information for each character part of the provided
+        ///   corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get track_corporation_members(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<Vec<CorporationMemberTracking>, Error>
+        url = "{}/corporations/{}/membertracking";
+        label = "member tracking";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().track_members()).build();
     }
 }

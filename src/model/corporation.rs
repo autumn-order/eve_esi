@@ -199,3 +199,25 @@ pub struct CorporationMemberTitles {
     /// List of title IDs belonging to the character
     titles: Vec<i64>,
 }
+
+/// An entry for a corporation member's tracking information
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMembertrackingGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationMemberTracking {
+    /// Corporation base ID which the character belongs to
+    base_id: i64,
+    /// ID of the character who the tracking information belongs to
+    character_id: i64,
+    /// ID of the character's current location
+    location_id: i64,
+    /// Last logoff date of the character
+    logoff_date: DateTime<Utc>,
+    /// Last logon date of the character
+    logon_date: DateTime<Utc>,
+    /// Type ID of the ship the character is currently in
+    ship_type_id: i64,
+    /// The date when the member joined their current corporation
+    start_date: DateTime<Utc>,
+}

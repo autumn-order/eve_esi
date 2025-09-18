@@ -295,3 +295,30 @@ authenticated_endpoint_test! {
         }
     ]),
 }
+
+authenticated_endpoint_test! {
+    track_corporation_members,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .track_corporation_members(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/membertracking",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().track_members())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "base_id": 1,
+            "character_id": 2114794365,
+            "location_id": 1,
+            "logoff_date": "2018-12-20T16:11:54Z",
+            "logon_date": "2018-12-20T16:11:54Z",
+            "ship_type_id": 1,
+            "start_date": "2018-12-20T16:11:54Z"
+        }
+    ]),
+}
