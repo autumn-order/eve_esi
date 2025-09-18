@@ -122,3 +122,29 @@ authenticated_endpoint_test! {
         "type_id": 1
     }]),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_divisions,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_divisions(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/divisions",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_divisions())
+        .build();
+    mock_response = serde_json::json!({
+        "hangar": [{
+            "division": 1,
+            "name": "Hangar 1"
+        }],
+        "wallet": [{
+            "division": 1,
+            "name": "Master wallet"
+        }]
+    }),
+}

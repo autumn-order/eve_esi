@@ -11,6 +11,8 @@
 pub const READ_BLUEPRINTS: &str = "esi-corporations.read_blueprints.v1";
 /// Access to read information on corporation container logs
 pub const READ_CONTAINER_LOGS: &str = "esi-corporations.read_container_logs.v1";
+/// Access to retrieve information on corporation's wallet & hangar divisions
+pub const READ_DIVISIONS: &str = "esi-corporations.read_divisions.v1";
 
 /// Struct with methods for listing corporation scopes to request for OAuth2
 pub struct CorporationScopes {
@@ -32,6 +34,12 @@ impl CorporationScopes {
     /// Adds the `esi-corporations.read_container_logs.v1` scope
     pub fn read_container_logs(mut self) -> Self {
         self.scopes.push(READ_CONTAINER_LOGS.to_string());
+        self
+    }
+
+    /// Adds the `esi-corporations.read_divisions.v1` scope
+    pub fn read_divisions(mut self) -> Self {
+        self.scopes.push(READ_DIVISIONS.to_string());
         self
     }
 }

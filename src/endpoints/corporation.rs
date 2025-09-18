@@ -14,7 +14,7 @@
 use crate::error::Error;
 use crate::model::asset::Blueprint;
 use crate::model::corporation::{
-    Corporation, CorporationAllianceHistory, CorporationSecureContainerLog,
+    Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -111,6 +111,10 @@ impl<'a> CorporationApi<'a> {
         /// # ESI Documentation
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdBlueprints>
         ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_blueprints`](crate::oauth2::scope::CorporationScopes::read_blueprints):
+        ///   `esi-corporations.read_blueprints.v1`
+        ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve blueprints for.
@@ -143,6 +147,10 @@ impl<'a> CorporationApi<'a> {
         /// # ESI Documentation
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdContainersLogs>
         ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_container_logs`](crate::oauth2::scope::CorporationScopes::read_container_logs):
+        ///   `esi-corporations.read_container_logs.v1`
+        ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve ALSC logs for.
@@ -160,5 +168,37 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/containers/logs?page={}";
         label = "audit secure container log entries";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_container_logs()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches a list of hangar & wallet divisions for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdDivisions>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_divisions`](crate::oauth2::scope::CorporationScopes::read_divisions):
+        ///   `esi-corporations.read_divisions.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve divisions for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CorporationDivisions`]: Struct containing entries for corporation hangar & wallet divisions
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_divisions(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<CorporationDivisions, Error>
+        url = "{}/corporations/{}/divisions";
+        label = "hangar & wallet divisions";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_divisions()).build();
     }
 }

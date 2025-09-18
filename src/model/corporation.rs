@@ -91,3 +91,27 @@ pub struct CorporationSecureContainerLog {
     /// Type ID of the item being acted upon
     pub type_id: i64,
 }
+
+/// Log entry for an audit log secure container owned by a corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationDivisionEntry {
+    /// The number of the division (1-7), for wallet divisions: 1 = master wallet
+    pub division: i64,
+    /// Name of the division
+    pub name: String,
+}
+
+/// Log entry for an audit log secure container owned by a corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationDivisions {
+    /// List of hangar division entries
+    pub hangar: Vec<CorporationDivisionEntry>,
+    /// List of wallet division entries
+    pub wallet: Vec<CorporationDivisionEntry>,
+}
