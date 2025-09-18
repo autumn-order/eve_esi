@@ -327,4 +327,26 @@ impl<'a> CorporationApi<'a> {
         label = "medals";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_medals()).build();
     }
+
+    define_endpoint! {
+        /// Fetches a list of character IDs of all members part of the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembers>
+        ///
+        /// # Arguments
+        /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve members for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<i64>`: List of character IDs of all members part of the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_corporation_members(
+            corporation_id: i64
+        ) -> Result<Vec<i64>, Error>
+        url = "{}/corporations/{}/members";
+        label = "character IDs of all members";
+    }
 }

@@ -242,3 +242,17 @@ authenticated_endpoint_test! {
         }
     ]),
 }
+
+public_endpoint_test! {
+    get_corporation_members,
+    |esi_client: eve_esi::Client | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_members(corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/members",
+    mock_response = serde_json::json!([2114794365, 2117053828])
+}
