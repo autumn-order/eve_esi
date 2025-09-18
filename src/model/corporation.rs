@@ -108,8 +108,8 @@ pub struct CorporationSecureContainerLog {
 pub struct CorporationDivisionEntry {
     /// The number of the division (1-7), for wallet divisions: 1 = master wallet
     pub division: i64,
-    /// Name of the division
-    pub name: String,
+    /// Name of the division, None if divison has not been named
+    pub name: Option<String>,
 }
 
 /// Log entry for an audit log secure container owned by a corporation
