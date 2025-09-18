@@ -17,7 +17,7 @@ use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
     CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberRoles,
     CorporationMemberRolesHistory, CorporationMemberTitles, CorporationMemberTracking,
-    CorporationSecureContainerLog, CorporationShareholder,
+    CorporationSecureContainerLog, CorporationShareholder, CorporationStarbase,
 };
 use crate::model::universe::Standing;
 use crate::oauth2::scope::{CorporationScopes, WalletScopes};
@@ -561,7 +561,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStandings>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_standings`](crate::oauth2::scope::WalletScopes::read_standings):
+        /// - [`CorporationScopes::read_standings`](crate::oauth2::scope::CorporationScopes::read_standings):
         ///   `esi-corporations.read_standings.v1`
         ///
         /// # Arguments
@@ -581,5 +581,39 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/standings?page={}";
         label = "NPC standings";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_standings()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a paginated list of starbases (POSes) for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStarbases>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_starbases`](crate::oauth2::scope::CorporationScopes::read_starbases):
+        ///   `esi-corporations.read_starbases.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to starbases (POSes) for
+        /// - `page`            (`i32`): The page of corporation NPC standings to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`Standing`]`>`: Paginated list of starbases (POSes) for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_starbases(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<CorporationStarbase>, Error>
+        url = "{}/corporations/{}/starbases?page={}";
+        label = "starbases (POSes)";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_starbases()).build();
     }
 }

@@ -261,3 +261,26 @@ pub enum ShareholderType {
     #[serde(rename = "corporation")]
     Corporation,
 }
+
+/// Indicates the current state of a corporation starbase (POS)
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStarbaseState {
+    /// The starbase (POS) is offline
+    #[serde(rename = "offline")]
+    Offline,
+    /// The starbase (POS) is online
+    #[serde(rename = "online")]
+    Online,
+    /// The starbase (POS) is onlining
+    #[serde(rename = "onlining")]
+    Onlining,
+    /// The starbase (POS) is reinforced
+    #[serde(rename = "reinforced")]
+    Reinforced,
+    /// The starbase (POS) is unanchoring
+    #[serde(rename = "unanchoring")]
+    Unanchoring,
+}

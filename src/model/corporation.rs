@@ -11,7 +11,8 @@ use crate::model::enums::{
     asset::LocationFlag,
     character::CharacterMedalStatus,
     corporation::{
-        CorporationRole, CorporationRoleType, CorporationSecureContainerAction, ShareholderType,
+        CorporationRole, CorporationRoleType, CorporationSecureContainerAction,
+        CorporationStarbaseState, ShareholderType,
     },
 };
 
@@ -142,9 +143,12 @@ pub struct CorporationFacilities {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdIconsGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationIcon {
-    px128x128: String,
-    px256x256: String,
-    px64x64: String,
+    /// URL of the 128x128 px variant of the corporation's logo
+    pub px128x128: String,
+    /// URL of the 256x256 px variant of the corporation's logo
+    pub px256x256: String,
+    /// URL of the 64x64 px variant of the corporation's logo
+    pub px64x64: String,
 }
 
 /// An entry for a corporation medal
@@ -157,15 +161,15 @@ pub struct CorporationIcon {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationMedal {
     /// The timestamp of when the medal was created
-    created_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     /// ID of the character who created the medal
-    creator_id: i64,
+    pub creator_id: i64,
     /// The description of the medal
-    description: String,
+    pub description: String,
     /// The unique ID of the medal
-    medal_id: i64,
+    pub medal_id: i64,
     /// The name of the medal
-    title: String,
+    pub title: String,
 }
 
 /// An entry for an issued corporation medal
@@ -178,17 +182,17 @@ pub struct CorporationMedal {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationIssuedMedal {
     /// ID of the character who was granted the medal
-    character_id: i64,
+    pub character_id: i64,
     /// The timestamp of when the medal was created
-    issued_at: DateTime<Utc>,
+    pub issued_at: DateTime<Utc>,
     /// ID of the character who issued the medal
-    issuer_id: i64,
+    pub issuer_id: i64,
     /// The unique ID of the medal
-    medal_id: i64,
+    pub medal_id: i64,
     /// The reason the medal was issued
-    reason: String,
+    pub reason: String,
     /// Whether the character's medal visibility is public or private
-    status: CharacterMedalStatus,
+    pub status: CharacterMedalStatus,
 }
 
 /// An entry for a corporation member's titles
@@ -198,9 +202,9 @@ pub struct CorporationIssuedMedal {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationMemberTitles {
     /// ID of the character who the titles belong to
-    character_id: i64,
+    pub character_id: i64,
     /// List of title IDs belonging to the character
-    titles: Vec<i64>,
+    pub titles: Vec<i64>,
 }
 
 /// An entry for a corporation member's tracking information
@@ -210,19 +214,19 @@ pub struct CorporationMemberTitles {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationMemberTracking {
     /// Corporation base ID which the character belongs to
-    base_id: i64,
+    pub base_id: i64,
     /// ID of the character who the tracking information belongs to
-    character_id: i64,
+    pub character_id: i64,
     /// ID of the character's current location
-    location_id: i64,
+    pub location_id: i64,
     /// Last logoff date of the character
-    logoff_date: DateTime<Utc>,
+    pub logoff_date: DateTime<Utc>,
     /// Last logon date of the character
-    logon_date: DateTime<Utc>,
+    pub logon_date: DateTime<Utc>,
     /// Type ID of the ship the character is currently in
-    ship_type_id: i64,
+    pub ship_type_id: i64,
     /// The date when the member joined their current corporation
-    start_date: DateTime<Utc>,
+    pub start_date: DateTime<Utc>,
 }
 
 /// An entry for a corporation member's assigned roles
@@ -232,23 +236,23 @@ pub struct CorporationMemberTracking {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationMemberRoles {
     /// ID of character who the roles belong to
-    character_id: i64,
+    pub character_id: i64,
     /// Roles character is capable of granting corporation-wide
-    grantable_roles: Vec<CorporationRole>,
+    pub grantable_roles: Vec<CorporationRole>,
     /// Roles character is capable of granting at their assigned base
-    grantable_roles_at_base: Vec<CorporationRole>,
+    pub grantable_roles_at_base: Vec<CorporationRole>,
     /// Roles character is capable of granting at corporation HQ
-    grantable_roles_at_hq: Vec<CorporationRole>,
+    pub grantable_roles_at_hq: Vec<CorporationRole>,
     /// Roles character is capable of granting at other locations
-    grantable_roles_at_other: Vec<CorporationRole>,
+    pub grantable_roles_at_other: Vec<CorporationRole>,
     /// Roles character holds corporation-wide
-    roles: Vec<CorporationRole>,
+    pub roles: Vec<CorporationRole>,
     /// Roles character holds at their assigned base
-    roles_at_base: Vec<CorporationRole>,
+    pub roles_at_base: Vec<CorporationRole>,
     /// Roles character holds at corporation HQ
-    roles_at_hq: Vec<CorporationRole>,
+    pub roles_at_hq: Vec<CorporationRole>,
     /// Roles character holds at other locations
-    roles_at_other: Vec<CorporationRole>,
+    pub roles_at_other: Vec<CorporationRole>,
 }
 
 /// An entry for a corporation member's role history
@@ -258,17 +262,17 @@ pub struct CorporationMemberRoles {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationMemberRolesHistory {
     /// Timestamp of the role change log entry
-    changed_at: DateTime<Utc>,
+    pub changed_at: DateTime<Utc>,
     /// ID of character who the roles belong to
-    character_id: i64,
+    pub character_id: i64,
     /// ID of character who modified the roles
-    issuer_id: i64,
+    pub issuer_id: i64,
     /// New roles now held by the character
-    new_roles: Vec<CorporationRole>,
+    pub new_roles: Vec<CorporationRole>,
     /// Old roles previously held by character
-    old_roles: Vec<CorporationRole>,
+    pub old_roles: Vec<CorporationRole>,
     /// The location of the roles
-    role_type: CorporationRoleType,
+    pub role_type: CorporationRoleType,
 }
 
 /// An entry for a corporation shareholder
@@ -278,9 +282,38 @@ pub struct CorporationMemberRolesHistory {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationShareholder {
     /// Amount of shares held by the shareholder
-    share_count: i64,
+    pub share_count: i64,
     /// ID of the character or corporation who holds the shares
-    shareholder_id: i64,
+    pub shareholder_id: i64,
     /// Represents whether the shares are held by a character or corporation
-    shareholder_type: ShareholderType,
+    pub shareholder_type: ShareholderType,
+}
+
+/// Information regarding a starbase (POS) owned by a corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationStarbase {
+    /// Optional ID of the moon which the starbase (POS) is anchored on,
+    /// will be None if POS is unanchored
+    pub moon_id: Option<i64>,
+    /// When the POS is onlined,
+    /// only applicable if [`CorporationStarbase::state`] is [`CorporationStarbaseState::Onlining`]
+    pub onlined_since: Option<DateTime<Utc>>,
+    /// When the POS is reinforced until,
+    /// only applicable if [`CorporationStarbase::state`] is [`CorporationStarbaseState::Reinforced`]
+    pub reinforced_until: Option<DateTime<Utc>>,
+    /// Unique ID of the starbase (POS)
+    pub starbase_id: i64,
+    /// Enum representing the current state of the starbase (POS)
+    pub state: CorporationStarbaseState,
+    /// Optional ID of the solar system the starbase (POS) is located,
+    /// will be None if POS is unanchored
+    pub system_id: Option<i64>,
+    /// The ID of the type of starbase (POS)
+    pub type_id: i64,
+    /// The time when the POS started unanchoring,
+    /// only applicable if [`CorporationStarbase::state`] is [`CorporationStarbaseState::Unanchoring`]
+    pub unanchor_at: Option<DateTime<Utc>>,
 }
