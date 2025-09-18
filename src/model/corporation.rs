@@ -129,3 +129,14 @@ pub struct CorporationFacilities {
     /// Type ID of the facility
     pub type_id: i64,
 }
+
+/// Icon URLs for a corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdIconsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationIcon {
+    px128x128: String,
+    px256x256: String,
+    px64x64: String,
+}

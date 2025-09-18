@@ -15,7 +15,7 @@ use crate::error::Error;
 use crate::model::asset::Blueprint;
 use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
-    CorporationSecureContainerLog,
+    CorporationIcon, CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -231,7 +231,29 @@ impl<'a> CorporationApi<'a> {
             corporation_id: i64
         ) -> Result<Vec<CorporationFacilities>, Error>
         url = "{}/corporations/{}/facilities";
-        label = "facilities";
+        label = "industry facilities";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_facilities()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches a corporation's icon using the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdIcons>
+        ///
+        /// # Arguments
+        /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve the icons for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CorporationIcon`]: The corporation icon URLs
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_corporation_icon(
+            corporation_id: i64
+        ) -> Result<CorporationIcon, Error>
+        url = "{}/corporations/{}/icons";
+        label = "icons";
     }
 }
