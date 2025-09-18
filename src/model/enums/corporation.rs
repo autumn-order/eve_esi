@@ -7,6 +7,39 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Indicates the type & location of the corporation role
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdRolesHistoryGet>
+/// - <https://support.eveonline.com/hc/en-us/articles/203217712-Roles-Listing> (See location identifier setion)
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationRoleType {
+    /// Roles character is capable of granting corporation-wide
+    #[serde(rename = "grantable_roles")]
+    GrantableRoles,
+    /// Roles character is capable of granting at their assigned base
+    #[serde(rename = "grantable_roles_at_base")]
+    GrantableRolesAtBase,
+    /// Roles character is capable of granting at corporation HQ
+    #[serde(rename = "grantable_roles_at_hq")]
+    GrantableRolesAtHq,
+    /// Roles character is capable of granting at other locations
+    #[serde(rename = "grantable_roles_at_other")]
+    GrantableRolesAtOther,
+    /// Roles character holds corporation-wide
+    #[serde(rename = "roles")]
+    Roles,
+    /// Roles character holds at their assigned base
+    #[serde(rename = "roles_at_base")]
+    RolesAtBase,
+    /// Roles character holds at corporation HQ
+    #[serde(rename = "roles_at_hq")]
+    RolseAtHq,
+    /// Roles character holds at other locations
+    #[serde(rename = "roles_at_other")]
+    RolesAtOther,
+}
+
 /// Indicates the type of corporation role
 ///
 /// # Documentation

@@ -16,7 +16,8 @@ use crate::model::asset::Blueprint;
 use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
     CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberRoles,
-    CorporationMemberTitles, CorporationMemberTracking, CorporationSecureContainerLog,
+    CorporationMemberRolesHistory, CorporationMemberTitles, CorporationMemberTracking,
+    CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -465,7 +466,7 @@ impl<'a> CorporationApi<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member tracking for
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve roles for
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -477,6 +478,41 @@ impl<'a> CorporationApi<'a> {
             corporation_id: i64
         ) -> Result<Vec<CorporationMemberRoles>, Error>
         url = "{}/corporations/{}/roles";
+        label = "member roles";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a paginated list of up to a month of role history for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdRolesHistory>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_corporation_membership`](crate::oauth2::scope::CorporationScopes::read_corporation_membership):
+        ///   `esi-corporations.read_corporation_membership.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member roles history for
+        /// - `page`            (`i32`): The page of roles history to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationMemberRolesHistory`]`>`: Paginated list of role history for each character
+        ///   part of the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_member_roles_history(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<CorporationMemberRolesHistory>, Error>
+        url = "{}/corporations/{}/roles/history?page={}";
         label = "member roles";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
     }

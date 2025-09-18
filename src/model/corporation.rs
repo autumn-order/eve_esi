@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::model::enums::{
     asset::LocationFlag,
     character::CharacterMedalStatus,
-    corporation::{CorporationRole, CorporationSecureContainerAction},
+    corporation::{CorporationRole, CorporationRoleType, CorporationSecureContainerAction},
 };
 
 /// Represents a corporation in EVE Online.
@@ -231,7 +231,7 @@ pub struct CorporationMemberTracking {
 pub struct CorporationMemberRoles {
     /// ID of character who the roles belong to
     character_id: i64,
-    /// Roles character is capable of granting
+    /// Roles character is capable of granting corporation-wide
     grantable_roles: Vec<CorporationRole>,
     /// Roles character is capable of granting at their assigned base
     grantable_roles_at_base: Vec<CorporationRole>,
@@ -239,7 +239,7 @@ pub struct CorporationMemberRoles {
     grantable_roles_at_hq: Vec<CorporationRole>,
     /// Roles character is capable of granting at other locations
     grantable_roles_at_other: Vec<CorporationRole>,
-    /// Roles character holds
+    /// Roles character holds corporation-wide
     roles: Vec<CorporationRole>,
     /// Roles character holds at their assigned base
     roles_at_base: Vec<CorporationRole>,
@@ -247,4 +247,24 @@ pub struct CorporationMemberRoles {
     roles_at_hq: Vec<CorporationRole>,
     /// Roles character holds at other locations
     roles_at_other: Vec<CorporationRole>,
+}
+
+/// An entry for a corporation member's role history
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdRolesHistoryGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationMemberRolesHistory {
+    /// Timestamp of the role change log entry
+    changed_at: DateTime<Utc>,
+    /// ID of character who the roles belong to
+    character_id: i64,
+    /// ID of character who modified the roles
+    issuer_id: i64,
+    /// New roles now held by the character
+    new_roles: Vec<CorporationRole>,
+    /// Old roles previously held by character
+    old_roles: Vec<CorporationRole>,
+    /// The location of the roles
+    role_type: CorporationRoleType,
 }

@@ -367,3 +367,34 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_member_roles_history,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_member_roles_history(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/roles/history?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_corporation_membership())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "changed_at": "2019-08-24T14:15:22Z",
+        "character_id": 0,
+        "issuer_id": 0,
+        "new_roles": [
+          "Account_Take_1"
+        ],
+        "old_roles": [
+          "Account_Take_1"
+        ],
+        "role_type": "grantable_roles"
+      }
+    ]),
+}
