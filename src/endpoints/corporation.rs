@@ -340,18 +340,25 @@ impl<'a> CorporationApi<'a> {
         /// # ESI Documentation
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembers>
         ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_corporation_membership`](crate::oauth2::scope::CorporationScopes::read_corporation_membership):
+        ///   `esi-corporations.read_corporation_membership.v1`
+        ///
         /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve members for
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
         /// - `Vec<i64>`: List of character IDs of all members part of the provided corporation ID
         /// - [`Error`]: An error if the fetch request fails
-        pub_get get_corporation_members(
+        auth_get get_corporation_members(
+            access_token: &str,
             corporation_id: i64
         ) -> Result<Vec<i64>, Error>
         url = "{}/corporations/{}/members";
         label = "character IDs of all members";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
     }
 
     define_endpoint! {
