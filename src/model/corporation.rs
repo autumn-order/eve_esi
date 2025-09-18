@@ -7,7 +7,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::enums::{asset::LocationFlag, corporation::CorporationSecureContainerAction};
+use crate::model::enums::{
+    asset::LocationFlag, character::CharacterMedalStatus,
+    corporation::CorporationSecureContainerAction,
+};
 
 /// Represents a corporation in EVE Online.
 ///
@@ -143,6 +146,9 @@ pub struct CorporationIcon {
 
 /// An entry for a corporation medal
 ///
+/// This model differs from [`CorporationIssuedMedal`] in that it describes the medal itself
+/// while [`CorporationIssuedMedal`] represents who issued the medal and who the medal was issued to.
+///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMedalsGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -157,4 +163,27 @@ pub struct CorporationMedal {
     medal_id: i64,
     /// The name of the medal
     title: String,
+}
+
+/// An entry for an issued corporation medal
+///
+/// This model differs from [`CorporationMedal`] in that it represents who issued the medal and
+/// who the medal was issued to while [`CorporationMedal`] describes the medals themselves.
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMedalsIssuedGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationIssuedMedal {
+    /// ID of the character who was granted the medal
+    character_id: i64,
+    /// The timestamp of when the medal was created
+    issued_at: DateTime<Utc>,
+    /// ID of the character who issued the medal
+    issuer_id: i64,
+    /// The unique ID of the medal
+    medal_id: i64,
+    /// The reason the medal was issued
+    reason: String,
+    /// Whether the character's medal visibility is public or private
+    status: CharacterMedalStatus,
 }

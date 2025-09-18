@@ -15,7 +15,7 @@ use crate::error::Error;
 use crate::model::asset::Blueprint;
 use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
-    CorporationIcon, CorporationMedal, CorporationSecureContainerLog,
+    CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -260,6 +260,9 @@ impl<'a> CorporationApi<'a> {
     define_endpoint! {
         /// Fetches a paginated list of medals for the provided corporation ID
         ///
+        /// This endpoint differs from [`Self::get_corporation_issued_medals`] in that it describes the medal itself
+        /// while [`Self::get_corporation_issued_medals`] represents who issued the medal and who the medal was issued to.
+        ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
         /// # ESI Documentation
@@ -284,6 +287,43 @@ impl<'a> CorporationApi<'a> {
             page: i32
         ) -> Result<Vec<CorporationMedal>, Error>
         url = "{}/corporations/{}/medals?page={}";
+        label = "medals";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_medals()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches a paginated list of issued medals for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// This endpoint differs from [`Self::get_corporation_medals`] in that it represents who issued the medal
+        /// and who the medal was issued to while [`Self::get_corporation_medals`] describes the medal itself.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMedalsIssued>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_medals`](crate::oauth2::scope::CorporationScopes::read_medals):
+        ///   `esi-corporations.read_medals.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve medals for
+        /// - `page`            (`i32`): The page of medals to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationIssuedMedal`]`>`: List of issued corporation medal entries
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_issued_medals(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<CorporationIssuedMedal>, Error>
+        url = "{}/corporations/{}/medals/issued?page={}";
         label = "medals";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_medals()).build();
     }
