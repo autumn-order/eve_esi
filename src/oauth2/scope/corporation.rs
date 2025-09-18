@@ -41,6 +41,23 @@ impl CorporationScopes {
         CorporationScopes { scopes: Vec::new() }
     }
 
+    /// Create a new instance of [`CorporationScopes`] with all scopes applied
+    pub fn all() -> Self {
+        let corporation_scopes = CorporationScopes { scopes: Vec::new() };
+        corporation_scopes
+            .read_blueprints()
+            .read_container_logs()
+            .read_divisions()
+            .read_facilities()
+            .read_medals()
+            .track_members()
+            .read_titles()
+            .read_corporation_membership()
+            .read_standings()
+            .read_starbases()
+            .read_structures()
+    }
+
     /// Adds the `esi-corporations.read_blueprints.v1` scope
     pub fn read_blueprints(mut self) -> Self {
         self.scopes.push(READ_BLUEPRINTS.to_string());
