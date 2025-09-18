@@ -27,6 +27,8 @@ pub const READ_CORPORATION_MEMBERSHIP: &str = "esi-corporations.read_corporation
 pub const READ_STANDINGS: &str = "esi-corporations.read_standings.v1";
 /// Access to retrieve information on a corporation's starbases (POSes)
 pub const READ_STARBASES: &str = "esi-corporations.read_starbases.v1";
+/// Access to retrieve information on corporation's structures
+pub const READ_STRUCTURES: &str = "esi-corporations.read_structures.v1";
 
 /// Struct with methods for listing corporation scopes to request for OAuth2
 pub struct CorporationScopes {
@@ -96,6 +98,12 @@ impl CorporationScopes {
     /// Adds the `esi-corporations.read_starbases.v1` scope
     pub fn read_starbases(mut self) -> Self {
         self.scopes.push(READ_STARBASES.to_string());
+        self
+    }
+
+    /// Adds the `esi-corporations.read_structures.v1` scope
+    pub fn read_structures(mut self) -> Self {
+        self.scopes.push(READ_STRUCTURES.to_string());
         self
     }
 }

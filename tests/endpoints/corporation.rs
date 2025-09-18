@@ -514,3 +514,44 @@ authenticated_endpoint_test! {
       "use_alliance_standings": true
     }),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_structures,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_structures(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/structures?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_structures())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "corporation_id": 0,
+        "fuel_expires": "2019-08-24T14:15:22Z",
+        "name": "string",
+        "next_reinforce_apply": "2019-08-24T14:15:22Z",
+        "next_reinforce_hour": 0,
+        "profile_id": 0,
+        "reinforce_hour": 0,
+        "services": [
+          {
+              "name": "service name",
+              "state": "online"
+          }
+        ],
+        "state": "anchor_vulnerable",
+        "state_timer_end": "2019-08-24T14:15:22Z",
+        "state_timer_start": "2019-08-24T14:15:22Z",
+        "structure_id": 0,
+        "system_id": 0,
+        "type_id": 0,
+        "unanchors_at": "2019-08-24T14:15:22Z"
+      }
+    ]),
+}

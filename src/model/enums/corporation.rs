@@ -304,3 +304,67 @@ pub enum CorporationStarbasePermission {
     #[serde(rename = "starbase_fuel_technician_role")]
     StarbaseFuelTechnicianRole,
 }
+
+/// The possible states of a corporation's Upwell structure's service module
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStructureServiceState {
+    /// Structure service is currently online
+    #[serde(rename = "online")]
+    Online,
+    /// Structure service is currently offline
+    #[serde(rename = "offline")]
+    Offline,
+    /// ???
+    #[serde(rename = "cleanup")]
+    Cleanup,
+}
+
+/// The possible states of a corporation's Upwell structure
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStructureState {
+    /// Structure finished anchoring but has not yet had quantum core installed and is currently vulnerable
+    #[serde(rename = "anchor_vulnerable")]
+    AnchorVulnerable,
+    /// Structure is currently anchoring
+    #[serde(rename = "anchoring")]
+    Anchoring,
+    /// Structure's shield has depleted and armor timer is upcoming
+    #[serde(rename = "armor_reinforce")]
+    ArmorReinforce,
+    /// Structure's armor timer has elapsed and armor is now vulnerable
+    #[serde(rename = "armor_vulnerable")]
+    ArmorVulnerable,
+    /// Structure has started anchoring and is currently vulnerable
+    #[serde(rename = "deploy_vulnerable")]
+    DeployVulnerable,
+    /// ???
+    #[serde(rename = "fitting_invulnerable")]
+    FittingInvulnerable,
+    /// Structure's armor has depleted and hull timer is upcoming
+    #[serde(rename = "hull_reinforce")]
+    HullReinforce,
+    /// Structure's hull timer has elapsed and hull is now vulnerable
+    #[serde(rename = "hull_vulnerable")]
+    HullVulnerable,
+    /// Deprecated online state before structures were set to be always vulnerable
+    #[serde(rename = "online_deprecated")]
+    OnlineDeprecated,
+    /// Structure is currently onlining after having quantum core installed
+    #[serde(rename = "onlining_vulnerable")]
+    OnliningVulnerable,
+    /// Structure shield is vulnerable to attack (default state)
+    #[serde(rename = "shield_vulnerable")]
+    ShieldVulnerable,
+    /// Structure has been unanchored
+    #[serde(rename = "unanchored")]
+    Unanchored,
+    /// ???
+    #[serde(rename = "unknown")]
+    Unknown,
+}

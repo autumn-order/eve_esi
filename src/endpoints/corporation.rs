@@ -18,7 +18,7 @@ use crate::model::corporation::{
     CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberRoles,
     CorporationMemberRolesHistory, CorporationMemberTitles, CorporationMemberTracking,
     CorporationSecureContainerLog, CorporationShareholder, CorporationStarbase,
-    CorporationStarbaseDetails,
+    CorporationStarbaseDetails, CorporationStructure,
 };
 use crate::model::universe::Standing;
 use crate::oauth2::scope::{CorporationScopes, WalletScopes};
@@ -652,5 +652,39 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/starbases/{}?system_id={}";
         label = "a starbase's (POS) details";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_starbases()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a paginated list of structure information for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Station Manager` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStructures>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_structures`](crate::oauth2::scope::CorporationScopes::read_structures):
+        ///   `esi-corporations.read_structures.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation retrieve structures information for
+        /// - `page`            (`i32`): The page of structures information to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CorporationStructure`]: Paginated list of structure information for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_structures(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<CorporationStructure>, Error>
+        url = "{}/corporations/{}/structures?page={}";
+        label = "structures";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_structures()).build();
     }
 }

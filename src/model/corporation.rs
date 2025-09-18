@@ -12,7 +12,8 @@ use crate::model::enums::{
     character::CharacterMedalStatus,
     corporation::{
         CorporationRole, CorporationRoleType, CorporationSecureContainerAction,
-        CorporationStarbasePermission, CorporationStarbaseState, ShareholderType,
+        CorporationStarbasePermission, CorporationStarbaseState, CorporationStructureServiceState,
+        CorporationStructureState, ShareholderType,
     },
 };
 
@@ -364,4 +365,56 @@ pub struct CorporationStarbaseDetails {
     pub unanchor: CorporationStarbasePermission,
     /// Boolean which if true will use alliance standings, otherwise using corporation's
     pub use_alliance_standings: bool,
+}
+
+/// An entry for a corporation's Upwell structure services
+///
+/// # ESI Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationStructureService {
+    /// The name of the structure service
+    pub name: String,
+    /// Enum representing the state of the structure service
+    pub state: CorporationStructureServiceState,
+}
+
+/// Details regarding a corporation's Upwell structure
+///
+/// # ESI Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationStructure {
+    /// ID of the corporation that owns the structures
+    pub corporation_id: i64,
+    /// Timestamp when the structure will run out of fuel
+    pub fuel_expires: Option<DateTime<Utc>>,
+    /// Name of the structure
+    pub name: Option<String>,
+    /// The timestamp of when the structure's newly set reinforcement period will take effect
+    pub next_reinforce_apply: Option<DateTime<Utc>>,
+    /// The reinforcement hour once the new reinforcement period takes effect
+    pub next_reinforce_hour: Option<i64>,
+    /// The ID of the ACL profile for the structure
+    pub profile_id: i64,
+    /// The current reinforce hour of the structure that determines when the structure will exit
+    /// reinforcement and become vulnerable to attack for an armor or hull timer.
+    pub reinforce_hour: Option<i64>,
+    /// A list of entries for structure services
+    #[serde(default)]
+    pub services: Vec<CorporationStructureService>,
+    /// An enum representing the current state of the structure
+    pub state: CorporationStructureState,
+    /// The timestamp when the structure will move to its next state
+    pub state_timer_end: Option<DateTime<Utc>>,
+    /// The timestamp when the structure entered its current state
+    pub state_timer_start: Option<DateTime<Utc>>,
+    /// The unique ID of the structure
+    pub structure_id: i64,
+    /// The ID of the system where the structure is located
+    pub system_id: i64,
+    /// The type ID of the structure
+    pub type_id: i64,
+    /// The timestamp when the structure will unanchor
+    pub unanchors_at: Option<DateTime<Utc>>,
 }
