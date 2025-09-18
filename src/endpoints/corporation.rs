@@ -626,7 +626,7 @@ impl<'a> CorporationApi<'a> {
     }
 
     define_endpoint! {
-        /// Retrieves details for a starbase (POS) for the provided starbase_id & corporation_id
+        /// Retrieves details for a starbase (POS) for the provided starbase ID & corporation ID
         ///
         /// Additional permissions required: the owner of the access token must hold the `Director` role within
         /// the corporation to access this information.
