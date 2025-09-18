@@ -35,6 +35,7 @@ impl ScopeBuilder {
     /// Builds a [`ScopeBuilder`] into a `Vec<`[`String`]`>` containing all scopes
     pub fn all() -> Vec<String> {
         ScopeBuilder::new()
+            .public_data()
             .character(CharacterScopes::all())
             .corporation(CorporationScopes::all())
             .wallet(WalletScopes::all())
