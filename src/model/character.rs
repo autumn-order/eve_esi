@@ -174,6 +174,24 @@ pub struct CharacterNotification {
     pub r#type: NotificationType,
 }
 
+/// Notification when character has been added to someone's contact list
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsContactsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterNewContactNotification {
+    /// The message content of the notification
+    pub message: String,
+    /// The unique ID of the notification
+    pub notification_id: i64,
+    /// The timestamp when the notification was sent
+    pub send_date: DateTime<Utc>,
+    /// The character ID of the notification sender
+    pub sender_character_id: i64,
+    /// Number representing contact standing level with the sender
+    pub standing_level: f64,
+}
+
 /// A character's portrait URLs with various dimensions
 ///
 /// # Documentation
