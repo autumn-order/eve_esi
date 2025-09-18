@@ -59,8 +59,8 @@ pub struct Corporation {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdAlliancehistoryGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationAllianceHistory {
-    /// The ID of the alliance
-    pub alliance_id: i64,
+    /// The ID of the alliance if applicable
+    pub alliance_id: Option<i64>,
     /// Bool indicating whether or not the alliance has been closed
     #[serde(default)]
     pub is_deleted: bool,
@@ -142,6 +142,10 @@ pub struct CorporationFacilities {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdIconsGet>
+///
+/// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
+/// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
+/// GitHub repository. Fields will be set as not optional for the time being.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationIcon {
     /// URL of the 128x128 px variant of the corporation's logo
@@ -215,19 +219,19 @@ pub struct CorporationMemberTitles {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationMemberTracking {
     /// Corporation base ID which the character belongs to
-    pub base_id: i64,
+    pub base_id: Option<i64>,
     /// ID of the character who the tracking information belongs to
     pub character_id: i64,
     /// ID of the character's current location
-    pub location_id: i64,
+    pub location_id: Option<i64>,
     /// Last logoff date of the character
-    pub logoff_date: DateTime<Utc>,
+    pub logoff_date: Option<DateTime<Utc>>,
     /// Last logon date of the character
-    pub logon_date: DateTime<Utc>,
+    pub logon_date: Option<DateTime<Utc>>,
     /// Type ID of the ship the character is currently in
-    pub ship_type_id: i64,
+    pub ship_type_id: Option<i64>,
     /// The date when the member joined their current corporation
-    pub start_date: DateTime<Utc>,
+    pub start_date: Option<DateTime<Utc>>,
 }
 
 /// An entry for a corporation member's assigned roles
@@ -307,8 +311,8 @@ pub struct CorporationStarbase {
     pub reinforced_until: Option<DateTime<Utc>>,
     /// Unique ID of the starbase (POS)
     pub starbase_id: i64,
-    /// Enum representing the current state of the starbase (POS)
-    pub state: CorporationStarbaseState,
+    /// Enum representing the current state of the starbase (POS), None if unanchored.
+    pub state: Option<CorporationStarbaseState>,
     /// Optional ID of the solar system the starbase (POS) is located,
     /// will be None if POS is unanchored
     pub system_id: Option<i64>,

@@ -216,15 +216,15 @@ authenticated_endpoint_test! {
         .character(CharacterScopes::new().read_notifications())
         .build();
     mock_response = serde_json::json!([
-        {
-            "is_read": false,
-            "notification_id": 1,
-            "sender": 2114794365,
-            "sender_type": "character",
-            "text": "Notification text",
-            "timestamp": "2018-12-20T16:11:54Z",
-            "type": "AcceptedAlly"
-        }
+      {
+        "is_read": true,
+        "notification_id": 0,
+        "sender_id": 0,
+        "sender_type": "character",
+        "text": "string",
+        "timestamp": "2019-08-24T14:15:22Z",
+        "type": "AcceptedAlly"
+      }
     ]),
 }
 

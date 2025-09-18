@@ -157,18 +157,17 @@ pub struct CharacterMedal {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterNotification {
-    /// Character's jump fatigue expiry
-    // Field will not be present if notification has not been read, we'll default to false in that case
+    /// Whether or not the notification has been read
     #[serde(default)]
     pub is_read: bool,
     /// The unique ID of the notification
     pub notification_id: i64,
     /// ID of the sender if applicable (character, corporation, alliance, faction, other)
-    pub sender: Option<i64>,
+    pub sender_id: i64,
     /// The type of sender if applicable (character, corporation, alliance, faction, other)
     pub sender_type: Option<NotificationSenderType>,
     /// The text content of the notification
-    pub text: String,
+    pub text: Option<String>,
     /// The timestamp the notification was sent
     pub timestamp: DateTime<Utc>,
     /// The type of notification
@@ -178,7 +177,11 @@ pub struct CharacterNotification {
 /// A character's portrait URLs with various dimensions
 ///
 /// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdPortrait>
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdPortraitGet>
+///
+/// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
+/// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
+/// GitHub repository. Fields will be set as not optional for the time being.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterPortraits {
     /// Character's portrait URL in 64x64px
@@ -211,6 +214,10 @@ pub struct CharacterCorporationRole {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdTitlesGet>
+///
+/// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
+/// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
+/// GitHub repository. Fields will be set as not optional for the time being.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterCorporationTitle {
     /// The title content
