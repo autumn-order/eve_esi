@@ -18,6 +18,7 @@ use crate::model::corporation::{
     CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberRoles,
     CorporationMemberRolesHistory, CorporationMemberTitles, CorporationMemberTracking,
     CorporationSecureContainerLog, CorporationShareholder, CorporationStarbase,
+    CorporationStarbaseDetails,
 };
 use crate::model::universe::Standing;
 use crate::oauth2::scope::{CorporationScopes, WalletScopes};
@@ -605,7 +606,7 @@ impl<'a> CorporationApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Standing`]`>`: Paginated list of starbases (POSes) for the provided corporation ID
+        /// - `Vec<`[`CorporationStarbase`]`>`: Paginated list of starbases (POSes) for the provided corporation ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_starbases(
             access_token: &str,
@@ -614,6 +615,42 @@ impl<'a> CorporationApi<'a> {
         ) -> Result<Vec<CorporationStarbase>, Error>
         url = "{}/corporations/{}/starbases?page={}";
         label = "starbases (POSes)";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_starbases()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves details for a starbase (POS) for the provided starbase_id & corporation_id
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStarbasesStarbaseId>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_starbases`](crate::oauth2::scope::CorporationScopes::read_starbases):
+        ///   `esi-corporations.read_starbases.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to starbases (POSes) for
+        /// - `starbase_id`     (`i64`): The unique ID of the corporation owned starbase (POS) to retrieve
+        /// - `system_id`       (`i64`): The unique ID of the system the starbase (POS) is located in
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`CorporationStarbaseDetails`]: Details of the starbase for the provided starbase_id & corporation_id
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_starbase_detail(
+            access_token: &str,
+            corporation_id: i64,
+            starbase_id: i64,
+            system_id: i64
+        ) -> Result<CorporationStarbaseDetails, Error>
+        url = "{}/corporations/{}/starbases/{}?system_id={}";
+        label = "a starbase's (POS) details";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_starbases()).build();
     }
 }

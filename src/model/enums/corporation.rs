@@ -284,3 +284,23 @@ pub enum CorporationStarbaseState {
     #[serde(rename = "unanchoring")]
     Unanchoring,
 }
+
+/// The permission required to perform an action on a corporation owned starbase (POS)
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStarbasePermission {
+    /// Alliance members have permission
+    #[serde(rename = "alliance_member")]
+    AllianceMember,
+    /// Corporation members with `Config Starbase Equipment` role have permission
+    #[serde(rename = "config_starbase_equipment_role")]
+    ConfigStarbaseEquipmentRole,
+    /// Corporation members have permission
+    #[serde(rename = "corporation_member")]
+    CorporationMember,
+    /// Corporation members with `Starbase Fuel Technician` role have permission
+    #[serde(rename = "starbase_fuel_technician_role")]
+    StarbaseFuelTechnicianRole,
+}

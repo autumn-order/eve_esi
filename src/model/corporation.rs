@@ -12,7 +12,7 @@ use crate::model::enums::{
     character::CharacterMedalStatus,
     corporation::{
         CorporationRole, CorporationRoleType, CorporationSecureContainerAction,
-        CorporationStarbaseState, ShareholderType,
+        CorporationStarbasePermission, CorporationStarbaseState, ShareholderType,
     },
 };
 
@@ -316,4 +316,52 @@ pub struct CorporationStarbase {
     /// The time when the POS started unanchoring,
     /// only applicable if [`CorporationStarbase::state`] is [`CorporationStarbaseState::Unanchoring`]
     pub unanchor_at: Option<DateTime<Utc>>,
+}
+
+/// Entry on the fuel types stored within a corporation starbase (POS)
+///
+/// # ESI Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct StarbaseFuel {
+    /// The quantity of fuel stored in the starbase (POS)
+    pub quantity: i64,
+    /// The type ID of the fuel stored within the starbase (POS)
+    pub type_id: i64,
+}
+
+/// Information regarding a starbase's (POS) details owned by a corporation
+///
+/// # ESI Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationStarbaseDetails {
+    /// Allow alliance members to access POS
+    pub allow_alliance_members: bool,
+    /// Allow corporation members to access POS
+    pub allow_corporation_members: bool,
+    /// Enum indicating who has permission to anchor structures for POS
+    pub anchor: CorporationStarbasePermission,
+    /// Boolean indicating whether or not for POS to automatically attack pilots at war with owning corporation
+    pub attack_if_at_war: bool,
+    /// Boolean indicating whether or not for POS to automatically attack pilots with low sec status
+    pub attack_if_other_security_status_dropping: bool,
+    /// POS will attack pilots automatically if their security status is below threshold
+    pub attack_security_status_threshold: Option<f64>,
+    /// POS will attack pilots automatically if their standings are below threshold
+    pub attack_standing_threshold: Option<f64>,
+    /// Enum indicating who has permission to take from POS fuel bay
+    pub fuel_bay_take: CorporationStarbasePermission,
+    /// Enum indicating who has permission to view POS fuel bay
+    pub fuel_bay_view: CorporationStarbasePermission,
+    /// List of entries containing type_id of fuel and quantity stored within the POS
+    pub fuels: Vec<StarbaseFuel>,
+    /// Enum indicating who has permission to offline POS and its structures
+    pub offline: CorporationStarbasePermission,
+    /// Enum indicating who has permission to online POS and its structures
+    pub online: CorporationStarbasePermission,
+    /// Enum indicating who has permission to unachor POS and its structures
+    pub unanchor: CorporationStarbasePermission,
+    /// Boolean which if true will use alliance standings, otherwise using corporation's
+    pub use_alliance_standings: bool,
 }

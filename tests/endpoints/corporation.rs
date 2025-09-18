@@ -475,3 +475,42 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_starbase_detail,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let starbase_id = 1;
+        let system_id = 1;
+        esi_client
+            .corporation()
+            .get_starbase_detail(&access_token, corporation_id, starbase_id, system_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/starbases/1?system_id=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_starbases())
+        .build();
+    mock_response = serde_json::json!({
+      "allow_alliance_members": true,
+      "allow_corporation_members": true,
+      "anchor": "alliance_member",
+      "attack_if_at_war": true,
+      "attack_if_other_security_status_dropping": true,
+      "attack_security_status_threshold": 0,
+      "attack_standing_threshold": 0,
+      "fuel_bay_take": "alliance_member",
+      "fuel_bay_view": "alliance_member",
+      "fuels": [
+        {
+          "quantity": 0,
+          "type_id": 0
+        }
+      ],
+      "offline": "alliance_member",
+      "online": "alliance_member",
+      "unanchor": "alliance_member",
+      "use_alliance_standings": true
+    }),
+}
