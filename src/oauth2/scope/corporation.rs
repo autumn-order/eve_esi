@@ -43,8 +43,7 @@ impl CorporationScopes {
 
     /// Create a new instance of [`CorporationScopes`] with all scopes applied
     pub fn all() -> Self {
-        let corporation_scopes = CorporationScopes { scopes: Vec::new() };
-        corporation_scopes
+        CorporationScopes::new()
             .read_blueprints()
             .read_container_logs()
             .read_divisions()

@@ -37,6 +37,20 @@ impl CharacterScopes {
         CharacterScopes { scopes: Vec::new() }
     }
 
+    /// Create a new instance of [`CharacterScopes`] with all scopes applied
+    pub fn all() -> Self {
+        CharacterScopes::new()
+            .read_agents_research()
+            .read_blueprints()
+            .read_contacts()
+            .read_fatigue()
+            .read_medals()
+            .read_notifications()
+            .read_corporation_roles()
+            .read_standings()
+            .read_titles()
+    }
+
     /// Adds the `esi-characters.read_agents_research.v1` scope
     pub fn read_agents_research(mut self) -> Self {
         self.scopes.push(READ_AGENTS_RESEARCH.to_string());

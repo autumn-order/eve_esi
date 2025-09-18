@@ -21,6 +21,11 @@ impl WalletScopes {
         WalletScopes { scopes: Vec::new() }
     }
 
+    /// Create a new instance of [`WalletScopes`] with all scopes applied
+    pub fn all() -> Self {
+        WalletScopes::new().read_corporation_wallets()
+    }
+
     /// Adds the `esi-wallet.read_corporation_wallets.v1` scope
     pub fn read_corporation_wallets(mut self) -> Self {
         self.scopes.push(READ_CORPORATION_WALLETS.to_string());

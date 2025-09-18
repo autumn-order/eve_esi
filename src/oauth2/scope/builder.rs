@@ -27,12 +27,21 @@ pub struct ScopeBuilder {
 }
 
 impl ScopeBuilder {
-    /// Creates a new [`ScopeBuilder`] instance.
+    /// Creates a new [`ScopeBuilder`] instance
     pub fn new() -> Self {
         ScopeBuilder { scopes: Vec::new() }
     }
 
-    /// Builds the list of scopes into a `Vec<`[`String`]`>`.
+    /// Builds a [`ScopeBuilder`] into a `Vec<`[`String`]`>` containing all scopes
+    pub fn all() -> Vec<String> {
+        ScopeBuilder::new()
+            .character(CharacterScopes::all())
+            .corporation(CorporationScopes::all())
+            .wallet(WalletScopes::all())
+            .build()
+    }
+
+    /// Builds a [`ScopeBuilder`] into a `Vec<`[`String`]`>` containing the configured scopes
     pub fn build(self) -> Vec<String> {
         self.scopes
     }
