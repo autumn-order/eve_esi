@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 use crate::model::enums::{
     asset::LocationFlag,
     character::CharacterMedalStatus,
-    corporation::{CorporationRole, CorporationRoleType, CorporationSecureContainerAction},
+    corporation::{
+        CorporationRole, CorporationRoleType, CorporationSecureContainerAction, ShareholderType,
+    },
 };
 
 /// Represents a corporation in EVE Online.
@@ -267,4 +269,18 @@ pub struct CorporationMemberRolesHistory {
     old_roles: Vec<CorporationRole>,
     /// The location of the roles
     role_type: CorporationRoleType,
+}
+
+/// An entry for a corporation shareholder
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdShareholdersGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationShareholder {
+    /// Amount of shares held by the shareholder
+    share_count: i64,
+    /// ID of the character or corporation who holds the shares
+    shareholder_id: i64,
+    /// Represents whether the shares are held by a character or corporation
+    shareholder_type: ShareholderType,
 }

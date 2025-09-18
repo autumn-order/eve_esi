@@ -1,6 +1,6 @@
 //! # EVE Online OAuth2 Corporation Scopes
 //!
-//! This module provides a type-safe way to add corporation-releated scopes for OAuth2 to the [`super::ScopeBuilder`]
+//! This module provides a type-safe way to add corporation-related scopes for OAuth2 to the [`super::ScopeBuilder`]
 //!
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
@@ -23,6 +23,7 @@ pub const TRACK_MEMBERS: &str = "esi-corporations.track_members.v1";
 pub const READ_TITLES: &str = "esi-corporations.read_titles.v1";
 /// Access to read roles & membership for a corporation
 pub const READ_CORPORATION_MEMBERSHIP: &str = "esi-corporations.read_corporation_membership.v1";
+/// Access to read wallet information for a corporation
 
 /// Struct with methods for listing corporation scopes to request for OAuth2
 pub struct CorporationScopes {

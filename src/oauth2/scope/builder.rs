@@ -12,7 +12,7 @@
 //!
 //! For an overview & usage, see the [module-level documentation](super).
 
-use crate::oauth2::scope::CorporationScopes;
+use crate::oauth2::scope::{CorporationScopes, WalletScopes};
 
 use super::character::CharacterScopes;
 
@@ -52,6 +52,12 @@ impl ScopeBuilder {
     /// Adds scopes from [`CorporationScopes`]
     pub fn corporation(mut self, corporation_scopes: CorporationScopes) -> Self {
         self.scopes.extend(corporation_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`WalletScopes`]
+    pub fn wallet(mut self, wallet_scopes: WalletScopes) -> Self {
+        self.scopes.extend(wallet_scopes.scopes);
         self
     }
 

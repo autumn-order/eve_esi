@@ -17,9 +17,9 @@ use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
     CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberRoles,
     CorporationMemberRolesHistory, CorporationMemberTitles, CorporationMemberTracking,
-    CorporationSecureContainerLog,
+    CorporationSecureContainerLog, CorporationShareholder,
 };
-use crate::oauth2::scope::CorporationScopes;
+use crate::oauth2::scope::{CorporationScopes, WalletScopes};
 use crate::{Client, ScopeBuilder};
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
@@ -515,5 +515,39 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/roles/history?page={}";
         label = "member roles";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a paginated list of shareholders for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdShareholders>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_corporation_wallets`](crate::oauth2::scope::CorporationScopes::read_corporation_wallets):
+        ///   `esi-corporations.read_corporation_wallets.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member roles history for
+        /// - `page`            (`i32`): The page of shareholders to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationShareholder`]`>`: Paginated list of shareholders for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_shareholders(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<CorporationShareholder>, Error>
+        url = "{}/corporations/{}/shareholders?page={}";
+        label = "shareholders";
+        required_scopes = ScopeBuilder::new().wallet(WalletScopes::new().read_corporation_wallets()).build();
     }
 }

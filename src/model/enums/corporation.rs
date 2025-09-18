@@ -247,3 +247,17 @@ pub enum CorporationSecureContainerAction {
     #[serde(rename = "unlock")]
     Unlock,
 }
+
+/// Indicates whether shares are held by a character or corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdShareholdersGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum ShareholderType {
+    /// Shares are held by a character
+    #[serde(rename = "character")]
+    Character,
+    /// Shares are held by a corporation
+    #[serde(rename = "corporation")]
+    Corporation,
+}

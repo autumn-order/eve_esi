@@ -1,6 +1,6 @@
 //! # EVE Online OAuth2 Character Scopes
 //!
-//! This module provides a type-safe way to add character releated scopes for OAuth2 to the [`super::ScopeBuilder`]
+//! This module provides a type-safe way to add character-related scopes for OAuth2 to the [`super::ScopeBuilder`]
 //!
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!

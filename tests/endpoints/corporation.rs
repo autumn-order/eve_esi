@@ -1,4 +1,4 @@
-use eve_esi::oauth2::scope::CorporationScopes;
+use eve_esi::oauth2::scope::{CorporationScopes, WalletScopes};
 use eve_esi::ScopeBuilder;
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
@@ -395,6 +395,30 @@ authenticated_endpoint_test! {
           "Account_Take_1"
         ],
         "role_type": "grantable_roles"
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_shareholders,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_shareholders(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/shareholders?page=1",
+    required_scopes = ScopeBuilder::new()
+        .wallet(WalletScopes::new().read_corporation_wallets())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "share_count": 0,
+        "shareholder_id": 0,
+        "shareholder_type": "character"
       }
     ]),
 }
