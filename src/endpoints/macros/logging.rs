@@ -27,7 +27,10 @@ macro_rules! endpoint_debug_log {
 macro_rules! endpoint_info_log {
     // Case with no parameters
     ($label:expr, $elapsed:expr) => {
-        info!(concat!("Fetching ", $label, " (took {}ms)"), $elapsed);
+        info!(
+            concat!("Successfully fetched ", $label, " (took {}ms)"),
+            $elapsed
+        );
     };
 
     // Case with parameters (at least one)
