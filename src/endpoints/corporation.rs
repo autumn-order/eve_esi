@@ -15,7 +15,7 @@ use crate::error::Error;
 use crate::model::asset::Blueprint;
 use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
-    CorporationIcon, CorporationSecureContainerLog,
+    CorporationIcon, CorporationMedal, CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -255,5 +255,36 @@ impl<'a> CorporationApi<'a> {
         ) -> Result<CorporationIcon, Error>
         url = "{}/corporations/{}/icons";
         label = "icons";
+    }
+
+    define_endpoint! {
+        /// Fetches a paginated list of medals for the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMedals>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_medals`](crate::oauth2::scope::CorporationScopes::read_medals):
+        ///   `esi-corporations.read_medals.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve medals for
+        /// - `page`            (`i32`): The page of medals to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationMedal`]`>`: List of corporation medal entries
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_medals(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<CorporationMedal>, Error>
+        url = "{}/corporations/{}/medals?page={}";
+        label = "medals";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_medals()).build();
     }
 }

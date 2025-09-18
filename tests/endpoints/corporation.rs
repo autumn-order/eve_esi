@@ -189,3 +189,29 @@ public_endpoint_test! {
         "px64x64": "ABCD"
     })
 }
+
+authenticated_endpoint_test! {
+    get_corporation_medals,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_medals(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/medals?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_medals())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "created_at": "2018-12-20T16:11:54Z",
+            "creator_id": 2114794365,
+            "description": "Medal description",
+            "medal_id": 1,
+            "title": "Medal name"
+        }
+    ]),
+}

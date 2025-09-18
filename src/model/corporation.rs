@@ -140,3 +140,21 @@ pub struct CorporationIcon {
     px256x256: String,
     px64x64: String,
 }
+
+/// An entry for a corporation medal
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMedalsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationMedal {
+    /// The timestamp of when the medal was created
+    created_at: DateTime<Utc>,
+    /// ID of the character who created the medal
+    creator_id: i64,
+    /// The description of the medal
+    description: String,
+    /// The unique ID of the medal
+    medal_id: i64,
+    /// The name of the medal
+    title: String,
+}
