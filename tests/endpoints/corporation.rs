@@ -148,3 +148,26 @@ authenticated_endpoint_test! {
         }]
     }),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_facilities,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_facilities(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/facilities",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_facilities())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "facility_id": 1,
+            "system_id": 1,
+            "type_id": 1
+        }
+    ]),
+}

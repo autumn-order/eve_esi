@@ -14,7 +14,8 @@
 use crate::error::Error;
 use crate::model::asset::Blueprint;
 use crate::model::corporation::{
-    Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationSecureContainerLog,
+    Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
+    CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -200,5 +201,37 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/divisions";
         label = "hangar & wallet divisions";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_divisions()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches a list of industry facilities for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Factory_Manager` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdFacilities>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_facilities`](crate::oauth2::scope::CorporationScopes::read_facilities):
+        ///   `esi-corporations.read_facilities.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve facilities for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationFacilities`]`>`: List of corporation industry facilities
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_facilities(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<Vec<CorporationFacilities>, Error>
+        url = "{}/corporations/{}/facilities";
+        label = "facilities";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_facilities()).build();
     }
 }

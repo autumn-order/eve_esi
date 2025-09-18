@@ -115,3 +115,17 @@ pub struct CorporationDivisions {
     /// List of wallet division entries
     pub wallet: Vec<CorporationDivisionEntry>,
 }
+
+/// Entry for corporation industry facilities
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationFacilities {
+    /// ID of the facility
+    pub facility_id: i64,
+    /// ID of the system where the facility is located
+    pub system_id: i64,
+    /// Type ID of the facility
+    pub type_id: i64,
+}
