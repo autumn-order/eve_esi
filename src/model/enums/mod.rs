@@ -12,3 +12,4 @@ pub mod asset;
 pub mod character;
 pub mod corporation;
 pub mod notification;
+pub mod universe;

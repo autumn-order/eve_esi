@@ -88,9 +88,10 @@ impl<'a> OAuth2Api<'a> {
     /// After successful usage of [Self::get_token], you can use these methods on the resulting token:
     ///
     /// - Access token: `token.access_token()`
+    /// // Refresh token will be None if no scopes were requested
     /// - Refresh token: `token.refresh_token()`
     ///
-    /// The access token expires after 15 minutes, you can use [Self::get_token_refresh]
+    /// The access token expires after 20 minutes, you can use [Self::get_token_refresh]
     /// to get a new token.
     ///
     /// # Arguments

@@ -7,6 +7,39 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Indicates the type & location of the corporation role
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdRolesHistoryGet>
+/// - <https://support.eveonline.com/hc/en-us/articles/203217712-Roles-Listing> (See location identifier setion)
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationRoleType {
+    /// Roles character is capable of granting corporation-wide
+    #[serde(rename = "grantable_roles")]
+    GrantableRoles,
+    /// Roles character is capable of granting at their assigned base
+    #[serde(rename = "grantable_roles_at_base")]
+    GrantableRolesAtBase,
+    /// Roles character is capable of granting at corporation HQ
+    #[serde(rename = "grantable_roles_at_hq")]
+    GrantableRolesAtHq,
+    /// Roles character is capable of granting at other locations
+    #[serde(rename = "grantable_roles_at_other")]
+    GrantableRolesAtOther,
+    /// Roles character holds corporation-wide
+    #[serde(rename = "roles")]
+    Roles,
+    /// Roles character holds at their assigned base
+    #[serde(rename = "roles_at_base")]
+    RolesAtBase,
+    /// Roles character holds at corporation HQ
+    #[serde(rename = "roles_at_hq")]
+    RolseAtHq,
+    /// Roles character holds at other locations
+    #[serde(rename = "roles_at_other")]
+    RolesAtOther,
+}
+
 /// Indicates the type of corporation role
 ///
 /// # Documentation
@@ -175,4 +208,163 @@ pub enum CorporationRole {
     /// Full access to corporation deliveries and ability to create market orders on behalf
     /// of the corporation.
     Trader,
+}
+
+/// Indicates the type of action on an audit log secure container log entry
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdContainersLogsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationSecureContainerAction {
+    /// Added item to container
+    #[serde(rename = "add")]
+    Add,
+    /// Assembled a container
+    #[serde(rename = "assemble")]
+    Assemble,
+    /// Configured a container
+    #[serde(rename = "configure")]
+    Configure,
+    /// Entered password for container
+    #[serde(rename = "enter_password")]
+    EnterPassword,
+    /// Locked container
+    #[serde(rename = "lock")]
+    Lock,
+    /// Moved container
+    #[serde(rename = "move")]
+    Move,
+    /// Repackaged container
+    #[serde(rename = "repackage")]
+    Repackage,
+    /// Set name for container
+    #[serde(rename = "set_name")]
+    SetName,
+    /// Set password for container
+    #[serde(rename = "set_password")]
+    SetPassword,
+    /// Unlocked container
+    #[serde(rename = "unlock")]
+    Unlock,
+}
+
+/// Indicates whether shares are held by a character or corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdShareholdersGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum ShareholderType {
+    /// Shares are held by a character
+    #[serde(rename = "character")]
+    Character,
+    /// Shares are held by a corporation
+    #[serde(rename = "corporation")]
+    Corporation,
+}
+
+/// Indicates the current state of a corporation starbase (POS)
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStarbaseState {
+    /// The starbase (POS) is offline
+    #[serde(rename = "offline")]
+    Offline,
+    /// The starbase (POS) is online
+    #[serde(rename = "online")]
+    Online,
+    /// The starbase (POS) is onlining
+    #[serde(rename = "onlining")]
+    Onlining,
+    /// The starbase (POS) is reinforced
+    #[serde(rename = "reinforced")]
+    Reinforced,
+    /// The starbase (POS) is unanchoring
+    #[serde(rename = "unanchoring")]
+    Unanchoring,
+}
+
+/// The permission required to perform an action on a corporation owned starbase (POS)
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStarbasePermission {
+    /// Alliance members have permission
+    #[serde(rename = "alliance_member")]
+    AllianceMember,
+    /// Corporation members with `Config Starbase Equipment` role have permission
+    #[serde(rename = "config_starbase_equipment_role")]
+    ConfigStarbaseEquipmentRole,
+    /// Corporation members have permission
+    #[serde(rename = "corporation_member")]
+    CorporationMember,
+    /// Corporation members with `Starbase Fuel Technician` role have permission
+    #[serde(rename = "starbase_fuel_technician_role")]
+    StarbaseFuelTechnicianRole,
+}
+
+/// The possible states of a corporation's Upwell structure's service module
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStructureServiceState {
+    /// Structure service is currently online
+    #[serde(rename = "online")]
+    Online,
+    /// Structure service is currently offline
+    #[serde(rename = "offline")]
+    Offline,
+    /// ???
+    #[serde(rename = "cleanup")]
+    Cleanup,
+}
+
+/// The possible states of a corporation's Upwell structure
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationStructureState {
+    /// Structure finished anchoring but has not yet had quantum core installed and is currently vulnerable
+    #[serde(rename = "anchor_vulnerable")]
+    AnchorVulnerable,
+    /// Structure is currently anchoring
+    #[serde(rename = "anchoring")]
+    Anchoring,
+    /// Structure's shield has depleted and armor timer is upcoming
+    #[serde(rename = "armor_reinforce")]
+    ArmorReinforce,
+    /// Structure's armor timer has elapsed and armor is now vulnerable
+    #[serde(rename = "armor_vulnerable")]
+    ArmorVulnerable,
+    /// Structure has started anchoring and is currently vulnerable
+    #[serde(rename = "deploy_vulnerable")]
+    DeployVulnerable,
+    /// ???
+    #[serde(rename = "fitting_invulnerable")]
+    FittingInvulnerable,
+    /// Structure's armor has depleted and hull timer is upcoming
+    #[serde(rename = "hull_reinforce")]
+    HullReinforce,
+    /// Structure's hull timer has elapsed and hull is now vulnerable
+    #[serde(rename = "hull_vulnerable")]
+    HullVulnerable,
+    /// Deprecated online state before structures were set to be always vulnerable
+    #[serde(rename = "online_deprecated")]
+    OnlineDeprecated,
+    /// Structure is currently onlining after having quantum core installed
+    #[serde(rename = "onlining_vulnerable")]
+    OnliningVulnerable,
+    /// Structure shield is vulnerable to attack (default state)
+    #[serde(rename = "shield_vulnerable")]
+    ShieldVulnerable,
+    /// Structure has been unanchored
+    #[serde(rename = "unanchored")]
+    Unanchored,
+    /// ???
+    #[serde(rename = "unknown")]
+    Unknown,
 }

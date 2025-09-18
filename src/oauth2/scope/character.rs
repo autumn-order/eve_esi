@@ -1,6 +1,6 @@
 //! # EVE Online OAuth2 Character Scopes
 //!
-//! This module provides a type-safe way to add character releated scopes for OAuth2 to the [`super::ScopeBuilder`]
+//! This module provides a type-safe way to add character-related scopes for OAuth2 to the [`super::ScopeBuilder`]
 //!
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
@@ -35,6 +35,20 @@ impl CharacterScopes {
     /// Create a new instance of [`CharacterScopes`]
     pub fn new() -> Self {
         CharacterScopes { scopes: Vec::new() }
+    }
+
+    /// Create a new instance of [`CharacterScopes`] with all scopes applied
+    pub fn all() -> Self {
+        CharacterScopes::new()
+            .read_agents_research()
+            .read_blueprints()
+            .read_contacts()
+            .read_fatigue()
+            .read_medals()
+            .read_notifications()
+            .read_corporation_roles()
+            .read_standings()
+            .read_titles()
     }
 
     /// Adds the `esi-characters.read_agents_research.v1` scope

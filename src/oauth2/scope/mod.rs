@@ -35,7 +35,11 @@
 pub mod builder;
 
 pub mod character;
+pub mod corporation;
+pub mod wallet;
 
 pub use builder::ScopeBuilder;
 
 pub use character::CharacterScopes;
+pub use corporation::CorporationScopes;
+pub use wallet::WalletScopes;

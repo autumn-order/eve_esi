@@ -14,13 +14,16 @@
 //! - [`CharacterApi::get_agents_research`]: Retrieves character's research agents using the character's ID
 
 use crate::error::Error;
+use crate::model::universe::Standing;
 use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
+use crate::model::asset::Blueprint;
 use crate::model::character::{
-    Blueprint, Character, CharacterAffiliation, CharacterCorporationHistory,
-    CharacterCorporationRole, CharacterCorporationTitle, CharacterJumpFatigue, CharacterMedal,
-    CharacterNotification, CharacterPortraits, CharacterResearchAgent, CharacterStanding,
+    Character, CharacterAffiliation, CharacterCorporationHistory, CharacterCorporationRole,
+    CharacterCorporationTitle, CharacterJumpFatigue, CharacterMedal,
+    CharacterNewContactNotification, CharacterNotification, CharacterPortraits,
+    CharacterResearchAgent,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -131,7 +134,7 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
+        /// - `character_id` (`i64`): The ID of the character to retrieve blueprints for
         /// - `page`         (`i32`): The page of blueprints to retrieve, page numbers start at `1`
         ///
         /// # Returns
@@ -289,6 +292,36 @@ impl<'a> CharacterApi<'a> {
     }
 
     define_endpoint! {
+        /// Retrieves a list of character's notifications about being added to someone's contact list
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdNotificationsContacts>
+        ///
+        /// # Required Scopes
+        /// - [`CharacterScopes::read_notifications`](crate::oauth2::scope::CharacterScopes::read_notifications):
+        ///   `esi-characters.read_notifications.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve added as contact notifications
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterNewContactNotification`]`>`: A list of character's notifications about being added to
+        ///   someone's contact list
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_new_contact_notifications(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterNewContactNotification>, Error>
+        url = "{}/characters/{}/notifications/contacts";
+        label = "new contact notifications";
+        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_notifications()).build();
+    }
+
+    define_endpoint! {
         /// Retrieves the image URLs of a chacter's portraits with various dimensions
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -339,7 +372,7 @@ impl<'a> CharacterApi<'a> {
     }
 
     define_endpoint! {
-        /// Retrieves a list of the provided character ID's standings
+        /// Retrieves a paginated list of NPC standing entries for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -355,14 +388,14 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterStanding`]`>`: List of entries for the provided character ID's standings
+        /// - `Vec<`[`Standing`]`>`: Paginated list of NPC standing entries for the provided character ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_standings(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterStanding>, Error>
+        ) -> Result<Vec<Standing>, Error>
         url = "{}/characters/{}/standings";
-        label = "standings";
+        label = "NPC standings";
         required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_standings()).build();
     }
 

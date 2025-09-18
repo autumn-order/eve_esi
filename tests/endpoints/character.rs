@@ -29,6 +29,33 @@ public_endpoint_test! {
     })
 }
 
+public_endpoint_test! {
+    character_affiliation,
+    |esi_client: eve_esi::Client | async move {
+        let character_ids = vec![2114794365, 2117053828];
+        esi_client
+            .character()
+            .character_affiliation(character_ids)
+            .await
+    },
+    request_type = "POST",
+    url = "/characters/affiliation",
+    mock_response = serde_json::json!([
+        {
+            "character_id": 2114794365,
+            "corporation_id": 98785281,
+            "alliance_id": 99013534,
+            "faction_id": null,
+        },
+        {
+            "character_id": 2117053828,
+            "corporation_id": 98785281,
+            "alliance_id": 99013534,
+            "faction_id": null,
+        },
+    ])
+}
+
 authenticated_endpoint_test! {
     get_agents_research,
     |esi_client: eve_esi::Client, access_token: String | async move {
@@ -80,29 +107,22 @@ authenticated_endpoint_test! {
 }
 
 public_endpoint_test! {
-    get_character_corporation_history,
+    get_corporation_history,
     |esi_client: eve_esi::Client | async move {
-        let character_ids = vec![2114794365, 2117053828];
+        let character_id = 2114794365;
         esi_client
             .character()
-            .character_affiliation(character_ids)
+            .get_corporation_history(character_id)
             .await
     },
-    request_type = "POST",
-    url = "/characters/affiliation",
+    request_type = "GET",
+    url = "/characters/2114794365/corporationhistory",
     mock_response = serde_json::json!([
         {
-            "character_id": 2114794365,
-            "corporation_id": 98785281,
-            "alliance_id": 99013534,
-            "faction_id": null,
-        },
-        {
-            "character_id": 2117053828,
-            "corporation_id": 98785281,
-            "alliance_id": 99013534,
-            "faction_id": null,
-        },
+            "corporation_id": 1,
+            "record_id": 1,
+            "start_date": "2018-12-20T16:11:54Z"
+        }
     ])
 }
 
@@ -196,15 +216,40 @@ authenticated_endpoint_test! {
         .character(CharacterScopes::new().read_notifications())
         .build();
     mock_response = serde_json::json!([
-        {
-            "is_read": false,
-            "notification_id": 1,
-            "sender": 2114794365,
-            "sender_type": "character",
-            "text": "Notification text",
-            "timestamp": "2018-12-20T16:11:54Z",
-            "type": "AcceptedAlly"
-        }
+      {
+        "is_read": true,
+        "notification_id": 0,
+        "sender_id": 0,
+        "sender_type": "character",
+        "text": "string",
+        "timestamp": "2019-08-24T14:15:22Z",
+        "type": "AcceptedAlly"
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_new_contact_notifications,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .character()
+            .get_new_contact_notifications(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/notifications/contacts",
+    required_scopes = ScopeBuilder::new()
+        .character(CharacterScopes::new().read_notifications())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "message": "string",
+        "notification_id": 0,
+        "send_date": "2019-08-24T14:15:22Z",
+        "sender_character_id": 0,
+        "standing_level": 0
+      }
     ]),
 }
 

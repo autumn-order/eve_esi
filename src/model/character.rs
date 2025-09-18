@@ -9,8 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::model::enums::{
-    asset::LocationFlag,
-    character::{CharacterMedalStatus, CharacterStandingType},
+    character::CharacterMedalStatus,
     corporation::CorporationRole,
     notification::{NotificationSenderType, NotificationType},
 };
@@ -79,33 +78,6 @@ pub struct CharacterResearchAgent {
     pub started_at: DateTime<Utc>,
 }
 
-/// Information regarding a character's blueprints
-///
-/// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdBlueprintsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Blueprint {
-    /// Unique ID for the item
-    pub item_id: i64,
-    /// Type of the location_id
-    pub location_flag: LocationFlag,
-    /// References a station, ship, or an item_id if the blueprint is within a container. If the return
-    /// value is an item_id then the [Character AssetList API](https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdAssets)
-    /// must be queried to find the container using the given item_id to determine the correct location of the blueprint.
-    pub location_id: i64,
-    /// Material efficiency level of the blueprint
-    pub material_efficiency: i64,
-    /// A range of numbers with a minimum of -2 and no maximum value where -1 is an original and -2 is a copy.
-    /// It can be a positive integer if it is a stack of blueprint originals fresh from the market (e.g. no activities performed on them yet).
-    pub quantity: i64,
-    /// Number of runs remaining if the blueprint is a copy, -1 if it is an original.
-    pub runs: i64,
-    /// Time Efficiency Level of the blueprint.
-    pub time_efficiency: i64,
-    /// Represents the type of blueprint
-    pub type_id: i64,
-}
-
 /// Represents a character's corporation history
 ///
 /// # Documentation
@@ -115,7 +87,6 @@ pub struct CharacterCorporationHistory {
     /// The ID of the corporation
     pub corporation_id: i64,
     /// Bool indicating whether or not corporation has been deleted
-    // Field will not be present if character has not been deleted, we'll default to false in that case
     #[serde(default)]
     pub is_deleted: bool,
     /// An incrementing ID representing the order of the corporation in the history
@@ -186,28 +157,49 @@ pub struct CharacterMedal {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterNotification {
-    /// Character's jump fatigue expiry
-    // Field will not be present if notification has not been read, we'll default to false in that case
+    /// Whether or not the notification has been read
     #[serde(default)]
     pub is_read: bool,
     /// The unique ID of the notification
     pub notification_id: i64,
     /// ID of the sender if applicable (character, corporation, alliance, faction, other)
-    pub sender: Option<i64>,
+    pub sender_id: i64,
     /// The type of sender if applicable (character, corporation, alliance, faction, other)
     pub sender_type: Option<NotificationSenderType>,
     /// The text content of the notification
-    pub text: String,
+    pub text: Option<String>,
     /// The timestamp the notification was sent
     pub timestamp: DateTime<Utc>,
     /// The type of notification
     pub r#type: NotificationType,
 }
 
+/// Notification when character has been added to someone's contact list
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsContactsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CharacterNewContactNotification {
+    /// The message content of the notification
+    pub message: String,
+    /// The unique ID of the notification
+    pub notification_id: i64,
+    /// The timestamp when the notification was sent
+    pub send_date: DateTime<Utc>,
+    /// The character ID of the notification sender
+    pub sender_character_id: i64,
+    /// Number representing contact standing level with the sender
+    pub standing_level: f64,
+}
+
 /// A character's portrait URLs with various dimensions
 ///
 /// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdPortrait>
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdPortraitGet>
+///
+/// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
+/// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
+/// GitHub repository. Fields will be set as not optional for the time being.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterPortraits {
     /// Character's portrait URL in 64x64px
@@ -236,24 +228,14 @@ pub struct CharacterCorporationRole {
     pub roles_at_other: Vec<CorporationRole>,
 }
 
-/// A character's standings with either an agent, NPC corp, or faction
-///
-/// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct CharacterStanding {
-    /// The ID of the entity the standing is with
-    pub from_id: i64,
-    /// The type of entity the standing entry is with (Agent, NpcCorp, or Faction)
-    pub from_type: CharacterStandingType,
-    /// The character's standing with the listed entity
-    pub standing: f64,
-}
-
 /// An entry for a character's corporation titles
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdTitlesGet>
+///
+/// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
+/// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
+/// GitHub repository. Fields will be set as not optional for the time being.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterCorporationTitle {
     /// The title content

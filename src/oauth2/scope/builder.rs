@@ -12,6 +12,8 @@
 //!
 //! For an overview & usage, see the [module-level documentation](super).
 
+use crate::oauth2::scope::{CorporationScopes, WalletScopes};
+
 use super::character::CharacterScopes;
 
 /// `publicData` scope
@@ -25,12 +27,22 @@ pub struct ScopeBuilder {
 }
 
 impl ScopeBuilder {
-    /// Creates a new [`ScopeBuilder`] instance.
+    /// Creates a new [`ScopeBuilder`] instance
     pub fn new() -> Self {
         ScopeBuilder { scopes: Vec::new() }
     }
 
-    /// Builds the list of scopes into a `Vec<`[`String`]`>`.
+    /// Builds a [`ScopeBuilder`] into a `Vec<`[`String`]`>` containing all scopes
+    pub fn all() -> Vec<String> {
+        ScopeBuilder::new()
+            .public_data()
+            .character(CharacterScopes::all())
+            .corporation(CorporationScopes::all())
+            .wallet(WalletScopes::all())
+            .build()
+    }
+
+    /// Builds a [`ScopeBuilder`] into a `Vec<`[`String`]`>` containing the configured scopes
     pub fn build(self) -> Vec<String> {
         self.scopes
     }
@@ -44,6 +56,18 @@ impl ScopeBuilder {
     /// Adds scopes from [`CharacterScopes`]
     pub fn character(mut self, character_scopes: CharacterScopes) -> Self {
         self.scopes.extend(character_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`CorporationScopes`]
+    pub fn corporation(mut self, corporation_scopes: CorporationScopes) -> Self {
+        self.scopes.extend(corporation_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`WalletScopes`]
+    pub fn wallet(mut self, wallet_scopes: WalletScopes) -> Self {
+        self.scopes.extend(wallet_scopes.scopes);
         self
     }
 

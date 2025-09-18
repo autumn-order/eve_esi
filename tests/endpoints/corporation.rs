@@ -1,4 +1,21 @@
+use eve_esi::oauth2::scope::{CorporationScopes, WalletScopes};
+use eve_esi::ScopeBuilder;
+
+use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 use crate::util::integration_test_setup;
+
+public_endpoint_test! {
+    get_npc_corporations,
+    |esi_client: eve_esi::Client | async move {
+        esi_client
+            .corporation()
+            .get_npc_corporations()
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/npccorps",
+    mock_response = serde_json::json!([98785281])
+}
 
 public_endpoint_test! {
     get_corporation,
@@ -27,4 +44,561 @@ public_endpoint_test! {
         "war_eligible": true,
         "faction_id": null,
     })
+}
+
+public_endpoint_test! {
+    get_alliance_history,
+    |esi_client: eve_esi::Client | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_alliance_history(corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/alliancehistory",
+    mock_response = serde_json::json!([
+        {
+            "alliance_id": 1,
+            "record_id": 1,
+            "start_date": "2018-12-20T16:11:54Z"
+        }
+    ])
+}
+
+authenticated_endpoint_test! {
+    get_corporation_blueprints,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_blueprints(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/blueprints?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_blueprints())
+        .build();
+    mock_response = serde_json::json!([{
+        "item_id": 0,
+        "location_flag": "Hangar",
+        "location_id": 0,
+        "material_efficiency": 0,
+        "quantity": -1,
+        "runs": -1,
+        "time_efficiency": 0,
+        "type_id": 0
+    }]),
+}
+
+authenticated_endpoint_test! {
+    get_all_corporation_alsc_logs,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_all_corporation_alsc_logs(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/containers/logs?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_container_logs())
+        .build();
+    mock_response = serde_json::json!([{
+        "action": "enter_password",
+        "character_id": 2114794365,
+        "container_id": 1,
+        "container_type_id": 1,
+        "location_flag": "Hangar",
+        "location_id": 1,
+        "logged_at": "2018-12-20T16:11:54Z",
+        "new_config_bitmask": 1,
+        "old_config_bitmask": 1,
+        "quantity": 1,
+        "type_id": 1
+    }]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_divisions,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_divisions(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/divisions",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_divisions())
+        .build();
+    mock_response = serde_json::json!({
+        "hangar": [{
+            "division": 1,
+            "name": "Hangar 1"
+        }],
+        "wallet": [{
+            "division": 1,
+            "name": "Master wallet"
+        }]
+    }),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_facilities,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_facilities(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/facilities",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_facilities())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "facility_id": 1,
+            "system_id": 1,
+            "type_id": 1
+        }
+    ]),
+}
+
+public_endpoint_test! {
+    get_corporation_icon,
+    |esi_client: eve_esi::Client | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_icon(corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/icons",
+    mock_response = serde_json::json!({
+        "px128x128": "ABCD",
+        "px256x256": "ABCD",
+        "px64x64": "ABCD"
+    })
+}
+
+authenticated_endpoint_test! {
+    get_corporation_medals,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_medals(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/medals?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_medals())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "created_at": "2018-12-20T16:11:54Z",
+            "creator_id": 2114794365,
+            "description": "Medal description",
+            "medal_id": 1,
+            "title": "Medal name"
+        }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_issued_medals,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_issued_medals(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/medals/issued?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_medals())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "character_id": 2114794365,
+            "issued_at": "2018-12-20T16:11:54Z",
+            "issuer_id": 2114794365,
+            "medal_id": 1,
+            "reason": "Reason medal was issued",
+            "status": "public"
+        }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_members,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_members(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/members",
+    required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
+    mock_response = serde_json::json!([2114794365, 2117053828]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_member_limit,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_member_limit(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/members/limit",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().track_members())
+        .build();
+    mock_response = serde_json::json!(20),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_member_titles,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_members_titles(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/members/titles",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_titles())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "character_id": 2114794365,
+            "titles": [1, 2, 3, 4, 5]
+        }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    track_corporation_members,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .track_corporation_members(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/membertracking",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().track_members())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "base_id": 1,
+            "character_id": 2114794365,
+            "location_id": 1,
+            "logoff_date": "2018-12-20T16:11:54Z",
+            "logon_date": "2018-12-20T16:11:54Z",
+            "ship_type_id": 1,
+            "start_date": "2018-12-20T16:11:54Z"
+        }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_member_roles,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_member_roles(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/roles",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_corporation_membership())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "character_id": 0,
+        "grantable_roles": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_base": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_hq": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_other": [
+          "Account_Take_1"
+        ],
+        "roles": [
+          "Account_Take_1"
+        ],
+        "roles_at_base": [
+          "Account_Take_1"
+        ],
+        "roles_at_hq": [
+          "Account_Take_1"
+        ],
+        "roles_at_other": [
+          "Account_Take_1"
+        ]
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_member_roles_history,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_member_roles_history(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/roles/history?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_corporation_membership())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "changed_at": "2019-08-24T14:15:22Z",
+        "character_id": 0,
+        "issuer_id": 0,
+        "new_roles": [
+          "Account_Take_1"
+        ],
+        "old_roles": [
+          "Account_Take_1"
+        ],
+        "role_type": "grantable_roles"
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_shareholders,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_shareholders(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/shareholders?page=1",
+    required_scopes = ScopeBuilder::new()
+        .wallet(WalletScopes::new().read_corporation_wallets())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "share_count": 0,
+        "shareholder_id": 0,
+        "shareholder_type": "character"
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_standings,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_standings(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/standings?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_standings())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "from_id": 0,
+        "from_type": "agent",
+        "standing": 0
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_starbases,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_starbases(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/starbases?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_starbases())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "moon_id": 0,
+        "onlined_since": "2019-08-24T14:15:22Z",
+        "reinforced_until": "2019-08-24T14:15:22Z",
+        "starbase_id": 0,
+        "state": "offline",
+        "system_id": 0,
+        "type_id": 0,
+        "unanchor_at": "2019-08-24T14:15:22Z"
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_starbase_detail,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let starbase_id = 1;
+        let system_id = 1;
+        esi_client
+            .corporation()
+            .get_starbase_detail(&access_token, corporation_id, starbase_id, system_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/starbases/1?system_id=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_starbases())
+        .build();
+    mock_response = serde_json::json!({
+      "allow_alliance_members": true,
+      "allow_corporation_members": true,
+      "anchor": "alliance_member",
+      "attack_if_at_war": true,
+      "attack_if_other_security_status_dropping": true,
+      "attack_security_status_threshold": 0,
+      "attack_standing_threshold": 0,
+      "fuel_bay_take": "alliance_member",
+      "fuel_bay_view": "alliance_member",
+      "fuels": [
+        {
+          "quantity": 0,
+          "type_id": 0
+        }
+      ],
+      "offline": "alliance_member",
+      "online": "alliance_member",
+      "unanchor": "alliance_member",
+      "use_alliance_standings": true
+    }),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_structures,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_structures(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/structures?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_structures())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "corporation_id": 0,
+        "fuel_expires": "2019-08-24T14:15:22Z",
+        "name": "string",
+        "next_reinforce_apply": "2019-08-24T14:15:22Z",
+        "next_reinforce_hour": 0,
+        "profile_id": 0,
+        "reinforce_hour": 0,
+        "services": [
+          {
+              "name": "service name",
+              "state": "online"
+          }
+        ],
+        "state": "anchor_vulnerable",
+        "state_timer_end": "2019-08-24T14:15:22Z",
+        "state_timer_start": "2019-08-24T14:15:22Z",
+        "structure_id": 0,
+        "system_id": 0,
+        "type_id": 0,
+        "unanchors_at": "2019-08-24T14:15:22Z"
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_titles,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_titles(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/titles",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_titles())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "grantable_roles": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_base": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_hq": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_other": [
+          "Account_Take_1"
+        ],
+        "name": "string",
+        "roles": [
+          "Account_Take_1"
+        ],
+        "roles_at_base": [
+          "Account_Take_1"
+        ],
+        "roles_at_hq": [
+          "Account_Take_1"
+        ],
+        "roles_at_other": [
+          "Account_Take_1"
+        ],
+        "title_id": 0
+      }
+    ]),
 }
