@@ -15,8 +15,8 @@ use crate::error::Error;
 use crate::model::asset::Blueprint;
 use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
-    CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberTitles,
-    CorporationMemberTracking, CorporationSecureContainerLog,
+    CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberRoles,
+    CorporationMemberTitles, CorporationMemberTracking, CorporationSecureContainerLog,
 };
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
@@ -446,5 +446,38 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/membertracking";
         label = "member tracking";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().track_members()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches a list of roles for each character part of the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Personnel Manager` role within
+        /// the corporation or any other grantable role to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdRoles>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_corporation_membership`](crate::oauth2::scope::CorporationScopes::read_corporation_membership):
+        ///   `esi-corporations.read_corporation_membership.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member tracking for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationMemberRoles`]`>`: List of roles for each character part of the provided
+        ///   corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_member_roles(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<Vec<CorporationMemberRoles>, Error>
+        url = "{}/corporations/{}/roles";
+        label = "member roles";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
     }
 }

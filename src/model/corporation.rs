@@ -8,8 +8,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::model::enums::{
-    asset::LocationFlag, character::CharacterMedalStatus,
-    corporation::CorporationSecureContainerAction,
+    asset::LocationFlag,
+    character::CharacterMedalStatus,
+    corporation::{CorporationRole, CorporationSecureContainerAction},
 };
 
 /// Represents a corporation in EVE Online.
@@ -220,4 +221,30 @@ pub struct CorporationMemberTracking {
     ship_type_id: i64,
     /// The date when the member joined their current corporation
     start_date: DateTime<Utc>,
+}
+
+/// An entry for a corporation member's assigned roles
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdRolesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationMemberRoles {
+    /// ID of character who the roles belong to
+    character_id: i64,
+    /// Roles character is capable of granting
+    grantable_roles: Vec<CorporationRole>,
+    /// Roles character is capable of granting at their assigned base
+    grantable_roles_at_base: Vec<CorporationRole>,
+    /// Roles character is capable of granting at corporation HQ
+    grantable_roles_at_hq: Vec<CorporationRole>,
+    /// Roles character is capable of granting at other locations
+    grantable_roles_at_other: Vec<CorporationRole>,
+    /// Roles character holds
+    roles: Vec<CorporationRole>,
+    /// Roles character holds at their assigned base
+    roles_at_base: Vec<CorporationRole>,
+    /// Roles character holds at corporation HQ
+    roles_at_hq: Vec<CorporationRole>,
+    /// Roles character holds at other locations
+    roles_at_other: Vec<CorporationRole>,
 }
