@@ -23,3 +23,4 @@ pub mod character;
 pub mod corporation;
 pub mod enums;
 pub mod oauth2;
+pub mod universe;

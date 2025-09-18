@@ -422,3 +422,27 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_standings,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_corporation_standings(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/standings?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_standings())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "from_id": 0,
+        "from_type": "agent",
+        "standing": 0
+      }
+    ]),
+}

@@ -14,6 +14,7 @@
 //! - [`CharacterApi::get_agents_research`]: Retrieves character's research agents using the character's ID
 
 use crate::error::Error;
+use crate::model::universe::Standing;
 use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
@@ -21,7 +22,7 @@ use crate::model::asset::Blueprint;
 use crate::model::character::{
     Character, CharacterAffiliation, CharacterCorporationHistory, CharacterCorporationRole,
     CharacterCorporationTitle, CharacterJumpFatigue, CharacterMedal, CharacterNotification,
-    CharacterPortraits, CharacterResearchAgent, CharacterStanding,
+    CharacterPortraits, CharacterResearchAgent,
 };
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
@@ -340,7 +341,7 @@ impl<'a> CharacterApi<'a> {
     }
 
     define_endpoint! {
-        /// Retrieves a list of the provided character ID's standings
+        /// Retrieves a paginated list of NPC standing entries for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -356,14 +357,14 @@ impl<'a> CharacterApi<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterStanding`]`>`: List of entries for the provided character ID's standings
+        /// - `Vec<`[`Standing`]`>`: Paginated list of NPC standing entries for the provided character ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_standings(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterStanding>, Error>
+        ) -> Result<Vec<Standing>, Error>
         url = "{}/characters/{}/standings";
-        label = "standings";
+        label = "NPC standings";
         required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_standings()).build();
     }
 

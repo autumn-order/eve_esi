@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::model::enums::{
-    character::{CharacterMedalStatus, CharacterStandingType},
+    character::CharacterMedalStatus,
     corporation::CorporationRole,
     notification::{NotificationSenderType, NotificationType},
 };
@@ -205,20 +205,6 @@ pub struct CharacterCorporationRole {
     pub roles_at_hq: Vec<CorporationRole>,
     /// Roles applicable at all other locations
     pub roles_at_other: Vec<CorporationRole>,
-}
-
-/// A character's standings with either an agent, NPC corp, or faction
-///
-/// # Documentation
-/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct CharacterStanding {
-    /// The ID of the entity the standing is with
-    pub from_id: i64,
-    /// The type of entity the standing entry is with (Agent, NpcCorp, or Faction)
-    pub from_type: CharacterStandingType,
-    /// The character's standing with the listed entity
-    pub standing: f64,
 }
 
 /// An entry for a character's corporation titles

@@ -19,6 +19,7 @@ use crate::model::corporation::{
     CorporationMemberRolesHistory, CorporationMemberTitles, CorporationMemberTracking,
     CorporationSecureContainerLog, CorporationShareholder,
 };
+use crate::model::universe::Standing;
 use crate::oauth2::scope::{CorporationScopes, WalletScopes};
 use crate::{Client, ScopeBuilder};
 
@@ -529,12 +530,12 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdShareholders>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_corporation_wallets`](crate::oauth2::scope::CorporationScopes::read_corporation_wallets):
-        ///   `esi-corporations.read_corporation_wallets.v1`
+        /// - [`WalletScopes::read_corporation_wallets`](crate::oauth2::scope::WalletScopes::read_corporation_wallets):
+        ///   `esi-wallet.read_corporation_wallets.v1`
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member roles history for
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve shareholders for
         /// - `page`            (`i32`): The page of shareholders to retrieve, page numbers start at `1`
         ///
         /// # Returns
@@ -549,5 +550,36 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/shareholders?page={}";
         label = "shareholders";
         required_scopes = ScopeBuilder::new().wallet(WalletScopes::new().read_corporation_wallets()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a paginated list of NPC standing entries for the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStandings>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_standings`](crate::oauth2::scope::WalletScopes::read_standings):
+        ///   `esi-corporations.read_standings.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve NPC standings for
+        /// - `page`            (`i32`): The page of corporation NPC standings to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`Standing`]`>`: Paginated list of NPC standing entries for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_standings(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<Standing>, Error>
+        url = "{}/corporations/{}/standings?page={}";
+        label = "NPC standings";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_standings()).build();
     }
 }
