@@ -273,3 +273,25 @@ authenticated_endpoint_test! {
         .build();
     mock_response = serde_json::json!(20),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_member_titles,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_members_titles(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/members/titles",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_titles())
+        .build();
+    mock_response = serde_json::json!([
+        {
+            "character_id": 2114794365,
+            "titles": [1, 2, 3, 4, 5]
+        }
+    ]),
+}

@@ -187,3 +187,15 @@ pub struct CorporationIssuedMedal {
     /// Whether the character's medal visibility is public or private
     status: CharacterMedalStatus,
 }
+
+/// An entry for a corporation member's titles
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMembersTitlesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationMemberTitles {
+    /// ID of the character who the titles belong to
+    character_id: i64,
+    /// List of title IDs belonging to the character
+    titles: Vec<i64>,
+}

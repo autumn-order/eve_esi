@@ -19,6 +19,8 @@ pub const READ_FACILITIES: &str = "esi-corporations.read_facilities.v1";
 pub const READ_MEDALS: &str = "esi-corporations.read_medals.v1";
 /// Access to member tracking-related information for a corporation
 pub const TRACK_MEMBERS: &str = "esi-corporations.track_members.v1";
+/// Access to retrieve information on a corporation's member titles
+pub const READ_TITLES: &str = "esi-corporations.read_titles.v1";
 
 /// Struct with methods for listing corporation scopes to request for OAuth2
 pub struct CorporationScopes {
@@ -64,6 +66,12 @@ impl CorporationScopes {
     /// Adds the `esi-corporations.track_members.v1` scope
     pub fn track_members(mut self) -> Self {
         self.scopes.push(TRACK_MEMBERS.to_string());
+        self
+    }
+
+    /// Adds the `esi-corporations.read_titles.v1` scope
+    pub fn read_titles(mut self) -> Self {
+        self.scopes.push(READ_TITLES.to_string());
         self
     }
 }
