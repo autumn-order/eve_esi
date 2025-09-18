@@ -13,7 +13,9 @@
 
 use crate::error::Error;
 use crate::model::asset::Blueprint;
-use crate::model::corporation::{Corporation, CorporationAllianceHistory};
+use crate::model::corporation::{
+    Corporation, CorporationAllianceHistory, CorporationSecureContainerLog,
+};
 use crate::oauth2::scope::CorporationScopes;
 use crate::{Client, ScopeBuilder};
 
@@ -107,7 +109,7 @@ impl<'a> CorporationApi<'a> {
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
         /// # ESI Documentation
-        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdAlliancehistory>
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdBlueprints>
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
@@ -126,5 +128,37 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/blueprints?page={}";
         label = "blueprints";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_blueprints()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches audit log secure container (ALSC) log entries for the provided corporation ID
+        ///
+        /// Contains log information for up to the past 7 days.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdContainersLogs>
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve ALSC logs for.
+        /// - `page`            (`i32`): The page of ALSC logs to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationSecureContainerLog`]`>`: List of ALSC log entries for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_all_corporation_alsc_logs(
+            access_token: &str,
+            corporation_id: i64,
+            page: i32
+        ) -> Result<Vec<CorporationSecureContainerLog>, Error>
+        url = "{}/corporations/{}/containers/logs?page={}";
+        label = "audit secure container log entries";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_container_logs()).build();
     }
 }

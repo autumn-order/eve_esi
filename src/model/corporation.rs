@@ -7,6 +7,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::model::enums::{asset::LocationFlag, corporation::CorporationSecureContainerAction};
+
 /// Represents a corporation in EVE Online.
 ///
 /// # Documentation
@@ -58,4 +60,34 @@ pub struct CorporationAllianceHistory {
     pub record_id: i64,
     /// The date of when the corporation joined the alliance
     pub start_date: DateTime<Utc>,
+}
+
+/// Log entry for an audit log secure container owned by a corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdAlliancehistoryGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationSecureContainerLog {
+    /// The action taken on the container
+    pub action: CorporationSecureContainerAction,
+    /// ID of the character who performed the action
+    pub character_id: i64,
+    /// ID of the container
+    pub container_id: i64,
+    /// Type ID of the container
+    pub container_type_id: i64,
+    /// Indicates the type of location for the container
+    pub location_flag: LocationFlag,
+    /// The ID of the container's location
+    pub location_id: i64,
+    /// Timestamp when this log was created
+    pub logged_at: DateTime<Utc>,
+    /// ???
+    pub new_config_bitmask: i64,
+    /// ???
+    pub old_config_bitmask: i64,
+    /// Quantity of item being acted upon
+    pub quantity: i64,
+    /// Type ID of the item being acted upon
+    pub type_id: i64,
 }

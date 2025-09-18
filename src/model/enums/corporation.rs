@@ -176,3 +176,41 @@ pub enum CorporationRole {
     /// of the corporation.
     Trader,
 }
+
+/// Indicates the type of action on an audit log secure container log entry
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdContainersLogsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CorporationSecureContainerAction {
+    /// Added item to container
+    #[serde(rename = "add")]
+    Add,
+    /// Assembled a container
+    #[serde(rename = "assemble")]
+    Assemble,
+    /// Configured a container
+    #[serde(rename = "configure")]
+    Configure,
+    /// Entered password for container
+    #[serde(rename = "enter_password")]
+    EnterPassword,
+    /// Locked container
+    #[serde(rename = "lock")]
+    Lock,
+    /// Moved container
+    #[serde(rename = "move")]
+    Move,
+    /// Repackaged container
+    #[serde(rename = "repackage")]
+    Repackage,
+    /// Set name for container
+    #[serde(rename = "set_name")]
+    SetName,
+    /// Set password for container
+    #[serde(rename = "set_password")]
+    SetPassword,
+    /// Unlocked container
+    #[serde(rename = "unlock")]
+    Unlock,
+}

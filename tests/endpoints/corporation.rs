@@ -92,3 +92,33 @@ authenticated_endpoint_test! {
         "type_id": 0
     }]),
 }
+
+authenticated_endpoint_test! {
+    get_all_corporation_alsc_logs,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        let page = 1;
+        esi_client
+            .corporation()
+            .get_all_corporation_alsc_logs(&access_token, corporation_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/containers/logs?page=1",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_container_logs())
+        .build();
+    mock_response = serde_json::json!([{
+        "action": "enter_password",
+        "character_id": 2114794365,
+        "container_id": 1,
+        "container_type_id": 1,
+        "location_flag": "Hangar",
+        "location_id": 1,
+        "logged_at": "2018-12-20T16:11:54Z",
+        "new_config_bitmask": 1,
+        "old_config_bitmask": 1,
+        "quantity": 1,
+        "type_id": 1
+    }]),
+}
