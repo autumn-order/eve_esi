@@ -555,3 +555,49 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_titles,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .corporation()
+            .get_corporation_titles(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/titles",
+    required_scopes = ScopeBuilder::new()
+        .corporation(CorporationScopes::new().read_titles())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "grantable_roles": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_base": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_hq": [
+          "Account_Take_1"
+        ],
+        "grantable_roles_at_other": [
+          "Account_Take_1"
+        ],
+        "name": "string",
+        "roles": [
+          "Account_Take_1"
+        ],
+        "roles_at_base": [
+          "Account_Take_1"
+        ],
+        "roles_at_hq": [
+          "Account_Take_1"
+        ],
+        "roles_at_other": [
+          "Account_Take_1"
+        ],
+        "title_id": 0
+      }
+    ]),
+}

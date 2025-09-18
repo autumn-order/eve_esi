@@ -18,7 +18,7 @@ use crate::model::corporation::{
     CorporationIcon, CorporationIssuedMedal, CorporationMedal, CorporationMemberRoles,
     CorporationMemberRolesHistory, CorporationMemberTitles, CorporationMemberTracking,
     CorporationSecureContainerLog, CorporationShareholder, CorporationStarbase,
-    CorporationStarbaseDetails, CorporationStructure,
+    CorporationStarbaseDetails, CorporationStructure, CorporationTitle,
 };
 use crate::model::universe::Standing;
 use crate::oauth2::scope::{CorporationScopes, WalletScopes};
@@ -686,5 +686,37 @@ impl<'a> CorporationApi<'a> {
         url = "{}/corporations/{}/structures?page={}";
         label = "structures";
         required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_structures()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of corporation titles and their respective roles for the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdTitles>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationScopes::read_titles`](crate::oauth2::scope::CorporationScopes::read_titles):
+        ///   `esi-corporations.read_titles.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation retrieve titles for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationTitle`]`>`: List of corporation titles and their respective roles
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_titles(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<Vec<CorporationTitle>, Error>
+        url = "{}/corporations/{}/titles";
+        label = "titles";
+        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_titles()).build();
     }
 }

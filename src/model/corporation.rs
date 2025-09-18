@@ -401,7 +401,6 @@ pub struct CorporationStructure {
     /// reinforcement and become vulnerable to attack for an armor or hull timer.
     pub reinforce_hour: Option<i64>,
     /// A list of entries for structure services
-    #[serde(default)]
     pub services: Vec<CorporationStructureService>,
     /// An enum representing the current state of the structure
     pub state: CorporationStructureState,
@@ -417,4 +416,32 @@ pub struct CorporationStructure {
     pub type_id: i64,
     /// The timestamp when the structure will unanchor
     pub unanchors_at: Option<DateTime<Utc>>,
+}
+
+/// An entry for a corporation's titles and its respective roles
+///
+/// # ESI Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdTitlesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationTitle {
+    /// Roles title is capable of granting corporation-wide
+    pub grantable_roles: Vec<CorporationRole>,
+    /// Roles title is capable of granting at their assigned base
+    pub grantable_roles_at_base: Vec<CorporationRole>,
+    /// Roles title is capable of granting at corporation HQ
+    pub grantable_roles_at_hq: Vec<CorporationRole>,
+    /// Roles title is capable of granting at other locations
+    pub grantable_roles_at_other: Vec<CorporationRole>,
+    /// Name of the title
+    pub name: String,
+    /// Roles title has corporation-wide
+    pub roles: Vec<CorporationRole>,
+    /// Roles title has at their assigned base
+    pub roles_at_base: Vec<CorporationRole>,
+    /// Roles title has at corporation HQ
+    pub roles_at_hq: Vec<CorporationRole>,
+    /// Roles title has at other locations
+    pub roles_at_other: Vec<CorporationRole>,
+    /// ID of the title
+    pub title_id: i64,
 }
