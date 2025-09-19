@@ -1,4 +1,4 @@
-//! Methods for OAuth2 authentication with EVE Online SSO
+//! # EVE ESI OAuth2
 //!
 //! This module provides methods for initiating and managing the EVE Online OAuth2 authentication process.
 //! It includes functionality for generating login URLs to initiate the authentication process, building scopes for authorization, and managing tokens.
@@ -6,50 +6,58 @@
 //! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or
 //! the endpoints used for EVE OAuth2 can be overridden using the [`Config`](crate::Config).
 //!
-//! # References
-//! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
+//! ## References
+//! - <https://developers.eveonline.com/docs/services/sso/>
 //!
-//! # Modules
+//! ## Modules
 //!
 //! - [`login`]: Methods to begin the OAuth2 login process
 //! - [`token`]: Methods to retrieve, validate, & refresh OAuth2 tokens
 //! - [`scope`]: Builder to create scopes to request during the login process
 //! - [`jwk`]: Methods to handle JSON web keys used to validate authentication tokens
 //! - [`error`]: Error enum for any OAuth2 related errors.
-//!
-//! # Example
-//! ```
-//! let esi_client = eve_esi::Client::builder()
-//!     .user_agent("MyApp/1.0 (contact@example.com)")
-//!     .client_id("client_id")
-//!     .client_secret("client_secret")
-//!     .callback_url("http://localhost:8080/callback")
-//!     .build()
-//!     .expect("Failed to build Client");
-//!
-//! // Build scopes requesting only publicData
-//! let scopes = eve_esi::oauth2::ScopeBuilder::new()
-//!     .public_data()
-//!     .build();
-//!
-//! // Create a login URL
-//! let auth_data = esi_client
-//!     .oauth2()
-//!     .login_url(scopes)
-//!     .expect("Failed to create a login url");
-//!
-//! // Print the created login URL
-//! println!("Login URL: {}", auth_data.login_url);
-//! ```
 
 pub mod error;
 pub mod jwk;
 pub mod login;
-pub mod oauth2;
 pub mod scope;
 pub mod token;
 
-pub use oauth2::OAuth2Api;
 pub use scope::ScopeBuilder;
 
 pub(crate) mod client;
+
+use crate::Client;
+
+/// Provides methods for accessing OAuth2-related endpoints of EVE Online's API.
+///
+/// The [`OAuth2Api`] struct acts as an interface for retrieving data from EVE Online's OAuth2 endpoints
+/// It requires an [`Client`] for making HTTP requests to the endpoints and managing JWT keys to validate tokens.
+///
+/// See the [module-level documentation](self) for an overview and usage example.
+pub struct OAuth2Api<'a> {
+    pub(super) client: &'a Client,
+}
+
+impl Client {
+    /// Access to EVE Online's OAuth2 endpoints
+    ///
+    /// Returns an API client for interacting with the OAuth2 endpoints.
+    pub fn oauth2(&self) -> self::OAuth2Api<'_> {
+        self::OAuth2Api::new(self)
+    }
+}
+
+impl<'a> OAuth2Api<'a> {
+    /// Creates a new instance of [`OAuth2Api`]
+    ///
+    /// # Arguments
+    /// - `client` (&'a [`Client`]) used for making HTTP requests to EVE Online's ESI & OAuth2
+    ///   endpoints and providing the JWT key caching & refresh handling used to validate tokens.
+    ///
+    /// # Returns
+    /// - `Self`: A new instance of [`OAuth2Api`].
+    pub(self) fn new(client: &'a Client) -> Self {
+        Self { client }
+    }
+}

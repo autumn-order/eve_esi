@@ -1,30 +1,90 @@
 # EVE ESI
 
+> [!WARNING]
+>
+> **This crate is still under development, APIs may change between versions**
+>
+> Currently the crate features OAuth2 login with EVE Online and we're now currently working on implementing all ESI endpoints. The goal is to implement an average of around 10 endpoints per day, it takes about 15 minutes to implement each endpoint due to writing related structs, enums, documentation & integration tests. All endpoints are expected to be added around early October at this rate.
+>
+> Documentation for this crate is still work-in-progress, if you see any issues or areas for improvement in documentation contributions are always welcome to help make this crate more accessible to other developers.
+
 [![Crates.io Version](https://img.shields.io/crates/v/eve_esi?logo=rust)](https://crates.io/crates/eve_esi/)
 [![codecov](https://codecov.io/gh/hyziri/eve_esi/graph/badge.svg?token=OXD57P1UY6)](https://codecov.io/gh/hyziri/eve_esi)
 [![Maintainability](https://qlty.sh/gh/hyziri/projects/eve_esi/maintainability.svg)](https://qlty.sh/gh/hyziri/projects/eve_esi)
+[![wakatime](https://wakatime.com/badge/github/hyziri/eve_esi.svg)](https://wakatime.com/badge/github/hyziri/eve_esi)
+[![Discord](https://img.shields.io/discord/1414000815017824288?logo=Discord&color=%235865F2)](https://discord.gg/HjaGsBBtFg)
 
 A thread-safe, asynchronous client which provides methods & types for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer) & [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
 
-This crate implements concurrency & caching to provide performance in applications at scale. For example JSON web token keys (JWT keys) are used to validate tokens after a successful EVE Online single sign-on login, this crate automatically caches the keys and refreshes them proactively before expiry in a background task for mimimal latency.
+**Documentation:** https://docs.rs/eve_esi/latest/eve_esi/
 
-This crate is still heavily under development and has yet to implement the majority of ESI routes as well as the remainder of the OAuth2 flow such as token validation.
+**Contributing:** https://github.com/hyziri/eve_esi/blob/main/CONTRIBUTING.md
 
-## Usage
+**Discord:** https://discord.gg/HjaGsBBtFg
+
+For usage examples, ESI client configuration, and logging configuration, please see the [documentation](https://docs.rs/eve_esi/latest/eve_esi/)
+
+Have questions about this crate or EVE Online's ESI in general? Ask us in [Discord](https://discord.gg/HjaGsBBtFg)!
+
+## Features
+
+**EVE Online Single Sign-On**
+
+EVE Online's single sign-on (OAuth2) login flow has been fully implemented in the crate featuring:
+
+- Configuring of an EVE ESI client with an EVE Online developer application client id, client secret, and callback URL
+- Creation of login URLs to begin the OAuth2 login flow
+- The fetching, caching, & proactive refreshing of JWT token keys used to validate access tokens
+- Access token fetching, validation, & refreshing
+
+**EVE Online ESI Endpoints**
+
+The implementation of ESI endpoints within this crate is still ongoing, we are aiming for all to be added by early October. So far the following 3 [ESI API Explorer](https://developers.eveonline.com/api-explorer) categories have been implemented:
+
+- Character endpoints
+- Corporation endpoints
+- Alliance endpoints
+
+Going forward a new version of this crate will be released with the implementation of a new category up until version 0.5.0 which indicates all endpoints have been added.
+
+**Thread-safe**
+
+This crate implements the usage of read/write locks, compare exchanges, atomic bools, & tokio notifiers to provide performance in applications at scale.
+
+- **Refresh Locks:** The usage of atomic bools allows for the acquisition of a refresh lock on the JWT token key cache used to validate access tokens so that only 1 thread actually performs the cache refresh
+- **High Concurrency:** The refresh lock is acquired via a compare exchange which is performance efficient in high concurrency applications where dozens of worker threads may attempt to acquire this refresh lock at once
+- **Refresh Notifications:** While the refresh lock is in progress and the cache is currently expired or empty meaning no keys are available for validation, threads will wait for a tokio notifier notification that the refresh has completed. This makes it so that threads wait no longer than necessary for a completed refresh.
+- **Read/Write Locks:** The JWT key cache utilizes read/write locks for minimal performance impact when accessing the JWT keys in the cache across multiple threads
+
+The ESI client provided by this crate by default is wrapped within an Arc (atomic reference counter) which allows for the ESI client to be safely shared across threads.
+
+- **Asynchronous:** This crate utilizes Rust ecosystem tools such as [Reqwest](https://crates.io/crates/reqwest) & [Tokio](https://crates.io/crates/tokio) to make ESI requests asynchronously and with minimal latency.
+
+- **Caching:** Caching is utilized where possible to do to mimize latency with the OAuth2 login flow for EVE Online, the JWT token keys used to validate access tokens are cached for up to one hour and refreshed proactively before expiration to avoid any delay when validating tokens.
+
+- **Type-Safe:** In addition to Rust's strong type safety, this crate additionally defines enums for ESI models in every area where it is applicable & possible to do so to make clear what exactly one can expect from ESI responses.
+
+- **Documentation:** The endpoints, models, & enums within this crate are all documented to help clarify what certain fields or enum variants are for, making it more accessible to developers unfamiliar with some areas of the game. Even the 250~ variants of the `NotificationType` enum have documentation.
+
+- **Testing:** All functions are unit tested and all endpoints implemented within this crate are integration tested to ensure proper error responses, handling of parameters & URLs, and deserialization of ESI JSON responses to the models defined within this crate.
+
+- **Logging:** All functions & endpoints integrate the usage of the [log crate](https://crates.io/crates/log) to provide insight to the inner workings of this crate at runtime and help narrow down the source of any issues that may occur. Logging is configurable and opt-in, from detailed trace logging to only essential info logging.
+
+- **Configuration:** The ESI client provided by this crate is configurable, from a basic client with only a user agent for public ESI to a client for OAuth2 to fine-tuning the inner workings of the client such as the parameters & timings of how JWT tokens are cached and refreshed
+
+## Usage Example
 
 Create a new ESI Client instance and request public information about a corporation from ESI.
 
 ```rust
 // esi_client is asynchronous, #[tokio::main] allows for making the main function async
-// You would ideally use esi_client with an async web framework like Axum as shown in examples
 #[tokio::main]
 async fn main() {
-    // Build a new ESI Client with the builder method
-    let esi_client = eve_esi::Client::builder()
-        // Always set a user agent to identify your application
-        .user_agent("MyApp/1.0 (contact@example.com)")
-        .build()
-        .expect("Failed to build Client");
+    // Set a user_agent to identify your application when making requests
+    let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
+
+    // Create a basic ESI client with user_agent
+    let esi_client = eve_esi::Client::new(user_agent).expect("Failed to build ESI Client");
 
     // Get information about the corporation The Order of Autumn (id: 98785281)
     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
@@ -33,129 +93,7 @@ async fn main() {
 }
 ```
 
-## Quickstart
-
-### Building a Client
-
-You can build an ESI client with the builder method:
-
-```rust
-let esi_client = eve_esi::Client::builder()
-  // Always set a user agent to identify your application
-  .user_agent("MyApp/1.0 (contact@example.com)")
-  // Optional: Set these 3 to configure for single sign-on login & authenticated ESI routes
-  // Get them from https://developers.eveonline.com/applications
-  .client_id("client_id")
-  .client_secret("client_secret")
-  .callback_url("http://localhost:8080/callback") // This would be an API endpoint on your app, see SSO example
-  .build()
-  .expect("Failed to build ESI Client");
-```
-
-For ideal performance, if you are already using a `reqwest::Client` in your application you should `.clone()` it when building an `eve_esi::Client` to share the same HTTP pool rather than `eve_esi::Client` using its own `reqwest::Client` by default:
-
-```rust
-let esi_client = eve_esi::Client::builder()
-  .reqwest_client(reqwest_client.clone())
-```
-
-### Making Public ESI Requests
-
-This library mirrors the [EVE ESI API explorer](https://developers.eveonline.com/api-explorer) in that you can access endpoints by the format of:
-
-```rust
-esi_client.category_name().method_name()
-
-// This would translate to:
-let alliances = esi_client.alliance().list_all_alliances()
-```
-
-### OAuth2 (SSO) Login
-
-To access any authenticated ESI routes, your users will first need to sign-in using EVE Online's single-sign on (SSO), also known as OAuth2.
-A complete SSO example can be found at <https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs>.
-
-Anything single sign-on/oauth2 related is accessed with:
-
-```rust
-esi_client.oauth2()
-```
-
-Login route: create a URL to redirect your users for the login process:
-
-```rust
-// Set scopes to request
-let scopes = eve_esi::ScopeBuilder::new()
-  .public_data() // publicData scope
-  .build();
-
-// Create a login URL
-let login = esi_client
-  .oauth2()
-  .login_url(scopes)
-  .expect("Failed to create a login url"); // Errors if OAuth2 is not configured on ESI Client
-
-let login_url = login.login_url; // Redirect users to this URL to begin the login process
-let state = login.state; // State code for preventing CSRF which you should validate in your callback route
-```
-
-Callback route: retrieving a token, getting the access & refresh token:
-
-```rust
-// Use the authorization code present as the {?code=...} query parameter in your callback route URL
-// See https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs for callback route example
-let token = esi_client
-    .oauth2()
-    .get_token(authorization_code)
-    .await
-    .expect("Failed to fetch token");
-
-let access_token = token.access_token();
-let refresh_token = token.refresh_token();
-
-// Refresh token can be converted to a String this way
-let refresh_token_string = refresh_token.unwrap().secret().to_string();
-```
-
-Callback route: validating a token, accessing character ID & name:
-
-```rust
-// Validate the token to access the claims
-let claims = esi_client
-    .oauth2()
-    .validate_token(token.access_token().secret().to_string())
-    .await
-    .expect("Failed to validate token");
-
-// Access character ID & name
-
-// claims.sub looks like a String: "CHARACTER:EVE:2114794365"
-// We'll extract the ID part and convert it to an i32
-let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
-
-let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
-let character_name: String = claims.name;
-```
-
-Refreshing a token:
-
-```rust
-// In this scenario, refresh token was stored in database & retrieved as a string
-let refresh_token = "refresh_token_string...".to_string();
-
-// Call `get_token_refresh` and pass the refresh token string to get a new token
-let token = esi_client
-    .oauth2()
-    .get_token_refresh(refresh_token)
-    .await
-    .expect("Failed to fetch token");
-
-// Validate the token here and replace the old access/refresh token stored in the database...
-```
-
-### Making Authenticated ESI Requests
-
-TODO: Work in progress
+For more usage examples, ESI client configuration, and logging configuration, please see the [documentation](https://docs.rs/eve_esi/latest/eve_esi/)
 
 ## Examples
 
@@ -178,36 +116,4 @@ An example demonstrating how to use the `eve_esi` crate with the `axum` web fram
 4. Run `cargo run --example sso`
 5. Go to `http://localhost:8080/login` in your browser
 6. Login with EVE Online, you'll then be redirected to `http://localhost:8080/callback`
-7. Internally, the callback route will fetch a JWT token using the authorization code from login. The callback response will show your character ID & name.
-
-## Logging
-
-This library uses the [`log`](https://crates.io/crates/log) crate for logging. To capture log output,
-applications using this library should initialize a logger implementation like `env_logger`,
-`simple_logger`, or any other implementation of the `log` crate's facade.
-
-For production, you'll generally want to use log level either `info` or `warn` depending on how much you wish to rely on this crate's logging for your application.
-
-### Log Levels
-
-- **Error**: Used for failures that prevent successful API calls
-- **Warn**: Used for potential issues that don't prevent operation but could be problematic
-- **Info**: Used for successful API calls and important client state changes
-- **Debug**: Used for detailed information about API call parameters and responses
-- **Trace**: Used for very detailed debugging information
-
-### Example with env_logger
-
-```rust
-// Set RUST_LOG environment variable to control log levels
-// e.g., RUST_LOG=eve_esi=debug,info
-
-// Initialize env_logger
-env_logger::init();
-
-// Now logs from eve_esi will be captured
-let esi_client = eve_esi::Client::builder()
-    .user_agent("MyApp/1.0 (contact@example.com)")
-    .build()
-    .expect("Failed to build Client");
-```
+7. The callback route will fetch a JWT token using the authorization code from login and then return a response with your character ID & name after validating the token

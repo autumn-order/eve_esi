@@ -1,45 +1,27 @@
-//! Alliance Endpoints for EVE Online's ESI API.
+//! # EVE ESI Alliance Endpoints
 //!
 //! This module provides the [`AllianceApi`] struct and associated methods for accessing
-//! alliance-related endpoints of the EVE Online ESI (EVE Swagger Interface) API.
+//! alliance-related ESI endpoints.
 //!
-//! The [`AllianceApi`] acts as a high-level interface for retrieving public information
-//! and affiliations for EVE Online alliances. It requires an [`Client`] instance
-//! to perform HTTP requests to the ESI endpoints.
+//! For an overview & usage examples, see the [endpoints module documentation](super)
 //!
-//! # Features
-//! - Fetch public information about an alliance by alliance ID
+//! # ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # References
-//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
-//!
-//! # Usage Example
-//! ```no_run
-//! #[tokio::main]
-//! async fn main() {
-//!     let esi_client = eve_esi::Client::builder()
-//!         .user_agent("MyApp/1.0 (contact@example.com)")
-//!         .build()
-//!         .expect("Failed to build Client");
-//!
-//!     // Get information about The Autumn alliance (id: 99013534)
-//!     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();
-//!     println!("Alliance name: {}", alliance.name);
-//! }
-//! ```
+//! # Methods
+//! - [`AllianceApi::list_all_alliances`]: Retrieves a list of IDs of every alliance in EVE Online
+//! - [`AllianceApi::get_alliance_information`]: Retrieves public information for the requested alliance_id
+//! - [`AllianceApi::list_alliance_corporations`]: Retrieves the IDs of all corporations part of the requested alliance_id
+//! - [`AllianceApi::get_alliance_icon`]: Get the 128x128 & 64x64 icon URLs for the requested alliance_id
 
-use std::time::Instant;
-
-use crate::{model::alliance::Alliance, Client, Error};
-
-use log::{debug, error, info};
+use crate::{
+    model::alliance::{Alliance, AllianceIcons},
+    Client, Error,
+};
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
-/// The `AllianceApi` struct acts as an interface for retrieving information about EVE Online alliances
-/// using the ESI API. It requires an [`Client`] for making HTTP requests to the ESI endpoints.
-///
-/// See the [module-level documentation](self) for an overview and usage example.
+/// For an overview & usage examples, see the [endpoints module documentation](super)
 pub struct AllianceApi<'a> {
     client: &'a Client,
 }
@@ -48,84 +30,94 @@ impl<'a> AllianceApi<'a> {
     /// Creates a new instance of `AllianceApi`.
     ///
     /// # Arguments
-    /// - `client` - The [`Client`] used for making HTTP requests to the ESI endpoints.
+    /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
     ///
     /// # Returns
-    /// Returns a new instance of `AllianceApi`.
-    pub fn new(client: &'a Client) -> Self {
+    /// - [`AllianceApi`]: Struct providing methods to interact with alliance ESI endpoints
+    pub(super) fn new(client: &'a Client) -> Self {
         Self { client }
     }
 
-    /// Retrieves information about a specific alliance from EVE Online's ESI API.
-    ///
-    /// This endpoint fetches public data about an alliance including name, ticker, date founded,
-    /// executor corporation, and faction.
-    ///
-    /// # Arguments
-    /// - `alliance_id` ([`i32`]): The unique identifier for the alliance to look up
-    ///
-    /// # Returns
-    /// Returns a `Result` containing either:
-    /// - [`Alliance`] - The alliance data if successfully retrieved
-    /// - [`Error`] - An error if the request failed (e.g., alliance not found, network issues)
-    ///
-    /// # EVE ESI Reference
-    /// This endpoint is documented at [EVE ESI Reference](https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceId).
-    ///
-    /// # Example
-    /// ```no_run
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let esi_client = eve_esi::Client::builder()
-    ///         .user_agent("MyApp/1.0 (contact@example.com)")
-    ///         .build()
-    ///         .expect("Failed to build Client");
-    ///
-    ///     // Get information about The Autumn alliance (id: 99013534)
-    ///     let alliance = esi_client.alliance().get_alliance_information(99013534).await.unwrap();
-    ///     println!("Alliance name: {}", alliance.name);
-    /// }
-    /// ```
-    pub async fn get_alliance_information(&self, alliance_id: i32) -> Result<Alliance, Error> {
-        let url = format!("{}/alliances/{}/", self.client.inner.esi_url, alliance_id);
+    define_endpoint! {
+        /// Retrieves a list of IDs of every alliance in EVE Online
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliances>
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - Vec<[`i64`]>: A vec of every alliance ID in EVE Online
+        /// - [`Error`]: An error if the fetch request failed
+        pub_get list_all_alliances() -> Result<Vec<i64>, Error>
+        url = "{}/alliances";
+        label = "list of all alliance IDs";
+    }
 
-        let message = format!(
-            "Fetching alliance information for alliance ID {} from {}",
-            alliance_id, url
-        );
+    define_endpoint! {
+        /// Fetches an alliance's public information from ESI using the alliance ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        ///- <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceId>
+        ///
+        /// # Arguments
+        /// - `alliance_id` ([`i64`]): The ID of the alliance to retrieve information for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`Alliance`]: The alliance data if successfully retrieved
+        /// - [`Error`]: An error if the fetch request failed
+        pub_get get_alliance_information(
+            alliance_id: i64
+        ) -> Result<Alliance, Error>
+        url = "{}/alliances/{}";
+        label = "public information";
+    }
 
-        debug!("{}", message);
+    define_endpoint! {
+        /// Retrieves the IDs of all corporations part of the provided alliance_id
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceIdCorporations>
+        ///
+        /// # Arguments
+        /// - `alliance_id` ([`i64`]): ID of the alliance to fetch corporation IDs for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - Vec<[`i64`]>: A vec of the ID of every corporation part of the alliance
+        /// - [`Error`]: An error if the fetch request failed
+        pub_get list_alliance_corporations(
+            alliance_id: i64
+        ) -> Result<Vec<i64>, Error>
+        url = "{}/alliances/{}/corporations";
+        label = "alliance corporation IDs";
+    }
 
-        let start_time = Instant::now();
-
-        // Fetch alliance information from ESI
-        let result = self.client.get_from_public_esi::<Alliance>(&url).await;
-
-        let elapsed = start_time.elapsed();
-        match result {
-            Ok(alliance) => {
-                let message = format!(
-                    "Successfully fetched alliance information for alliance ID: {} (took {}ms)",
-                    alliance_id,
-                    elapsed.as_millis()
-                );
-
-                info!("{}", message);
-
-                Ok(alliance)
-            }
-            Err(err) => {
-                let message = format!(
-                    "Failed to fetch alliance information for alliance ID {} after {}ms due to error: {:#?}",
-                    alliance_id,
-                    elapsed.as_millis(),
-                    err
-                );
-
-                error!("{}", message);
-
-                Err(err.into())
-            }
-        }
+    define_endpoint! {
+        /// Get the 128x128 & 64x64 icon URLs for an alliance
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceIdIcons>
+        ///
+        /// # Arguments
+        /// - `alliance_id` ([`i64`]): ID of the alliance to fetch icons for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - [`AllianceIcons`]: A struct with URLs for the 128x128 & 64x64 icons for an alliance
+        /// - [`Error`]: An error if the fetch request failed
+        pub_get get_alliance_icon(
+            alliance_id: i64
+        ) -> Result<AllianceIcons, Error>
+        url = "{}/alliances/{}/icons";
+        label = "alliance icons";
     }
 }

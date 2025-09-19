@@ -1,4 +1,4 @@
-//! Errors related to the OAuth2 portion of the EVE ESI crate
+//! # EVE ESI OAuth2 Errors
 //!
 //! Provides an enum for runtime related OAuth2 errors, [`OAuthError`], which provides
 //! detailed error messages as well as instructions on how to
@@ -8,16 +8,9 @@
 //! Possible errors could be not having the [`Client`](crate::Client) configured for OAuth2, an issue validating
 //! a JWT token, or an issue fetching the JWT keys used to validate the token.
 //!
-//! # Variants
-//! - [`OAuthError::OAuth2NotConfigured`]: Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
-//! - [`OAuthError::JwtKeyRefreshTimeout`]: Error when waiting for another thread to refresh JWT key cache times out
-//! - [`OAuthError::JwtKeyRefreshFailure`]: Error when waiting for another thread to refresh JWT key cache fails
-//! - [`OAuthError::JwtKeyRefreshCooldown`]: Error when JWT key refresh is still in cooldown
-//! - [`OAuthError::RequestTokenError`]: Error when an OAuth2 token fetch request fails
-//! - [`OAuthError::ValidateTokenError`]: Error when JWT key refresh is still in cooldown
-//! - [`OAuthError::NoValidKeyFound`]: Error returned when JWT key cache does not have the ES256 token key needed for validation
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 //!
-//! # Example
+//! ## Usage Example
 //! ```
 //! let esi_client = eve_esi::Client::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
@@ -126,4 +119,35 @@ pub enum OAuthError {
     /// of both an ES256 and RS256 key as expected to be returned by EVE Online's JWT key API.
     #[error("No valid token key for validation found in cache: {0:?}")]
     NoValidKeyFound(String),
+
+    /// Error when attempting to fetch from an authenticated route with an expired access token
+    ///
+    /// See [`crate::oauth2::token`] docs for instructions on how to refresh an expired token.
+    #[error("Access token is expired\n
+        \n
+        See instructions on how to refresh an expired token here: <https://docs.rs/eve_esi/latest/eve_esi/oauth2/index.html>")]
+    AccessTokenExpired(),
+
+    /// Error when attempting to fetch from an authenticated route without the required scopes
+    ///
+    /// You will need to update your application at <https://developers.eveonline.com/applications>
+    /// to include the missing scopes.
+    #[error(
+        "Missing required scopes for access token\n
+        \n\
+        Update your application at <https://developers.eveonline.com/applications>
+        to include the missing scopes:\n
+        {0:?}"
+    )]
+    AccessTokenMissingScopes(Vec<String>),
+
+    /// Error when failing to parse character ID from JWT token claims
+    ///
+    /// This would be an internal error in this crate, should it occur please submit an
+    /// issue on this crate's repository. This would only happen if EVE Online changes the
+    /// format of the sub field in their JWT token claims.
+    ///
+    /// Returned when using [`crate::model::oauth2::EveJwtClaims::character_id`] method.
+    #[error("Failed to parse character ID from EveJwtClaims due to error: {0:?}")]
+    CharacterIdParseError(String),
 }

@@ -1,3 +1,3 @@
 pub mod jwk;
 mod token;
-mod util;
+pub mod util;

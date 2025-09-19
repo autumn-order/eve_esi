@@ -9,7 +9,6 @@
 //!
 //! See the [module-level documentation](super) for a more detailed overview and usage.
 
-use log::{debug, error, trace};
 use std::time::Instant;
 
 use crate::error::{Error, OAuthError};
@@ -43,7 +42,7 @@ impl OAuth2Api<'_> {
     ///
     /// Return an API client for interacting with the JWK endpoints.
     pub fn jwk(&self) -> self::JwkApi<'_> {
-        self::JwkApi::new(&self.client)
+        self::JwkApi::new(self.client)
     }
 }
 
@@ -56,7 +55,7 @@ impl<'a> JwkApi<'a> {
     ///
     /// # Returns
     /// - `Self`: A new instance of [`JwkApi`].
-    pub fn new(client: &'a Client) -> Self {
+    pub(self) fn new(client: &'a Client) -> Self {
         Self { client }
     }
 
@@ -101,10 +100,10 @@ impl<'a> JwkApi<'a> {
             let elapsed_seconds = timestamp.elapsed().as_secs();
 
             // If the cache is not expired return the keys
-            if !is_cache_expired(&jwt_key_cache, timestamp) {
+            if !is_cache_expired(jwt_key_cache, timestamp) {
                 // If background refresh is enabled & the cache is approaching expiry, trigger a background refresh
                 if jwt_key_cache.config.background_refresh_enabled
-                    && is_cache_approaching_expiry(&jwt_key_cache, timestamp)
+                    && is_cache_approaching_expiry(jwt_key_cache, timestamp)
                 {
                     debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
@@ -115,39 +114,32 @@ impl<'a> JwkApi<'a> {
                     let _ = self.trigger_background_jwt_refresh().await;
                 }
 
-                let message = format!(
+                trace!(
                     "JWT keys still valid, using keys from cache (age: {}s)",
                     elapsed_seconds
                 );
 
-                trace!("{}", message);
-
                 return Ok(keys);
             } else {
-                let message = format!(
+                debug!(
                     "JWT key cache expired (age: {}s)",
                     timestamp.elapsed().as_secs()
                 );
-
-                debug!("{}", message);
             }
-        } else {
-            // Trace due to `get_keys` logging as debug
-            trace!("JWT key cache is empty, keys need to be fetched");
-        };
+        }
 
         // Return error if JWT key refresh is still within default 60 second cooldown period
         //
         // If a recent attempt to refresh keys was made and all retries failed, a 60
         // second cooldown period will be active until the next set of attempts.
-        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
+        let cooldown = check_refresh_cooldown(jwt_key_cache).await;
         if let Some(cooldown_remaining) = cooldown {
             let message = format!(
                 "JWT key refresh cooldown still active due to recent refresh failure during last {} seconds. Cooldown remaining: {} seconds.",
                 &config.refresh_cooldown.as_secs(), cooldown_remaining
             );
 
-            error!("{}", message);
+            error!(message);
 
             return Err(Error::OAuthError(OAuthError::JwtKeyRefreshCooldown(
                 message,
@@ -166,7 +158,7 @@ impl<'a> JwkApi<'a> {
         // Attempt up to (2 retries) with an exponential (100 ms) backoff
         refresh_jwt_keys(
             &esi_client.inner.reqwest_client,
-            &jwt_key_cache,
+            jwt_key_cache,
             jwt_key_cache.config.refresh_max_retries,
         )
         .await
@@ -249,13 +241,11 @@ pub(super) async fn fetch_jwt_keys(
     let elapsed = start_time.elapsed();
     let response = match result {
         Ok(resp) => {
-            let message = format!(
+            debug!(
                 "Received response from JWT keys endpoint, status: {} (took {}ms)",
                 resp.status(),
                 elapsed.as_millis()
             );
-
-            debug!("{}", message);
 
             // If server response status code is an error, return an error
             if let Err(err) = resp.error_for_status_ref() {
@@ -272,7 +262,7 @@ pub(super) async fn fetch_jwt_keys(
                 e
             );
 
-            error!("{}", message);
+            error!(message);
 
             return Err(e.into());
         }
@@ -284,25 +274,21 @@ pub(super) async fn fetch_jwt_keys(
     let elapsed = start_time.elapsed();
     let jwt_keys = match result {
         Ok(keys) => {
-            let message = format!(
+            trace!(
                 "Successfully parsed JWT keys response with {} keys (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
             );
 
-            trace!("{}", message);
-
             keys
         }
         // Error related to parsing the body to the EveJwtKeys struct
         Err(e) => {
-            let message = format!(
+            error!(
                 "Failed to parse JWT keys response after {}ms: {:?}",
                 elapsed.as_millis(),
                 e
             );
-
-            error!("{}", message);
 
             return Err(e.into());
         }
@@ -343,38 +329,32 @@ pub(super) async fn fetch_and_update_cache(
 
     match fetch_result {
         Ok(fresh_keys) => {
-            let message = format!(
+            trace!(
                 "Successfully fetched {} JWT keys, updating cache",
                 fresh_keys.keys.len()
             );
-
-            trace!("{}", message);
 
             // Update the cache with the new keys
             jwt_key_cache.update_keys(fresh_keys.clone()).await;
 
             let elapsed = start_time.elapsed();
 
-            let message = format!(
+            debug!(
                 "JWT keys cache updated successfully with {} keys (took {}ms)",
                 fresh_keys.keys.len(),
                 elapsed.as_millis()
             );
-
-            debug!("{}", message);
 
             Ok(fresh_keys)
         }
         Err(e) => {
             let elapsed = start_time.elapsed();
 
-            let message = format!(
+            error!(
                 "Failed to fetch JWT keys after {}ms: {:?}",
                 elapsed.as_millis(),
                 e
             );
-
-            error!("{}", message);
 
             Err(e)
         }

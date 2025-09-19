@@ -1,5 +1,5 @@
 use std::fs;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -8,8 +8,6 @@ use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use oauth2::basic::BasicTokenType;
 use oauth2::{AccessToken, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 use openssl::rsa::Rsa;
-
-use crate::constant::TEST_CLIENT_ID;
 
 pub const RSA_KEY_ID: &str = "JWT-Signature-Key-1";
 
@@ -71,7 +69,7 @@ pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
 ///
 /// # arguments
 /// - `use_alternate_key` ([`bool`]): Indicates whether or not to use an alternate key, indicating `true` will
-///   cause JWT key validations to fail as the public key used to decode will be different than the private key
+///   cause JWT key validations to fail if the public key used to decode is different than the private key
 ///   used to encode.
 ///
 /// # Returns
@@ -80,31 +78,32 @@ pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
 pub fn create_mock_token(
     use_alternate_key: bool,
 ) -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
+    let mock_claims = EveJwtClaims::mock();
+
+    create_mock_token_with_claims(use_alternate_key, mock_claims)
+}
+
+/// Creates a mock token using the provided mock [`EveJwtClaims`]
+///
+/// Uses a test RS256 private key for the purposes of validation with the keys created by the
+/// [`create_mock_token_keys`] function.
+///
+/// # arguments
+/// - `use_alternate_key` ([`bool`]): Indicates whether or not to use an alternate key, indicating `true` will
+///   cause JWT key validations to fail if the public key used to decode is different than the private key
+///   used to encode.
+/// - `claims` ([`EveJwtClaims`]): The claims within the access token.
+///
+/// # Returns
+/// - [`StandardTokenResponse`]<[`EmptyExtraTokenFields`], [`BasicTokenType`]>: A token which
+///   contains [`EveJwtClaims`] and is encoded with a test RS256 private key for testing validation.
+pub fn create_mock_token_with_claims(
+    use_alternate_key: bool,
+    claims: EveJwtClaims,
+) -> StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType> {
     // Create header with algorithm and key id
     let mut header = Header::new(Algorithm::RS256);
     header.kid = Some(RSA_KEY_ID.to_string());
-
-    // Create JWT claims matching what EVE Online would return
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs() as i64;
-
-    let claims = EveJwtClaims {
-        iss: "https://login.eveonline.com".to_string(),
-        sub: "CHARACTER:EVE:123456789".to_string(),
-        aud: vec![TEST_CLIENT_ID.to_string(), "EVE Online".to_string()],
-        jti: "abc123def456".to_string(),
-        kid: RSA_KEY_ID.to_string(),
-        tenant: "tranquility".to_string(),
-        region: "world".to_string(),
-        exp: now + 900, // Valid for 15 minutes
-        iat: now,
-        scp: Some("publicData".to_string()),
-        name: "Test Character".to_string(),
-        owner: "123456789".to_string(),
-        azp: TEST_CLIENT_ID.to_string(),
-    };
 
     // Select which key to use
     let private_key = match use_alternate_key {

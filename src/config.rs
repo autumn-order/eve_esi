@@ -29,8 +29,9 @@
 //! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
 //! | `jwk_background_refresh_enabled` | Enable/disable background refresh          |
 //! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
-//! | `jwt_issuer`   | Expected issuer of JWT tokens |
+//! | `jwt_issuers`   | Expected issuer(s) of JWT tokens |
 //! | `jwt_audience` | Intended audience JWT tokens are to be used with |
+//! | `esi_validate_token_before_request` | Toggle validating tokens before authenticated ESI requests |
 //!
 //! ## Usage
 //!
@@ -44,10 +45,13 @@
 //!     .build()
 //!     .expect("Failed to build ESI Config");
 //!
+//! // Always set a user_agent to identify your application when making requests
+//! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
+//!
 //! // Apply config settings to Client
 //! let esi_client = eve_esi::Client::builder()
 //!     .config(config)
-//!     .user_agent("MyApp/1.0 (contact@example.com")
+//!     .user_agent(user_agent)
 //!     .build()
 //!     .expect("Failed to build ESI Client");
 //! ```
@@ -58,7 +62,7 @@ use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
     constant::{
-        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER,
+        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUERS,
         DEFAULT_TOKEN_URL,
     },
     error::{ConfigError, Error},
@@ -80,10 +84,14 @@ pub struct Config {
     // JWT Key Settings
     /// Config for JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
-    /// The EVE Online login server URL which represents the expected issuer of tokens
-    pub(crate) jwt_issuer: String,
+    /// The EVE Online login server which represents the expected issuer of tokens
+    pub(crate) jwt_issuers: Vec<String>,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
+
+    // ESI Request Settings
+    /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
+    pub(crate) esi_validate_token_before_request: bool,
 }
 
 /// Builder struct for configuring & constructing an [`Config`] to override default [`Client`](crate::Client) settings
@@ -102,9 +110,13 @@ pub struct ConfigBuilder {
     /// Config for OAuth2 JWT key caching & refreshing
     pub(crate) jwt_key_cache_config: JwtKeyCacheConfig,
     /// The EVE Online login server URL which represents the expected issuer of tokens
-    pub(crate) jwt_issuer: String,
+    pub(crate) jwt_issuers: Vec<String>,
     /// The intended audience which JWT tokens will be used with
     pub(crate) jwt_audience: String,
+
+    // ESI Request Settings
+    /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
+    pub(crate) esi_validate_token_before_request: bool,
 }
 
 impl Config {
@@ -135,6 +147,13 @@ impl Config {
     }
 }
 
+impl Default for ConfigBuilder {
+    /// Create a default instance of [`ConfigBuilder`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConfigBuilder {
     /// Creates a new [`ConfigBuilder`] instance used to build an [`Config`]
     ///
@@ -143,6 +162,13 @@ impl ConfigBuilder {
     /// # Returns
     /// - [`ConfigBuilder`]: Instance with the default settings that can be modified with the setter methods.
     pub fn new() -> Self {
+        // Convert default JWT issuers into Vec<String>
+        let issuers: Vec<String> = DEFAULT_JWT_ISSUERS
+            .to_vec()
+            .iter()
+            .map(|str| str.to_string())
+            .collect();
+
         Self {
             // URL settings
             esi_url: DEFAULT_ESI_URL.to_string(),
@@ -151,8 +177,11 @@ impl ConfigBuilder {
 
             // OAuth2 JWT key config
             jwt_key_cache_config: JwtKeyCacheConfig::new(),
-            jwt_issuer: DEFAULT_JWT_ISSUER.to_string(),
+            jwt_issuers: issuers,
             jwt_audience: DEFAULT_JWT_AUDIENCE.to_string(),
+
+            // ESI Request Settings
+            esi_validate_token_before_request: true,
         }
     }
 
@@ -173,12 +202,12 @@ impl ConfigBuilder {
     /// - The [`Self::token_url`] method is given an invalid URL
     pub fn build(self) -> Result<Config, Error> {
         // Ensure background refresh percentage is set properly
-        if !(self.jwt_key_cache_config.background_refresh_threshold > 0) {
+        if self.jwt_key_cache_config.background_refresh_threshold == 0 {
             return Err(Error::ConfigError(
                 ConfigError::InvalidBackgroundRefreshThreshold,
             ));
         }
-        if !(self.jwt_key_cache_config.background_refresh_threshold < 100) {
+        if self.jwt_key_cache_config.background_refresh_threshold >= 100 {
             return Err(Error::ConfigError(
                 ConfigError::InvalidBackgroundRefreshThreshold,
             ));
@@ -199,13 +228,16 @@ impl ConfigBuilder {
         Ok(Config {
             // URL settings
             esi_url: self.esi_url,
-            auth_url: auth_url,
-            token_url: token_url,
+            auth_url,
+            token_url,
 
             // JWT key cache settings
             jwt_key_cache_config: self.jwt_key_cache_config,
-            jwt_issuer: self.jwt_issuer,
+            jwt_issuers: self.jwt_issuers,
             jwt_audience: self.jwt_audience,
+
+            // ESI Request Settings
+            esi_validate_token_before_request: self.esi_validate_token_before_request,
         })
     }
 
@@ -419,19 +451,20 @@ impl ConfigBuilder {
         self
     }
 
-    /// Expected issuer of JWT tokens
+    /// Expected issuer(s) of JWT tokens
     ///
-    /// This is the expected issuer of JSON web tokens used to access
-    /// authenticated ESI routes. Typically the EVE Online login server URL.
+    /// This is the expected issuer(s) of JSON web tokens used to access
+    /// authenticated ESI routes. This would be the EVE Online login server URL.
+    /// At least 1 of the issuers provided must be present for token validation to be
+    /// successful.
     ///
     /// # Arguments
-    /// - `issuer` (&[`str`]): The URL for EVE Online's login server.
-    ///   Default is `"https://login.eveonline.com"`.
+    /// - `issuers` (`Vec<String>`): The expected issuer(s) of the JWT token.
     ///
     /// # Returns
     /// - [`ConfigBuilder`]: Instance with updated EVE Online login URL.
-    pub fn jwt_issuer(mut self, issuer: &str) -> Self {
-        self.jwt_issuer = issuer.to_string();
+    pub fn jwt_issuers(mut self, issuers: Vec<String>) -> Self {
+        self.jwt_issuers = issuers;
         self
     }
 
@@ -448,6 +481,20 @@ impl ConfigBuilder {
     /// - [`ConfigBuilder`]: Instance with updated JWT audience.
     pub fn jwt_audience(mut self, audience: &str) -> Self {
         self.jwt_audience = audience.to_string();
+        self
+    }
+
+    /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
+    ///
+    /// Enabled by default, disable this if you would prefer to do the checks manually or not at all. Please see
+    /// the ESI Error Rates Limits section of [`crate::endpoints`] module documentation for the implications of
+    /// disabling this.
+    ///
+    /// # Arguments
+    /// - `enabled` (`bool`): indicates whether or not access tokens are validated prior to authenticated ESI route
+    ///   requests.
+    pub fn esi_validate_token_before_request(mut self, enabled: bool) -> Self {
+        self.esi_validate_token_before_request = enabled;
         self
     }
 }
@@ -467,10 +514,10 @@ mod tests {
     /// - Assert JWT key settings were set as expected
     /// - Assert JWT key background refresh settings were set as expected
     #[test]
-    fn test_config_setter_methods() {
+    fn test_default_config_setter_methods() {
         let zero_seconds = Duration::from_secs(0);
 
-        let config = Config::builder()
+        let config = ConfigBuilder::default()
             // URL settings
             .auth_url("https://example.com")
             .token_url("https://example.com")
@@ -485,8 +532,10 @@ mod tests {
             .jwk_background_refresh_enabled(false)
             .jwk_background_refresh_threshold(1)
             // JWT settings
-            .jwt_issuer("example")
+            .jwt_issuers(vec!["example".to_string()])
             .jwt_audience("example")
+            // ESI Request Settings
+            .esi_validate_token_before_request(false)
             .build()
             .expect("Failed to build Config");
 
@@ -513,8 +562,11 @@ mod tests {
         assert_eq!(config.jwt_key_cache_config.background_refresh_threshold, 1);
 
         // Assert JWT settings were set
-        assert_eq!(config.jwt_issuer, "example");
+        assert_eq!(config.jwt_issuers, vec!["example"]);
         assert_eq!(config.jwt_audience, "example");
+
+        // Assert ESI request settings was set
+        assert_eq!(config.esi_validate_token_before_request, false)
     }
 
     /// Expect an error setting the JWK background refresh threshold to 0

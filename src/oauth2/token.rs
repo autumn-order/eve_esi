@@ -2,15 +2,17 @@
 //!
 //! Methods for fetching, refreshing, & validating tokens retrieved from EVE Online's OAuth2 API.
 //!
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
+//!
 //! ## Methods
-//! - [OAuth2Api::get_token]: Retrieves a token from EVE Online's OAuth2 API
-//! - [OAuth2Api::get_token_refresh]: Retrieves a new token using a refresh token
-//! - [OAuth2Api::validate_token]: Validates token retrieved via the [`OAuth2Api::get_token`] method
+//! - [`OAuth2Api::get_token`]: Retrieves a token from EVE Online's OAuth2 API
+//! - [`OAuth2Api::get_token_refresh`]: Retrieves a new token using a refresh token
+//! - [`OAuth2Api::validate_token`]: Validates token retrieved via the [`OAuth2Api::get_token`] method
 //!
-//! ## Documentation
-//! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
+//! ## ESI Documentation
+//! - <https://developers.eveonline.com/docs/services/sso/>
 //!
-//! ## Usage
+//! ## Usage Example
 //!
 //! This demonstrates an example of a callback API route implemented in the Axum web framework.
 //! See [SSO example](https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs) for a more complete demonstration.
@@ -20,55 +22,55 @@
 //! use oauth2::TokenResponse;
 //! use serde::Deserialize;
 //!
+//! // URL parameters for the callback route
 //! #[derive(Deserialize)]
 //! struct CallbackParams {
 //!    state: String,
 //!    code: String,
 //! }
 //!
+//! // A callback API route implemented in the Axum web framework
 //! async fn callback_route(
 //!     Extension(esi_client): Extension<eve_esi::Client>,
 //!     params: Query<CallbackParams>,
-//! ) {
-//!     ///Validate state to prevent CSRF...
+//! ) -> Result<(), eve_esi::Error> {
+//!     // Validate state here to prevent CSRF...
 //!
 //!     // Fetch the token
 //!     let token = esi_client
 //!         .oauth2()
 //!         .get_token(&params.0.code)
-//!         .await
-//!         .expect("Failed to get token");
+//!         .await?;
 //!
 //!     let access_token = token.access_token();
-//!     let refresh_token = token.refresh_token().unwrap();
+//!     // Refresh token will be None if no scopes were requested during login
+//!     let refresh_token = token.refresh_token().expect("Expected refresh token, found None");
 //!
-//!     // Validate the token
+//!     // Validate the access token to access the claims
 //!     let claims = esi_client
 //!         .oauth2()
 //!         .validate_token(access_token.secret().to_string())
-//!         .await
-//!         .expect("Failed to validate token");
+//!         .await?;
 //!
-//!     // Extract character ID
-//!     let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
-//!     let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
+//!     // Use helper function to get character ID from the claims
+//!     let character_id = claims.character_id()?;
 //!
 //!     // Refresh the token
 //!     let new_token = esi_client
 //!         .oauth2()
 //!         .get_token_refresh(refresh_token.secret().to_string())
-//!         .await
-//!         .expect("Failed to get refresh token");
+//!         .await?;
+//!
+//!     Ok(())
 //! }
 //! ```
 
 use jsonwebtoken::{DecodingKey, Validation};
-use log::{debug, error, info, trace};
 use oauth2::basic::BasicTokenType;
 use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTokenResponse};
 
 use crate::error::{Error, OAuthError};
-use crate::model::oauth2::{EveJwtClaims, EveJwtKey, EveJwtKeys};
+use crate::model::oauth2::{EveJwtClaims, EveJwtKey};
 use crate::oauth2::client::OAuth2Client;
 use crate::oauth2::OAuth2Api;
 use crate::Client;
@@ -90,9 +92,9 @@ impl<'a> OAuth2Api<'a> {
     /// After successful usage of [Self::get_token], you can use these methods on the resulting token:
     ///
     /// - Access token: `token.access_token()`
-    /// - Refresh token: `token.refresh_token()`
+    /// - Refresh token: `token.refresh_token()` (Refresh token will be None if no scopes were requested)
     ///
-    /// The access token expires after 15 minutes, you can use [Self::get_token_refresh]
+    /// The access token expires after 20 minutes, you can use [Self::get_token_refresh]
     /// to get a new token.
     ///
     /// # Arguments
@@ -203,7 +205,7 @@ impl<'a> OAuth2Api<'a> {
     /// See <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
     ///
     /// # Arguments
-    /// - `token_secret` ([`String`]): The access token secret as a string. You can use
+    /// - `token_secret` ([`String`]): The access token secret as a stribuilderng. You can use
     ///   `token.access_token().secret().to_string()` on the token returned from [`Self::get_token`].
     ///
     /// # Errors
@@ -213,7 +215,7 @@ impl<'a> OAuth2Api<'a> {
         debug!("Attempting JWT token validation");
 
         // First attempt
-        match attempt_validation(&self.client, &token_secret).await {
+        match attempt_validation(self.client, &token_secret).await {
             Ok(claims) => Ok(claims),
             Err(err) => {
                 // Clear the cache to trigger a JWT key refresh on next attempt
@@ -228,12 +230,9 @@ impl<'a> OAuth2Api<'a> {
 
                     debug!("{}", message);
 
-                    attempt_validation(&self.client, &token_secret).await
+                    attempt_validation(self.client, &token_secret).await
                 } else {
-                    let message = format!(
-                        "Making 2nd attempt to validate token due to previous error: {:#?}",
-                        &err
-                    );
+                    let message = format!("Failed to validate JWT token due to error: {:#?}", &err);
 
                     debug!("{}", message);
 
@@ -266,12 +265,12 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
     // Configure validation
     let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
     validation.set_audience(&[client.inner.jwt_audience.to_string()]);
-    validation.set_issuer(&[client.inner.jwt_issuer.to_string()]);
+    validation.set_issuer(&client.inner.jwt_issuers);
 
     // Try to find an RS256 key
     trace!("Checking JWT key cache for RS256 key");
 
-    if let Some(EveJwtKey::RS256 { ref n, ref e, .. }) = get_first_rs256_key(&jwt_keys) {
+    if let Some(EveJwtKey::RS256 { ref n, ref e, .. }) = &jwt_keys.get_first_rs256_key() {
         // RS256 key was found, extract n (modulus) and e (exponent) components for the decoding key
         trace!("Creating a decoding key from RS256 key");
 
@@ -291,11 +290,9 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
         // Validate the token
         debug!("Validating token using RS256 decoding key");
 
-        match jsonwebtoken::decode::<EveJwtClaims>(&token_secret, &decoding_key, &validation) {
+        match jsonwebtoken::decode::<EveJwtClaims>(token_secret, &decoding_key, &validation) {
             Ok(token_data) => {
-                let id_str = token_data.claims.sub.split(':').collect::<Vec<&str>>()[2];
-                let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
-
+                let character_id = token_data.claims.character_id()?;
                 let message = format!(
                     "Successfully validated JWT token for character ID: {}",
                     character_id
@@ -318,7 +315,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
         let message: &str =
             "Failed to find RS256 key in JWT key cache when attempting to validate a JWT token.";
 
-        error!("{}", message);
+        error!(message);
 
         Err(Error::OAuthError(OAuthError::NoValidKeyFound(
             message.to_string(),
@@ -326,18 +323,10 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
     }
 }
 
-/// Get the first RS256 key (if any) from [`EveJwtKeys`]
-fn get_first_rs256_key(jwt_keys: &EveJwtKeys) -> Option<&EveJwtKey> {
-    jwt_keys
-        .keys
-        .iter()
-        .find(|key| matches!(key, EveJwtKey::RS256 { .. }))
-}
-
 /// Utility function to retrieve OAuth2 client or return an error
 fn get_oauth_client(client: &Client) -> Result<&OAuth2Client, Error> {
     // Attempt to retrieve OAuth2 client from ESI client
-    trace!("{}", "Attempting to retrieve OAuth2 client from ESI client");
+    trace!("Attempting to retrieve OAuth2 client from ESI client");
 
     match client.inner.oauth2_client {
         Some(ref client) => {

@@ -36,7 +36,7 @@ struct CallbackParams {
 
 #[derive(Serialize)]
 struct Character {
-    character_id: i32,
+    character_id: i64,
     character_name: String,
 }
 
@@ -62,9 +62,9 @@ async fn main() {
 
     // Always set a user agent for your ESI client
     // For production apps, ensure it contains a contact email in case anything goes wrong with your ESI requests
-    // E.G. "MyApp/1.0 (contact@example.com)"
+    // E.G. "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"
     let user_agent: String = format!(
-        "{}/{} ({}) ({})",
+        "{}/{} ({}; +{})",
         env!("CARGO_PKG_NAME"),
         env!("CARGO_PKG_VERSION"),
         contact_email,
@@ -95,15 +95,20 @@ async fn main() {
     // In production, you'd typically use a Valkey/Redis instance instead of a MemoryStore.
     let session_store = MemoryStore::default();
     let session_layer = SessionManagerLayer::new(session_store)
+        // You would set this to true for a production application
         .with_secure(false)
         .with_same_site(SameSite::Lax)
         .with_expiry(Expiry::OnInactivity(Duration::seconds(120)));
 
-    // Access the esi_client from an Axum extension to share it across threads
+    // Share the ESI client across threads with .layer(Extension)
+    // Not doing this will result in JWT key caching for token validation not working
+    // & requests taking longer.
     let app = Router::new()
         .route("/login", get(login))
         .route("/callback", get(callback))
         .layer(Extension(esi_client))
+        // Share reqwest_client across threads as well if your app needs it to share HTTP pool
+        .layer(Extension(reqwest_client))
         .layer(session_layer);
 
     // Start the API server
@@ -217,16 +222,32 @@ async fn callback(
         }
     };
 
-    // Extract character id & name from token
-    let id_str = claims.sub.split(':').collect::<Vec<&str>>()[2];
+    // Use utility function to parse `sub` field of claims to a character ID
+    // The `sub` field is a string: "CHARACTER:EVE:123456789"
+    // The `character_id()` function turns it into an i64: 123456789
+    match claims.character_id() {
+        Ok(character_id) => {
+            let character_name = claims.name;
+            let character = Character {
+                character_id,
+                character_name,
+            };
 
-    let character_id: i32 = id_str.parse().expect("Failed to parse id to i32");
-    let character_name: String = claims.name;
+            (StatusCode::OK, Json(character)).into_response()
+        }
+        Err(err) => {
+            // Error if the sub field can't be parsed to a character ID
+            // This shouldn't occur unless EVE changes their sub field format
+            println!(
+                "Error parsing JWT claims `sub` field to character id: {}",
+                err
+            );
 
-    let character = Character {
-        character_id,
-        character_name,
-    };
-
-    (StatusCode::OK, Json(character)).into_response()
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "Internal Server Error" })),
+            )
+                .into_response();
+        }
+    }
 }
