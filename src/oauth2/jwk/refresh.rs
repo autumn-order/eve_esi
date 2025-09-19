@@ -18,8 +18,8 @@ use crate::error::{Error, OAuthError};
 use crate::model::oauth2::EveJwtKeys;
 use crate::oauth2::jwk::cache::JwtKeyCache;
 
-use super::jwk::{fetch_and_update_cache, JwkApi};
 use super::util::check_refresh_cooldown;
+use super::{fetch_and_update_cache, JwkApi};
 
 impl<'a> JwkApi<'a> {
     /// Waits for an ongoing JWT key cache refresh operation to complete and returns the result
