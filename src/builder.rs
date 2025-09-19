@@ -89,6 +89,13 @@ pub struct ClientBuilder {
     pub(crate) callback_url: Option<String>,
 }
 
+impl Default for ClientBuilder {
+    /// Create a default instance of [`ClientBuilder`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ClientBuilder {
     /// Creates a new [`ClientBuilder`]
     ///
@@ -161,7 +168,7 @@ impl ClientBuilder {
 
             // OAuth2
             oauth2_client: oauth_client,
-            jwt_key_cache: jwt_key_cache,
+            jwt_key_cache,
             jwt_issuers: config.jwt_issuers,
             jwt_audience: config.jwt_audience,
         };

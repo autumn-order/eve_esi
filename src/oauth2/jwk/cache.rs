@@ -157,7 +157,7 @@ impl JwtKeyCache {
     /// - Some([`EveJwtKeys`]) if keys are present in the cache (valid or not)
     /// - [`None`] if the cache is empty (no keys have been fetched yet). This typically
     ///   triggers a fetch operation with retry logic when called from higher-level methods.
-    pub(super) async fn get_keys(self: &Self) -> Option<(EveJwtKeys, std::time::Instant)> {
+    pub(super) async fn get_keys(&self) -> Option<(EveJwtKeys, std::time::Instant)> {
         trace!("Attempting to retrieve JWT keys from cache");
 
         // Retrieve the cache
@@ -201,7 +201,7 @@ impl JwtKeyCache {
     ///
     /// # Parameters
     /// - `keys`: The EVE JWT keys to store in the cache
-    pub(super) async fn update_keys(self: &Self, keys: EveJwtKeys) {
+    pub(super) async fn update_keys(&self, keys: EveJwtKeys) {
         let key_count = keys.keys.len();
 
         let mut cache = self.cache.write().await;
@@ -235,7 +235,7 @@ impl JwtKeyCache {
     ///
     /// # Returns
     /// - [`bool`]: Indicates whether or not the cache was cleared.
-    pub(crate) async fn clear_cache(self: &Self) -> bool {
+    pub(crate) async fn clear_cache(&self) -> bool {
         let message = "Attempting to clear JWT key cache";
 
         debug!("{}", message);
@@ -303,7 +303,7 @@ impl JwtKeyCache {
     /// # Returns
     /// - [`true`] if the lock is acquired successfully,
     /// - [`false`] if the lock is already held by another thread
-    pub(super) fn refresh_lock_try_acquire(self: &Self) -> bool {
+    pub(super) fn refresh_lock_try_acquire(&self) -> bool {
         // Attempt to acquire a lock
         let lock_acquired = self.refresh_lock.compare_exchange(
             false,
@@ -346,7 +346,7 @@ impl JwtKeyCache {
     /// This method is thread-safe and uses proper memory ordering to ensure that
     /// all memory operations performed during the refresh are visible to threads
     /// that subsequently acquire the lock or are notified.
-    pub(super) fn refresh_lock_release_and_notify(self: &Self) {
+    pub(super) fn refresh_lock_release_and_notify(&self) {
         // Release the lock
         self.refresh_lock
             .store(false, std::sync::atomic::Ordering::Release);
@@ -373,7 +373,7 @@ impl JwtKeyCache {
     ///
     /// # Arguments
     /// - `failure_timestamp` (Option<[`Instant`]>): Option representing the last refresh failure time
-    pub(super) async fn set_refresh_failure(self: &Self, failure_timstamp: Option<Instant>) {
+    pub(super) async fn set_refresh_failure(&self, failure_timstamp: Option<Instant>) {
         let mut failure_time = self.last_refresh_failure.write().await;
         *failure_time = failure_timstamp;
     }

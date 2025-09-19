@@ -277,10 +277,10 @@ mod jwt_timestamp_format {
         D: Deserializer<'de>,
     {
         let timestamp = i64::deserialize(deserializer)?;
-        Ok(Utc
-            .timestamp_opt(timestamp, 0)
+
+        Utc.timestamp_opt(timestamp, 0)
             .single()
-            .ok_or_else(|| serde::de::Error::custom("Invalid timestamp"))?)
+            .ok_or_else(|| serde::de::Error::custom("Invalid timestamp"))
     }
 }
 
