@@ -364,7 +364,7 @@ mod tests {
     #[test]
     fn test_default_builder_values() {
         // Create an ClientBuilder with the default values
-        let builder = ClientBuilder::new();
+        let builder = ClientBuilder::default();
 
         // Assert default values are set as expected
         assert!(builder.config.is_none());

@@ -514,10 +514,10 @@ mod tests {
     /// - Assert JWT key settings were set as expected
     /// - Assert JWT key background refresh settings were set as expected
     #[test]
-    fn test_config_setter_methods() {
+    fn test_default_config_setter_methods() {
         let zero_seconds = Duration::from_secs(0);
 
-        let config = Config::builder()
+        let config = ConfigBuilder::default()
             // URL settings
             .auth_url("https://example.com")
             .token_url("https://example.com")
