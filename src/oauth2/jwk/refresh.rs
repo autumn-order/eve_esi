@@ -145,7 +145,7 @@ impl<'a> JwkApi<'a> {
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Check if we are still in cooldown due to fetch failure within 60 second cooldown period
-        if check_refresh_cooldown(&jwt_key_cache).await.is_some() {
+        if check_refresh_cooldown(jwt_key_cache).await.is_some() {
             debug!("Respecting refresh cooldown, delaying JWT key refresh");
 
             return false;
@@ -219,7 +219,7 @@ pub(super) async fn refresh_jwt_keys(
 
     trace!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
 
-    let mut result = fetch_and_update_cache(&reqwest_client, &jwt_key_cache).await;
+    let mut result = fetch_and_update_cache(reqwest_client, jwt_key_cache).await;
 
     // Retry logic - attempt retries if the initial fetch failed
     let mut retry_attempts = 0;
@@ -247,7 +247,7 @@ pub(super) async fn refresh_jwt_keys(
             retry_attempts + 1
         );
 
-        result = fetch_and_update_cache(&reqwest_client, &jwt_key_cache).await;
+        result = fetch_and_update_cache(reqwest_client, jwt_key_cache).await;
         retry_attempts += 1;
     }
 
@@ -290,7 +290,7 @@ pub(super) async fn refresh_jwt_keys(
             debug!("Recorded JWT key refresh failure timestamp");
 
             // Return Error of type EsiError::ReqwestError
-            Err(err.into())
+            Err(err)
         }
     }
 }

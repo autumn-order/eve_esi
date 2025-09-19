@@ -174,7 +174,7 @@ impl JwtKeyCache {
             );
 
             // Return the keys found in cache
-            return Some((keys.clone(), timestamp.clone()));
+            return Some((keys.clone(), *timestamp));
         }
 
         debug!("JWT keys cache is empty, keys need to be fetched");
@@ -312,7 +312,7 @@ impl JwtKeyCache {
             std::sync::atomic::Ordering::Relaxed,
         );
 
-        if !lock_acquired.is_err() {
+        if lock_acquired.is_ok() {
             let message = "Successfully acquired JWT key refresh lock";
 
             debug!("{}", message);
