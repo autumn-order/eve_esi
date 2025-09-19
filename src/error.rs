@@ -96,7 +96,7 @@ pub enum Error {
 /// - [`MissingCallbackUrl`](ConfigError::MissingCallbackUrl): The [crate::Client] is missing a `callback_url`
 /// - [`InvalidCallbackUrl`](ConfigError::InvalidCallbackUrl): The `callback_url` is in an invalid URL format.
 /// - [`InvalidAuthUrl`](ConfigError::InvalidAuthUrl): EVE OAuth2 authorization URL is in an invalid URL format.
-/// - [`InvalidTokenUrl](ConfigError::InvalidTokenUrl): EVE OAuth2 token URL is in an invalid URL format.
+/// - [`InvalidTokenUrl`](ConfigError::InvalidTokenUrl): EVE OAuth2 token URL is in an invalid URL format.
 /// - [`InvalidBackgroundRefreshThreshold`](ConfigError::InvalidBackgroundRefreshThreshold): JWT key cache
 ///   background refresh threshold percentage is not between 0 and 100
 ///

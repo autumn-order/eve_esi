@@ -25,7 +25,7 @@
 //!
 //! ### Single Sign-On (OAuth2)
 //!
-//! - [Building scopes to request with a login URL](crate::oauth2::scope)
+//! - [Building scopes to request during login](crate::oauth2::scope)
 //! - [Creating a login URL for single sign-on (OAuth2)](crate::oauth2::login)
 //! - [Fetching an access token](crate::oauth2::token)
 //! - [Validating an access token](crate::oauth2::token)
@@ -33,9 +33,9 @@
 //!
 //! ### Error Types
 //!
-//! - [Runtime errors](crate::error)
-//! - [Configuration errors](crate::error)
-//! - [OAuth2 runtime errors](crate::error)
+//! - [Runtime errors](crate::error::Error)
+//! - [Configuration errors](crate::error::ConfigError)
+//! - [OAuth2 runtime errors](crate::oauth2::error::OAuthError)
 //!
 //! ### Custom Endpoints
 //!

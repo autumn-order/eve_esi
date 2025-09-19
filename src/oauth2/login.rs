@@ -19,7 +19,7 @@
 //! // A login API route implemented in the Axum web framework
 //! async fn login(Extension(esi_client): Extension<eve_esi::Client>) -> Response {
 //!    // Build the scopes we wish to request from the user
-//!    let scopes = eve_esi::oauth2::ScopeBuilder::new().public_data().build();
+//!    let scopes = eve_esi::ScopeBuilder::new().public_data().build();
 //!
 //!    // Generate the login url or return an error if one occurs
 //!    let login_url = match esi_client.oauth2().login_url(scopes) {
