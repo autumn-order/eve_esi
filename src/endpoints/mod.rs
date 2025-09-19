@@ -25,7 +25,7 @@
 //! ## Usage
 //! ### Public ESI Endpoints
 //! **Prerequisites:**
-//! - **ESI Client:** Setup a basic ESI client as demonstrated in [`crate::builder`] module docs
+//! - **ESI Client:** Setup a basic ESI client as demonstrated in [`crate::client`] module docs
 //!
 //! ```no_run
 //! use eve_esi::Client;
@@ -44,9 +44,9 @@
 //! ### Authenticated ESI Endpoints
 //! **Prerequisites:**
 //! - **ESI Client:** Setup an ESI client for OAuth2 as demonstrated in [`crate::builder`] module docs
-//! - **User Login:** You will need the character to login first in order to get an access token
+//! - **User Login:** You will need the character to login first in order to retrieve an access token
 //!   using an authorization code. You will need a login route as demonstrated in the [`crate::oauth2::login`]
-//!   module docs.
+//!   module docs. Make sure you request the scopes required for the endpoint!
 //! - **Access Token:** You will get this by getting a character's token in the callback route
 //!   using the authorization code provided after login as demonstrated in the [`crate::oauth2::token`]
 //!   module docs
@@ -54,16 +54,16 @@
 //! ```no_run
 //! use eve_esi::Client;
 //!
-//! // Fetch character research agents from an authenticated ESI endpoint
-//! async fn get_character_research_agents(
+//! // Fetch character notifications from an authenticated ESI endpoint
+//! async fn get_character_notifications(
 //!     esi_client: Client,
 //!     character_id: i64,
 //!     access_token: &str
 //! ) {
-//!     // Get character research agents for character_id using the access_token
-//!     let research_agents = esi_client
+//!     // Get character notifications for character_id using the access_token
+//!     let notifications = esi_client
 //!         .character()
-//!         .get_agents_research(&access_token, character_id)
+//!         .get_character_notifications(&access_token, character_id)
 //!         .await
 //!         .unwrap();
 //! }
