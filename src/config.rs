@@ -147,6 +147,13 @@ impl Config {
     }
 }
 
+impl Default for ConfigBuilder {
+    /// Create a default instance of [`ConfigBuilder`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConfigBuilder {
     /// Creates a new [`ConfigBuilder`] instance used to build an [`Config`]
     ///
@@ -195,12 +202,12 @@ impl ConfigBuilder {
     /// - The [`Self::token_url`] method is given an invalid URL
     pub fn build(self) -> Result<Config, Error> {
         // Ensure background refresh percentage is set properly
-        if !(self.jwt_key_cache_config.background_refresh_threshold > 0) {
+        if self.jwt_key_cache_config.background_refresh_threshold == 0 {
             return Err(Error::ConfigError(
                 ConfigError::InvalidBackgroundRefreshThreshold,
             ));
         }
-        if !(self.jwt_key_cache_config.background_refresh_threshold < 100) {
+        if self.jwt_key_cache_config.background_refresh_threshold >= 100 {
             return Err(Error::ConfigError(
                 ConfigError::InvalidBackgroundRefreshThreshold,
             ));
@@ -221,8 +228,8 @@ impl ConfigBuilder {
         Ok(Config {
             // URL settings
             esi_url: self.esi_url,
-            auth_url: auth_url,
-            token_url: token_url,
+            auth_url,
+            token_url,
 
             // JWT key cache settings
             jwt_key_cache_config: self.jwt_key_cache_config,
@@ -507,10 +514,10 @@ mod tests {
     /// - Assert JWT key settings were set as expected
     /// - Assert JWT key background refresh settings were set as expected
     #[test]
-    fn test_config_setter_methods() {
+    fn test_default_config_setter_methods() {
         let zero_seconds = Duration::from_secs(0);
 
-        let config = Config::builder()
+        let config = ConfigBuilder::default()
             // URL settings
             .auth_url("https://example.com")
             .token_url("https://example.com")

@@ -31,6 +31,13 @@ pub struct CharacterScopes {
     pub(super) scopes: Vec<String>,
 }
 
+impl Default for CharacterScopes {
+    /// Create a default instance of [`CharacterScopes`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CharacterScopes {
     /// Create a new instance of [`CharacterScopes`]
     pub fn new() -> Self {

@@ -92,8 +92,7 @@ impl<'a> OAuth2Api<'a> {
     /// After successful usage of [Self::get_token], you can use these methods on the resulting token:
     ///
     /// - Access token: `token.access_token()`
-    /// // Refresh token will be None if no scopes were requested
-    /// - Refresh token: `token.refresh_token()`
+    /// - Refresh token: `token.refresh_token()` (Refresh token will be None if no scopes were requested)
     ///
     /// The access token expires after 20 minutes, you can use [Self::get_token_refresh]
     /// to get a new token.
@@ -216,7 +215,7 @@ impl<'a> OAuth2Api<'a> {
         debug!("Attempting JWT token validation");
 
         // First attempt
-        match attempt_validation(&self.client, &token_secret).await {
+        match attempt_validation(self.client, &token_secret).await {
             Ok(claims) => Ok(claims),
             Err(err) => {
                 // Clear the cache to trigger a JWT key refresh on next attempt
@@ -231,7 +230,7 @@ impl<'a> OAuth2Api<'a> {
 
                     debug!("{}", message);
 
-                    attempt_validation(&self.client, &token_secret).await
+                    attempt_validation(self.client, &token_secret).await
                 } else {
                     let message = format!("Failed to validate JWT token due to error: {:#?}", &err);
 
@@ -291,7 +290,7 @@ async fn attempt_validation(client: &Client, token_secret: &str) -> Result<EveJw
         // Validate the token
         debug!("Validating token using RS256 decoding key");
 
-        match jsonwebtoken::decode::<EveJwtClaims>(&token_secret, &decoding_key, &validation) {
+        match jsonwebtoken::decode::<EveJwtClaims>(token_secret, &decoding_key, &validation) {
             Ok(token_data) => {
                 let character_id = token_data.claims.character_id()?;
                 let message = format!(

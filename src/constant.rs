@@ -31,7 +31,6 @@ pub static DEFAULT_JWK_BACKGROUND_REFRESH_THRESHOLD_PERCENT: u64 = 80;
 /// Default JWT issuer as the EVE Online login server which is the expected issuer of JWT tokens
 // ESI SSO docs defines 2 different JWT issuers but tokens typically only have 1 of them at a time.
 // We'll define both so that token validation accepts either of the possibilities.
-pub static DEFAULT_JWT_ISSUERS: [&'static str; 2] =
-    ["https://login.eveonline.com", "login.eveonline.com"];
+pub static DEFAULT_JWT_ISSUERS: [&str; 2] = ["https://login.eveonline.com", "login.eveonline.com"];
 /// Default intended audience which JWT tokens will be used with
 pub static DEFAULT_JWT_AUDIENCE: &str = "EVE Online";

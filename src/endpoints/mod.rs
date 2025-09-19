@@ -75,4 +75,38 @@ mod macros;
 pub mod alliance;
 pub mod character;
 pub mod corporation;
-pub mod endpoints;
+
+use crate::Client;
+
+use alliance::AllianceApi;
+use character::CharacterApi;
+use corporation::CorporationApi;
+
+impl Client {
+    /// Access to Alliance ESI endpoints
+    ///
+    /// For an overview & usage example, see the [endpoints module documentation](super)
+    ///
+    /// Returns an API client for interacting with alliance-related endpoints.
+    pub fn alliance(&self) -> AllianceApi<'_> {
+        AllianceApi::new(self)
+    }
+
+    /// Access to Character ESI endpoints
+    ///
+    /// For an overview & usage example, see the [endpoints module documentation](super)
+    ///
+    /// Returns an API client for interacting with character-related endpoints.
+    pub fn character(&self) -> CharacterApi<'_> {
+        CharacterApi::new(self)
+    }
+
+    /// Access to Corporation ESI endpoints
+    ///
+    /// For an overview & usage example, see the [endpoints module documentation](super)
+    ///
+    /// Returns an API client for interacting with corporation-related endpoints.
+    pub fn corporation(&self) -> CorporationApi<'_> {
+        CorporationApi::new(self)
+    }
+}

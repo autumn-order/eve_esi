@@ -72,7 +72,7 @@ pub(super) async fn check_refresh_cooldown(jwt_key_cache: &JwtKeyCache) -> Optio
     trace!("No previous JWT key refresh failures recorded, no backoff needed");
 
     // Return None indicating there is no active cooldown
-    return None;
+    None
 }
 
 /// Determines if the cache is approaching expiry based on elapsed time
