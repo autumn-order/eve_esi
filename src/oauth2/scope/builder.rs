@@ -95,8 +95,8 @@ mod tests {
 
     /// Tests initialization & successful building of a new instance of scope builder
     #[test]
-    fn test_scope_builder_new() {
-        ScopeBuilder::new().build();
+    fn test_scope_builder_default() {
+        ScopeBuilder::default().build();
     }
 
     /// Tests that all existing scopes can be built
