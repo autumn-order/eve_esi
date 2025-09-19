@@ -6,10 +6,10 @@
 //! Default settings for OAuth2 such as JWT key cache handling used to validate tokens or
 //! the endpoints used for EVE OAuth2 can be overridden using the [`Config`](crate::Config).
 //!
-//! # References
-//! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
+//! ## References
+//! - <https://developers.eveonline.com/docs/services/sso/>
 //!
-//! # Modules
+//! ## Modules
 //!
 //! - [`login`]: Methods to begin the OAuth2 login process
 //! - [`token`]: Methods to retrieve, validate, & refresh OAuth2 tokens
