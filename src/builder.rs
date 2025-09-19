@@ -251,7 +251,7 @@ impl ClientBuilder {
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     ///
     /// # Arguments
-    /// - `client_id` ([`String`]): The OAuth2 client ID obtained from the EVE Online developer portal.
+    /// - `client_id` (`&str`): The OAuth2 client ID obtained from the EVE Online developer portal.
     ///
     /// # Returns
     /// - [`ClientBuilder`]: instance with updated client ID configuration.
@@ -270,7 +270,7 @@ impl ClientBuilder {
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     ///
     /// # Arguments
-    /// - `client_secret` ([`String`]): The OAuth2 client secret obtained from the EVE Online developer portal.
+    /// - `client_secret` (`&str`): The OAuth2 client secret obtained from the EVE Online developer portal.
     ///
     /// # Returns
     /// - [`ClientBuilder`]: instance with updated client secret configuration.
@@ -289,7 +289,7 @@ impl ClientBuilder {
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     ///
     /// # Arguments
-    /// - `callback_url` ([`String`]): The callback URL which matches the one set in your EVE Online developer portal application.
+    /// - `callback_url` (`&str`): The callback URL which matches the one set in your EVE Online developer portal application.
     ///
     /// # Returns
     /// - [`ClientBuilder`] instance with updated callback URL configuration.
