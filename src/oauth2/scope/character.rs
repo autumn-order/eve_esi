@@ -130,3 +130,16 @@ impl CharacterScopes {
         self
     }
 }
+
+#[cfg(test)]
+mod character_scopes_tests {
+    use crate::oauth2::scope::CharacterScopes;
+
+    /// Tests initializing a default instance of [`CharacterScopes`]
+    #[test]
+    fn test_character_scopes_default() {
+        let character_scopes = CharacterScopes::default();
+
+        assert_eq!(character_scopes.scopes.len(), 0)
+    }
+}

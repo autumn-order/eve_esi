@@ -89,29 +89,27 @@ impl ScopeBuilder {
 mod tests {
     use super::*;
 
-    /// Tests that all existing scopes can be built.
-    ///
-    /// # Setup
-    /// - Creates a new ScopeBuilder instance with every scope.
-    ///
-    /// # Assertions
-    /// - Asserts that we have the right number of scopes.
-    /// - Asserts that the scopes are correct and in the right order.
+    // These scope builder tests are basic, the majority of its actual functionality is
+    // tested in the endpoint integration tests. Here we're just ensuring the core functions
+    // work.
+
+    /// Tests initialization & successful building of a new instance of scope builder
     #[test]
-    fn test_all_scopes() {
-        // Create a new ScopeBuilder instance with every scope
-        let scopes = ScopeBuilder::new()
-            .public_data()
-            .custom("custom_scope")
-            .character(CharacterScopes::new().read_agents_research())
-            .build();
+    fn test_scope_builder_default() {
+        ScopeBuilder::default().build();
+    }
 
-        // Assert that we have the right number of scopes
-        assert_eq!(scopes.len(), 3);
+    /// Tests that all existing scopes can be built
+    #[test]
+    fn test_scope_builder_all() {
+        ScopeBuilder::all();
+    }
 
-        // Assert that the scopes are correct and in the right order
-        assert_eq!(scopes[0], super::PUBLIC_DATA);
-        assert_eq!(scopes[1], "custom_scope");
-        assert_eq!(scopes[2], super::super::character::READ_AGENTS_RESEARCH)
+    /// Tests successful setting & building with a custom scope
+    #[test]
+    fn test_scope_builder_custom() {
+        let scopes = ScopeBuilder::new().custom("custom_scope").build();
+
+        assert_eq!(scopes[0], "custom_scope");
     }
 }

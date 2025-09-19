@@ -41,3 +41,16 @@ impl WalletScopes {
         self
     }
 }
+
+#[cfg(test)]
+mod wallet_scopes_tests {
+    use crate::oauth2::scope::WalletScopes;
+
+    /// Tests initializing a default instance of [`WalletScopes`]
+    #[test]
+    fn test_wallet_scopes_default() {
+        let wallet_scopes = WalletScopes::default();
+
+        assert_eq!(wallet_scopes.scopes.len(), 0)
+    }
+}
