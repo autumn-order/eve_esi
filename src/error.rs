@@ -1,4 +1,4 @@
-//! Error types for the EVE ESI client library.
+//! # EVE ESI Runtime & Config Errors
 //!
 //! This module defines the top-level error types used throughout the crate, providing
 //! structured and descriptive error handling for both OAuth2 authentication and HTTP requests.
@@ -15,7 +15,7 @@
 //!
 //! See the documentation for [`enum@Error`] and [`ConfigError`] for more details on each error variant.
 //!
-//! # Example
+//! ## Usage Example
 //!
 //! ```rust
 //! // Don't set any OAuth2 related settings
@@ -53,17 +53,6 @@ pub use crate::oauth2::error::OAuthError;
 /// all possible error conditions, including OAuth2 authentication errors and HTTP request failures.
 ///
 /// See the [module-level documentation](self) for an overview and usage example.
-///
-/// # Variants
-/// - [`ConfigError`](Error::ConfigError) - Errors due to configuration issues when building an [`Client`](crate::Client)
-///   or [`Config`](crate::config::Config)
-/// - [`OAuthError`](Error::OAuthError) - Errors related to OAuth2 authentication. See [`OAuthError`] for details.
-/// - [`ReqwestError`](Error::ReqwestError) - Errors that occur during HTTP requests. See [`reqwest::Error`] for details.
-///
-/// # Usage
-/// You can match on [`enum@Error`] to handle errors at a high level, or downcast to more specific
-/// error types for granular handling.
-///
 #[derive(Error, Debug)]
 pub enum Error {
     /// Config errors related to building a [`Config`](crate::Config) or [`Client`](crate::Client)
@@ -89,20 +78,6 @@ pub enum Error {
 /// improper URL format or an invalid JWT key background refresh threshold.
 ///
 /// See the [module-level documentation](self) for an overview and usage example.
-///
-/// # Variants
-/// - [`MissingClientId`](ConfigError::MissingClientId): The [crate::Client] is missing a `client_id`
-/// - [`MissingClientSecret`](ConfigError::MissingClientSecret): The [crate::Client] is missing a `client_secret`
-/// - [`MissingCallbackUrl`](ConfigError::MissingCallbackUrl): The [crate::Client] is missing a `callback_url`
-/// - [`InvalidCallbackUrl`](ConfigError::InvalidCallbackUrl): The `callback_url` is in an invalid URL format.
-/// - [`InvalidAuthUrl`](ConfigError::InvalidAuthUrl): EVE OAuth2 authorization URL is in an invalid URL format.
-/// - [`InvalidTokenUrl](ConfigError::InvalidTokenUrl): EVE OAuth2 token URL is in an invalid URL format.
-/// - [`InvalidBackgroundRefreshThreshold`](ConfigError::InvalidBackgroundRefreshThreshold): JWT key cache
-///   background refresh threshold percentage is not between 0 and 100
-///
-/// # Usage
-/// You can match on [`ConfigError`] to handle errors at a high level, or downcast to more specific
-/// error types for granular handling.
 #[derive(Error, Debug)]
 pub enum ConfigError {
     /// The [crate::Client] is missing a `client_id`

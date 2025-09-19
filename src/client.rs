@@ -4,22 +4,23 @@
 //! SSO (single sign-on) using OAuth2, & caching & refreshing JWT keys to validate tokens.
 //!
 //! ## Usage
-//!
-//! Creating a basic default ESI client with a user agent
-//!
+//! ### Creating a basic ESI client
 //! ```rust
-//! // Set a user_agent to identify your application when making requests
+//! // Always set a user_agent to identify your application when making requests
 //! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
 //!
-//! // Create a basic ESI client with user_agent
-//! let esi_client = eve_esi::Client::new(user_agent).expect("Failed to build Client");
+//! // Create a basic ESI client with the user_agent
+//! let esi_client = eve_esi::Client::new(user_agent).expect("Failed to build ESI Client");
 //! ```
+//!
+//! For a more complete example of a basic ESI client, see the [Axum example](https://github.com/hyziri/eve_esi/blob/main/examples/axum.rs)
 //!
 //! To build an ESI client for OAuth2 & authenticated ESI routes, please see the [`crate::builder`] module docs.
 //!
 //! ## Warning
-//! EVE ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
-//! Include application name, version, and contact information in your user agent string.
+//! EVE Online requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+//! Include application name, version, and contact information in your user agent string as well as the repository
+//! of your application if it is open source.
 //!
 //! Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repo)"`
 

@@ -1,21 +1,47 @@
 #![warn(missing_docs)]
 
-//! EVE ESI
+//! ## EVE ESI
 //!
 //! A thread-safe, asynchronous client which provides methods & types for interaction with
 //! [EVE Online's ESI](https://developers.eveonline.com/api-explorer) &
 //! [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
 //!
-//! This crate implements concurrency & caching to provide performance in applications at scale.
-//! For example JSON web token keys (JWT keys) are used to validate tokens after a successful EVE
-//! Online single sign-on login, this crate automatically caches the keys and refreshes them proactively
-//! before expiry in a background task for mimimal latency.
+//! ## ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
+//! - <https://developers.eveonline.com/docs/services/sso/>
 //!
-//! # References
-//! - [ESI API Documentation](https://developers.eveonline.com/api-explorer)
-//! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
+//! ## Quickstart
 //!
-//! # Usage
+//! ### ESI Client
+//!
+//! - [Creating a basic ESI client for public ESI endpoints](crate::client)
+//! - [Building an ESI client for OAuth2 & authenticated ESI endpoints](crate::builder)
+//! - [Overriding an ESI client's defaults](crate::config)
+//!
+//! ### Making ESI Requests
+//!
+//! - [Making requests to public ESI endpoints](crate::endpoints)
+//! - [Making requests to authenticated ESI endpoints](crate::endpoints)
+//!
+//! ### Single Sign-On (OAuth2)
+//!
+//! - [Building scopes to request during login](crate::oauth2::scope)
+//! - [Creating a login URL for single sign-on (OAuth2)](crate::oauth2::login)
+//! - [Fetching an access token](crate::oauth2::token)
+//! - [Validating an access token](crate::oauth2::token)
+//! - [Refreshing an access token](crate::oauth2::token)
+//!
+//! ### Error Types
+//!
+//! - [Runtime errors](crate::error::Error)
+//! - [Configuration errors](crate::error::ConfigError)
+//! - [OAuth2 runtime errors](crate::oauth2::error::OAuthError)
+//!
+//! ### Custom Endpoints
+//!
+//! - [Adding custom ESI endpoints](crate::esi)
+//!
+//! ## Usage
 //!
 //! Create a new ESI Client instance and request public information about a corporation from ESI.
 //!

@@ -9,16 +9,17 @@
 //! - [EVE SSO Documentation](https://developers.eveonline.com/docs/services/sso/)
 //!
 //! ## Features
-//! - Set a user agent
+//! - Set a user agent to identify your application's requests
 //! - Configure [`Client`] for OAuth2 using `client_id`, `client_secret`, and `callback_url` methods
+//! - Share a reqwest Client with the ESI client for optimal performance by using the same connection pool
 //! - Override the default JWT key cache & refresh settings used to validate OAuth2 tokens & override
 //!   the default endpoint URLs with a custom [`Config`] using the [`ClientBuilder::config`] method.
 //!
 //! ## Builder Methods
 //! | Method           | Purpose                                 |
 //! | ---------------- | --------------------------------------- |
-//! | `new`            | Create a builder for the Client      |
-//! | `build`          | Build the Client                     |
+//! | `new`            | Create a builder for the Client         |
+//! | `build`          | Build the Client                        |
 //! | `config`         | Override the default config             |
 //! | `reqwest_client` | Override default reqwest client         |
 //! | `user_agent`     | User agent to identify HTTP requests    |
@@ -27,21 +28,37 @@
 //! | `callback_url`   | EVE OAuth2 callback URL                 |
 //!
 //! ## Usage
+//! ### Building an ESI client for OAuth2
+//! **Prerequisites:**
+//! - **EVE Online Developer Application:** First, you will need to get a client ID & client
+//!   secret as well as set the callback URL where your user's will be redirected to after
+//!   login. Setup a developer application at <https://developers.eveonline.com/applications>
+//! - **Set environment variables:** Never hard-code your client ID & client secret, instead
+//!   use a .env file and then load it with the [`dotenvy`](https://crates.io/crates/dotenvy)
+//!   crate as demonstrated in the [SSO example](https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs).
+//!
 //! ```
 //! use eve_esi::Client;
 //!
-//! // Set a user agent used to identify the application making ESI requests
+//! // Always set a user_agent to identify your application when making requests
+//! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
+//!
+//! // Create an ESI client with the builder method to configure OAuth2 settings
 //! let esi_client = Client::builder()
-//!     .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository)")
+//!     .user_agent(user_agent)
+//!     .client_id("client_id")
+//!     .client_secret("client_secret")
+//!     .callback_url("http://localhost:8080/callback")
 //!     .build()
-//!     .expect("Failed to build Client");
+//!     .expect("Failed to build ESI Client");
 //! ```
 //!
 //! ## Warning
-//! EVE Online's ESI API requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
-//! Include application name, version, and contact information in your user agent string.
+//! EVE Online requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
+//! Include application name, version, and contact information in your user agent string as well as the repository
+//! of your application if it is open source.
 //!
-//! Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repository)"`
+//! Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repo)"`
 
 use std::sync::Arc;
 
@@ -234,7 +251,7 @@ impl ClientBuilder {
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     ///
     /// # Arguments
-    /// - `client_id` ([`String`]): The OAuth2 client ID obtained from the EVE Online developer portal.
+    /// - `client_id` (`&str`): The OAuth2 client ID obtained from the EVE Online developer portal.
     ///
     /// # Returns
     /// - [`ClientBuilder`]: instance with updated client ID configuration.
@@ -253,7 +270,7 @@ impl ClientBuilder {
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     ///
     /// # Arguments
-    /// - `client_secret` ([`String`]): The OAuth2 client secret obtained from the EVE Online developer portal.
+    /// - `client_secret` (`&str`): The OAuth2 client secret obtained from the EVE Online developer portal.
     ///
     /// # Returns
     /// - [`ClientBuilder`]: instance with updated client secret configuration.
@@ -272,7 +289,7 @@ impl ClientBuilder {
     /// To enable OAuth2 authentication, you must set `client_id`, `client_secret`, and `callback_url` before calling `.build()`.
     ///
     /// # Arguments
-    /// - `callback_url` ([`String`]): The callback URL which matches the one set in your EVE Online developer portal application.
+    /// - `callback_url` (`&str`): The callback URL which matches the one set in your EVE Online developer portal application.
     ///
     /// # Returns
     /// - [`ClientBuilder`] instance with updated callback URL configuration.

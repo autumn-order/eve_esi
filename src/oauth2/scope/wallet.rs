@@ -7,7 +7,7 @@
 //! # Methods
 //! - [`WalletScopes::new`]: Creates a new instance of [`WalletScopes`]
 
-/// Access to retrieve information regarding corporation wallets
+/// Access to retrieve information for character's corporation wallets
 pub const READ_CORPORATION_WALLETS: &str = "esi-wallet.read_corporation_wallets.v1";
 
 /// Struct with methods for listing wallet scopes to request for OAuth2
@@ -27,6 +27,8 @@ impl WalletScopes {
     }
 
     /// Adds the `esi-wallet.read_corporation_wallets.v1` scope
+    ///
+    /// Access to retrieve information for character's corporation wallets
     pub fn read_corporation_wallets(mut self) -> Self {
         self.scopes.push(READ_CORPORATION_WALLETS.to_string());
         self

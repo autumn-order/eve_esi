@@ -58,66 +58,88 @@ impl CorporationScopes {
     }
 
     /// Adds the `esi-corporations.read_blueprints.v1` scope
+    ///
+    /// Access to retrieve information on corporation's blueprints
     pub fn read_blueprints(mut self) -> Self {
         self.scopes.push(READ_BLUEPRINTS.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_container_logs.v1` scope
+    ///
+    /// Access to read information on corporation container logs
     pub fn read_container_logs(mut self) -> Self {
         self.scopes.push(READ_CONTAINER_LOGS.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_divisions.v1` scope
+    ///
+    /// Access to retrieve information on corporation's wallet & hangar divisions
     pub fn read_divisions(mut self) -> Self {
         self.scopes.push(READ_DIVISIONS.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_facilities.v1` scope
+    ///
+    /// Access to retrieve information on corporation's industry facilities
     pub fn read_facilities(mut self) -> Self {
         self.scopes.push(READ_FACILITIES.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_medals.v1` scope
+    ///
+    /// Access to retrieve information on corporation's medals
     pub fn read_medals(mut self) -> Self {
         self.scopes.push(READ_MEDALS.to_string());
         self
     }
 
     /// Adds the `esi-corporations.track_members.v1` scope
+    ///
+    /// Access to member tracking-related information for a corporation
     pub fn track_members(mut self) -> Self {
         self.scopes.push(TRACK_MEMBERS.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_titles.v1` scope
+    ///
+    /// Access to retrieve information on a corporation's member titles
     pub fn read_titles(mut self) -> Self {
         self.scopes.push(READ_TITLES.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_corporation_membership.v1` scope
+    ///
+    /// Access to read roles & membership for a corporation
     pub fn read_corporation_membership(mut self) -> Self {
         self.scopes.push(READ_CORPORATION_MEMBERSHIP.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_standings.v1` scope
+    ///
+    /// Access to retrieve information on a corporation's NPC standings
     pub fn read_standings(mut self) -> Self {
         self.scopes.push(READ_STANDINGS.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_starbases.v1` scope
+    ///
+    /// Access to retrieve information on a corporation's starbases (POSes)
     pub fn read_starbases(mut self) -> Self {
         self.scopes.push(READ_STARBASES.to_string());
         self
     }
 
     /// Adds the `esi-corporations.read_structures.v1` scope
+    ///
+    /// Access to retrieve information on corporation's structures
     pub fn read_structures(mut self) -> Self {
         self.scopes.push(READ_STRUCTURES.to_string());
         self

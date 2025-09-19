@@ -41,7 +41,7 @@
 //!
 //!     // Make the request with the earlier defined struct
 //!     // - The first type, `<Vec<CharacterAffiliations>`, represents the response body to deserialize
-//!     // - The second type, `Vec<i64>`, represents the request body to serialize
+//!     // - The second type, `Vec<i64>`, represents the request body to serialize (not applicable to GET requests)
 //!     let character_ids = vec![2114794365];
 //!
 //!     let character_affiliations = esi_client

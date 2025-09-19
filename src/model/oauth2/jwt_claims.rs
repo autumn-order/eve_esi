@@ -258,7 +258,7 @@ where
     }
 }
 
-/// Deserializes i64 unix timestamp common for JWTs into DateTime<Utc>
+/// Deserializes i64 unix timestamp common for JWTs into `DateTime<Utc>`
 mod jwt_timestamp_format {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer, Serializer};

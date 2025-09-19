@@ -2,6 +2,8 @@
 //!
 //! Methods for fetching, refreshing, & validating tokens retrieved from EVE Online's OAuth2 API.
 //!
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
+//!
 //! ## Methods
 //! - [`OAuth2Api::get_token`]: Retrieves a token from EVE Online's OAuth2 API
 //! - [`OAuth2Api::get_token_refresh`]: Retrieves a new token using a refresh token
@@ -10,7 +12,7 @@
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/docs/services/sso/>
 //!
-//! ## Usage
+//! ## Usage Example
 //!
 //! This demonstrates an example of a callback API route implemented in the Axum web framework.
 //! See [SSO example](https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs) for a more complete demonstration.
@@ -20,17 +22,19 @@
 //! use oauth2::TokenResponse;
 //! use serde::Deserialize;
 //!
+//! // URL parameters for the callback route
 //! #[derive(Deserialize)]
 //! struct CallbackParams {
 //!    state: String,
 //!    code: String,
 //! }
 //!
+//! // A callback API route implemented in the Axum web framework
 //! async fn callback_route(
 //!     Extension(esi_client): Extension<eve_esi::Client>,
 //!     params: Query<CallbackParams>,
 //! ) -> Result<(), eve_esi::Error> {
-//!     ///Validate state to prevent CSRF...
+//!     // Validate state here to prevent CSRF...
 //!
 //!     // Fetch the token
 //!     let token = esi_client
@@ -39,16 +43,16 @@
 //!         .await?;
 //!
 //!     let access_token = token.access_token();
-//!     // Refresh token should always be Some for EVE Online's OAuth2
+//!     // Refresh token will be None if no scopes were requested during login
 //!     let refresh_token = token.refresh_token().expect("Expected refresh token, found None");
 //!
-//!     // Validate the token
+//!     // Validate the access token to access the claims
 //!     let claims = esi_client
 //!         .oauth2()
 //!         .validate_token(access_token.secret().to_string())
 //!         .await?;
 //!
-//!     // Extract character ID
+//!     // Use helper function to get character ID from the claims
 //!     let character_id = claims.character_id()?;
 //!
 //!     // Refresh the token
@@ -202,7 +206,7 @@ impl<'a> OAuth2Api<'a> {
     /// See <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
     ///
     /// # Arguments
-    /// - `token_secret` ([`String`]): The access token secret as a string. You can use
+    /// - `token_secret` ([`String`]): The access token secret as a stribuilderng. You can use
     ///   `token.access_token().secret().to_string()` on the token returned from [`Self::get_token`].
     ///
     /// # Errors

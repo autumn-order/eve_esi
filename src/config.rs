@@ -45,10 +45,13 @@
 //!     .build()
 //!     .expect("Failed to build ESI Config");
 //!
+//! // Always set a user_agent to identify your application when making requests
+//! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
+//!
 //! // Apply config settings to Client
 //! let esi_client = eve_esi::Client::builder()
 //!     .config(config)
-//!     .user_agent("MyApp/1.0 (contact@example.com; +https://github.com/your/repository")
+//!     .user_agent(user_agent)
 //!     .build()
 //!     .expect("Failed to build ESI Client");
 //! ```
