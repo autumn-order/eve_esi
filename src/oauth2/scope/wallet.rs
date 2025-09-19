@@ -15,6 +15,13 @@ pub struct WalletScopes {
     pub(super) scopes: Vec<String>,
 }
 
+impl Default for WalletScopes {
+    /// Create a default instance of [`WalletScopes`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WalletScopes {
     /// Create a new instance of [`WalletScopes`]
     pub fn new() -> Self {

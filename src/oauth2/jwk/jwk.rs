@@ -42,7 +42,7 @@ impl OAuth2Api<'_> {
     ///
     /// Return an API client for interacting with the JWK endpoints.
     pub fn jwk(&self) -> self::JwkApi<'_> {
-        self::JwkApi::new(&self.client)
+        self::JwkApi::new(self.client)
     }
 }
 
@@ -100,10 +100,10 @@ impl<'a> JwkApi<'a> {
             let elapsed_seconds = timestamp.elapsed().as_secs();
 
             // If the cache is not expired return the keys
-            if !is_cache_expired(&jwt_key_cache, timestamp) {
+            if !is_cache_expired(jwt_key_cache, timestamp) {
                 // If background refresh is enabled & the cache is approaching expiry, trigger a background refresh
                 if jwt_key_cache.config.background_refresh_enabled
-                    && is_cache_approaching_expiry(&jwt_key_cache, timestamp)
+                    && is_cache_approaching_expiry(jwt_key_cache, timestamp)
                 {
                     debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
@@ -132,7 +132,7 @@ impl<'a> JwkApi<'a> {
         //
         // If a recent attempt to refresh keys was made and all retries failed, a 60
         // second cooldown period will be active until the next set of attempts.
-        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
+        let cooldown = check_refresh_cooldown(jwt_key_cache).await;
         if let Some(cooldown_remaining) = cooldown {
             let message = format!(
                 "JWT key refresh cooldown still active due to recent refresh failure during last {} seconds. Cooldown remaining: {} seconds.",
@@ -158,7 +158,7 @@ impl<'a> JwkApi<'a> {
         // Attempt up to (2 retries) with an exponential (100 ms) backoff
         refresh_jwt_keys(
             &esi_client.inner.reqwest_client,
-            &jwt_key_cache,
+            jwt_key_cache,
             jwt_key_cache.config.refresh_max_retries,
         )
         .await

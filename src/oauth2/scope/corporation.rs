@@ -35,6 +35,13 @@ pub struct CorporationScopes {
     pub(super) scopes: Vec<String>,
 }
 
+impl Default for CorporationScopes {
+    /// Create a default instance of [`CorporationScopes`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CorporationScopes {
     /// Create a new instance of [`CorporationScopes`]
     pub fn new() -> Self {

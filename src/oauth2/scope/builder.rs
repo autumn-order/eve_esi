@@ -26,6 +26,13 @@ pub struct ScopeBuilder {
     scopes: Vec<String>,
 }
 
+impl Default for ScopeBuilder {
+    /// Create a default instance of [`ScopeBuilder`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ScopeBuilder {
     /// Creates a new [`ScopeBuilder`] instance
     pub fn new() -> Self {
