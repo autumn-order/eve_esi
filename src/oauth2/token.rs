@@ -2,6 +2,8 @@
 //!
 //! Methods for fetching, refreshing, & validating tokens retrieved from EVE Online's OAuth2 API.
 //!
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
+//!
 //! ## Methods
 //! - [`OAuth2Api::get_token`]: Retrieves a token from EVE Online's OAuth2 API
 //! - [`OAuth2Api::get_token_refresh`]: Retrieves a new token using a refresh token

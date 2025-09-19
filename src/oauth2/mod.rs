@@ -16,31 +16,6 @@
 //! - [`scope`]: Builder to create scopes to request during the login process
 //! - [`jwk`]: Methods to handle JSON web keys used to validate authentication tokens
 //! - [`error`]: Error enum for any OAuth2 related errors.
-//!
-//! # Example
-//! ```
-//! let esi_client = eve_esi::Client::builder()
-//!     .user_agent("MyApp/1.0 (contact@example.com)")
-//!     .client_id("client_id")
-//!     .client_secret("client_secret")
-//!     .callback_url("http://localhost:8080/callback")
-//!     .build()
-//!     .expect("Failed to build Client");
-//!
-//! // Build scopes requesting only publicData
-//! let scopes = eve_esi::oauth2::ScopeBuilder::new()
-//!     .public_data()
-//!     .build();
-//!
-//! // Create a login URL
-//! let auth_data = esi_client
-//!     .oauth2()
-//!     .login_url(scopes)
-//!     .expect("Failed to create a login url");
-//!
-//! // Print the created login URL
-//! println!("Login URL: {}", auth_data.login_url);
-//! ```
 
 pub mod error;
 pub mod jwk;

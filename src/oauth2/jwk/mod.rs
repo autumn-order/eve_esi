@@ -44,7 +44,7 @@
 //!     let jwt_keys = esi_client.oauth2().jwk().fetch_and_update_cache().await.unwrap();
 //!
 //!     // Get keys from cache or refresh if cache is empty or expired
-//!     // Will proactively refresh keys if nearing expiration as well
+//!     // Will proactively refresh keys if nearing expiration as well (80% of 3600 seconds have elapsed)
 //!     let jwt_keys = esi_client.oauth2().jwk().get_jwt_keys().await.unwrap();
 //! }
 //!

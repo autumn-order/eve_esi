@@ -3,12 +3,16 @@
 //! This module provides the [`ScopeBuilder`] & related modules with methods to build a list of scopes to request during
 //! login in a type-safe manner.
 //!
-//! # Modules
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
+//!
+//! ## Modules
 //!
 //! - [`builder`]: Provides the [`ScopeBuilder`] to build a list of scopes
 //! - [`character`]: Provides the [`CharacterScopes`] struct to be used with the [`ScopeBuilder::character`] method
+//! - [`corporation`]: Provides the [`CorporationScopes`] struct to be used with the [`ScopeBuilder::corporation`] method
+//! - [`wallet`]: Provides the [`WalletScopes`] struct to be used with the [`ScopeBuilder::wallet`] method
 //!
-//! # Usage
+//! ## Usage Example
 //!
 //! ```rust
 //! use eve_esi::ScopeBuilder;

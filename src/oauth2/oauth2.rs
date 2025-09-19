@@ -3,7 +3,7 @@
 //! The [`OAuth2Api`] struct provides access to oauth2 related methods for
 //! the [`Client`] using the [`Client::oauth2`] method.
 //!
-//! For more details regarding using OAuth2 with the eve_esi crate, see [module-level documentation](super)
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 
 use crate::Client;
 

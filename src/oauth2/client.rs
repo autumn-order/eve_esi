@@ -6,10 +6,11 @@
 //! This module uses the [`oauth2`](https://crates.io/crates/oauth2) crate to configure
 //! the OAuth2 client for the Client.
 //!
-//! This client is only used internally by the [`Client`](crate::Client).
+//! This client is only used internally by the [`Client`](crate::Client) for OAuth2
 //!
-//! - See [module-level documentation](super) for a higher level overview and usage example
-//! - See [ClientBuilder docs](crate::builder) for instructions on setting up OAuth2 for the eve_esi crate.
+//! See [ClientBuilder docs](crate::builder) for instructions on setting up OAuth2 for the eve_esi crate.
+//!
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 
 use oauth2::basic::{BasicClient, BasicErrorResponseType, BasicTokenType};
 use oauth2::{

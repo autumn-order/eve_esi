@@ -3,7 +3,9 @@
 //! Provides the method to create a login URL to begin the EVE Online single sign-on (SSO) process.
 //! See the [OAuth2Api::login_url] method for details.
 //!
-//! See the [module-level documentation](super) for an overview of EVE Online OAuth2 and usage example.
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
+//!
+//!
 
 use oauth2::{CsrfToken, Scope};
 

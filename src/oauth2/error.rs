@@ -1,4 +1,4 @@
-//! Errors related to the OAuth2 portion of the EVE ESI crate
+//! # EVE ESI OAuth2 Errors
 //!
 //! Provides an enum for runtime related OAuth2 errors, [`OAuthError`], which provides
 //! detailed error messages as well as instructions on how to
@@ -8,22 +8,24 @@
 //! Possible errors could be not having the [`Client`](crate::Client) configured for OAuth2, an issue validating
 //! a JWT token, or an issue fetching the JWT keys used to validate the token.
 //!
-//! # Variants
-//! ## Configuration Error
+//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
+//!
+//! ## Variants
+//! ### Configuration Error
 //! - [`OAuthError::OAuth2NotConfigured`]: Error returned when OAuth2 has not been configured for [`Client`](crate::Client).
 //!
-//! ## JWT Key Refresh Errors
+//! ### JWT Key Refresh Errors
 //! - [`OAuthError::JwtKeyRefreshTimeout`]: Error when waiting for another thread to refresh JWT key cache times out
 //! - [`OAuthError::JwtKeyRefreshFailure`]: Error when waiting for another thread to refresh JWT key cache fails
 //! - [`OAuthError::JwtKeyRefreshCooldown`]: Error when JWT key refresh is still in cooldown
 //!
-//! ## JWT Token Errors
+//! ### JWT Token Errors
 //! - [`OAuthError::RequestTokenError`]: Error when an OAuth2 token fetch request fails
 //! - [`OAuthError::ValidateTokenError`]: Error when JWT key refresh is still in cooldown
 //! - [`OAuthError::NoValidKeyFound`]: Error returned when JWT key cache does not have the ES256 token key needed for validation
 //! - [`OAuthError::CharacterIdParseError]: Error when failing to parse character ID from JWT token claims
 //!
-//! # Usage
+//! ## Usage Example
 //! ```
 //! let esi_client = eve_esi::Client::builder()
 //!     .user_agent("MyApp/1.0 (contact@example.com)")
