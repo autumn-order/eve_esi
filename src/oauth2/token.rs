@@ -12,7 +12,7 @@
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/docs/services/sso/>
 //!
-//! ## Usage
+//! ## Usage Example
 //!
 //! This demonstrates an example of a callback API route implemented in the Axum web framework.
 //! See [SSO example](https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs) for a more complete demonstration.
@@ -29,7 +29,7 @@
 //!    code: String,
 //! }
 //!
-//! // A callback route implemented in the Axum web framework
+//! // A callback API route implemented in the Axum web framework
 //! async fn callback_route(
 //!     Extension(esi_client): Extension<eve_esi::Client>,
 //!     params: Query<CallbackParams>,

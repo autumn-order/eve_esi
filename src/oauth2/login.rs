@@ -1,11 +1,44 @@
-//! EVE Online OAuth2 Login
+//! # EVE Online OAuth2 Login
 //!
 //! Provides the method to create a login URL to begin the EVE Online single sign-on (SSO) process.
 //! See the [OAuth2Api::login_url] method for details.
 //!
 //! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 //!
+//! ## Usage Example
 //!
+//! This demonstrates an example of a login API route implemented in the Axum web framework.
+//! See [SSO example](https://github.com/hyziri/eve_esi/blob/main/examples/sso.rs) for a more complete demonstration.
+//!
+//! ```no_run
+//! use axum::extract::Extension;
+//! use axum::http::StatusCode;
+//! use axum::response::{IntoResponse, Response, Redirect};
+//! use axum::Json;
+//!
+//! // A login API route implemented in the Axum web framework
+//! async fn login(Extension(esi_client): Extension<eve_esi::Client>) -> Response {
+//!    // Build the scopes we wish to request from the user
+//!    let scopes = eve_esi::oauth2::ScopeBuilder::new().public_data().build();
+//!
+//!    // Generate the login url or return an error if one occurs
+//!    let login_url = match esi_client.oauth2().login_url(scopes) {
+//!        Ok(login_url) => login_url,
+//!        // If OAuth2 is not properly configured for the ESI client then an error will be returned
+//!        Err(err) => {
+//!            println!("Error initiating OAuth login: {}", err);
+//!
+//!            return (
+//!                StatusCode::INTERNAL_SERVER_ERROR,
+//!                Json(serde_json::json!({ "error": "Internal Server Error" })),
+//!            )
+//!                .into_response();
+//!        }
+//!    };
+//!
+//!    // Redirect the user to the login url to begin the single sign-on (OAuth2) login with EVE Online
+//!    Redirect::temporary(&login_url.login_url).into_response()
+//! }
 
 use oauth2::{CsrfToken, Scope};
 
@@ -29,37 +62,6 @@ impl<'a> OAuth2Api<'a> {
     /// Returns a [`AuthenticationData`] struct containing:
     /// - `login_url` ([`String`]): The URL users should visit to authenticate.
     /// - `state` ([`String`]): A unique state string used for CSRF protection.
-    ///
-    /// # Errors
-    /// Returns an [`Error`] if:
-    /// - The `client_id`, `client_secret`, and `callback_url` is missing from the [`Client`](crate::Client) configuration
-    ///   which results in an [`OAuthError::OAuth2NotConfigured`] error.
-    ///
-    /// # Example
-    /// ```
-    /// // Configure Client for OAuth2 with a client_id, client_secret, and callback_url
-    /// let esi_client = eve_esi::Client::builder()
-    ///     .user_agent("MyApp/1.0 (contact@example.com)")
-    ///     .client_id("client_id")
-    ///     .client_secret("client_secret")
-    ///     .callback_url("http://localhost:8080/callback")
-    ///     .build()
-    ///     .expect("Failed to build Client");
-    ///
-    /// // Build scopes requesting only publicData
-    /// let scopes = eve_esi::ScopeBuilder::new()
-    ///     .public_data()
-    ///     .build();
-    ///
-    /// // Create a login URL
-    /// let auth_data = esi_client
-    ///     .oauth2()
-    ///     .login_url(scopes)
-    ///     .expect("Failed to create a login url");
-    ///
-    /// // Print the created login URL
-    /// println!("Login URL: {}", auth_data.login_url);
-    /// ```
     pub fn login_url(&self, scopes: Vec<String>) -> Result<AuthenticationData, Error> {
         // Retrieve the OAuth2 client from the Client
         let client = match &self.client.inner.oauth2_client {
