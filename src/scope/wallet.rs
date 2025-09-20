@@ -46,7 +46,7 @@ impl WalletScopes {
 
 #[cfg(test)]
 mod wallet_scopes_tests {
-    use crate::oauth2::scope::WalletScopes;
+    use crate::scope::WalletScopes;
 
     /// Tests initializing a default instance of [`WalletScopes`]
     #[test]

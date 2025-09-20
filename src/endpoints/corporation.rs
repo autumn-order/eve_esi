@@ -45,7 +45,7 @@ use crate::model::corporation::{
     CorporationStarbaseDetails, CorporationStructure, CorporationTitle,
 };
 use crate::model::standing::Standing;
-use crate::oauth2::scope::{CorporationScopes, WalletScopes};
+use crate::scope::{CorporationScopes, WalletScopes};
 use crate::{Client, ScopeBuilder};
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.

@@ -166,7 +166,7 @@ impl CorporationScopes {
 
 #[cfg(test)]
 mod corporation_scopes_tests {
-    use crate::oauth2::scope::CorporationScopes;
+    use crate::scope::CorporationScopes;
 
     /// Tests initializing a default instance of [`CorporationScopes`]
     #[test]

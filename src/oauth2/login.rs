@@ -98,7 +98,7 @@ impl<'a> OAuth2Api<'a> {
 #[cfg(test)]
 mod tests {
     use crate::error::{Error, OAuthError};
-    use crate::oauth2::ScopeBuilder;
+    use crate::ScopeBuilder;
 
     /// Tests the successful generation of an OAuth2 login URL and CSRF state token.
     ///

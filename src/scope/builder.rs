@@ -15,7 +15,7 @@
 //! - [`ScopeBuilder::market`]: Adds scopes from [`MarketScopes`]
 //! - [`ScopeBuilder::custom`]: Adds a custom scope
 
-use crate::oauth2::scope::{CorporationScopes, MarketScopes, WalletScopes};
+use crate::scope::{CorporationScopes, MarketScopes, WalletScopes};
 
 use super::character::CharacterScopes;
 

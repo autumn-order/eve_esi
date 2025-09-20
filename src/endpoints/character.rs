@@ -27,7 +27,7 @@
 
 use crate::error::Error;
 use crate::model::standing::Standing;
-use crate::oauth2::scope::CharacterScopes;
+use crate::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
 use crate::model::asset::Blueprint;

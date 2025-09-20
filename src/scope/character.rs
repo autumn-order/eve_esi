@@ -143,7 +143,7 @@ impl CharacterScopes {
 
 #[cfg(test)]
 mod character_scopes_tests {
-    use crate::oauth2::scope::CharacterScopes;
+    use crate::scope::CharacterScopes;
 
     /// Tests initializing a default instance of [`CharacterScopes`]
     #[test]

@@ -20,10 +20,7 @@
 pub mod error;
 pub mod jwk;
 pub mod login;
-pub mod scope;
 pub mod token;
-
-pub use scope::ScopeBuilder;
 
 pub(crate) mod client;
 

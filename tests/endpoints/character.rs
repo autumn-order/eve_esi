@@ -1,4 +1,4 @@
-use eve_esi::{oauth2::scope::CharacterScopes, ScopeBuilder};
+use eve_esi::{scope::CharacterScopes, ScopeBuilder};
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 use crate::util::integration_test_setup;

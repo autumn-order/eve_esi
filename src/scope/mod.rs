@@ -16,7 +16,7 @@
 //!
 //! ```rust
 //! use eve_esi::ScopeBuilder;
-//! use eve_esi::oauth2::scope::CharacterScopes;
+//! use eve_esi::scope::CharacterScopes;
 //!
 //! // Create a new scope builder
 //! let scopes = ScopeBuilder::new()

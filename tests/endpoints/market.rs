@@ -1,5 +1,5 @@
 use eve_esi::model::enums::market::OrderType;
-use eve_esi::{oauth2::scope::MarketScopes, ScopeBuilder};
+use eve_esi::{scope::MarketScopes, ScopeBuilder};
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 use crate::util::integration_test_setup;

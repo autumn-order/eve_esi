@@ -70,7 +70,7 @@ impl MarketScopes {
 
 #[cfg(test)]
 mod market_scopes_tests {
-    use crate::oauth2::scope::MarketScopes;
+    use crate::scope::MarketScopes;
 
     /// Tests initializing a default instance of [`MarketScopes`]
     #[test]

@@ -32,7 +32,7 @@ use crate::{
             MarketItemPrices, MarketItemRegionStatistics, MarketRegionOrder, StructureMarketOrder,
         },
     },
-    oauth2::scope::MarketScopes,
+    scope::MarketScopes,
     Client, Error, ScopeBuilder,
 };
 
