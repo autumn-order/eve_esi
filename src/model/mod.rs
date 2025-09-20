@@ -22,5 +22,6 @@ pub mod asset;
 pub mod character;
 pub mod corporation;
 pub mod enums;
+pub mod market;
 pub mod oauth2;
 pub mod universe;
