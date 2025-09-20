@@ -99,3 +99,26 @@ impl fmt::Display for OrderType {
         write!(f, "{}", s)
     }
 }
+
+#[cfg(test)]
+mod market_enum_tests {
+    use crate::model::enums::market::OrderType;
+
+    /// Ensures [`OrderType`] displays as string "buy"
+    #[test]
+    fn test_order_type_buy_display() {
+        assert_eq!(OrderType::Buy.to_string(), "buy")
+    }
+
+    /// Ensures [`OrderType`] displays as string "sell"
+    #[test]
+    fn test_order_type_sell_display() {
+        assert_eq!(OrderType::Sell.to_string(), "sell")
+    }
+
+    /// Ensures [`OrderType`] displays as string "all"
+    #[test]
+    fn test_order_type_all_display() {
+        assert_eq!(OrderType::All.to_string(), "all")
+    }
+}
