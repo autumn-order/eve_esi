@@ -1,10 +1,10 @@
-//! # EVE ESI Universe Models
+//! # EVE ESI Standing Models
 //!
-//! This module defines models shared between entities in EVE Online
+//! This module define the [`Standing`] model shared between characters & corporations
 
 use serde::{Deserialize, Serialize};
 
-use crate::model::enums::universe::StandingType;
+use crate::model::enums::standing::StandingType;
 
 /// A character or corporation's standings with either an agent, NPC corp, or faction
 ///

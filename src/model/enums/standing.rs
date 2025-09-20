@@ -1,6 +1,9 @@
-//! # EVE ESI Universe Enums
+//! # EVE ESI Standing Enums
 //!
-//! Provides enums shared between entities for EVE Online
+//! Provides standing enum shared between characters & corporations
+//!
+//! ## Enums
+//! - [`StandingType`]: The type of character or corporation standing entry (Agent, NpcCorp, or Faction)
 
 use serde::{Deserialize, Serialize};
 

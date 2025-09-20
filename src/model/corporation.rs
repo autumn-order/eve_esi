@@ -1,8 +1,31 @@
-//! Data structures and types for representing corporations in EVE Online.
+//! # EVE ESI Corporation Models
 //!
 //! This module defines the `Corporation` struct, which models the core properties of a corporation in EVE Online.
 //!
-//! See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdGet)
+//! ## ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
+//!
+//! ## Models
+//! - [`Corporation`]: Represents a corporation in EVE Online
+//! - [`CorporationAllianceHistory`]: Entry for a corporation's alliance history
+//! - [`CorporationSecureContainerLog`]: Log entry for an audit log secure container owned by a corporation
+//! - [`CorporationDivisionEntry`]: An entry for a corporation's hangar or wallet division
+//! - [`CorporationDivisions`]: Lists of a corporation wallet and hangar divisions
+//! - [`CorporationFacilities`]: Entry for corporation industry facilities
+//! - [`CorporationIcon`]: Icon URLs for a corporation
+//! - [`CorporationMedal`]: An entry for a corporation medal
+//! - [`CorporationIssuedMedal`]: An entry for an issued corporation medal
+//! - [`CorporationMemberTitles`]: An entry for a corporation member's titles
+//! - [`CorporationMemberTracking`]: An entry for a corporation member's tracking information
+//! - [`CorporationMemberRoles`]: An entry for a corporation member's assigned roles
+//! - [`CorporationMemberRolesHistory`]: An entry for a corporation member's role history
+//! - [`CorporationShareholder`]: An entry for a corporation shareholder
+//! - [`CorporationStarbase`]: Information regarding a starbase (POS) owned by a corporation
+//! - [`CorporationStarbaseFuel`]: Entry on the fuel types stored within a corporation starbase (POS)
+//! - [`CorporationStarbaseDetails`]: Information regarding a starbase's (POS) details owned by a corporation
+//! - [`CorporationStructureService`]: An entry for a corporation's Upwell structure services
+//! - [`CorporationStructure`]: Details regarding a corporation's Upwell structure
+//! - [`CorporationTitle`]: An entry for a corporation's titles and its respective roles
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -17,7 +40,7 @@ use crate::model::enums::{
     },
 };
 
-/// Represents a corporation in EVE Online.
+/// Represents a corporation in EVE Online
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdGet>
@@ -100,7 +123,7 @@ pub struct CorporationSecureContainerLog {
     pub type_id: i64,
 }
 
-/// Log entry for an audit log secure container owned by a corporation
+/// An entry for a corporation's hangar or wallet division
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
@@ -112,7 +135,7 @@ pub struct CorporationDivisionEntry {
     pub name: Option<String>,
 }
 
-/// Log entry for an audit log secure container owned by a corporation
+/// Lists of a corporation wallet and hangar divisions
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
@@ -328,7 +351,7 @@ pub struct CorporationStarbase {
 /// # ESI Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct StarbaseFuel {
+pub struct CorporationStarbaseFuel {
     /// The quantity of fuel stored in the starbase (POS)
     pub quantity: i64,
     /// The type ID of the fuel stored within the starbase (POS)
@@ -360,7 +383,7 @@ pub struct CorporationStarbaseDetails {
     /// Enum indicating who has permission to view POS fuel bay
     pub fuel_bay_view: CorporationStarbasePermission,
     /// List of entries containing type_id of fuel and quantity stored within the POS
-    pub fuels: Vec<StarbaseFuel>,
+    pub fuels: Vec<CorporationStarbaseFuel>,
     /// Enum indicating who has permission to offline POS and its structures
     pub offline: CorporationStarbasePermission,
     /// Enum indicating who has permission to online POS and its structures

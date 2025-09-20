@@ -13,17 +13,20 @@
 //!
 //! - [`login`]: Methods to begin the OAuth2 login process
 //! - [`token`]: Methods to retrieve, validate, & refresh OAuth2 tokens
-//! - [`scope`]: Builder to create scopes to request during the login process
 //! - [`jwk`]: Methods to handle JSON web keys used to validate authentication tokens
 //! - [`error`]: Error enum for any OAuth2 related errors.
+//!
+//! ## Usage Examples
+//!
+//! - [Creating a login URL for single sign-on (OAuth2)](crate::oauth2::login)
+//! - [Fetching an access token](crate::oauth2::token)
+//! - [Validating an access token](crate::oauth2::token)
+//! - [Refreshing an access token](crate::oauth2::token)
 
 pub mod error;
 pub mod jwk;
 pub mod login;
-pub mod scope;
 pub mod token;
-
-pub use scope::ScopeBuilder;
 
 pub(crate) mod client;
 

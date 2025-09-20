@@ -25,7 +25,7 @@
 //!
 //! ### Single Sign-On (OAuth2)
 //!
-//! - [Building scopes to request during login](crate::oauth2::scope)
+//! - [Building scopes to request during login](crate::scope)
 //! - [Creating a login URL for single sign-on (OAuth2)](crate::oauth2::login)
 //! - [Fetching an access token](crate::oauth2::token)
 //! - [Validating an access token](crate::oauth2::token)
@@ -104,13 +104,14 @@ pub mod error;
 pub mod esi;
 pub mod model;
 pub mod oauth2;
+pub mod scope;
 
 pub use crate::builder::ClientBuilder;
 pub use crate::client::Client;
 pub use crate::config::{Config, ConfigBuilder};
 pub use crate::error::{ConfigError, Error};
 pub use crate::oauth2::error::OAuthError;
-pub use crate::oauth2::ScopeBuilder;
+pub use crate::scope::ScopeBuilder;
 
 mod constant;
 
