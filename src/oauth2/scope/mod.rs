@@ -40,10 +40,12 @@ pub mod builder;
 
 pub mod character;
 pub mod corporation;
+pub mod market;
 pub mod wallet;
 
 pub use builder::ScopeBuilder;
 
 pub use character::CharacterScopes;
 pub use corporation::CorporationScopes;
+pub use market::MarketScopes;
 pub use wallet::WalletScopes;
