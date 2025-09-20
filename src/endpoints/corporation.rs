@@ -5,11 +5,35 @@
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)
 //!
-//! # ESI Documentation
+//! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # Methods
+//! ## Endpoints (22)
+//! ### Public (4)
+//! - [`CorporationApi::get_npc_corporations`]: Fetches a list of all NPC corporation IDs in EVE Online
 //! - [`CorporationApi::get_corporation_information`]: Fetches a corporation’s public information from ESI using the corporation ID
+//! - [`CorporationApi::get_alliance_history`]: Fetches a corporation's alliance history using the provided corporation ID
+//! - [`CorporationApi::get_corporation_icon`]: Fetches a corporation's icon using the provided corporation ID
+//!
+//! ### Authenticated (18)
+//! - [`CorporationApi::get_corporation_blueprints`]: Fetches a list of blueprint entries for the provided corporation ID
+//! - [`CorporationApi::get_all_corporation_alsc_logs`]: Fetches audit log secure container (ALSC) log entries for the provided corporation ID
+//! - [`CorporationApi::get_corporation_divisions`]: Fetches a list of hangar & wallet divisions for the provided corporation ID
+//! - [`CorporationApi::get_corporation_facilities`]: Fetches a list of industry facilities for the provided corporation ID
+//! - [`CorporationApi::get_corporation_medals`]: Fetches a paginated list of medals for the provided corporation ID
+//! - [`CorporationApi::get_corporation_issued_medals`]: Fetches a paginated list of issued medals for the provided corporation ID
+//! - [`CorporationApi::get_corporation_members`]: Fetches a list of character IDs of all members part of the provided corporation ID
+//! - [`CorporationApi::get_corporation_member_limit`]: Fetches the member limit of the provided corporation ID
+//! - [`CorporationApi::get_corporation_members_titles`]: Fetches a list of title IDs for each member of the provided corporation ID
+//! - [`CorporationApi::track_corporation_members`]: Fetches a list of tracking information for each character part of the provided corporation ID
+//! - [`CorporationApi::get_corporation_member_roles`]: Fetches a list of roles for each character part of the provided corporation ID
+//! - [`CorporationApi::get_corporation_member_roles_history`]: Retrieves a paginated list of up to a month of role history for the provided corporation ID
+//! - [`CorporationApi::get_corporation_shareholders`]: Retrieves a paginated list of shareholders for the provided corporation ID
+//! - [`CorporationApi::get_corporation_standings`]: Retrieves a paginated list of NPC standing entries for the provided corporation ID
+//! - [`CorporationApi::get_corporation_starbases`]: Retrieves a paginated list of starbases (POSes) for the provided corporation ID
+//! - [`CorporationApi::get_starbase_detail`]: Retrieves details for a starbase (POS) for the provided starbase ID & corporation ID
+//! - [`CorporationApi::get_corporation_structures`]: Retrieves a paginated list of structure information for the provided corporation ID
+//! - [`CorporationApi::get_corporation_titles`]: Retrieves a list of corporation titles and their respective roles for the provided corporation ID
 
 use crate::error::Error;
 use crate::model::asset::Blueprint;

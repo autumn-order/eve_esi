@@ -3,10 +3,10 @@
 //! This module provides access to the different categories of endpoints available for EVE Online's ESI API.
 //!
 //! ## Modules
-//! - [`alliance`]: Alliance endpoints
-//! - [`character`]: Character endpoints
-//! - [`corporation`]: Corporation endpoints
-//! - [`market`]: Market endpoints
+//! - [`alliance`]: Alliance endpoints (4/4 endpoints)
+//! - [`character`]: Character endpoints (11/11 endpoints)
+//! - [`corporation`]: Corporation endpoints (22/22 endpoints)
+//! - [`market`]: Market endpoints (11/11 endpoints)
 //!
 //! ## ESI Documentation
 //! - ESI API Explorer: <https://developers.eveonline.com/api-explorer>
