@@ -1,11 +1,21 @@
-//! # EVE Online OAuth2 Character Scopes
+//! # EVE ESI Character Scopes
 //!
 //! This module provides a type-safe way to add character-related scopes for OAuth2 to the [`super::ScopeBuilder`]
 //!
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
-//! # Methods
-//! - [`CharacterScopes::read_agents_research`]: Adds the `esi-characters.read_agents_research.v1` scope
+//! ## Methods
+//! - [`CharacterScopes::new`]: Create a new instance of [`CharacterScopes`]
+//! - [`CharacterScopes::all`]: Creates a new instance of [`CharacterScopes`] with all scopes applied
+//! - [`CharacterScopes::read_agents_research`]: Access to retrieve information on character's research agents
+//! - [`CharacterScopes::read_blueprints`]: Access to retrieve information on character's blueprints
+//! - [`CharacterScopes::read_contacts`]: Access to read a character's contacts
+//! - [`CharacterScopes::read_fatigue`]: Access to retrieve information on character's jump fatigue status
+//! - [`CharacterScopes::read_medals`]: Access to retrieve information on character's medals
+//! - [`CharacterScopes::read_notifications`]: Access to retrieve the character's notifications
+//! - [`CharacterScopes::read_corporation_roles`]: Access to read the character's corporation roles
+//! - [`CharacterScopes::read_standings`]: Access to read the character's standings
+//! - [`CharacterScopes::read_titles`]: Access to read the character's corporation titles
 
 /// Access to retrieve information on character's research agents
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";
@@ -44,7 +54,7 @@ impl CharacterScopes {
         CharacterScopes { scopes: Vec::new() }
     }
 
-    /// Create a new instance of [`CharacterScopes`] with all scopes applied
+    /// Creates a new instance of [`CharacterScopes`] with all scopes applied
     pub fn all() -> Self {
         CharacterScopes::new()
             .read_agents_research()
@@ -58,73 +68,73 @@ impl CharacterScopes {
             .read_titles()
     }
 
-    /// Adds the `esi-characters.read_agents_research.v1` scope
-    ///
     /// Access to retrieve information on character's research agents
+    ///
+    /// Adds the `esi-characters.read_agents_research.v1` scope
     pub fn read_agents_research(mut self) -> Self {
         self.scopes.push(READ_AGENTS_RESEARCH.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_blueprints.v1` scope
-    ///
     /// Access to retrieve information on character's blueprints
+    ///
+    /// Adds the `esi-characters.read_blueprints.v1` scope
     pub fn read_blueprints(mut self) -> Self {
         self.scopes.push(READ_BLUEPRINTS.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_contacts.v1` scope
-    ///
     /// Access to read a character's contacts
+    ///
+    /// Adds the `esi-characters.read_contacts.v1` scope
     pub fn read_contacts(mut self) -> Self {
         self.scopes.push(READ_CONTACTS.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_fatigue.v1` scope
-    ///
     /// Access to retrieve information on character's jump fatigue status
+    ///
+    /// Adds the `esi-characters.read_fatigue.v1` scope
     pub fn read_fatigue(mut self) -> Self {
         self.scopes.push(READ_FATIGUE.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_medals.v1` scope
-    ///
     /// Access to retrieve information on character's medals
+    ///
+    /// Adds the `esi-characters.read_medals.v1` scope
     pub fn read_medals(mut self) -> Self {
         self.scopes.push(READ_MEDALS.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_notifications.v1` scope
-    ///
     /// Access to retrieve the character's notifications
+    ///
+    /// Adds the `esi-characters.read_notifications.v1` scope
     pub fn read_notifications(mut self) -> Self {
         self.scopes.push(READ_NOTIFICATIONS.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_corporation_roles.v1` scope
-    ///
     /// Access to read the character's corporation roles
+    ///
+    /// Adds the `esi-characters.read_corporation_roles.v1` scope
     pub fn read_corporation_roles(mut self) -> Self {
         self.scopes.push(READ_CORPORATION_ROLES.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_standings.v1` scope
-    ///
     /// Access to read the character's standings
+    ///
+    /// Adds the `esi-characters.read_standings.v1` scope
     pub fn read_standings(mut self) -> Self {
         self.scopes.push(READ_STANDINGS.to_string());
         self
     }
 
-    /// Adds the `esi-characters.read_titles.v1` scope
-    ///
     /// Access to read the character's corporation titles
+    ///
+    /// Adds the `esi-characters.read_titles.v1` scope
     pub fn read_titles(mut self) -> Self {
         self.scopes.push(READ_TITLES.to_string());
         self

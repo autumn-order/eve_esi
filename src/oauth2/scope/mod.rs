@@ -1,4 +1,4 @@
-//! # EVE Online OAuth2 Scopes
+//! # EVE ESI Scopes
 //!
 //! This module provides the [`ScopeBuilder`] & related modules with methods to build a list of scopes to request during
 //! login in a type-safe manner.
