@@ -26,7 +26,7 @@
 //! - [`CharacterApi::get_character_corporation_titles`]: Retrieves a list of the provided character ID's corporation titles
 
 use crate::error::Error;
-use crate::model::universe::Standing;
+use crate::model::standing::Standing;
 use crate::oauth2::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 

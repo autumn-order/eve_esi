@@ -44,7 +44,7 @@ use crate::model::corporation::{
     CorporationSecureContainerLog, CorporationShareholder, CorporationStarbase,
     CorporationStarbaseDetails, CorporationStructure, CorporationTitle,
 };
-use crate::model::universe::Standing;
+use crate::model::standing::Standing;
 use crate::oauth2::scope::{CorporationScopes, WalletScopes};
 use crate::{Client, ScopeBuilder};
 
