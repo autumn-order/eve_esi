@@ -9,7 +9,8 @@
 //! - <https://developers.eveonline.com/api-explorer>
 //!
 //! ## Methods
-//! - [`MarketEndpoints::list_open_orders_from_a_character`]: Fetches a list of open market orders for the provided character ID
+//! - [`MarketEndpoints::list_open_orders_from_a_character`]: Fetches list of open market orders for the provided character ID
+//! - [`MarketEndpoints::list_historical_orders_by_a_character]: Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past
 
 use crate::{model::market::MarketOrder, oauth2::scope::MarketScopes, Client, Error, ScopeBuilder};
 
@@ -32,7 +33,7 @@ impl<'a> MarketEndpoints<'a> {
     }
 
     define_endpoint! {
-        /// Fetches a list of open market orders for the provided character ID
+        /// Fetches list of open market orders for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -45,7 +46,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `character_id`  (`i64`): The ID of the character to retrieve open market orders for
+        /// - `character_id`    (`i64`): The ID of the character to retrieve open market orders for
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -57,6 +58,37 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<MarketOrder>, Error>
         url = "{}/characters/{}/orders";
         label = "open market orders";
+        required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_character_orders()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdOrdersHistory>
+        ///
+        /// # Required Scopes
+        /// - [`MarketScopes::read_character_orders`](crate::oauth2::scope::MarketScopes::read_character_orders):
+        ///   `esi-markets.read_character_orders.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id`    (`i64`): The ID of the character to retrieve historical market orders for
+        /// - `page`            (`i32`): The page of market orders to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`MarketOrder`]`>`: List of historical market orders for the provided character ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get list_historical_orders_by_a_character(
+            access_token: &str,
+            character_id: i64,
+            page: i32,
+        ) -> Result<Vec<MarketOrder>, Error>
+        url = "{}/characters/{}/orders/history?page={}";
+        label = "historical orders";
         required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_character_orders()).build();
     }
 }

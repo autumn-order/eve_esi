@@ -35,3 +35,38 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    list_historical_orders_by_a_character,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        let page = 1;
+        esi_client
+            .market()
+            .list_historical_orders_by_a_character(&access_token, character_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/orders/history?page=1",
+    required_scopes = ScopeBuilder::new()
+        .market(MarketScopes::new().read_character_orders())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "duration": 0,
+        "escrow": 0,
+        "is_buy_order": true,
+        "is_corporation": true,
+        "issued": "2019-08-24T14:15:22Z",
+        "location_id": 0,
+        "min_volume": 0,
+        "order_id": 0,
+        "price": 0,
+        "range": "1",
+        "region_id": 0,
+        "type_id": 0,
+        "volume_remain": 0,
+        "volume_total": 0
+      }
+    ]),
+}
