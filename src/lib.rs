@@ -25,7 +25,7 @@
 //!
 //! ### Single Sign-On (OAuth2)
 //!
-//! - [Building scopes to request during login](crate::oauth2::scope)
+//! - [Building scopes to request during login](crate::scope)
 //! - [Creating a login URL for single sign-on (OAuth2)](crate::oauth2::login)
 //! - [Fetching an access token](crate::oauth2::token)
 //! - [Validating an access token](crate::oauth2::token)

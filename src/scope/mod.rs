@@ -33,7 +33,7 @@
 //! // Use with `esi_client.oauth2().login_url(scopes)` method...
 //! ```
 //!
-//! See the [`super::login`] module for an example of usage of the [`ScopeBuilder`] with the
+//! See the [`crate::oauth2::login`] module documentation for an example of usage of the [`ScopeBuilder`] with the
 //! [`login_url`](crate::oauth2::OAuth2Api::login_url) method.
 
 pub mod builder;

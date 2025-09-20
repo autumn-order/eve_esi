@@ -63,7 +63,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdOrders>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_character_orders`](crate::oauth2::scope::MarketScopes::read_character_orders):
+        /// - [`MarketScopes::read_character_orders`](crate::scope::MarketScopes::read_character_orders):
         ///   `esi-markets.read_character_orders.v1`
         ///
         /// # Arguments
@@ -92,7 +92,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdOrdersHistory>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_character_orders`](crate::oauth2::scope::MarketScopes::read_character_orders):
+        /// - [`MarketScopes::read_character_orders`](crate::scope::MarketScopes::read_character_orders):
         ///   `esi-markets.read_character_orders.v1`
         ///
         /// # Arguments
@@ -102,7 +102,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterHistoricalMarketOrder`]`>`: List of historical market orders for the provided character ID
+        /// - `Vec<`[`CharacterMarketOrder`]`>`: List of historical market orders for the provided character ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_historical_orders_by_a_character(
             access_token: &str,
@@ -126,7 +126,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrders>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_corporation_orders`](crate::oauth2::scope::MarketScopes::read_corporation_orders):
+        /// - [`MarketScopes::read_corporation_orders`](crate::scope::MarketScopes::read_corporation_orders):
         ///   `esi-markets.read_corporation_orders.v1`
         ///
         /// # Arguments
@@ -158,7 +158,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrdersHistory>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_corporation_orders`](crate::oauth2::scope::MarketScopes::read_corporation_orders):
+        /// - [`MarketScopes::read_corporation_orders`](crate::scope::MarketScopes::read_corporation_orders):
         ///   `esi-markets.read_corporation_orders.v1`
         ///
         /// # Arguments
@@ -168,7 +168,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationHistoricalMarketOrder`]`>`: List of historical market orders for the provided corporation ID
+        /// - `Vec<`[`CorporationMarketOrder`]`>`: List of historical market orders for the provided corporation ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_historical_orders_from_a_corporation(
             access_token: &str,
@@ -247,7 +247,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrdersHistory>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::structure_markets`](crate::oauth2::scope::MarketScopes::structure_markets):
+        /// - [`MarketScopes::structure_markets`](crate::scope::MarketScopes::structure_markets):
         ///   `esi-markets.structure_markets.v1`
         ///
         /// # Arguments
