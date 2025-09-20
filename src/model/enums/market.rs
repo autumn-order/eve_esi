@@ -5,6 +5,9 @@
 //! ## Enums
 //! - [`MarketOrderRange`]: Indicates the the range of a market order
 //! - [`HistoricalMarketOrderState`]: Indicates whether a historical market order expired or was cancelled
+//! - [`OrderType`]: Represents the type of order when requesting a list of orders within a region
+
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
@@ -64,4 +67,35 @@ pub enum HistoricalMarketOrderState {
     /// Market order has expired
     #[serde(rename = "expired")]
     Expired,
+}
+
+/// Represents the type of order when requesting a list of orders within a region
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsRegionIdOrders>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum OrderType {
+    /// Request only buy orders
+    #[serde(rename = "buy")]
+    Buy,
+    /// Request only sell orders
+    #[serde(rename = "sell")]
+    Sell,
+    /// Request both buy & sell orders
+    #[serde(rename = "all")]
+    All,
+}
+
+// Required for ESI endpoint macro URL formatting
+//
+// This enum is used as an argument when requesting market orders within a region
+impl fmt::Display for OrderType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            OrderType::Buy => "buy",
+            OrderType::Sell => "sell",
+            OrderType::All => "all",
+        };
+        write!(f, "{}", s)
+    }
 }

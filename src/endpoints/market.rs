@@ -23,9 +23,12 @@
 //! - [`MarketEndpoints::list_historical_market_statistics_in_a_region`]: List of entries with historical market statistics for the provided item type ID in provided region ID
 
 use crate::{
-    model::market::{
-        CharacterMarketOrder, CorporationMarketOrder, MarketItemGroupInformation, MarketItemPrices,
-        MarketItemRegionStatistics, StructureMarketOrder,
+    model::{
+        enums::market::OrderType,
+        market::{
+            CharacterMarketOrder, CorporationMarketOrder, MarketItemGroupInformation,
+            MarketItemPrices, MarketItemRegionStatistics, MarketRegionOrder, StructureMarketOrder,
+        },
     },
     oauth2::scope::MarketScopes,
     Client, Error, ScopeBuilder,
@@ -286,5 +289,31 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<MarketItemRegionStatistics>, Error>
         url = "{}/markets/{}/history?type_id={}";
         label = "regional market statistics for item";
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of market orders within the provided region ID and of the specified order type
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsRegionIdHistory>
+        ///
+        /// # Arguments
+        /// - `region_id`   (`i64`): ID of the region to retrieve market orders for
+        /// - `order_type`  ([`OrderType`]): Enum representing type of market order to request, either [`OrderType::Sell`],
+        ///   [`OrderType::Buy`], or [`OrderType::All`] for both
+        /// - `page`            (`i32`): The page of market orders to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<MarketRegionOrder>`: list of market orders within the provided region ID and of the specified order type
+        pub_get list_orders_in_a_region(
+            region_id: i64,
+            order_type: OrderType,
+            page: i32
+        ) -> Result<Vec<MarketRegionOrder>, Error>
+        url = "{}/markets/{}/orders?order_type={}&page={}";
+        label = "market orders";
     }
 }
