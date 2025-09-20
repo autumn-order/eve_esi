@@ -9,6 +9,7 @@
 //! - [`CharacterMarketOrder`]: Details for a character's market order
 //! - [`CorporationMarketOrder`]: Details for a corporation's market order
 //! - [`MarketItemGroupInformation`]: Information regarding a specific market group
+//! - [`MarketItemPrices`]: The average & adjusted market prices of an item
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -117,4 +118,18 @@ pub struct MarketItemGroupInformation {
     pub parent_group_id: Option<i64>,
     /// The type IDs of the items within the group
     pub types: Vec<i64>,
+}
+
+/// The average & adjusted market prices of an item
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsPricesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct MarketItemPrices {
+    /// The estimated price of what the item actually sells for on the market
+    pub adjusted_price: Option<f64>,
+    /// The average price of the item on the market
+    pub average_price: Option<f64>,
+    /// The type ID of the item on the market
+    pub type_id: i64,
 }

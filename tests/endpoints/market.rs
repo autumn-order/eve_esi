@@ -181,3 +181,22 @@ public_endpoint_test! {
       ]
     })
 }
+
+public_endpoint_test! {
+    list_market_prices,
+    |esi_client: eve_esi::Client | async move {
+        esi_client
+            .market()
+            .list_market_prices()
+            .await
+    },
+    request_type = "GET",
+    url = "/markets/prices",
+    mock_response = serde_json::json!([
+      {
+        "adjusted_price": 0,
+        "average_price": 0,
+        "type_id": 0
+      }
+    ])
+}

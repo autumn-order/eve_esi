@@ -8,12 +8,22 @@
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
-//! ## Methods
+//! ## Endpoints (11)
+//! ### Public
+//! - [`MarketEndpoints::get_item_groups`]: Retrieves a list of IDs of market item groups
+//! - [`MarketEndpoints::get_item_group_information`]: Retrieves the information of the provided market item group ID
+//! - [`MarketEndpoints::list_market_prices`]: Retrieves the average & adjusted market prices of all items
+//!
+//! ### Authenticated
 //! - [`MarketEndpoints::list_open_orders_from_a_character`]: Fetches list of open market orders for the provided character ID
-//! - [`MarketEndpoints::list_historical_orders_by_a_character]: Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past
+//! - [`MarketEndpoints::list_historical_orders_by_a_character`]: Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past
+//! - [`MarketEndpoints::list_open_orders_from_a_corporation`]: Fetches list of open market orders for the provided corporation ID
+//! - [`MarketEndpoints::list_historical_orders_from_a_corporation`]: Fetches list of cancelled & expired market orders for the provided corporation ID up to 90 days in the past
 
 use crate::{
-    model::market::{CharacterMarketOrder, CorporationMarketOrder, MarketItemGroupInformation},
+    model::market::{
+        CharacterMarketOrder, CorporationMarketOrder, MarketItemGroupInformation, MarketItemPrices,
+    },
     oauth2::scope::MarketScopes,
     Client, Error, ScopeBuilder,
 };
@@ -200,5 +210,23 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<MarketItemGroupInformation, Error>
         url = "{}/markets/groups/{}";
         label = "market item group information";
+    }
+
+    define_endpoint! {
+        /// Retrieves the average & adjusted market prices of all items
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsPrices>
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<MarketItemPrices>`: The average & adjusted market prices of all items
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get list_market_prices(
+        ) -> Result<Vec<MarketItemPrices>, Error>
+        url = "{}/markets/prices";
+        label = "market item prices";
     }
 }
