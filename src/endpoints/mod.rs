@@ -77,7 +77,7 @@ pub mod character;
 pub mod corporation;
 pub mod market;
 
-use crate::Client;
+use crate::{endpoints::market::MarketEndpoints, Client};
 
 use alliance::AllianceApi;
 use character::CharacterApi;
@@ -109,5 +109,12 @@ impl Client {
     /// Returns an API client for interacting with corporation-related endpoints.
     pub fn corporation(&self) -> CorporationApi<'_> {
         CorporationApi::new(self)
+    }
+
+    /// Access to market ESI endpoints
+    ///
+    /// For an overview & usage example, see the [endpoints module documentation](super)
+    pub fn market(&self) -> MarketEndpoints<'_> {
+        MarketEndpoints::new(self)
     }
 }

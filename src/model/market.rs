@@ -4,6 +4,9 @@
 //!
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
+//!
+//! ## Models
+//! - [`MarketOrder`]: Details for a market order
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -47,5 +50,5 @@ pub struct MarketOrder {
     /// Remaining quantity of items still for sale or buy
     pub volume_remain: i64,
     /// Quantity of items for sale or to buy when the order was placed
-    pub volume_id: i64,
+    pub volume_total: i64,
 }

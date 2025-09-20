@@ -6,6 +6,8 @@
 //!
 //! # Methods
 //! - [`MarketScopes::new`]: Creates a new instance of [`MarketScopes`]
+//! - [`MarketScopes::all`]: Create a new instance of [`MarketScopes`] with all scopes applied
+//! - [`MarketScopes::read_character_orders`]: Access to retrieve information on character's market orders
 
 /// Access to retrieve information on character's market orders
 pub const READ_CHARACTERS_ORDERS: &str = "esi-markets.read_character_orders.v1";
@@ -30,13 +32,13 @@ impl MarketScopes {
 
     /// Create a new instance of [`MarketScopes`] with all scopes applied
     pub fn all() -> Self {
-        MarketScopes::new().read_market_orders()
+        MarketScopes::new().read_character_orders()
     }
 
     /// Adds the `esi-markets.read_character_orders.v1` scope
     ///
     /// Access to retrieve information on character's market orders
-    pub fn read_market_orders(mut self) -> Self {
+    pub fn read_character_orders(mut self) -> Self {
         self.scopes.push(READ_CHARACTERS_ORDERS.to_string());
         self
     }
