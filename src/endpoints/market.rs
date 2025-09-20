@@ -13,7 +13,7 @@
 //! - [`MarketEndpoints::list_historical_orders_by_a_character]: Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past
 
 use crate::{
-    model::market::{CharacterMarketOrder, CorporationMarketOrder},
+    model::market::{CharacterMarketOrder, CorporationMarketOrder, MarketItemGroupInformation},
     oauth2::scope::MarketScopes,
     Client, Error, ScopeBuilder,
 };
@@ -178,5 +178,27 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<i64>, Error>
         url = "{}/markets/groups";
         label = "market groups";
+    }
+
+    define_endpoint! {
+        /// Retrieves the information of the provided market item group ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsGroupsMarketGroupId>
+        ///
+        /// # Arguments
+        /// - `market_group_id` (`i64`): The ID of the market group to retrieve information for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<MarketItemGroupInformation>`: The information of the provided market item group ID
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_item_group_information(
+            market_group_id: i64
+        ) -> Result<MarketItemGroupInformation, Error>
+        url = "{}/markets/groups/{}";
+        label = "market item group information";
     }
 }

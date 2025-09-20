@@ -159,3 +159,25 @@ public_endpoint_test! {
       0
     ])
 }
+
+public_endpoint_test! {
+    get_item_group_information,
+    |esi_client: eve_esi::Client | async move {
+        let market_group_id = 1;
+        esi_client
+            .market()
+            .get_item_group_information(market_group_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/markets/groups/1",
+    mock_response = serde_json::json!({
+      "description": "string",
+      "market_group_id": 0,
+      "name": "string",
+      "parent_group_id": 0,
+      "types": [
+        0
+      ]
+    })
+}

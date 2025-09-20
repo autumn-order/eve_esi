@@ -8,6 +8,7 @@
 //! ## Models
 //! - [`CharacterMarketOrder`]: Details for a character's market order
 //! - [`CorporationMarketOrder`]: Details for a corporation's market order
+//! - [`MarketItemGroupInformation`]: Information regarding a specific market group
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -98,4 +99,22 @@ pub struct CorporationMarketOrder {
     pub volume_remain: i64,
     /// Quantity of items for sale or to buy when the order was placed
     pub volume_total: i64,
+}
+
+/// Information regarding a specific market group
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsGroupsMarketGroupIdGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct MarketItemGroupInformation {
+    /// The description of the market item group
+    pub description: String,
+    /// The name of the market item group
+    pub name: String,
+    /// The ID of the market item group
+    pub market_group_id: i64,
+    /// The ID of the parent market item group if applicable
+    pub parent_group_id: Option<i64>,
+    /// The type IDs of the items within the group
+    pub types: Vec<i64>,
 }
