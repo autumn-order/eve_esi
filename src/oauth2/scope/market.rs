@@ -9,11 +9,14 @@
 //! - [`MarketScopes::all`]: Create a new instance of [`MarketScopes`] with all scopes applied
 //! - [`MarketScopes::read_character_orders`]: Access to retrieve information on character's market orders
 //! - [`MarketScopes::read_corporation_orders`]: Access to retrieve information on corporation's market orders
+//! - [`MarketScopes::structure_markets`]: Access to retrieve information on a structure's market orders
 
 /// Access to retrieve information on character's market orders
 pub const READ_CHARACTER_ORDERS: &str = "esi-markets.read_character_orders.v1";
 /// Access to retrieve information on corporation's market orders
 pub const READ_CORPORATION_ORDERS: &str = "esi-markets.read_corporation_orders.v1";
+/// Access to retrieve information on a structure's market orders
+pub const STRUCTURE_MARKETS: &str = "esi-markets.structure_markets.v1";
 
 /// Struct with methods for listing corporation scopes to request for OAuth2
 pub struct MarketScopes {
@@ -53,6 +56,14 @@ impl MarketScopes {
     /// Access to retrieve information on corporation's market orders
     pub fn read_corporation_orders(mut self) -> Self {
         self.scopes.push(READ_CORPORATION_ORDERS.to_string());
+        self
+    }
+
+    /// Adds the `esi-markets.structure_markets.v1` scope
+    ///
+    /// Access to retrieve information on a structure's market orders
+    pub fn structure_markets(mut self) -> Self {
+        self.scopes.push(STRUCTURE_MARKETS.to_string());
         self
     }
 }

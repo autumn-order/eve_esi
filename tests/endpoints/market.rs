@@ -200,3 +200,35 @@ public_endpoint_test! {
       }
     ])
 }
+
+authenticated_endpoint_test! {
+    list_orders_in_a_structure,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let structure_id = 1;
+        let page = 1;
+        esi_client
+            .market()
+            .list_orders_in_a_structure(&access_token, structure_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/markets/structures/1?page=1",
+    required_scopes = ScopeBuilder::new()
+        .market(MarketScopes::new().structure_markets())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "duration": 0,
+        "is_buy_order": true,
+        "issued": "2019-08-24T14:15:22Z",
+        "location_id": 0,
+        "min_volume": 0,
+        "order_id": 0,
+        "price": 0,
+        "range": "station",
+        "type_id": 0,
+        "volume_remain": 0,
+        "volume_total": 0
+      }
+    ]),
+}
