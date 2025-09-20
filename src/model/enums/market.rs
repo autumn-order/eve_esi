@@ -4,6 +4,7 @@
 //!
 //! ## Enums
 //! - [`MarketOrderRange`]: Indicates the the range of a market order
+//! - [`HistoricalMarketOrderState`]: Indicates whether a historical market order expired or was cancelled
 
 use serde::{Deserialize, Serialize};
 
@@ -49,4 +50,18 @@ pub enum MarketOrderRange {
     /// Market order has a range of within its current station
     #[serde(rename = "station")]
     Station,
+}
+
+/// Indicates whether a historical market order expired or was cancelled
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdOrdersHistoryGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum HistoricalMarketOrderState {
+    /// Market order was cancelled
+    #[serde(rename = "cancelled")]
+    Cancelled,
+    /// Market order has expired
+    #[serde(rename = "expired")]
+    Expired,
 }

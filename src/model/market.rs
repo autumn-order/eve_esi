@@ -12,12 +12,13 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::enums::market::MarketOrderRange;
+use crate::model::enums::market::{HistoricalMarketOrderState, MarketOrderRange};
 
 /// Details for a character's market order
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdOrdersGet>
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdOrdersHistoryGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CharacterMarketOrder {
     /// Number of days for which the order is valid
@@ -46,6 +47,8 @@ pub struct CharacterMarketOrder {
     pub range: MarketOrderRange,
     /// ID of the region where the order was placed
     pub region_id: i64,
+    /// If it is a historical market order, indicates whether it was cancelled or expired
+    pub state: Option<HistoricalMarketOrderState>,
     /// The type ID of the item in the order
     pub type_id: i64,
     /// Remaining quantity of items still for sale or buy
@@ -58,6 +61,7 @@ pub struct CharacterMarketOrder {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdOrdersGet>
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdOrdersHistoryGet>
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CorporationMarketOrder {
     /// Number of days for which the order is valid
@@ -86,6 +90,8 @@ pub struct CorporationMarketOrder {
     pub range: MarketOrderRange,
     /// ID of the region where the order was placed
     pub region_id: i64,
+    /// If it is a historical market order, indicates whether it was cancelled or expired
+    pub state: Option<HistoricalMarketOrderState>,
     /// The type ID of the item in the order
     pub type_id: i64,
     /// Remaining quantity of items still for sale or buy

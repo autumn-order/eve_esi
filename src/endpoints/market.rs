@@ -84,7 +84,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterMarketOrder`]`>`: List of historical market orders for the provided character ID
+        /// - `Vec<`[`CharacterHistoricalMarketOrder`]`>`: List of historical market orders for the provided character ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_historical_orders_by_a_character(
             access_token: &str,
@@ -121,10 +121,44 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_open_orders_from_a_corporation(
             access_token: &str,
-            character_id: i64
+            corporation_id: i64
         ) -> Result<Vec<CorporationMarketOrder>, Error>
         url = "{}/corporations/{}/orders";
         label = "open orders";
+        required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_corporation_orders()).build();
+    }
+
+    define_endpoint! {
+        /// Fetches list of cancelled & expired market orders for the provided corporation ID up to 90 days in the past
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `Accountant` or
+        /// `Trader` role within the corporation to access this information.
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrdersHistory>
+        ///
+        /// # Required Scopes
+        /// - [`MarketScopes::read_corporation_orders`](crate::oauth2::scope::MarketScopes::read_corporation_orders):
+        ///   `esi-markets.read_corporation_orders.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve historical market orders for
+        /// - `page`            (`i32`): The page of market orders to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationHistoricalMarketOrder`]`>`: List of historical market orders for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get list_historical_orders_from_a_corporation(
+            access_token: &str,
+            corporation_d: i64,
+            page: i32,
+        ) -> Result<Vec<CorporationMarketOrder>, Error>
+        url = "{}/corporations/{}/orders/history?page={}";
+        label = "historical orders";
         required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_corporation_orders()).build();
     }
 }
