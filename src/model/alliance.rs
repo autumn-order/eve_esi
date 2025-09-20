@@ -1,13 +1,18 @@
-//! Data structures and types for representing alliances in EVE Online.
+//! # EVE ESI Alliance Models
 //!
 //! This module defines the `Alliance` struct, which models the core properties of an alliance in EVE Online.
 //!
-//! See [ESI API documentation](https://developers.eveonline.com/api-explorer)
+//! ## ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
+//!
+//! ## Models
+//! - [`Alliance`]: Represents an alliance in EVE Online.
+//! - [`AllianceIcons`]: Represents the 128x128 & 64x64 icon URLs for an alliance
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// Represents an alliance in EVE Online.
+/// Represents an alliance in EVE Online
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdGet>

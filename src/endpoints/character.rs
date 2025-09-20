@@ -5,17 +5,29 @@
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)
 //!
-//! # ESI Documentation
+//! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # Methods
+//! ## Endpoints (11)
+//! ### Public (3)
 //! - [`CharacterApi::get_character_public_information`]: Retrieves the public information of a specific character
-//! - [`CharacterApi::character_affiliation`]: Retrieve affiliations for a list of characters
+//! - [`CharacterApi::get_corporation_history`]: Retrieves the public corporation history of the provided character ID
+//! - [`CharacterApi::get_character_portraits`]: Retrieves the image URLs of a chacter's portraits with various dimensions
+//!
+//! ### Authenticated (9)
 //! - [`CharacterApi::get_agents_research`]: Retrieves character's research agents using the character's ID
+//! - [`CharacterApi::get_blueprints`]: Retrieves character's blueprints using the character's ID & page to fetch of the blueprint list
+//! - [`CharacterApi::calculate_a_cspa_charge_cost`]: Calculates CSPA cost for evemailing a list of characters with the provided character ID
+//! - [`CharacterApi::get_jump_fatigue`]: Retrieves jump fatigue for the provided character's ID
+//! - [`CharacterApi::get_medals`]: Retrieves a list of medals for the provided character ID
+//! - [`CharacterApi::get_character_notifications`]: Retrieves a list of character's notifications
+//! - [`CharacterApi::get_character_corporation_roles`]: Retrieves a list of the provided character ID's corporation roles
+//! - [`CharacterApi::get_standings`]: Retrieves a paginated list of NPC standing entries for the provided character ID
+//! - [`CharacterApi::get_character_corporation_titles`]: Retrieves a list of the provided character ID's corporation titles
 
 use crate::error::Error;
-use crate::model::universe::Standing;
-use crate::oauth2::scope::CharacterScopes;
+use crate::model::standing::Standing;
+use crate::scope::CharacterScopes;
 use crate::{Client, ScopeBuilder};
 
 use crate::model::asset::Blueprint;
@@ -98,7 +110,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_agents_research`](crate::oauth2::scope::CharacterScopes::read_agents_research):
+        /// - [`CharacterScopes::read_agents_research`](crate::scope::CharacterScopes::read_agents_research):
         ///   `esi-characters.read_agents_research.v1`
         ///
         /// # Arguments
@@ -129,7 +141,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdBlueprints>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_blueprints`](crate::oauth2::scope::CharacterScopes::read_blueprints):
+        /// - [`CharacterScopes::read_blueprints`](crate::scope::CharacterScopes::read_blueprints):
         ///   `esi-characters.read_blueprints.v1`
         ///
         /// # Arguments
@@ -213,7 +225,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdFatigue>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_fatigue`](crate::oauth2::scope::CharacterScopes::read_fatigue):
+        /// - [`CharacterScopes::read_fatigue`](crate::scope::CharacterScopes::read_fatigue):
         ///   `esi-characters.read_fatigue.v1`
         ///
         /// # Arguments
@@ -242,7 +254,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdMedals>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_medals`](crate::oauth2::scope::CharacterScopes::read_medals):
+        /// - [`CharacterScopes::read_medals`](crate::scope::CharacterScopes::read_medals):
         ///   `esi-characters.read_medals.v1`
         ///
         /// # Arguments
@@ -271,7 +283,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdNotifications>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_notifications`](crate::oauth2::scope::CharacterScopes::read_notifications):
+        /// - [`CharacterScopes::read_notifications`](crate::scope::CharacterScopes::read_notifications):
         ///   `esi-characters.read_notifications.v1`
         ///
         /// # Arguments
@@ -300,7 +312,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdNotificationsContacts>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_notifications`](crate::oauth2::scope::CharacterScopes::read_notifications):
+        /// - [`CharacterScopes::read_notifications`](crate::scope::CharacterScopes::read_notifications):
         ///   `esi-characters.read_notifications.v1`
         ///
         /// # Arguments
@@ -352,7 +364,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdRoles>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_corporation_roles`](crate::oauth2::scope::CharacterScopes::read_corporation_roles):
+        /// - [`CharacterScopes::read_corporation_roles`](crate::scope::CharacterScopes::read_corporation_roles):
         ///   `esi-characters.read_corporation_roles.v1`
         ///
         /// # Arguments
@@ -380,7 +392,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdStandings>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_standings`](crate::oauth2::scope::CharacterScopes::read_standings):
+        /// - [`CharacterScopes::read_standings`](crate::scope::CharacterScopes::read_standings):
         ///   `esi-characters.read_standings.v1`
         ///
         /// # Arguments
@@ -408,7 +420,7 @@ impl<'a> CharacterApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdTitles>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_titles`](crate::oauth2::scope::CharacterScopes::read_titles):
+        /// - [`CharacterScopes::read_titles`](crate::scope::CharacterScopes::read_titles):
         ///   `esi-characters.read_titles.v1`
         ///
         /// # Arguments

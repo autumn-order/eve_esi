@@ -1,4 +1,4 @@
-//! # EVE Online OAuth2 Scopes
+//! # EVE ESI Scopes
 //!
 //! This module provides the [`ScopeBuilder`] & related modules with methods to build a list of scopes to request during
 //! login in a type-safe manner.
@@ -16,7 +16,7 @@
 //!
 //! ```rust
 //! use eve_esi::ScopeBuilder;
-//! use eve_esi::oauth2::scope::CharacterScopes;
+//! use eve_esi::scope::CharacterScopes;
 //!
 //! // Create a new scope builder
 //! let scopes = ScopeBuilder::new()
@@ -33,17 +33,19 @@
 //! // Use with `esi_client.oauth2().login_url(scopes)` method...
 //! ```
 //!
-//! See the [`super::login`] module for an example of usage of the [`ScopeBuilder`] with the
+//! See the [`crate::oauth2::login`] module documentation for an example of usage of the [`ScopeBuilder`] with the
 //! [`login_url`](crate::oauth2::OAuth2Api::login_url) method.
 
 pub mod builder;
 
 pub mod character;
 pub mod corporation;
+pub mod market;
 pub mod wallet;
 
 pub use builder::ScopeBuilder;
 
 pub use character::CharacterScopes;
 pub use corporation::CorporationScopes;
+pub use market::MarketScopes;
 pub use wallet::WalletScopes;

@@ -5,10 +5,11 @@
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)
 //!
-//! # ESI Documentation
+//! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # Methods
+//! ## Endpoints (4)
+//! ### Public (4)
 //! - [`AllianceApi::list_all_alliances`]: Retrieves a list of IDs of every alliance in EVE Online
 //! - [`AllianceApi::get_alliance_information`]: Retrieves public information for the requested alliance_id
 //! - [`AllianceApi::list_alliance_corporations`]: Retrieves the IDs of all corporations part of the requested alliance_id

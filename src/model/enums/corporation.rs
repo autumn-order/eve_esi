@@ -3,7 +3,14 @@
 //! Provides enums related to corporations in EVE Online
 //!
 //! ## Enums
+//! - [`CorporationRoleType`]: Indicates the type & location of the corporation role
 //! - [`CorporationRole`]: Indicates the type of corporation role
+//! - [`CorporationSecureContainerAction`]: Indicates the type of action on an audit log secure container log entry
+//! - [`ShareholderType`]: Indicates whether shares are held by a character or corporation
+//! - [`CorporationStarbaseState`]: Indicates the current state of a corporation starbase (POS)
+//! - [`CorporationStarbasePermission`]: The permission required to perform an action on a corporation owned starbase (POS)
+//! - [`CorporationStructureServiceState`]: The possible states of a corporation's Upwell structure's service module
+//! - [`CorporationStructureState`]: The possible states of a corporation's Upwell structure
 
 use serde::{Deserialize, Serialize};
 

@@ -1,9 +1,24 @@
-//! Data structures and types for representing characters in EVE Online.
+//! # EVE ESI Character Models
 //!
 //! This module defines the `Character` & `CharacterAffiliation` structs,
 //! which model the core properties of a character & character affiliation in EVE Online.
 //!
-//! See [ESI API documentation](https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdGet)
+//! ## ESI Documentation
+//! - <https://developers.eveonline.com/api-explorer>
+//!
+//! ## Models
+//! - [`Character`]: Represents a character in EVE Online
+//! - [`CharacterAffiliation`]: Represents the affiliations of a character in EVE Online
+//! - [`CharacterResearchAgent`]: Information regarding a character's research agent
+//! - [`CharacterCorporationHistory`]: Represents a character's corporation history
+//! - [`CharacterJumpFatigue`]: Represents a character's jump fatigue status
+//! - [`CharacterMedalGraphics`]: Represents the graphics configuration for a character's medal
+//! - [`CharacterMedal`]: Represents an entry for a character's medals
+//! - [`CharacterNotification`]: Represents a character notification entry
+//! - [`CharacterNewContactNotification`]: Notification when character has been added to someone's contact list
+//! - [`CharacterPortraits`]: A character's portrait URLs with various dimensions
+//! - [`CharacterCorporationRole`]: A character's portrait URLs with various dimensions
+//! - [`CharacterCorporationTitle`]: An entry for a character's corporation titles
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -14,7 +29,7 @@ use crate::model::enums::{
     notification::{NotificationSenderType, NotificationType},
 };
 
-/// Represents a character in EVE Online.
+/// Represents a character in EVE Online
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdGet>
@@ -44,7 +59,7 @@ pub struct Character {
     pub title: Option<String>,
 }
 
-/// Represents the affiliations of a character in EVE Online.
+/// Represents the affiliations of a character in EVE Online
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersAffiliationPost>

@@ -3,9 +3,10 @@
 //! This module provides access to the different categories of endpoints available for EVE Online's ESI API.
 //!
 //! ## Modules
-//! - [`alliance`]: Alliance endpoints
-//! - [`character`]: Character endpoints
-//! - [`corporation`]: Corporation endpoints
+//! - [`alliance`]: Alliance endpoints (4/4 endpoints)
+//! - [`character`]: Character endpoints (11/11 endpoints)
+//! - [`corporation`]: Corporation endpoints (22/22 endpoints)
+//! - [`market`]: Market endpoints (11/11 endpoints)
 //!
 //! ## ESI Documentation
 //! - ESI API Explorer: <https://developers.eveonline.com/api-explorer>
@@ -75,8 +76,9 @@ mod macros;
 pub mod alliance;
 pub mod character;
 pub mod corporation;
+pub mod market;
 
-use crate::Client;
+use crate::{endpoints::market::MarketEndpoints, Client};
 
 use alliance::AllianceApi;
 use character::CharacterApi;
@@ -108,5 +110,12 @@ impl Client {
     /// Returns an API client for interacting with corporation-related endpoints.
     pub fn corporation(&self) -> CorporationApi<'_> {
         CorporationApi::new(self)
+    }
+
+    /// Access to market ESI endpoints
+    ///
+    /// For an overview & usage example, see the [endpoints module documentation](super)
+    pub fn market(&self) -> MarketEndpoints<'_> {
+        MarketEndpoints::new(self)
     }
 }

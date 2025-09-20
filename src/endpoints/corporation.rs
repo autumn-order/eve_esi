@@ -5,11 +5,35 @@
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)
 //!
-//! # ESI Documentation
+//! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
-//! # Methods
+//! ## Endpoints (22)
+//! ### Public (4)
+//! - [`CorporationApi::get_npc_corporations`]: Fetches a list of all NPC corporation IDs in EVE Online
 //! - [`CorporationApi::get_corporation_information`]: Fetches a corporation’s public information from ESI using the corporation ID
+//! - [`CorporationApi::get_alliance_history`]: Fetches a corporation's alliance history using the provided corporation ID
+//! - [`CorporationApi::get_corporation_icon`]: Fetches a corporation's icon using the provided corporation ID
+//!
+//! ### Authenticated (18)
+//! - [`CorporationApi::get_corporation_blueprints`]: Fetches a list of blueprint entries for the provided corporation ID
+//! - [`CorporationApi::get_all_corporation_alsc_logs`]: Fetches audit log secure container (ALSC) log entries for the provided corporation ID
+//! - [`CorporationApi::get_corporation_divisions`]: Fetches a list of hangar & wallet divisions for the provided corporation ID
+//! - [`CorporationApi::get_corporation_facilities`]: Fetches a list of industry facilities for the provided corporation ID
+//! - [`CorporationApi::get_corporation_medals`]: Fetches a paginated list of medals for the provided corporation ID
+//! - [`CorporationApi::get_corporation_issued_medals`]: Fetches a paginated list of issued medals for the provided corporation ID
+//! - [`CorporationApi::get_corporation_members`]: Fetches a list of character IDs of all members part of the provided corporation ID
+//! - [`CorporationApi::get_corporation_member_limit`]: Fetches the member limit of the provided corporation ID
+//! - [`CorporationApi::get_corporation_members_titles`]: Fetches a list of title IDs for each member of the provided corporation ID
+//! - [`CorporationApi::track_corporation_members`]: Fetches a list of tracking information for each character part of the provided corporation ID
+//! - [`CorporationApi::get_corporation_member_roles`]: Fetches a list of roles for each character part of the provided corporation ID
+//! - [`CorporationApi::get_corporation_member_roles_history`]: Retrieves a paginated list of up to a month of role history for the provided corporation ID
+//! - [`CorporationApi::get_corporation_shareholders`]: Retrieves a paginated list of shareholders for the provided corporation ID
+//! - [`CorporationApi::get_corporation_standings`]: Retrieves a paginated list of NPC standing entries for the provided corporation ID
+//! - [`CorporationApi::get_corporation_starbases`]: Retrieves a paginated list of starbases (POSes) for the provided corporation ID
+//! - [`CorporationApi::get_starbase_detail`]: Retrieves details for a starbase (POS) for the provided starbase ID & corporation ID
+//! - [`CorporationApi::get_corporation_structures`]: Retrieves a paginated list of structure information for the provided corporation ID
+//! - [`CorporationApi::get_corporation_titles`]: Retrieves a list of corporation titles and their respective roles for the provided corporation ID
 
 use crate::error::Error;
 use crate::model::asset::Blueprint;
@@ -20,8 +44,8 @@ use crate::model::corporation::{
     CorporationSecureContainerLog, CorporationShareholder, CorporationStarbase,
     CorporationStarbaseDetails, CorporationStructure, CorporationTitle,
 };
-use crate::model::universe::Standing;
-use crate::oauth2::scope::{CorporationScopes, WalletScopes};
+use crate::model::standing::Standing;
+use crate::scope::{CorporationScopes, WalletScopes};
 use crate::{Client, ScopeBuilder};
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
@@ -117,7 +141,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdBlueprints>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_blueprints`](crate::oauth2::scope::CorporationScopes::read_blueprints):
+        /// - [`CorporationScopes::read_blueprints`](crate::scope::CorporationScopes::read_blueprints):
         ///   `esi-corporations.read_blueprints.v1`
         ///
         /// # Arguments
@@ -153,7 +177,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdContainersLogs>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_container_logs`](crate::oauth2::scope::CorporationScopes::read_container_logs):
+        /// - [`CorporationScopes::read_container_logs`](crate::scope::CorporationScopes::read_container_logs):
         ///   `esi-corporations.read_container_logs.v1`
         ///
         /// # Arguments
@@ -187,7 +211,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdDivisions>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_divisions`](crate::oauth2::scope::CorporationScopes::read_divisions):
+        /// - [`CorporationScopes::read_divisions`](crate::scope::CorporationScopes::read_divisions):
         ///   `esi-corporations.read_divisions.v1`
         ///
         /// # Arguments
@@ -219,7 +243,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdFacilities>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_facilities`](crate::oauth2::scope::CorporationScopes::read_facilities):
+        /// - [`CorporationScopes::read_facilities`](crate::scope::CorporationScopes::read_facilities):
         ///   `esi-corporations.read_facilities.v1`
         ///
         /// # Arguments
@@ -273,7 +297,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMedals>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_medals`](crate::oauth2::scope::CorporationScopes::read_medals):
+        /// - [`CorporationScopes::read_medals`](crate::scope::CorporationScopes::read_medals):
         ///   `esi-corporations.read_medals.v1`
         ///
         /// # Arguments
@@ -310,7 +334,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMedalsIssued>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_medals`](crate::oauth2::scope::CorporationScopes::read_medals):
+        /// - [`CorporationScopes::read_medals`](crate::scope::CorporationScopes::read_medals):
         ///   `esi-corporations.read_medals.v1`
         ///
         /// # Arguments
@@ -341,7 +365,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembers>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_corporation_membership`](crate::oauth2::scope::CorporationScopes::read_corporation_membership):
+        /// - [`CorporationScopes::read_corporation_membership`](crate::scope::CorporationScopes::read_corporation_membership):
         ///   `esi-corporations.read_corporation_membership.v1`
         ///
         /// # Arguments
@@ -373,7 +397,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembersLimit>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::track_members`](crate::oauth2::scope::CorporationScopes::track_members):
+        /// - [`CorporationScopes::track_members`](crate::scope::CorporationScopes::track_members):
         ///   `esi-corporations.track_members.v1`
         ///
         /// # Arguments
@@ -405,7 +429,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembersTitles>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_titles`](crate::oauth2::scope::CorporationScopes::read_titles):
+        /// - [`CorporationScopes::read_titles`](crate::scope::CorporationScopes::read_titles):
         ///   `esi-corporations.read_titles.v1`
         ///
         /// # Arguments
@@ -437,7 +461,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembertracking>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::track_members`](crate::oauth2::scope::CorporationScopes::track_members):
+        /// - [`CorporationScopes::track_members`](crate::scope::CorporationScopes::track_members):
         ///   `esi-corporations.track_members.v1`
         ///
         /// # Arguments
@@ -470,7 +494,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdRoles>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_corporation_membership`](crate::oauth2::scope::CorporationScopes::read_corporation_membership):
+        /// - [`CorporationScopes::read_corporation_membership`](crate::scope::CorporationScopes::read_corporation_membership):
         ///   `esi-corporations.read_corporation_membership.v1`
         ///
         /// # Arguments
@@ -503,7 +527,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdRolesHistory>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_corporation_membership`](crate::oauth2::scope::CorporationScopes::read_corporation_membership):
+        /// - [`CorporationScopes::read_corporation_membership`](crate::scope::CorporationScopes::read_corporation_membership):
         ///   `esi-corporations.read_corporation_membership.v1`
         ///
         /// # Arguments
@@ -538,7 +562,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdShareholders>
         ///
         /// # Required Scopes
-        /// - [`WalletScopes::read_corporation_wallets`](crate::oauth2::scope::WalletScopes::read_corporation_wallets):
+        /// - [`WalletScopes::read_corporation_wallets`](crate::scope::WalletScopes::read_corporation_wallets):
         ///   `esi-wallet.read_corporation_wallets.v1`
         ///
         /// # Arguments
@@ -569,7 +593,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStandings>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_standings`](crate::oauth2::scope::CorporationScopes::read_standings):
+        /// - [`CorporationScopes::read_standings`](crate::scope::CorporationScopes::read_standings):
         ///   `esi-corporations.read_standings.v1`
         ///
         /// # Arguments
@@ -603,7 +627,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStarbases>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_starbases`](crate::oauth2::scope::CorporationScopes::read_starbases):
+        /// - [`CorporationScopes::read_starbases`](crate::scope::CorporationScopes::read_starbases):
         ///   `esi-corporations.read_starbases.v1`
         ///
         /// # Arguments
@@ -637,7 +661,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStarbasesStarbaseId>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_starbases`](crate::oauth2::scope::CorporationScopes::read_starbases):
+        /// - [`CorporationScopes::read_starbases`](crate::scope::CorporationScopes::read_starbases):
         ///   `esi-corporations.read_starbases.v1`
         ///
         /// # Arguments
@@ -673,7 +697,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStructures>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_structures`](crate::oauth2::scope::CorporationScopes::read_structures):
+        /// - [`CorporationScopes::read_structures`](crate::scope::CorporationScopes::read_structures):
         ///   `esi-corporations.read_structures.v1`
         ///
         /// # Arguments
@@ -707,7 +731,7 @@ impl<'a> CorporationApi<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdTitles>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_titles`](crate::oauth2::scope::CorporationScopes::read_titles):
+        /// - [`CorporationScopes::read_titles`](crate::scope::CorporationScopes::read_titles):
         ///   `esi-corporations.read_titles.v1`
         ///
         /// # Arguments

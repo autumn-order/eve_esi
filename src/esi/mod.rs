@@ -12,7 +12,6 @@
 //! [endpoints module documentation](crate::endpoints)
 //!
 //! ## Modules
-//! - [`esi`]: Provides the [`EsiApi`] struct implementing request methods on the [`crate::Client`]
 //! - [`public`]: Methods for making public requests to ESI endpoints
 //! - [`authenticated`]: Methods for making authenticated requests to ESI endpoints using an access token
 //!
