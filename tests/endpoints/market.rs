@@ -232,3 +232,27 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+public_endpoint_test! {
+    list_historical_market_statistics_in_a_region,
+    |esi_client: eve_esi::Client | async move {
+        let region_id = 1;
+        let type_id = 1;
+        esi_client
+            .market()
+            .list_historical_market_statistics_in_a_region(region_id, type_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/markets/1/history?type_id=1",
+    mock_response = serde_json::json!([
+      {
+        "average": 0,
+        "date": "2019-08-24",
+        "highest": 0,
+        "lowest": 0,
+        "order_count": 0,
+        "volume": 0
+      }
+    ])
+}

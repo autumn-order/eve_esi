@@ -11,8 +11,9 @@
 //! - [`MarketItemGroupInformation`]: Information regarding a specific market group
 //! - [`MarketItemPrices`]: The average & adjusted market prices of an item
 //! - [`StructureMarketOrder`]: Details for a market order placed within a structure
+//! - [`MarketItemRegionStatistics`]: An entry for the market statistics of an item within a specific region on a given date
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::model::enums::market::{HistoricalMarketOrderState, MarketOrderRange};
@@ -167,4 +168,24 @@ pub struct StructureMarketOrder {
     pub volume_remain: i64,
     /// Quantity of items for sale or to buy when the order was placed
     pub volume_total: i64,
+}
+
+/// An entry for the market statistics of an item within a specific region on a given date
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsRegionIdHistoryGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct MarketItemRegionStatistics {
+    /// The average price of the item in this entry
+    pub average: f64,
+    /// The YYYY-MM-DD of this statistic entry
+    pub date: NaiveDate,
+    /// The highest price the item sold for in this entry
+    pub highest: f64,
+    /// The lowest price the item sold for in this enry
+    pub lowest: f64,
+    /// Total numbers of orders that occurred for this entry
+    pub order_count: i64,
+    /// The volume of the item traded for this entry
+    pub volume: i64,
 }

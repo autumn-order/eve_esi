@@ -20,11 +20,12 @@
 //! - [`MarketEndpoints::list_open_orders_from_a_corporation`]: Fetches list of open market orders for the provided corporation ID
 //! - [`MarketEndpoints::list_historical_orders_from_a_corporation`]: Fetches list of cancelled & expired market orders for the provided corporation ID up to 90 days in the past
 //! - [`MarketEndpoints::list_orders_in_a_structure`]: Fetches list of market orders for the provided structure ID
+//! - [`MarketEndpoints::list_historical_market_statistics_in_a_region`]: List of entries with historical market statistics for the provided item type ID in provided region ID
 
 use crate::{
     model::market::{
         CharacterMarketOrder, CorporationMarketOrder, MarketItemGroupInformation, MarketItemPrices,
-        StructureMarketOrder,
+        MarketItemRegionStatistics, StructureMarketOrder,
     },
     oauth2::scope::MarketScopes,
     Client, Error, ScopeBuilder,
@@ -261,5 +262,29 @@ impl<'a> MarketEndpoints<'a> {
         url = "{}/markets/structures/{}?page={}";
         label = "market orders";
         required_scopes = ScopeBuilder::new().market(MarketScopes::new().structure_markets()).build();
+    }
+
+    define_endpoint! {
+        /// Retrieves list of entries with historical market statistics for the provided item type ID in provided region ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsRegionIdHistory>
+        ///
+        /// # Arguments
+        /// - `region_id` (`i64`): ID of the region to retrieve market statistics for the specified item type ID
+        /// - `type_id`   (`i64`): ID of the item type to retrieve market statistics for in the specified region ID
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<MarketItemRegionStatistics>`: List of entries with historical market statistics for the provided item type ID in provided region ID
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get list_historical_market_statistics_in_a_region(
+            region_id: i64,
+            type_id: i64
+        ) -> Result<Vec<MarketItemRegionStatistics>, Error>
+        url = "{}/markets/{}/history?type_id={}";
+        label = "regional market statistics for item";
     }
 }
