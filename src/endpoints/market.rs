@@ -13,6 +13,9 @@
 //! - [`MarketEndpoints::get_item_groups`]: Retrieves a list of IDs of market item groups
 //! - [`MarketEndpoints::get_item_group_information`]: Retrieves the information of the provided market item group ID
 //! - [`MarketEndpoints::list_market_prices`]: Retrieves the average & adjusted market prices of all items
+//! - [`MarketEndpoints::list_historical_market_statistics_in_a_region`]: List of entries with historical market statistics for the provided item type ID in provided region ID
+//! - [`MarketEndpoints::list_orders_in_a_region]: Retrieves a list of market orders within the provided region ID and of the specified order type
+//! - [`MarketEndpoints::list_type_ids_relevant_to_a_market`]: Retrieves a list of type IDs that have active market orders for the given region ID
 //!
 //! ### Authenticated
 //! - [`MarketEndpoints::list_open_orders_from_a_character`]: Fetches list of open market orders for the provided character ID
@@ -20,7 +23,6 @@
 //! - [`MarketEndpoints::list_open_orders_from_a_corporation`]: Fetches list of open market orders for the provided corporation ID
 //! - [`MarketEndpoints::list_historical_orders_from_a_corporation`]: Fetches list of cancelled & expired market orders for the provided corporation ID up to 90 days in the past
 //! - [`MarketEndpoints::list_orders_in_a_structure`]: Fetches list of market orders for the provided structure ID
-//! - [`MarketEndpoints::list_historical_market_statistics_in_a_region`]: List of entries with historical market statistics for the provided item type ID in provided region ID
 
 use crate::{
     model::{
@@ -44,7 +46,7 @@ pub struct MarketEndpoints<'a> {
 impl<'a> MarketEndpoints<'a> {
     /// Creates a new instance of [`MarketEndpoints`].
     ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    /// For an overview & usage examples, see the [endpoints module documentation](super)e
     ///
     /// # Arguments
     /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
@@ -209,7 +211,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<MarketItemGroupInformation>`: The information of the provided market item group ID
+        /// - `Vec<`[`MarketItemGroupInformation`]`>`: The information of the provided market item group ID
         /// - [`Error`]: An error if the fetch request fails
         pub_get get_item_group_information(
             market_group_id: i64
@@ -228,7 +230,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<MarketItemPrices>`: The average & adjusted market prices of all items
+        /// - `Vec<`[`MarketItemPrices`]`>`: The average & adjusted market prices of all items
         /// - [`Error`]: An error if the fetch request fails
         pub_get list_market_prices(
         ) -> Result<Vec<MarketItemPrices>, Error>
@@ -281,7 +283,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<MarketItemRegionStatistics>`: List of entries with historical market statistics for the provided item type ID in provided region ID
+        /// - `Vec<`[`MarketItemRegionStatistics`]`>`: List of entries with historical market statistics for the provided item type ID in provided region ID
         /// - [`Error`]: An error if the fetch request fails
         pub_get list_historical_market_statistics_in_a_region(
             region_id: i64,
@@ -307,7 +309,7 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<MarketRegionOrder>`: list of market orders within the provided region ID and of the specified order type
+        /// - `Vec<`[`MarketRegionOrder`]`>`: list of market orders within the provided region ID and of the specified order type
         pub_get list_orders_in_a_region(
             region_id: i64,
             order_type: OrderType,
@@ -315,5 +317,28 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<MarketRegionOrder>, Error>
         url = "{}/markets/{}/orders?order_type={}&page={}";
         label = "market orders";
+    }
+
+    define_endpoint! {
+        /// Retrieves a list of type IDs that have active market orders for the given region ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsRegionIdTypes>
+        ///
+        /// # Arguments
+        /// - `region_id`   (`i64`): ID of the region to retrieve item type IDs for
+        /// - `page`        (`i32`): The page of market orders to retrieve, page numbers start at `1`
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<i64>`: list of type IDs that have active market orders for the given region ID
+        pub_get list_type_ids_relevant_to_a_market(
+            region_id: i64,
+            page: i32
+        ) -> Result<Vec<i64>, Error>
+        url = "{}/markets/{}/types?page={}";
+        label = "item type IDs with active market orders";
     }
 }

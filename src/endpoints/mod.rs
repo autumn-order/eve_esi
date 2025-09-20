@@ -6,6 +6,7 @@
 //! - [`alliance`]: Alliance endpoints
 //! - [`character`]: Character endpoints
 //! - [`corporation`]: Corporation endpoints
+//! - [`market`]: Market endpoints
 //!
 //! ## ESI Documentation
 //! - ESI API Explorer: <https://developers.eveonline.com/api-explorer>

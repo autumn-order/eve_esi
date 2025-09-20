@@ -288,3 +288,18 @@ public_endpoint_test! {
       }
     ])
 }
+
+public_endpoint_test! {
+    list_type_ids_relevant_to_a_market,
+    |esi_client: eve_esi::Client | async move {
+        let region_id = 1;
+        let page = 1;
+        esi_client
+            .market()
+            .list_type_ids_relevant_to_a_market(region_id, page)
+            .await
+    },
+    request_type = "GET",
+    url = "/markets/1/types?page=1",
+    mock_response = serde_json::json!([0])
+}
