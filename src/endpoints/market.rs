@@ -161,4 +161,22 @@ impl<'a> MarketEndpoints<'a> {
         label = "historical orders";
         required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_corporation_orders()).build();
     }
+
+    define_endpoint! {
+        /// Retrieves a list of IDs of market item groups
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsGroups>
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<i64>`: List of IDs of market item groups
+        /// - [`Error`]: An error if the fetch request fails
+        pub_get get_item_groups(
+        ) -> Result<Vec<i64>, Error>
+        url = "{}/markets/groups";
+        label = "market groups";
+    }
 }

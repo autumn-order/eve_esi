@@ -1,6 +1,7 @@
 use eve_esi::{oauth2::scope::MarketScopes, ScopeBuilder};
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
+use crate::util::integration_test_setup;
 
 authenticated_endpoint_test! {
     list_open_orders_from_a_character,
@@ -142,4 +143,19 @@ authenticated_endpoint_test! {
         "wallet_division": 0
       }
     ]),
+}
+
+public_endpoint_test! {
+    get_item_groups,
+    |esi_client: eve_esi::Client | async move {
+        esi_client
+            .market()
+            .get_item_groups()
+            .await
+    },
+    request_type = "GET",
+    url = "/markets/groups",
+    mock_response = serde_json::json!([
+      0
+    ])
 }
