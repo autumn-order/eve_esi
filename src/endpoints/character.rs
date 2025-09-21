@@ -10,20 +10,24 @@
 //!
 //! ## Endpoints (11)
 //! ### Public (3)
-//! - [`CharacterApi::get_character_public_information`]: Retrieves the public information of a specific character
-//! - [`CharacterApi::get_corporation_history`]: Retrieves the public corporation history of the provided character ID
-//! - [`CharacterApi::get_character_portraits`]: Retrieves the image URLs of a chacter's portraits with various dimensions
+//! |                       Endpoint                           |                               Description                                 |
+//! | -------------------------------------------------------- | ------------------------------------------------------------------------- |
+//! | [`CharacterEndpoints::get_character_public_information`] | Retrieves the public information of a specific character                  |
+//! | [`CharacterEndpoints::get_corporation_history`]          | Retrieves the public corporation history of the provided character ID     |
+//! | [`CharacterEndpoints::get_character_portraits`]          | Retrieves the image URLs of a chacter's portraits with various dimensions |
 //!
 //! ### Authenticated (9)
-//! - [`CharacterApi::get_agents_research`]: Retrieves character's research agents using the character's ID
-//! - [`CharacterApi::get_blueprints`]: Retrieves character's blueprints using the character's ID & page to fetch of the blueprint list
-//! - [`CharacterApi::calculate_a_cspa_charge_cost`]: Calculates CSPA cost for evemailing a list of characters with the provided character ID
-//! - [`CharacterApi::get_jump_fatigue`]: Retrieves jump fatigue for the provided character's ID
-//! - [`CharacterApi::get_medals`]: Retrieves a list of medals for the provided character ID
-//! - [`CharacterApi::get_character_notifications`]: Retrieves a list of character's notifications
-//! - [`CharacterApi::get_character_corporation_roles`]: Retrieves a list of the provided character ID's corporation roles
-//! - [`CharacterApi::get_standings`]: Retrieves a paginated list of NPC standing entries for the provided character ID
-//! - [`CharacterApi::get_character_corporation_titles`]: Retrieves a list of the provided character ID's corporation titles
+//! |                         Endpoint                         |                                          Description                                            |
+//! | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+//! | [`CharacterEndpoints::get_agents_research`]              | Retrieves character's research agents using the character's ID                                  |
+//! | [`CharacterEndpoints::get_blueprints`]                   | Retrieves character's blueprints using the character's ID & page to fetch of the blueprint list |
+//! | [`CharacterEndpoints::calculate_a_cspa_charge_cost`]     | Calculates CSPA cost for evemailing a list of characters with the provided character ID         |
+//! | [`CharacterEndpoints::get_jump_fatigue`]                 | Retrieves jump fatigue for the provided character's ID                                          |
+//! | [`CharacterEndpoints::get_medals`]                       | Retrieves a list of medals for the provided character ID                                        |
+//! | [`CharacterEndpoints::get_character_notifications`]      | Retrieves a list of character's notifications                                                   |
+//! | [`CharacterEndpoints::get_character_corporation_roles`]  | Retrieves a list of the provided character ID's corporation roles                               |
+//! | [`CharacterEndpoints::get_standings`]                    | Retrieves a paginated list of NPC standing entries for the provided character ID                |
+//! | [`CharacterEndpoints::get_character_corporation_titles`] | Retrieves a list of the provided character ID's corporation titles                              |
 
 use crate::error::Error;
 use crate::model::standing::Standing;
@@ -46,13 +50,12 @@ pub struct CharacterEndpoints<'a> {
 }
 
 impl<'a> CharacterEndpoints<'a> {
-    /// Creates a new instance of `CharacterApi`.
+    /// Creates a new instance of [`CharacterEndpoints`].
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)e
     ///
     /// # Arguments
     /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
-    ///
-    /// # Returns
-    /// - [`CharacterApi`]: Struct providing methods to interact with character ESI endpoints
     pub(super) fn new(client: &'a Client) -> Self {
         Self { client }
     }

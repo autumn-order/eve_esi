@@ -10,19 +10,23 @@
 //!
 //! ## Endpoints (11)
 //! ### Public (6)
-//! - [`MarketEndpoints::get_item_groups`]: Retrieves a list of IDs of market item groups
-//! - [`MarketEndpoints::get_item_group_information`]: Retrieves the information of the provided market item group ID
-//! - [`MarketEndpoints::list_market_prices`]: Retrieves the average & adjusted market prices of all items
-//! - [`MarketEndpoints::list_historical_market_statistics_in_a_region`]: List of entries with historical market statistics for the provided item type ID in provided region ID
-//! - [`MarketEndpoints::list_orders_in_a_region]: Retrieves a list of market orders within the provided region ID and of the specified order type
-//! - [`MarketEndpoints::list_type_ids_relevant_to_a_market`]: Retrieves a list of type IDs that have active market orders for the given region ID
+//! |                           Endpoint                                 |                                          Description                                                  |
+//! | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+//! | [`MarketEndpoints::get_item_groups`]                               | Retrieves a list of IDs of market item groups                                                         |
+//! | [`MarketEndpoints::get_item_group_information`]                    | Retrieves the information of the provided market item group ID                                        |
+//! | [`MarketEndpoints::list_market_prices`]                            | Retrieves the average & adjusted market prices of all items                                           |
+//! | [`MarketEndpoints::list_historical_market_statistics_in_a_region`] | List of entries with historical market statistics for the provided item type ID in provided region ID |
+//! | [`MarketEndpoints::list_orders_in_a_region`]                       | Retrieves a list of market orders within the provided region ID and of the specified order type       |
+//! | [`MarketEndpoints::list_type_ids_relevant_to_a_market`]            | Retrieves a list of type IDs that have active market orders for the given region ID                   |
 //!
 //! ### Authenticated (5)
-//! - [`MarketEndpoints::list_open_orders_from_a_character`]: Fetches list of open market orders for the provided character ID
-//! - [`MarketEndpoints::list_historical_orders_by_a_character`]: Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past
-//! - [`MarketEndpoints::list_open_orders_from_a_corporation`]: Fetches list of open market orders for the provided corporation ID
-//! - [`MarketEndpoints::list_historical_orders_from_a_corporation`]: Fetches list of cancelled & expired market orders for the provided corporation ID up to 90 days in the past
-//! - [`MarketEndpoints::list_orders_in_a_structure`]: Fetches list of market orders for the provided structure ID
+//! |                         Endpoint                               |                                              Description                                                    |
+//! | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+//! | [`MarketEndpoints::list_open_orders_from_a_character`]         | Fetches list of open market orders for the provided character ID                                            |
+//! | [`MarketEndpoints::list_historical_orders_by_a_character`]     | Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past   |
+//! | [`MarketEndpoints::list_open_orders_from_a_corporation`]       | Fetches list of open market orders for the provided corporation ID                                          |
+//! | [`MarketEndpoints::list_historical_orders_from_a_corporation`] | Fetches list of cancelled & expired market orders for the provided corporation ID up to 90 days in the past |
+//! | [`MarketEndpoints::list_orders_in_a_structure`]                | Fetches list of market orders for the provided structure ID                                                 |
 
 use crate::{
     model::{
