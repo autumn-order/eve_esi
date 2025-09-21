@@ -23,11 +23,11 @@ use crate::{
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
 /// For an overview & usage examples, see the [endpoints module documentation](super)
-pub struct AllianceApi<'a> {
+pub struct AllianceEndpoints<'a> {
     client: &'a Client,
 }
 
-impl<'a> AllianceApi<'a> {
+impl<'a> AllianceEndpoints<'a> {
     /// Creates a new instance of `AllianceApi`.
     ///
     /// # Arguments

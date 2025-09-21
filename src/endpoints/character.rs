@@ -41,11 +41,11 @@ use crate::model::character::{
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
 /// For an overview & usage examples, see the [endpoints module documentation](super)
-pub struct CharacterApi<'a> {
+pub struct CharacterEndpoints<'a> {
     client: &'a Client,
 }
 
-impl<'a> CharacterApi<'a> {
+impl<'a> CharacterEndpoints<'a> {
     /// Creates a new instance of `CharacterApi`.
     ///
     /// # Arguments

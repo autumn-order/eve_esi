@@ -51,11 +51,11 @@ use crate::{Client, ScopeBuilder};
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
 ///
 /// For an overview & usage examples, see the [endpoints module documentation](super)
-pub struct CorporationApi<'a> {
+pub struct CorporationEndpoints<'a> {
     client: &'a Client,
 }
 
-impl<'a> CorporationApi<'a> {
+impl<'a> CorporationEndpoints<'a> {
     /// Creates a new instance of `CorporationApi`.
     ///
     /// For an overview & usage examples, see the [endpoints module documentation](super)

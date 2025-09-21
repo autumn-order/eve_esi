@@ -44,9 +44,9 @@ use oauth2::{CsrfToken, Scope};
 
 use crate::error::{Error, OAuthError};
 use crate::model::oauth2::AuthenticationData;
-use crate::oauth2::OAuth2Api;
+use crate::oauth2::OAuth2Endpoints;
 
-impl<'a> OAuth2Api<'a> {
+impl<'a> OAuth2Endpoints<'a> {
     /// Generates a login URL and state string for initiating the EVE Online OAuth2 authentication process.
     ///
     /// This method constructs the URL that begins the login process for EVE Online SSO (single sign-on) or also known as OAuth2.
