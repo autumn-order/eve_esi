@@ -20,7 +20,7 @@ use crate::{
     Client, Error,
 };
 
-/// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
+/// Provides methods for accessing alliance-related endpoints of the EVE Online ESI API.
 ///
 /// For an overview & usage examples, see the [endpoints module documentation](super)
 pub struct AllianceEndpoints<'a> {
