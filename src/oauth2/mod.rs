@@ -38,7 +38,7 @@ use crate::Client;
 /// It requires an [`Client`] for making HTTP requests to the endpoints and managing JWT keys to validate tokens.
 ///
 /// See the [module-level documentation](self) for an overview and usage example.
-pub struct OAuth2Api<'a> {
+pub struct OAuth2Endpoints<'a> {
     pub(super) client: &'a Client,
 }
 
@@ -46,12 +46,12 @@ impl Client {
     /// Access to EVE Online's OAuth2 endpoints
     ///
     /// Returns an API client for interacting with the OAuth2 endpoints.
-    pub fn oauth2(&self) -> self::OAuth2Api<'_> {
-        self::OAuth2Api::new(self)
+    pub fn oauth2(&self) -> self::OAuth2Endpoints<'_> {
+        self::OAuth2Endpoints::new(self)
     }
 }
 
-impl<'a> OAuth2Api<'a> {
+impl<'a> OAuth2Endpoints<'a> {
     /// Creates a new instance of [`OAuth2Api`]
     ///
     /// # Arguments
