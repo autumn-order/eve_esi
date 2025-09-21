@@ -20,57 +20,17 @@ A thread-safe, asynchronous client which provides methods & types for interactio
 
 **Contributing:** https://github.com/hyziri/eve_esi/blob/main/CONTRIBUTING.md
 
-**Discord:** https://discord.gg/HjaGsBBtFg
-
 For usage examples, ESI client configuration, and logging configuration, please see the [documentation](https://docs.rs/eve_esi/latest/eve_esi/)
 
 Have questions about this crate or EVE Online's ESI in general? Ask us in [Discord](https://discord.gg/HjaGsBBtFg)!
 
 ## Features
 
-**EVE Online Single Sign-On**
-
-EVE Online's single sign-on (OAuth2) login flow has been fully implemented in the crate featuring:
-
-- Configuring of an EVE ESI client with an EVE Online developer application client id, client secret, and callback URL
-- Creation of login URLs to begin the OAuth2 login flow
-- The fetching, caching, & proactive refreshing of JWT token keys used to validate access tokens
-- Access token fetching, validation, & refreshing
-
-**EVE Online ESI Endpoints**
-
-The implementation of ESI endpoints within this crate is still ongoing, we are aiming for all to be added by early October. So far the following 3 [ESI API Explorer](https://developers.eveonline.com/api-explorer) categories have been implemented:
-
-- Character endpoints
-- Corporation endpoints
-- Alliance endpoints
-
-Going forward a new version of this crate will be released with the implementation of a new category up until version 0.5.0 which indicates all endpoints have been added.
-
-**Thread-safe**
-
-This crate implements the usage of read/write locks, compare exchanges, atomic bools, & tokio notifiers to provide performance in applications at scale.
-
-- **Refresh Locks:** The usage of atomic bools allows for the acquisition of a refresh lock on the JWT token key cache used to validate access tokens so that only 1 thread actually performs the cache refresh
-- **High Concurrency:** The refresh lock is acquired via a compare exchange which is performance efficient in high concurrency applications where dozens of worker threads may attempt to acquire this refresh lock at once
-- **Refresh Notifications:** While the refresh lock is in progress and the cache is currently expired or empty meaning no keys are available for validation, threads will wait for a tokio notifier notification that the refresh has completed. This makes it so that threads wait no longer than necessary for a completed refresh.
-- **Read/Write Locks:** The JWT key cache utilizes read/write locks for minimal performance impact when accessing the JWT keys in the cache across multiple threads
-
-The ESI client provided by this crate by default is wrapped within an Arc (atomic reference counter) which allows for the ESI client to be safely shared across threads.
-
-- **Asynchronous:** This crate utilizes Rust ecosystem tools such as [Reqwest](https://crates.io/crates/reqwest) & [Tokio](https://crates.io/crates/tokio) to make ESI requests asynchronously and with minimal latency.
-
-- **Caching:** Caching is utilized where possible to do to mimize latency with the OAuth2 login flow for EVE Online, the JWT token keys used to validate access tokens are cached for up to one hour and refreshed proactively before expiration to avoid any delay when validating tokens.
-
-- **Type-Safe:** In addition to Rust's strong type safety, this crate additionally defines enums for ESI models in every area where it is applicable & possible to do so to make clear what exactly one can expect from ESI responses.
-
+- **EVE Online ESI:** Ongoing implementation of every public & authenticated ESI endpoint at a goal pace of 10 endpoints/day (Should be completed by early October)
+- **EVE Online OAuth2:** Features full implementation of OAuth2 single sign-on with EVE Online including out of the box JWT token key caching and refreshing ahead of expiration to validate access tokens.
+- **Thread-safe:** Implements the usage of read/write locks, compare exchanges, atomic bools, & tokio notifiers to provide high concurrency performance in applications at scale.
+- **Configurable:** Allows for the creation of simple ESI clients only for public endpoints, to clients created with a builder method for OAuth2, to providing a custom config to fine-tune settings to your application's needs.
 - **Documentation:** The endpoints, models, & enums within this crate are all documented to help clarify what certain fields or enum variants are for, making it more accessible to developers unfamiliar with some areas of the game. Even the 250~ variants of the `NotificationType` enum have documentation.
-
-- **Testing:** All functions are unit tested and all endpoints implemented within this crate are integration tested to ensure proper error responses, handling of parameters & URLs, and deserialization of ESI JSON responses to the models defined within this crate.
-
-- **Logging:** All functions & endpoints integrate the usage of the [log crate](https://crates.io/crates/log) to provide insight to the inner workings of this crate at runtime and help narrow down the source of any issues that may occur. Logging is configurable and opt-in, from detailed trace logging to only essential info logging.
-
-- **Configuration:** The ESI client provided by this crate is configurable, from a basic client with only a user agent for public ESI to a client for OAuth2 to fine-tuning the inner workings of the client such as the parameters & timings of how JWT tokens are cached and refreshed
 
 ## Usage Example
 
@@ -94,6 +54,19 @@ async fn main() {
 ```
 
 For more usage examples, ESI client configuration, and logging configuration, please see the [documentation](https://docs.rs/eve_esi/latest/eve_esi/)
+
+## Endpoint Implementation Status
+
+The following categories from the [ESI API Explorer](https://developers.eveonline.com/api-explorer) have been implemented:
+
+| Category    | Implemented |
+| ----------- | ----------- |
+| Alliance    | 4/4         |
+| Character   | 11/11       |
+| Corporation | 22/22       |
+| Market      | 11/11       |
+
+New endpoints are being implemented at a goal pace of 10/day with a new version release every 2-3 days featuring a new endpoint category
 
 ## Examples
 
