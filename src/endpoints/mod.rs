@@ -74,9 +74,36 @@
 mod macros;
 
 pub mod alliance;
+pub mod assets;
+pub mod calendar;
 pub mod character;
+pub mod clones;
+pub mod contacts;
+pub mod contracts;
 pub mod corporation;
+pub mod corporation_projects;
+pub mod dogma;
+pub mod faction_warfare;
+pub mod fittings;
+pub mod fleets;
+pub mod incursions;
+pub mod industry;
+pub mod insurance;
+pub mod killmails;
+pub mod location;
+pub mod loyalty;
+pub mod mail;
 pub mod market;
+pub mod meta;
+pub mod planetary_interaction;
+pub mod routes;
+pub mod search;
+pub mod skills;
+pub mod sovereignty;
+pub mod status;
+pub mod universe;
+pub mod user_interface;
+pub mod wallet;
 
 use crate::Client;
 
