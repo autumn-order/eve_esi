@@ -5,17 +5,19 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! - [`CharacterScopes::new`]: Create a new instance of [`CharacterScopes`]
-//! - [`CharacterScopes::all`]: Creates a new instance of [`CharacterScopes`] with all scopes applied
-//! - [`CharacterScopes::read_agents_research`]: Access to retrieve information on character's research agents
-//! - [`CharacterScopes::read_blueprints`]: Access to retrieve information on character's blueprints
-//! - [`CharacterScopes::read_contacts`]: Access to read a character's contacts
-//! - [`CharacterScopes::read_fatigue`]: Access to retrieve information on character's jump fatigue status
-//! - [`CharacterScopes::read_medals`]: Access to retrieve information on character's medals
-//! - [`CharacterScopes::read_notifications`]: Access to retrieve the character's notifications
-//! - [`CharacterScopes::read_corporation_roles`]: Access to read the character's corporation roles
-//! - [`CharacterScopes::read_standings`]: Access to read the character's standings
-//! - [`CharacterScopes::read_titles`]: Access to read the character's corporation titles
+//! |                   Method                    |                              Description                              |
+//! | ------------------------------------------- | --------------------------------------------------------------------- |
+//! | [`CharacterScopes::new`]                    | Create a new instance of [`CharacterScopes`]                          |
+//! | [`CharacterScopes::all`]                    | Creates a new instance of [`CharacterScopes`] with all scopes applied |
+//! | [`CharacterScopes::read_agents_research`]   | Access to retrieve information on character's research agents         |
+//! | [`CharacterScopes::read_blueprints`]        | Access to retrieve information on character's blueprints              |
+//! | [`CharacterScopes::read_contacts`]          | Access to read a character's contacts                                 |
+//! | [`CharacterScopes::read_fatigue`]           | Access to retrieve information on character's jump fatigue status     |
+//! | [`CharacterScopes::read_medals`]            | Access to retrieve information on character's medals                  |
+//! | [`CharacterScopes::read_notifications`]     | Access to retrieve the character's notifications                      |
+//! | [`CharacterScopes::read_corporation_roles`] | Access to read the character's corporation roles                      |
+//! | [`CharacterScopes::read_standings`]         | Access to read the character's standings                              |
+//! | [`CharacterScopes::read_titles`]            | Access to read the character's corporation titles                     |
 
 /// Access to retrieve information on character's research agents
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";

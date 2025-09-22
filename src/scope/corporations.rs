@@ -5,19 +5,21 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! - [`CorporationScopes::new`]: Creates a new instance of [`CorporationScopes`]
-//! - [`CorporationScopes::all`]: Creates a new instance of [`CorporationScopes`] with all scopes applied
-//! - [`CorporationScopes::read_blueprints`]: Access to retrieve information on corporation's blueprints
-//! - [`CorporationScopes::read_container_logs`]: Access to read information on corporation container logs
-//! - [`CorporationScopes::read_divisions`]: Access to retrieve information on corporation's wallet & hangar divisions
-//! - [`CorporationScopes::read_facilities`]: Access to retrieve information on corporation's industry facilities
-//! - [`CorporationScopes::read_medals`]: Access to retrieve information on corporation's medals
-//! - [`CorporationScopes::track_members`]: Access to member tracking-related information for a corporation
-//! - [`CorporationScopes::read_titles`]: Access to retrieve information on a corporation's member titles
-//! - [`CorporationScopes::read_corporation_membership`]: Access to read roles & membership for a corporation
-//! - [`CorporationScopes::read_standings`]: Access to retrieve information on a corporation's NPC standings
-//! - [`CorporationScopes::read_starbases`]: Access to retrieve information on a corporation's starbases (POSes)
-//! - [`CorporationScopes::read_structures`]: Access to retrieve information on corporation's Upwell structures
+//! |                          Method                    |                                 Description                               |
+//! | -------------------------------------------------- | ------------------------------------------------------------------------- |
+//! | [`CorporationScopes::new`]                         | Creates a new instance of [`CorporationScopes`]                           |
+//! | [`CorporationScopes::all`]                         | Creates a new instance of [`CorporationScopes`] with all scopes applied   |
+//! | [`CorporationScopes::read_blueprints`]             | Access to retrieve information on corporation's blueprints                |
+//! | [`CorporationScopes::read_container_logs`]         | Access to read information on corporation container logs                  |
+//! | [`CorporationScopes::read_divisions`]              | Access to retrieve information on corporation's wallet & hangar divisions |
+//! | [`CorporationScopes::read_facilities`]             | Access to retrieve information on corporation's industry facilities       |
+//! | [`CorporationScopes::read_medals`]                 | Access to retrieve information on corporation's medals                    |
+//! | [`CorporationScopes::track_members`]               | Access to member tracking-related information for a corporation           |
+//! | [`CorporationScopes::read_titles`]                 | Access to retrieve information on a corporation's member titles           |
+//! | [`CorporationScopes::read_corporation_membership`] | Access to read roles & membership for a corporation                       |
+//! | [`CorporationScopes::read_standings`]              | Access to retrieve information on a corporation's NPC standings           |
+//! | [`CorporationScopes::read_starbases`]              | Access to retrieve information on a corporation's starbases (POSes)       |
+//! | [`CorporationScopes::read_structures`]             | Access to retrieve information on corporation's Upwell structures         |
 
 /// Access to retrieve information on corporation's blueprints
 pub const READ_BLUEPRINTS: &str = "esi-corporations.read_blueprints.v1";

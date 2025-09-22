@@ -5,11 +5,13 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! - [`MarketScopes::new`]: Creates a new instance of [`MarketScopes`]
-//! - [`MarketScopes::all`]: Creates a new instance of [`MarketScopes`] with all scopes applied
-//! - [`MarketScopes::read_character_orders`]: Access to retrieve information on character's market orders
-//! - [`MarketScopes::read_corporation_orders`]: Access to retrieve information on corporation's market orders
-//! - [`MarketScopes::structure_markets`]: Access to retrieve information on a structure's market orders
+//! |                   Method                  |                            Description                             |
+//! | ----------------------------------------- | ------------------------------------------------------------------ |
+//! | [`MarketScopes::new`]                     | Creates a new instance of [`MarketScopes`]                         |
+//! | [`MarketScopes::all`]                     | Creates a new instance of [`MarketScopes`] with all scopes applied |
+//! | [`MarketScopes::read_character_orders`]   | Access to retrieve information on character's market orders        |
+//! | [`MarketScopes::read_corporation_orders`] | Access to retrieve information on corporation's market orders      |
+//! | [`MarketScopes::structure_markets`]       | Access to retrieve information on a structure's market orders      |
 
 /// Access to retrieve information on character's market orders
 pub const READ_CHARACTER_ORDERS: &str = "esi-markets.read_character_orders.v1";

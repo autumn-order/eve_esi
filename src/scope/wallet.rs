@@ -4,10 +4,12 @@
 //!
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
-//! # Methods
-//! - [`WalletScopes::new`]: Creates a new instance of [`WalletScopes`]
-//! - [`WalletScopes::new`]: Creates a new instance of [`WalletScopes`] with all scopes applied
-//! - [`WalletScopes::read_corporation_wallets`]: Access to retrieve information for character's corporation wallets
+//! ## Methods
+//! |                   Method                   |                              Description                              |
+//! | ------------------------------------------ | --------------------------------------------------------------------- |
+//! | [`WalletScopes::new`]                      | Creates a new instance of [`WalletScopes`]                            |
+//! | [`WalletScopes::new`]                      | Creates a new instance of [`WalletScopes`] with all scopes applied    |
+//! | [`WalletScopes::read_corporation_wallets`] | Access to retrieve information for character's corporation wallets    |
 
 /// Access to retrieve information for character's corporation wallets
 pub const READ_CORPORATION_WALLETS: &str = "esi-wallet.read_corporation_wallets.v1";

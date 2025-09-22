@@ -5,15 +5,17 @@
 //!
 //! For an overview & usage, see the [module-level documentation](super).
 //!
-//! # Methods
-//! - [`ScopeBuilder::new`]: Creates a new [`ScopeBuilder`] instance
-//! - [`ScopeBuilder::build`]: Builds the list of scopes into a `Vec<`[`String`]`>`
-//! - [`ScopeBuilder::public_data`]: Access to retrieve public information on a character (this scope is mostly just for show)
-//! - [`ScopeBuilder::character`]: Adds scopes from [`CharacterScopes`]
-//! - [`ScopeBuilder::corporation`]: Adds scopes from [`CorporationScopes`]
-//! - [`ScopeBuilder::wallet`]: Adds scopes from [`WalletScopes`]
-//! - [`ScopeBuilder::market`]: Adds scopes from [`MarketScopes`]
-//! - [`ScopeBuilder::custom`]: Adds a custom scope
+//! ## Methods
+//! |              Method           |                     Description                      |
+//! | ----------------------------- | ---------------------------------------------------- |
+//! | [`ScopeBuilder::new`]         | Creates a new [`ScopeBuilder`] instance              |
+//! | [`ScopeBuilder::build`]       | Builds the list of scopes into a `Vec<`[`String`]`>` |
+//! | [`ScopeBuilder::public_data`] | Access to retrieve public information on a character |
+//! | [`ScopeBuilder::character`]   | Adds scopes from [`CharacterScopes`]                 |
+//! | [`ScopeBuilder::corporation`] | Adds scopes from [`CorporationScopes`]               |
+//! | [`ScopeBuilder::wallet`]      | Adds scopes from [`WalletScopes`]                    |
+//! | [`ScopeBuilder::market`]      | Adds scopes from [`MarketScopes`]                    |
+//! | [`ScopeBuilder::custom`]      | Adds a custom scope                                  |
 
 use crate::scope::{CorporationScopes, MarketScopes, WalletScopes};
 

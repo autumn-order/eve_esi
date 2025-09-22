@@ -8,8 +8,8 @@
 //! ## Modules
 //!
 //! - [`builder`]: Provides the [`ScopeBuilder`] to build a list of scopes
-//! - [`character`]: Provides the [`CharacterScopes`] struct to be used with the [`ScopeBuilder::character`] method
-//! - [`corporation`]: Provides the [`CorporationScopes`] struct to be used with the [`ScopeBuilder::corporation`] method
+//! - [`characters`]: Provides the [`CharacterScopes`] struct to be used with the [`ScopeBuilder::character`] method
+//! - [`corporations`]: Provides the [`CorporationScopes`] struct to be used with the [`ScopeBuilder::corporation`] method
 //! - [`wallet`]: Provides the [`WalletScopes`] struct to be used with the [`ScopeBuilder::wallet`] method
 //!
 //! ## Usage Example
