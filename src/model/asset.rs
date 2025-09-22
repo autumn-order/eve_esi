@@ -89,3 +89,15 @@ pub struct AssetLocation {
     /// Item coordinates in space, coordinates will be (0,0,0) if in a station or hangar
     position: AssetLocationPosition,
 }
+
+/// Repesents an asset's item ID and name of the item
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsNamesPost>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct AssetName {
+    /// Unique ID of the item
+    item_id: i64,
+    /// Name of the item
+    name: String,
+}

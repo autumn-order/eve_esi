@@ -57,3 +57,26 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_character_asset_names,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        let item_ids = vec![0];
+        esi_client
+            .assets()
+            .get_character_asset_names(&access_token, item_ids, character_id)
+            .await
+    },
+    request_type = "POST",
+    url = "/characters/2114794365/assets/names",
+    required_scopes = ScopeBuilder::new()
+        .assets(AssetsScopes::new().read_assets())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "item_id": 0,
+        "name": "string"
+      }
+    ]),
+}

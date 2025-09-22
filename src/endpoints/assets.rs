@@ -18,7 +18,7 @@
 //! | [`AssetsEndpoints::get_character_asset_locations`] | Get list of coordinates for items' location in space using item IDs & character's ID |
 
 use crate::{
-    model::asset::{Asset, AssetLocation},
+    model::asset::{Asset, AssetLocation, AssetName},
     scope::AssetsScopes,
     Client, Error, ScopeBuilder,
 };
@@ -73,7 +73,7 @@ impl<'a> AssetsEndpoints<'a> {
     }
 
     define_endpoint! {
-        /// Get list of coordinates for items' location in space using item IDs & character's ID
+        /// Get list of coordinates for items' location in space using provided item IDs & a character's ID
         ///
         /// You can get the item IDs using the [`AssetsEndpoints::get_character_assets`] method
         ///
@@ -88,7 +88,7 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get coordinates for
+        /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         /// - `character_id` (`i64`): The ID of the character to retrieve asset locations for.
         ///
         /// # Returns
@@ -102,6 +102,44 @@ impl<'a> AssetsEndpoints<'a> {
         ) -> Result<Vec<AssetLocation>, Error>
         url = "{}/characters/{}/assets/locations";
         label = "asset locations";
+        required_scopes = ScopeBuilder::new()
+            .assets(AssetsScopes::new().read_assets())
+            .build();
+    }
+
+    define_endpoint! {
+        /// Get list of item names from list of item IDs & a character's ID
+        ///
+        /// Useful for retrieving the names of items with customizable names such as ships or
+        /// containers.
+        ///
+        /// You can get the item IDs using the [`AssetsEndpoints::get_character_assets`] method
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersCharacterIdAssetsNames>
+        ///
+        /// # Required Scopes
+        /// - [`AssetsScopes::read_assets`](crate::scope::AssetsScopes::read_assets):
+        ///   `esi-assets.read_assets.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get names for (Limit of 1000 IDs per request)
+        /// - `character_id` (`i64`): The ID of the character to retrieve asset locations for.
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - Vec<[`AssetName`]>: List of item names from list of item IDs & a character's ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_post get_character_asset_names(
+            access_token: &str,
+            item_ids: Vec<i64>,
+            character_id: i64,
+        ) -> Result<Vec<AssetName>, Error>
+        url = "{}/characters/{}/assets/names";
+        label = "asset names";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
             .build();
