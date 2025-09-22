@@ -26,3 +26,26 @@ pub enum CalendarEventResponse {
     #[serde(rename = "tentative")]
     Tentative,
 }
+
+/// Represents a character's response to a calendar event
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdCalendar>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum CalendarEventOwnerType {
+    /// Calendar event created by EVE server
+    #[serde(rename = "eve_server")]
+    EveServer,
+    /// Calendar event created by corporation
+    #[serde(rename = "corporation")]
+    Corporation,
+    /// Calendar event created by NPC faction
+    #[serde(rename = "faction")]
+    Faction,
+    /// Calendar event created by character
+    #[serde(rename = "character")]
+    Character,
+    /// Calendar event created by alliance
+    #[serde(rename = "alliance")]
+    Alliance,
+}

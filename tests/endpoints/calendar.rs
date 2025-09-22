@@ -26,3 +26,32 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_an_event,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        let event_id = 1;
+        esi_client
+            .calendar()
+            .get_an_event(&access_token, character_id, event_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/calendar/1",
+    required_scopes = ScopeBuilder::new()
+        .calendar(CalendarScopes::new().read_calendar_events())
+        .build();
+    mock_response = serde_json::json!({
+      "date": "2019-08-24T14:15:22Z",
+      "duration": 0,
+      "event_id": 0,
+      "importance": 0,
+      "owner_id": 0,
+      "owner_name": "string",
+      "owner_type": "eve_server",
+      "response": "string",
+      "text": "string",
+      "title": "string"
+    }),
+}
