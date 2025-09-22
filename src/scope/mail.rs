@@ -10,6 +10,10 @@
 //! | [`MailScopes::new`]                       | Creates a new instance of [`MailScopes`]                         |
 //! | [`MailScopes::all`]                       | Creates a new instance of [`MailScopes`] with all scopes applied |
 
+pub const ORGANIZE_MAIL: &str = "esi-mail.organize_mail.v1";
+pub const READ_MAIL: &str = "esi-mail.read_mail.v1";
+pub const SEND_MAIL: &str = "esi-mail.send_mail.v1";
+
 /// Struct with methods for listing mail scopes to request for OAuth2
 pub struct MailScopes {
     pub(super) scopes: Vec<String>,

@@ -10,6 +10,9 @@
 //! | [`CalendarScopes::new`]                     | Creates a new instance of [`CalendarScopes`]                         |
 //! | [`CalendarScopes::all`]                     | Creates a new instance of [`CalendarScopes`] with all scopes applied |
 
+pub const READ_CALENDAR_EVENTS: &str = "esi-calendar.read_calendar_events.v1";
+pub const RESPOND_CALENDAR_EVENTS: &str = "esi-calendar.respond_calendar_events.v1";
+
 /// Struct with methods for listing calendar scopes to request for OAuth2
 pub struct CalendarScopes {
     pub(super) scopes: Vec<String>,

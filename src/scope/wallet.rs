@@ -11,7 +11,9 @@
 //! | [`WalletScopes::new`]                      | Creates a new instance of [`WalletScopes`] with all scopes applied    |
 //! | [`WalletScopes::read_corporation_wallets`] | Access to retrieve information for character's corporation wallets    |
 
-/// Access to retrieve information for character's corporation wallets
+pub const READ_CHARACTER_WALLET: &str = "esi-wallet.read_character_wallet.v1";
+pub const READ_CORPORATION_WALLET: &str = "esi-wallet.read_corporation_wallet.v1";
+/// Access to retrieve information on corporation's wallets
 pub const READ_CORPORATION_WALLETS: &str = "esi-wallet.read_corporation_wallets.v1";
 
 /// Struct with methods for listing wallet scopes to request for OAuth2

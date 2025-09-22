@@ -10,6 +10,9 @@
 //! | [`SkillsScopes::new`]                     | Creates a new instance of [`SkillsScopes`]                         |
 //! | [`SkillsScopes::all`]                     | Creates a new instance of [`SkillsScopes`] with all scopes applied |
 
+pub const READ_SKILLQUEUE: &str = "esi-skills.read_skillqueue.v1";
+pub const READ_SKILLS: &str = "esi-skills.read_skills.v1";
+
 /// Struct with methods for listing skill scopes to request for OAuth2
 pub struct SkillsScopes {
     pub(super) scopes: Vec<String>,

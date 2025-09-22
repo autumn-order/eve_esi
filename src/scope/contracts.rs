@@ -10,6 +10,9 @@
 //! | [`ContractsScopes::new`]                     | Creates a new instance of [`ContractsScopes`]                         |
 //! | [`ContractsScopes::all`]                     | Creates a new instance of [`ContractsScopes`] with all scopes applied |
 
+pub const READ_CHARACTER_CONTRACTS: &str = "esi-contracts.read_character_contracts.v1";
+pub const READ_CORPORATION_CONTRACTS: &str = "esi-contracts.read_corporation_contracts.v1";
+
 /// Struct with methods for listing contract scopes to request for OAuth2
 pub struct ContractsScopes {
     pub(super) scopes: Vec<String>,

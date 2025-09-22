@@ -10,6 +10,11 @@
 //! | [`IndustryScopes::new`]                     | Creates a new instance of [`IndustryScopes`]                         |
 //! | [`IndustryScopes::all`]                     | Creates a new instance of [`IndustryScopes`] with all scopes applied |
 
+pub const READ_CHARACTER_JOBS: &str = "esi-industry.read_character_jobs.v1";
+pub const READ_CHARACTER_MINING: &str = "esi-industry.read_character_mining.v1";
+pub const READ_CORPORATION_JOBS: &str = "esi-industry.read_corporation_jobs.v1";
+pub const READ_CORPORATION_MINING: &str = "esi-industry.read_corporation_mining.v1";
+
 /// Struct with methods for listing industry scopes to request for OAuth2
 pub struct IndustryScopes {
     pub(super) scopes: Vec<String>,

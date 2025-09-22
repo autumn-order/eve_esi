@@ -10,6 +10,9 @@
 //! | [`ClonesScopes::new`]                     | Creates a new instance of [`ClonesScopes`]                         |
 //! | [`ClonesScopes::all`]                     | Creates a new instance of [`ClonesScopes`] with all scopes applied |
 
+pub const READ_CLONES: &str = "esi-clones.read_clones.v1";
+pub const READ_IMPLANTS: &str = "esi-clones.read_implants.v1";
+
 /// Struct with methods for listing clone scopes to request for OAuth2
 pub struct ClonesScopes {
     pub(super) scopes: Vec<String>,
@@ -36,6 +39,8 @@ impl ClonesScopes {
 
 #[cfg(test)]
 mod clones_scopes_tests {
+    /// Access to read a character's contacts
+    pub const READ_CONTACTS: &str = "esi-characters.read_contacts.v1";
     use crate::scope::ClonesScopes;
 
     /// Tests initializing a default instance of [`ClonesScopes`]

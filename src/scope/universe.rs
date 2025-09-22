@@ -10,6 +10,8 @@
 //! | [`UniverseScopes::new`]                     | Creates a new instance of [`UniverseScopes`]                         |
 //! | [`UniverseScopes::all`]                     | Creates a new instance of [`UniverseScopes`] with all scopes applied |
 
+pub const READ_STRUCTURES: &str = "esi-universe.read_structures.v1";
+
 /// Struct with methods for listing universe scopes to request for OAuth2
 pub struct UniverseScopes {
     pub(super) scopes: Vec<String>,
