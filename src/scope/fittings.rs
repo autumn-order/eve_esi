@@ -5,31 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                     | Description                                                         |
-//! | ------------------------------------------ | ------------------------------------------------------------------- |
-//! | [`FittingScopes::new`]                     | Creates a new instance of [`FittingScopes`]                         |
-//! | [`FittingScopes::all`]                     | Creates a new instance of [`FittingScopes`] with all scopes applied |
+//! | Method                                      | Description                                                          |
+//! | ------------------------------------------- | -------------------------------------------------------------------- |
+//! | [`FittingsScopes::new`]                     | Creates a new instance of [`FittingsScopes`]                         |
+//! | [`FittingsScopes::all`]                     | Creates a new instance of [`FittingsScopes`] with all scopes applied |
 
 /// Struct with methods for listing fitting scopes to request for OAuth2
-pub struct FittingScopes {
+pub struct FittingsScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for FittingScopes {
-    /// Create a default instance of [`FittingScopes`]
+impl Default for FittingsScopes {
+    /// Create a default instance of [`FittingsScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl FittingScopes {
-    /// Create a new instance of [`FittingScopes`]
+impl FittingsScopes {
+    /// Create a new instance of [`FittingsScopes`]
     pub fn new() -> Self {
-        FittingScopes { scopes: Vec::new() }
+        FittingsScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`FittingScopes`] with all scopes applied
+    /// Creates a new instance of [`FittingsScopes`] with all scopes applied
     pub fn all() -> Self {
-        FittingScopes::new()
+        FittingsScopes::new()
     }
 }

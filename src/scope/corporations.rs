@@ -5,21 +5,21 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                             | Description                                                               |
-//! | -------------------------------------------------- | ------------------------------------------------------------------------- |
-//! | [`CorporationScopes::new`]                         | Creates a new instance of [`CorporationScopes`]                           |
-//! | [`CorporationScopes::all`]                         | Creates a new instance of [`CorporationScopes`] with all scopes applied   |
-//! | [`CorporationScopes::read_blueprints`]             | Access to retrieve information on corporation's blueprints                |
-//! | [`CorporationScopes::read_container_logs`]         | Access to read information on corporation container logs                  |
-//! | [`CorporationScopes::read_divisions`]              | Access to retrieve information on corporation's wallet & hangar divisions |
-//! | [`CorporationScopes::read_facilities`]             | Access to retrieve information on corporation's industry facilities       |
-//! | [`CorporationScopes::read_medals`]                 | Access to retrieve information on corporation's medals                    |
-//! | [`CorporationScopes::track_members`]               | Access to member tracking-related information for a corporation           |
-//! | [`CorporationScopes::read_titles`]                 | Access to retrieve information on a corporation's member titles           |
-//! | [`CorporationScopes::read_corporation_membership`] | Access to read roles & membership for a corporation                       |
-//! | [`CorporationScopes::read_standings`]              | Access to retrieve information on a corporation's NPC standings           |
-//! | [`CorporationScopes::read_starbases`]              | Access to retrieve information on a corporation's starbases (POSes)       |
-//! | [`CorporationScopes::read_structures`]             | Access to retrieve information on corporation's Upwell structures         |
+//! | Method                                              | Description                                                               |
+//! | --------------------------------------------------- | ------------------------------------------------------------------------- |
+//! | [`CorporationsScopes::new`]                         | Creates a new instance of [`CorporationsScopes`]                          |
+//! | [`CorporationsScopes::all`]                         | Creates a new instance of [`CorporationsScopes`] with all scopes applied  |
+//! | [`CorporationsScopes::read_blueprints`]             | Access to retrieve information on corporation's blueprints                |
+//! | [`CorporationsScopes::read_container_logs`]         | Access to read information on corporation container logs                  |
+//! | [`CorporationsScopes::read_divisions`]              | Access to retrieve information on corporation's wallet & hangar divisions |
+//! | [`CorporationsScopes::read_facilities`]             | Access to retrieve information on corporation's industry facilities       |
+//! | [`CorporationsScopes::read_medals`]                 | Access to retrieve information on corporation's medals                    |
+//! | [`CorporationsScopes::track_members`]               | Access to member tracking-related information for a corporation           |
+//! | [`CorporationsScopes::read_titles`]                 | Access to retrieve information on a corporation's member titles           |
+//! | [`CorporationsScopes::read_corporation_membership`] | Access to read roles & membership for a corporation                       |
+//! | [`CorporationsScopes::read_standings`]              | Access to retrieve information on a corporation's NPC standings           |
+//! | [`CorporationsScopes::read_starbases`]              | Access to retrieve information on a corporation's starbases (POSes)       |
+//! | [`CorporationsScopes::read_structures`]             | Access to retrieve information on corporation's Upwell structures         |
 
 /// Access to retrieve information on corporation's blueprints
 pub const READ_BLUEPRINTS: &str = "esi-corporations.read_blueprints.v1";
@@ -45,26 +45,26 @@ pub const READ_STARBASES: &str = "esi-corporations.read_starbases.v1";
 pub const READ_STRUCTURES: &str = "esi-corporations.read_structures.v1";
 
 /// Struct with methods for listing corporation scopes to request for OAuth2
-pub struct CorporationScopes {
+pub struct CorporationsScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for CorporationScopes {
-    /// Create a default instance of [`CorporationScopes`]
+impl Default for CorporationsScopes {
+    /// Create a default instance of [`CorporationsScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl CorporationScopes {
-    /// Create a new instance of [`CorporationScopes`]
+impl CorporationsScopes {
+    /// Create a new instance of [`CorporationsScopes`]
     pub fn new() -> Self {
-        CorporationScopes { scopes: Vec::new() }
+        CorporationsScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`CorporationScopes`] with all scopes applied
+    /// Creates a new instance of [`CorporationsScopes`] with all scopes applied
     pub fn all() -> Self {
-        CorporationScopes::new()
+        CorporationsScopes::new()
             .read_blueprints()
             .read_container_logs()
             .read_divisions()
@@ -168,12 +168,12 @@ impl CorporationScopes {
 
 #[cfg(test)]
 mod corporation_scopes_tests {
-    use crate::scope::CorporationScopes;
+    use crate::scope::CorporationsScopes;
 
-    /// Tests initializing a default instance of [`CorporationScopes`]
+    /// Tests initializing a default instance of [`CorporationsScopes`]
     #[test]
     fn test_corporation_scopes_default() {
-        let corporation_scopes = CorporationScopes::default();
+        let corporation_scopes = CorporationsScopes::default();
 
         assert_eq!(corporation_scopes.scopes.len(), 0)
     }

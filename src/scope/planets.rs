@@ -5,31 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                    | Description                                                        |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`PlanetScopes::new`]                     | Creates a new instance of [`PlanetScopes`]                         |
-//! | [`PlanetScopes::all`]                     | Creates a new instance of [`PlanetScopes`] with all scopes applied |
+//! | Method                                     | Description                                                         |
+//! | ------------------------------------------ | ------------------------------------------------------------------- |
+//! | [`PlanetsScopes::new`]                     | Creates a new instance of [`PlanetsScopes`]                         |
+//! | [`PlanetsScopes::all`]                     | Creates a new instance of [`PlanetsScopes`] with all scopes applied |
 
 /// Struct with methods for listing planet scopes to request for OAuth2
-pub struct PlanetScopes {
+pub struct PlanetsScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for PlanetScopes {
-    /// Create a default instance of [`PlanetScopes`]
+impl Default for PlanetsScopes {
+    /// Create a default instance of [`PlanetsScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl PlanetScopes {
-    /// Create a new instance of [`PlanetScopes`]
+impl PlanetsScopes {
+    /// Create a new instance of [`PlanetsScopes`]
     pub fn new() -> Self {
-        PlanetScopes { scopes: Vec::new() }
+        PlanetsScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`PlanetScopes`] with all scopes applied
+    /// Creates a new instance of [`PlanetsScopes`] with all scopes applied
     pub fn all() -> Self {
-        PlanetScopes::new()
+        PlanetsScopes::new()
     }
 }

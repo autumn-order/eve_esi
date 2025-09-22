@@ -5,31 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                    | Description                                                          |
-//! | ----------------------------------------- | -------------------------------------------------------------------- |
-//! | [`KillmailScopes::new`]                   | Creates a new instance of [`KillmailScopes`]                         |
-//! | [`KillmailScopes::all`]                   | Creates a new instance of [`KillmailScopes`] with all scopes applied |
+//! | Method                                     | Description                                                           |
+//! | ------------------------------------------ | --------------------------------------------------------------------- |
+//! | [`KillmailsScopes::new`]                   | Creates a new instance of [`KillmailsScopes`]                         |
+//! | [`KillmailsScopes::all`]                   | Creates a new instance of [`KillmailsScopes`] with all scopes applied |
 
 /// Struct with methods for listing killmail scopes to request for OAuth2
-pub struct KillmailScopes {
+pub struct KillmailsScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for KillmailScopes {
-    /// Create a default instance of [`KillmailScopes`]
+impl Default for KillmailsScopes {
+    /// Create a default instance of [`KillmailsScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl KillmailScopes {
-    /// Create a new instance of [`KillmailScopes`]
+impl KillmailsScopes {
+    /// Create a new instance of [`KillmailsScopes`]
     pub fn new() -> Self {
-        KillmailScopes { scopes: Vec::new() }
+        KillmailsScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`KillmailScopes`] with all scopes applied
+    /// Creates a new instance of [`KillmailsScopes`] with all scopes applied
     pub fn all() -> Self {
-        KillmailScopes::new()
+        KillmailsScopes::new()
     }
 }

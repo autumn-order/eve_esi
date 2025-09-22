@@ -5,31 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                           | Description                                                               |
-//! | ------------------------------------------------ | ------------------------------------------------------------------------- |
-//! | [`UserInterfaceScopes::new`]                     | Creates a new instance of [`UserInterfaceScopes`]                         |
-//! | [`UserInterfaceScopes::all`]                     | Creates a new instance of [`UserInterfaceScopes`] with all scopes applied |
+//! | Method                                           | Description                                                    |
+//! | ------------------------------------------------ | -------------------------------------------------------------- |
+//! | [`UiScopes::new`]                                | Creates a new instance of [`UiScopes`]                         |
+//! | [`UiScopes::all`]                                | Creates a new instance of [`UiScopes`] with all scopes applied |
 
 /// Struct with methods for listing user interface scopes to request for OAuth2
-pub struct UserInterfaceScopes {
+pub struct UiScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for UserInterfaceScopes {
-    /// Create a default instance of [`UserInterfaceScopes`]
+impl Default for UiScopes {
+    /// Create a default instance of [`UiScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl UserInterfaceScopes {
-    /// Create a new instance of [`UserInterfaceScopes`]
+impl UiScopes {
+    /// Create a new instance of [`UiScopes`]
     pub fn new() -> Self {
-        UserInterfaceScopes { scopes: Vec::new() }
+        UiScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`UserInterfaceScopes`] with all scopes applied
+    /// Creates a new instance of [`UiScopes`] with all scopes applied
     pub fn all() -> Self {
-        UserInterfaceScopes::new()
+        UiScopes::new()
     }
 }

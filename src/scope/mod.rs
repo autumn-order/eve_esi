@@ -6,26 +6,26 @@
 //! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 //!
 //! ## Modules
-//! | Module           | Description                                                                                        |
-//! | ---------------- | -------------------------------------------------------------------------------------------------- |
-//! | [`builder`]      | Provides the [`ScopeBuilder`] to build a list of scopes                                            |
-//! | [`characters`]   | Provides the [`CharacterScopes`] struct to be used with the [`ScopeBuilder::character`] method     |
-//! | [`corporations`] | Provides the [`CorporationScopes`] struct to be used with the [`ScopeBuilder::corporation`] method |
-//! | [`wallet`]       | Provides the [`WalletScopes`] struct to be used with the [`ScopeBuilder::wallet`] method           |
+//! | Module           | Description                                                                                          |
+//! | ---------------- | ---------------------------------------------------------------------------------------------------- |
+//! | [`builder`]      | Provides the [`ScopeBuilder`] to build a list of scopes                                              |
+//! | [`characters`]   | Provides the [`CharactersScopes`] struct to be used with the [`ScopeBuilder::characters`] method     |
+//! | [`corporations`] | Provides the [`CorporationsScopes`] struct to be used with the [`ScopeBuilder::corporations`] method |
+//! | [`wallet`]       | Provides the [`WalletScopes`] struct to be used with the [`ScopeBuilder::wallet`] method             |
 //!
 //! ## Usage Example
 //!
 //! ```rust
 //! use eve_esi::ScopeBuilder;
-//! use eve_esi::scope::CharacterScopes;
+//! use eve_esi::scope::CharactersScopes;
 //!
 //! // Create a new scope builder
 //! let scopes = ScopeBuilder::new()
 //!     // Add `publicData` scope
 //!     .public_data()
 //!     // Add character scopes
-//!     .character(
-//!         CharacterScopes::new()
+//!     .characters(
+//!         CharactersScopes::new()
 //!             .read_agents_research()
 //!     )
 //!     // Build the scopes into Vec<String>
@@ -35,11 +35,11 @@
 //! ```
 //!
 //! See the [`crate::oauth2::login`] module documentation for an example of usage of the [`ScopeBuilder`] with the
-//! [`login_url`](crate::oauth2::OAuth2Api::login_url) method.
+//! [`login_url`](crate::oauth2::OAuth2Endpoints::login_url) method.
 
 pub mod builder;
 
-pub mod alliance;
+pub mod alliances;
 pub mod assets;
 pub mod calendar;
 pub mod characters;
@@ -62,23 +62,23 @@ pub mod wallet;
 
 pub use builder::ScopeBuilder;
 
-pub use alliance::AllianceScopes;
-pub use assets::AssetScopes;
+pub use alliances::AlliancesScopes;
+pub use assets::AssetsScopes;
 pub use calendar::CalendarScopes;
-pub use characters::CharacterScopes;
-pub use clones::CloneScopes;
-pub use contracts::ContractScopes;
-pub use corporations::CorporationScopes;
-pub use fittings::FittingScopes;
-pub use fleets::FleetScopes;
+pub use characters::CharactersScopes;
+pub use clones::ClonesScopes;
+pub use contracts::ContractsScopes;
+pub use corporations::CorporationsScopes;
+pub use fittings::FittingsScopes;
+pub use fleets::FleetsScopes;
 pub use industry::IndustryScopes;
-pub use killmails::KillmailScopes;
+pub use killmails::KillmailsScopes;
 pub use location::LocationScopes;
 pub use mail::MailScopes;
-pub use markets::MarketScopes;
-pub use planets::PlanetScopes;
+pub use markets::MarketsScopes;
+pub use planets::PlanetsScopes;
 pub use search::SearchScopes;
-pub use skills::SkillScopes;
-pub use ui::UserInterfaceScopes;
+pub use skills::SkillsScopes;
+pub use ui::UiScopes;
 pub use universe::UniverseScopes;
 pub use wallet::WalletScopes;

@@ -5,19 +5,19 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                      | Description                                                           |
-//! | ------------------------------------------- | --------------------------------------------------------------------- |
-//! | [`CharacterScopes::new`]                    | Create a new instance of [`CharacterScopes`]                          |
-//! | [`CharacterScopes::all`]                    | Creates a new instance of [`CharacterScopes`] with all scopes applied |
-//! | [`CharacterScopes::read_agents_research`]   | Access to retrieve information on character's research agents         |
-//! | [`CharacterScopes::read_blueprints`]        | Access to retrieve information on character's blueprints              |
-//! | [`CharacterScopes::read_contacts`]          | Access to read a character's contacts                                 |
-//! | [`CharacterScopes::read_fatigue`]           | Access to retrieve information on character's jump fatigue status     |
-//! | [`CharacterScopes::read_medals`]            | Access to retrieve information on character's medals                  |
-//! | [`CharacterScopes::read_notifications`]     | Access to retrieve the character's notifications                      |
-//! | [`CharacterScopes::read_corporation_roles`] | Access to read the character's corporation roles                      |
-//! | [`CharacterScopes::read_standings`]         | Access to read the character's standings                              |
-//! | [`CharacterScopes::read_titles`]            | Access to read the character's corporation titles                     |
+//! | Method                                       | Description                                                            |
+//! | -------------------------------------------- | ---------------------------------------------------------------------- |
+//! | [`CharactersScopes::new`]                    | Create a new instance of [`CharactersScopes`]                          |
+//! | [`CharactersScopes::all`]                    | Creates a new instance of [`CharactersScopes`] with all scopes applied |
+//! | [`CharactersScopes::read_agents_research`]   | Access to retrieve information on character's research agents          |
+//! | [`CharactersScopes::read_blueprints`]        | Access to retrieve information on character's blueprints               |
+//! | [`CharactersScopes::read_contacts`]          | Access to read a character's contacts                                  |
+//! | [`CharactersScopes::read_fatigue`]           | Access to retrieve information on character's jump fatigue status      |
+//! | [`CharactersScopes::read_medals`]            | Access to retrieve information on character's medals                   |
+//! | [`CharactersScopes::read_notifications`]     | Access to retrieve the character's notifications                       |
+//! | [`CharactersScopes::read_corporation_roles`] | Access to read the character's corporation roles                       |
+//! | [`CharactersScopes::read_standings`]         | Access to read the character's standings                               |
+//! | [`CharactersScopes::read_titles`]            | Access to read the character's corporation titles                      |
 
 /// Access to retrieve information on character's research agents
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";
@@ -39,26 +39,26 @@ pub const READ_STANDINGS: &str = "esi-characters.read_standings.v1";
 pub const READ_TITLES: &str = "esi-characters.read_titles.v1";
 
 /// Struct with methods for listing character scopes to request for OAuth2
-pub struct CharacterScopes {
+pub struct CharactersScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for CharacterScopes {
-    /// Create a default instance of [`CharacterScopes`]
+impl Default for CharactersScopes {
+    /// Create a default instance of [`CharactersScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl CharacterScopes {
-    /// Create a new instance of [`CharacterScopes`]
+impl CharactersScopes {
+    /// Create a new instance of [`CharactersScopes`]
     pub fn new() -> Self {
-        CharacterScopes { scopes: Vec::new() }
+        CharactersScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`CharacterScopes`] with all scopes applied
+    /// Creates a new instance of [`CharactersScopes`] with all scopes applied
     pub fn all() -> Self {
-        CharacterScopes::new()
+        CharactersScopes::new()
             .read_agents_research()
             .read_blueprints()
             .read_contacts()
@@ -145,12 +145,12 @@ impl CharacterScopes {
 
 #[cfg(test)]
 mod character_scopes_tests {
-    use crate::scope::CharacterScopes;
+    use crate::scope::CharactersScopes;
 
-    /// Tests initializing a default instance of [`CharacterScopes`]
+    /// Tests initializing a default instance of [`CharactersScopes`]
     #[test]
     fn test_character_scopes_default() {
-        let character_scopes = CharacterScopes::default();
+        let character_scopes = CharactersScopes::default();
 
         assert_eq!(character_scopes.scopes.len(), 0)
     }

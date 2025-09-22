@@ -1,4 +1,4 @@
-use eve_esi::{scope::CharacterScopes, ScopeBuilder};
+use eve_esi::{scope::CharactersScopes, ScopeBuilder};
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 use crate::util::integration_test_setup;
@@ -68,7 +68,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/agents_research",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_agents_research())
+        .characters(CharactersScopes::new().read_agents_research())
         .build();
     mock_response = serde_json::json!([{
         "agent_id": 100,
@@ -92,7 +92,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/blueprints?page=0",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_blueprints())
+        .characters(CharactersScopes::new().read_blueprints())
         .build();
     mock_response = serde_json::json!([{
         "item_id": 0,
@@ -139,7 +139,7 @@ authenticated_endpoint_test! {
     request_type = "POST",
     url = "/characters/2114794365/cspa",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_contacts())
+        .characters(CharactersScopes::new().read_contacts())
         .build();
     mock_response = serde_json::json!(5000000),
 }
@@ -156,7 +156,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/fatigue",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_fatigue())
+        .characters(CharactersScopes::new().read_fatigue())
         .build();
     mock_response = serde_json::json!({
         "jump_fatigue_expire_date": "2018-12-20T16:11:54Z",
@@ -177,7 +177,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/medals",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_medals())
+        .characters(CharactersScopes::new().read_medals())
         .build();
     mock_response = serde_json::json!([
         {
@@ -213,7 +213,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/notifications",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_notifications())
+        .characters(CharactersScopes::new().read_notifications())
         .build();
     mock_response = serde_json::json!([
       {
@@ -240,7 +240,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/notifications/contacts",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_notifications())
+        .characters(CharactersScopes::new().read_notifications())
         .build();
     mock_response = serde_json::json!([
       {
@@ -284,7 +284,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/roles",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_corporation_roles())
+        .characters(CharactersScopes::new().read_corporation_roles())
         .build();
     mock_response = serde_json::json!({
         "roles": ["Brand_Manager"],
@@ -306,7 +306,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/standings",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_standings())
+        .characters(CharactersScopes::new().read_standings())
         .build();
     mock_response = serde_json::json!([{
         "from_id": 1,
@@ -327,7 +327,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/titles",
     required_scopes = ScopeBuilder::new()
-        .character(CharacterScopes::new().read_titles())
+        .characters(CharactersScopes::new().read_titles())
         .build();
     mock_response = serde_json::json!([{
         "name": "Title",

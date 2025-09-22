@@ -1,7 +1,7 @@
 //! # EVE Online OAuth2 Login Model
 //!
 //! Provides the [`AuthenticationData`] struct to represent the login_url & state
-//! string returned from the [`crate::oauth2::OAuth2Api::login_url`] method used to
+//! string returned from the [`crate::oauth2::OAuth2Endpoints::login_url`] method used to
 //! initiate the SSO (single sign-on) login flow with EVE Online.
 //!
 //! For usage of OAuth2 in the `eve_esi` crate, please see the [`crate::oauth2`]

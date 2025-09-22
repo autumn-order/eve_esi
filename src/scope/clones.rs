@@ -5,31 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                   | Description                                                       |
-//! | ---------------------------------------- | ----------------------------------------------------------------- |
-//! | [`CloneScopes::new`]                     | Creates a new instance of [`CloneScopes`]                         |
-//! | [`CloneScopes::all`]                     | Creates a new instance of [`CloneScopes`] with all scopes applied |
+//! | Method                                    | Description                                                        |
+//! | ----------------------------------------- | ------------------------------------------------------------------ |
+//! | [`ClonesScopes::new`]                     | Creates a new instance of [`ClonesScopes`]                         |
+//! | [`ClonesScopes::all`]                     | Creates a new instance of [`ClonesScopes`] with all scopes applied |
 
 /// Struct with methods for listing clone scopes to request for OAuth2
-pub struct CloneScopes {
+pub struct ClonesScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for CloneScopes {
-    /// Create a default instance of [`CloneScopes`]
+impl Default for ClonesScopes {
+    /// Create a default instance of [`ClonesScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl CloneScopes {
-    /// Create a new instance of [`CloneScopes`]
+impl ClonesScopes {
+    /// Create a new instance of [`ClonesScopes`]
     pub fn new() -> Self {
-        CloneScopes { scopes: Vec::new() }
+        ClonesScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`CloneScopes`] with all scopes applied
+    /// Creates a new instance of [`ClonesScopes`] with all scopes applied
     pub fn all() -> Self {
-        CloneScopes::new()
+        ClonesScopes::new()
     }
 }

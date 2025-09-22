@@ -5,31 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                   | Description                                                       |
-//! | ---------------------------------------- | ----------------------------------------------------------------- |
-//! | [`SkillScopes::new`]                     | Creates a new instance of [`SkillScopes`]                         |
-//! | [`SkillScopes::all`]                     | Creates a new instance of [`SkillScopes`] with all scopes applied |
+//! | Method                                    | Description                                                        |
+//! | ----------------------------------------- | ------------------------------------------------------------------ |
+//! | [`SkillsScopes::new`]                     | Creates a new instance of [`SkillsScopes`]                         |
+//! | [`SkillsScopes::all`]                     | Creates a new instance of [`SkillsScopes`] with all scopes applied |
 
 /// Struct with methods for listing skill scopes to request for OAuth2
-pub struct SkillScopes {
+pub struct SkillsScopes {
     pub(super) scopes: Vec<String>,
 }
 
-impl Default for SkillScopes {
-    /// Create a default instance of [`SkillScopes`]
+impl Default for SkillsScopes {
+    /// Create a default instance of [`SkillsScopes`]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl SkillScopes {
-    /// Create a new instance of [`SkillScopes`]
+impl SkillsScopes {
+    /// Create a new instance of [`SkillsScopes`]
     pub fn new() -> Self {
-        SkillScopes { scopes: Vec::new() }
+        SkillsScopes { scopes: Vec::new() }
     }
 
-    /// Creates a new instance of [`SkillScopes`] with all scopes applied
+    /// Creates a new instance of [`SkillsScopes`] with all scopes applied
     pub fn all() -> Self {
-        SkillScopes::new()
+        SkillsScopes::new()
     }
 }

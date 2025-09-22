@@ -1,6 +1,6 @@
 //! # EVE ESI Character Endpoints
 //!
-//! This module provides the [`CharacterApi`] struct and associated methods for accessing
+//! This module provides the [`CharacterEndpoints`] struct and associated methods for accessing
 //! character-related ESI endpoints.
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)
@@ -31,7 +31,7 @@
 
 use crate::error::Error;
 use crate::model::standing::Standing;
-use crate::scope::CharacterScopes;
+use crate::scope::CharactersScopes;
 use crate::{Client, ScopeBuilder};
 
 use crate::model::asset::Blueprint;
@@ -113,7 +113,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_agents_research`](crate::scope::CharacterScopes::read_agents_research):
+        /// - [`CharactersScopes::read_agents_research`](crate::scope::CharactersScopes::read_agents_research):
         ///   `esi-characters.read_agents_research.v1`
         ///
         /// # Arguments
@@ -131,7 +131,7 @@ impl<'a> CharacterEndpoints<'a> {
         url = "{}/characters/{}/agents_research";
         label = "research agents";
         required_scopes = ScopeBuilder::new()
-            .character(CharacterScopes::new().read_agents_research())
+            .characters(CharactersScopes::new().read_agents_research())
             .build();
     }
 
@@ -144,7 +144,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdBlueprints>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_blueprints`](crate::scope::CharacterScopes::read_blueprints):
+        /// - [`CharactersScopes::read_blueprints`](crate::scope::CharactersScopes::read_blueprints):
         ///   `esi-characters.read_blueprints.v1`
         ///
         /// # Arguments
@@ -163,7 +163,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<Vec<Blueprint>, Error>
         url = "{}/characters/{}/blueprints?page={}";
         label = "blueprints";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_blueprints()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_blueprints()).build();
     }
 
     define_endpoint! {
@@ -216,7 +216,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<f64, Error>
         url = "{}/characters/{}/cspa";
         label = "CSPA charge cost";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_contacts()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_contacts()).build();
     }
 
     define_endpoint! {
@@ -228,7 +228,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdFatigue>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_fatigue`](crate::scope::CharacterScopes::read_fatigue):
+        /// - [`CharactersScopes::read_fatigue`](crate::scope::CharactersScopes::read_fatigue):
         ///   `esi-characters.read_fatigue.v1`
         ///
         /// # Arguments
@@ -245,7 +245,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<CharacterJumpFatigue, Error>
         url = "{}/characters/{}/fatigue";
         label = "jump fatigue";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_fatigue()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_fatigue()).build();
     }
 
     define_endpoint! {
@@ -257,7 +257,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdMedals>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_medals`](crate::scope::CharacterScopes::read_medals):
+        /// - [`CharactersScopes::read_medals`](crate::scope::CharactersScopes::read_medals):
         ///   `esi-characters.read_medals.v1`
         ///
         /// # Arguments
@@ -274,7 +274,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<Vec<CharacterMedal>, Error>
         url = "{}/characters/{}/medals";
         label = "medals";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_medals()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_medals()).build();
     }
 
     define_endpoint! {
@@ -286,7 +286,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdNotifications>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_notifications`](crate::scope::CharacterScopes::read_notifications):
+        /// - [`CharactersScopes::read_notifications`](crate::scope::CharactersScopes::read_notifications):
         ///   `esi-characters.read_notifications.v1`
         ///
         /// # Arguments
@@ -303,7 +303,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<Vec<CharacterNotification>, Error>
         url = "{}/characters/{}/notifications";
         label = "notifications";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_notifications()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_notifications()).build();
     }
 
     define_endpoint! {
@@ -315,7 +315,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdNotificationsContacts>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_notifications`](crate::scope::CharacterScopes::read_notifications):
+        /// - [`CharactersScopes::read_notifications`](crate::scope::CharactersScopes::read_notifications):
         ///   `esi-characters.read_notifications.v1`
         ///
         /// # Arguments
@@ -333,7 +333,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<Vec<CharacterNewContactNotification>, Error>
         url = "{}/characters/{}/notifications/contacts";
         label = "new contact notifications";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_notifications()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_notifications()).build();
     }
 
     define_endpoint! {
@@ -367,7 +367,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdRoles>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_corporation_roles`](crate::scope::CharacterScopes::read_corporation_roles):
+        /// - [`CharactersScopes::read_corporation_roles`](crate::scope::CharactersScopes::read_corporation_roles):
         ///   `esi-characters.read_corporation_roles.v1`
         ///
         /// # Arguments
@@ -383,7 +383,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<CharacterCorporationRole, Error>
         url = "{}/characters/{}/roles";
         label = "corporation roles";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_corporation_roles()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_corporation_roles()).build();
     }
 
     define_endpoint! {
@@ -395,7 +395,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdStandings>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_standings`](crate::scope::CharacterScopes::read_standings):
+        /// - [`CharactersScopes::read_standings`](crate::scope::CharactersScopes::read_standings):
         ///   `esi-characters.read_standings.v1`
         ///
         /// # Arguments
@@ -411,7 +411,7 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<Vec<Standing>, Error>
         url = "{}/characters/{}/standings";
         label = "NPC standings";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_standings()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_standings()).build();
     }
 
     define_endpoint! {
@@ -423,7 +423,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdTitles>
         ///
         /// # Required Scopes
-        /// - [`CharacterScopes::read_titles`](crate::scope::CharacterScopes::read_titles):
+        /// - [`CharactersScopes::read_titles`](crate::scope::CharactersScopes::read_titles):
         ///   `esi-characters.read_titles.v1`
         ///
         /// # Arguments
@@ -440,6 +440,6 @@ impl<'a> CharacterEndpoints<'a> {
         ) -> Result<Vec<CharacterCorporationTitle>, Error>
         url = "{}/characters/{}/titles";
         label = "standings";
-        required_scopes = ScopeBuilder::new().character(CharacterScopes::new().read_titles()).build();
+        required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_titles()).build();
     }
 }

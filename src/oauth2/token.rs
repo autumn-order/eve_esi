@@ -5,9 +5,9 @@
 //! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 //!
 //! ## Methods
-//! - [`OAuth2Api::get_token`]: Retrieves a token from EVE Online's OAuth2 API
-//! - [`OAuth2Api::get_token_refresh`]: Retrieves a new token using a refresh token
-//! - [`OAuth2Api::validate_token`]: Validates token retrieved via the [`OAuth2Api::get_token`] method
+//! - [`OAuth2Endpoints::get_token`]: Retrieves a token from EVE Online's OAuth2 API
+//! - [`OAuth2Endpoints::get_token_refresh`]: Retrieves a new token using a refresh token
+//! - [`OAuth2Endpoints::validate_token`]: Validates token retrieved via the [`OAuth2Endpoints::get_token`] method
 //!
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/docs/services/sso/>
