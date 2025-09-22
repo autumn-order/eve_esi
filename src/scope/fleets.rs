@@ -10,7 +10,9 @@
 //! | [`FleetsScopes::new`]                     | Creates a new instance of [`FleetsScopes`]                         |
 //! | [`FleetsScopes::all`]                     | Creates a new instance of [`FleetsScopes`] with all scopes applied |
 
+/// Read access to character fleet information
 pub const READ_FLEET: &str = "esi-fleets.read_fleet.v1";
+/// Write access to fleet if character holds fleet sufficient roles
 pub const WRITE_FLEET: &str = "esi-fleets.write_fleet.v1";
 
 /// Struct with methods for listing fleet scopes to request for OAuth2

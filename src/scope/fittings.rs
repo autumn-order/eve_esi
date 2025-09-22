@@ -10,7 +10,9 @@
 //! | [`FittingsScopes::new`]                     | Creates a new instance of [`FittingsScopes`]                         |
 //! | [`FittingsScopes::all`]                     | Creates a new instance of [`FittingsScopes`] with all scopes applied |
 
+/// Read access to character fittings
 pub const READ_FITTINGS: &str = "esi-fittings.read_fittings.v1";
+/// Write access to character fittings
 pub const WRITE_FITTINGS: &str = "esi-fittings.write_fittings.v1";
 
 /// Struct with methods for listing fitting scopes to request for OAuth2

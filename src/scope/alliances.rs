@@ -10,6 +10,7 @@
 //! | [`AlliancesScopes::new`]                     | Creates a new instance of [`AlliancesScopes`]                         |
 //! | [`AlliancesScopes::all`]                     | Creates a new instance of [`AlliancesScopes`] with all scopes applied |
 
+/// Access to read alliance contact information
 pub const READ_CONTACTS: &str = "esi-alliances.read_contacts.v1";
 
 /// Struct with methods for listing alliance scopes to request for OAuth2

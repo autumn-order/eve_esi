@@ -10,8 +10,11 @@
 //! | [`LocationScopes::new`]                   | Creates a new instance of [`LocationScopes`]                         |
 //! | [`LocationScopes::all`]                   | Creates a new instance of [`LocationScopes`] with all scopes applied |
 
+/// Read access to character's current location
 pub const READ_LOCATION: &str = "esi-location.read_location.v1";
+/// Read access to characer's online status
 pub const READ_ONLINE: &str = "esi-location.read_online.v1";
+/// Read access to character's ship type
 pub const READ_SHIP_TYPE: &str = "esi-location.read_ship_type.v1";
 
 /// Struct with methods for listing location scopes to request for OAuth2

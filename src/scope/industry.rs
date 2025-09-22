@@ -10,9 +10,13 @@
 //! | [`IndustryScopes::new`]                     | Creates a new instance of [`IndustryScopes`]                         |
 //! | [`IndustryScopes::all`]                     | Creates a new instance of [`IndustryScopes`] with all scopes applied |
 
+/// Read access to character industry jobs
 pub const READ_CHARACTER_JOBS: &str = "esi-industry.read_character_jobs.v1";
+/// Read access to character's mining ledger
 pub const READ_CHARACTER_MINING: &str = "esi-industry.read_character_mining.v1";
+/// Read access to corporation industry jobs
 pub const READ_CORPORATION_JOBS: &str = "esi-industry.read_corporation_jobs.v1";
+/// Read access to corporation mining ledger (moon mining structures)
 pub const READ_CORPORATION_MINING: &str = "esi-industry.read_corporation_mining.v1";
 
 /// Struct with methods for listing industry scopes to request for OAuth2

@@ -10,6 +10,7 @@
 //! | [`SearchScopes::new`]                     | Creates a new instance of [`SearchScopes`]                         |
 //! | [`SearchScopes::all`]                     | Creates a new instance of [`SearchScopes`] with all scopes applied |
 
+/// Access to search structures character has access to
 pub const SEARCH_STRUCTURES: &str = "esi-search.search_structures.v1";
 
 /// Struct with methods for listing search scopes to request for OAuth2

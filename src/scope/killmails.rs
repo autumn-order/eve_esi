@@ -10,7 +10,9 @@
 //! | [`KillmailsScopes::new`]                   | Creates a new instance of [`KillmailsScopes`]                         |
 //! | [`KillmailsScopes::all`]                   | Creates a new instance of [`KillmailsScopes`] with all scopes applied |
 
+/// Read access to corporation killmails
 pub const READ_CORPORATION_KILLMAILS: &str = "esi-killmails.read_corporation_killmails.v1";
+/// Read access to character killmails
 pub const READ_KILLMAILS: &str = "esi-killmails.read_killmails.v1";
 
 /// Struct with methods for listing killmail scopes to request for OAuth2

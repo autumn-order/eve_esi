@@ -10,7 +10,9 @@
 //! | [`CalendarScopes::new`]                     | Creates a new instance of [`CalendarScopes`]                         |
 //! | [`CalendarScopes::all`]                     | Creates a new instance of [`CalendarScopes`] with all scopes applied |
 
+///Access to read calendar events
 pub const READ_CALENDAR_EVENTS: &str = "esi-calendar.read_calendar_events.v1";
+/// Access to respond to calendar events on behalf of the character
 pub const RESPOND_CALENDAR_EVENTS: &str = "esi-calendar.respond_calendar_events.v1";
 
 /// Struct with methods for listing calendar scopes to request for OAuth2

@@ -10,6 +10,7 @@
 //! | [`UniverseScopes::new`]                     | Creates a new instance of [`UniverseScopes`]                         |
 //! | [`UniverseScopes::all`]                     | Creates a new instance of [`UniverseScopes`] with all scopes applied |
 
+/// Read access to information on structures character has access to
 pub const READ_STRUCTURES: &str = "esi-universe.read_structures.v1";
 
 /// Struct with methods for listing universe scopes to request for OAuth2

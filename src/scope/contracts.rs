@@ -10,7 +10,9 @@
 //! | [`ContractsScopes::new`]                     | Creates a new instance of [`ContractsScopes`]                         |
 //! | [`ContractsScopes::all`]                     | Creates a new instance of [`ContractsScopes`] with all scopes applied |
 
+/// Read access to character contracts
 pub const READ_CHARACTER_CONTRACTS: &str = "esi-contracts.read_character_contracts.v1";
+/// Read access to corporation contracts
 pub const READ_CORPORATION_CONTRACTS: &str = "esi-contracts.read_corporation_contracts.v1";
 
 /// Struct with methods for listing contract scopes to request for OAuth2

@@ -23,6 +23,7 @@
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";
 /// Access to retrieve information on character's blueprints
 pub const READ_BLUEPRINTS: &str = "esi-characters.read_blueprints.v1";
+/// Access to read chat channels character is in (does not include channel messages)
 pub const READ_CHAT_CHANNELS: &str = "esi-characters.read_chat_channels.v1";
 /// Access to read a character's contacts
 pub const READ_CONTACTS: &str = "esi-characters.read_contacts.v1";
@@ -30,7 +31,9 @@ pub const READ_CONTACTS: &str = "esi-characters.read_contacts.v1";
 pub const READ_CORPORATION_ROLES: &str = "esi-characters.read_corporation_roles.v1";
 /// Access to retrieve information on character's jump fatigue status
 pub const READ_FATIGUE: &str = "esi-characters.read_fatigue.v1";
+/// Access to retrieve character's faction warfare stats
 pub const READ_FW_STATS: &str = "esi-characters.read_fw_stats.v1";
+/// Access to retrieve character's loyalty point information
 pub const READ_LOYALTY: &str = "esi-characters.read_loyalty.v1";
 /// Access to retrieve information on character's medals
 pub const READ_MEDALS: &str = "esi-characters.read_medals.v1";
@@ -40,6 +43,7 @@ pub const READ_NOTIFICATIONS: &str = "esi-characters.read_notifications.v1";
 pub const READ_STANDINGS: &str = "esi-characters.read_standings.v1";
 /// Access to read the character's corporation titles
 pub const READ_TITLES: &str = "esi-characters.read_titles.v1";
+/// Access to add/modify character contacts
 pub const WRITE_CONTACTS: &str = "esi-characters.write_contacts.v1";
 
 /// Struct with methods for listing character scopes to request for OAuth2

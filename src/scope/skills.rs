@@ -10,7 +10,9 @@
 //! | [`SkillsScopes::new`]                     | Creates a new instance of [`SkillsScopes`]                         |
 //! | [`SkillsScopes::all`]                     | Creates a new instance of [`SkillsScopes`] with all scopes applied |
 
+/// Read access to character's skill queue
 pub const READ_SKILLQUEUE: &str = "esi-skills.read_skillqueue.v1";
+/// Read access to character's skills
 pub const READ_SKILLS: &str = "esi-skills.read_skills.v1";
 
 /// Struct with methods for listing skill scopes to request for OAuth2

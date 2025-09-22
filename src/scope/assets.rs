@@ -10,7 +10,9 @@
 //! | [`AssetsScopes::new`]                     | Creates a new instance of [`AssetsScopes`]                         |
 //! | [`AssetsScopes::all`]                     | Creates a new instance of [`AssetsScopes`] with all scopes applied |
 
+/// Access to read character assets
 pub const READ_ASSETS: &str = "esi-assets.read_assets.v1";
+/// Access to read corporation assets
 pub const READ_CORPORATION_ASSETS: &str = "esi-assets.read_corporation_assets.v1";
 
 /// Struct with methods for listing asset scopes to request for OAuth2

@@ -10,7 +10,9 @@
 //! | [`PlanetsScopes::new`]                     | Creates a new instance of [`PlanetsScopes`]                         |
 //! | [`PlanetsScopes::all`]                     | Creates a new instance of [`PlanetsScopes`] with all scopes applied |
 
+/// Read access to character's planetary interaction
 pub const MANAGE_PLANETS: &str = "esi-planets.manage_planets.v1";
+/// Read access to corporation-owned customs offices
 pub const READ_CUSTOMS_OFFICES: &str = "esi-planets.read_customs_offices.v1";
 
 /// Struct with methods for listing planet scopes to request for OAuth2

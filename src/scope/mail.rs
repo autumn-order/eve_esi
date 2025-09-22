@@ -10,8 +10,11 @@
 //! | [`MailScopes::new`]                       | Creates a new instance of [`MailScopes`]                         |
 //! | [`MailScopes::all`]                       | Creates a new instance of [`MailScopes`] with all scopes applied |
 
+/// Access to organize character's mail
 pub const ORGANIZE_MAIL: &str = "esi-mail.organize_mail.v1";
+/// Read access to character's eve mails
 pub const READ_MAIL: &str = "esi-mail.read_mail.v1";
+/// Write access to send eve mails on behalf of character
 pub const SEND_MAIL: &str = "esi-mail.send_mail.v1";
 
 /// Struct with methods for listing mail scopes to request for OAuth2
