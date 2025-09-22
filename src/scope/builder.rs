@@ -17,7 +17,7 @@
 
 use crate::scope::{CorporationScopes, MarketScopes, WalletScopes};
 
-use super::character::CharacterScopes;
+use super::characters::CharacterScopes;
 
 /// `publicData` scope
 pub const PUBLIC_DATA: &str = "publicData";

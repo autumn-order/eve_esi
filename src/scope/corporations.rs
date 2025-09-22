@@ -1,4 +1,4 @@
-//! # EVE ESI Corporation Scopes
+//! # EVE ESI Corporations Scopes
 //!
 //! This module provides a type-safe way to add corporation-related scopes for OAuth2 to the [`super::ScopeBuilder`]
 //!

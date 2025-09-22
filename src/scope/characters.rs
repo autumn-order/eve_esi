@@ -1,4 +1,4 @@
-//! # EVE ESI Character Scopes
+//! # EVE ESI Characters Scopes
 //!
 //! This module provides a type-safe way to add character-related scopes for OAuth2 to the [`super::ScopeBuilder`]
 //!

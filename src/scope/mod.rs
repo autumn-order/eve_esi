@@ -38,14 +38,14 @@
 
 pub mod builder;
 
-pub mod character;
-pub mod corporation;
-pub mod market;
+pub mod characters;
+pub mod corporations;
+pub mod markets;
 pub mod wallet;
 
 pub use builder::ScopeBuilder;
 
-pub use character::CharacterScopes;
-pub use corporation::CorporationScopes;
-pub use market::MarketScopes;
+pub use characters::CharacterScopes;
+pub use corporations::CorporationScopes;
+pub use markets::MarketScopes;
 pub use wallet::WalletScopes;

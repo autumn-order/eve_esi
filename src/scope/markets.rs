@@ -1,4 +1,4 @@
-//! # EVE ESI Market Scopes
+//! # EVE ESI Markets Scopes
 //!
 //! This module provides a type-safe way to add market-related scopes for OAuth2 to the [`super::ScopeBuilder`]
 //!
