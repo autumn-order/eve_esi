@@ -5,7 +5,7 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! |                   Method                   |                              Description                              |
+//! | Method                                     | Description                                                           |
 //! | ------------------------------------------ | --------------------------------------------------------------------- |
 //! | [`WalletScopes::new`]                      | Creates a new instance of [`WalletScopes`]                            |
 //! | [`WalletScopes::new`]                      | Creates a new instance of [`WalletScopes`] with all scopes applied    |

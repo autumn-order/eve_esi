@@ -5,7 +5,7 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! |                          Method                    |                                 Description                               |
+//! | Method                                             | Description                                                               |
 //! | -------------------------------------------------- | ------------------------------------------------------------------------- |
 //! | [`CorporationScopes::new`]                         | Creates a new instance of [`CorporationScopes`]                           |
 //! | [`CorporationScopes::all`]                         | Creates a new instance of [`CorporationScopes`] with all scopes applied   |

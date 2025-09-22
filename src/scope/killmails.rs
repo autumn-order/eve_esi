@@ -5,7 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! |                   Method                  |                           Description                              |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`MarketScopes::new`]                     | Creates a new instance of [`MarketScopes`]                         |
-//! | [`MarketScopes::all`]                     | Creates a new instance of [`MarketScopes`] with all scopes applied |
+//! | Method                                    | Description                                                          |
+//! | ----------------------------------------- | -------------------------------------------------------------------- |
+//! | [`KillmailScopes::new`]                   | Creates a new instance of [`KillmailScopes`]                         |
+//! | [`KillmailScopes::all`]                   | Creates a new instance of [`KillmailScopes`] with all scopes applied |
+
+/// Struct with methods for listing killmail scopes to request for OAuth2
+pub struct KillmailScopes {
+    pub(super) scopes: Vec<String>,
+}
+
+impl Default for KillmailScopes {
+    /// Create a default instance of [`KillmailScopes`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl KillmailScopes {
+    /// Create a new instance of [`KillmailScopes`]
+    pub fn new() -> Self {
+        KillmailScopes { scopes: Vec::new() }
+    }
+
+    /// Creates a new instance of [`KillmailScopes`] with all scopes applied
+    pub fn all() -> Self {
+        KillmailScopes::new()
+    }
+}

@@ -5,7 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! |                   Method                  |                           Description                              |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`MarketScopes::new`]                     | Creates a new instance of [`MarketScopes`]                         |
-//! | [`MarketScopes::all`]                     | Creates a new instance of [`MarketScopes`] with all scopes applied |
+//! | Method                                      | Description                                                          |
+//! | ------------------------------------------- | -------------------------------------------------------------------- |
+//! | [`CalendarScopes::new`]                     | Creates a new instance of [`CalendarScopes`]                         |
+//! | [`CalendarScopes::all`]                     | Creates a new instance of [`CalendarScopes`] with all scopes applied |
+
+/// Struct with methods for listing calendar scopes to request for OAuth2
+pub struct CalendarScopes {
+    pub(super) scopes: Vec<String>,
+}
+
+impl Default for CalendarScopes {
+    /// Create a default instance of [`CalendarScopes`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl CalendarScopes {
+    /// Create a new instance of [`CalendarScopes`]
+    pub fn new() -> Self {
+        CalendarScopes { scopes: Vec::new() }
+    }
+
+    /// Creates a new instance of [`CalendarScopes`] with all scopes applied
+    pub fn all() -> Self {
+        CalendarScopes::new()
+    }
+}

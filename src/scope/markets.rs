@@ -5,7 +5,7 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! |                   Method                  |                            Description                             |
+//! | Method                                    | Description                                                        |
 //! | ----------------------------------------- | ------------------------------------------------------------------ |
 //! | [`MarketScopes::new`]                     | Creates a new instance of [`MarketScopes`]                         |
 //! | [`MarketScopes::all`]                     | Creates a new instance of [`MarketScopes`] with all scopes applied |

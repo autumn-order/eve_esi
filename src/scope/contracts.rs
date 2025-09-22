@@ -5,7 +5,31 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! |                   Method                  |                           Description                              |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`MarketScopes::new`]                     | Creates a new instance of [`MarketScopes`]                         |
-//! | [`MarketScopes::all`]                     | Creates a new instance of [`MarketScopes`] with all scopes applied |
+//! | Method                                      | Description                                                          |
+//! | ------------------------------------------- | -------------------------------------------------------------------- |
+//! | [`ContractScopes::new`]                     | Creates a new instance of [`ContractScopes`]                         |
+//! | [`ContractScopes::all`]                     | Creates a new instance of [`ContractScopes`] with all scopes applied |
+
+/// Struct with methods for listing contract scopes to request for OAuth2
+pub struct ContractScopes {
+    pub(super) scopes: Vec<String>,
+}
+
+impl Default for ContractScopes {
+    /// Create a default instance of [`ContractScopes`]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ContractScopes {
+    /// Create a new instance of [`ContractScopes`]
+    pub fn new() -> Self {
+        ContractScopes { scopes: Vec::new() }
+    }
+
+    /// Creates a new instance of [`ContractScopes`] with all scopes applied
+    pub fn all() -> Self {
+        ContractScopes::new()
+    }
+}

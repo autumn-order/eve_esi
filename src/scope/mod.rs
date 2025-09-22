@@ -6,11 +6,12 @@
 //! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 //!
 //! ## Modules
-//!
-//! - [`builder`]: Provides the [`ScopeBuilder`] to build a list of scopes
-//! - [`characters`]: Provides the [`CharacterScopes`] struct to be used with the [`ScopeBuilder::character`] method
-//! - [`corporations`]: Provides the [`CorporationScopes`] struct to be used with the [`ScopeBuilder::corporation`] method
-//! - [`wallet`]: Provides the [`WalletScopes`] struct to be used with the [`ScopeBuilder::wallet`] method
+//! | Module           | Description                                                                                        |
+//! | ---------------- | -------------------------------------------------------------------------------------------------- |
+//! | [`builder`]      | Provides the [`ScopeBuilder`] to build a list of scopes                                            |
+//! | [`characters`]   | Provides the [`CharacterScopes`] struct to be used with the [`ScopeBuilder::character`] method     |
+//! | [`corporations`] | Provides the [`CorporationScopes`] struct to be used with the [`ScopeBuilder::corporation`] method |
+//! | [`wallet`]       | Provides the [`WalletScopes`] struct to be used with the [`ScopeBuilder::wallet`] method           |
 //!
 //! ## Usage Example
 //!
@@ -38,14 +39,46 @@
 
 pub mod builder;
 
+pub mod alliance;
+pub mod assets;
+pub mod calendar;
 pub mod characters;
+pub mod clones;
+pub mod contracts;
 pub mod corporations;
+pub mod fittings;
+pub mod fleets;
+pub mod industry;
+pub mod killmails;
+pub mod location;
+pub mod mail;
 pub mod markets;
+pub mod planets;
+pub mod search;
+pub mod skills;
+pub mod ui;
+pub mod universe;
 pub mod wallet;
 
 pub use builder::ScopeBuilder;
 
+pub use alliance::AllianceScopes;
+pub use assets::AssetScopes;
+pub use calendar::CalendarScopes;
 pub use characters::CharacterScopes;
+pub use clones::CloneScopes;
+pub use contracts::ContractScopes;
 pub use corporations::CorporationScopes;
+pub use fittings::FittingScopes;
+pub use fleets::FleetScopes;
+pub use industry::IndustryScopes;
+pub use killmails::KillmailScopes;
+pub use location::LocationScopes;
+pub use mail::MailScopes;
 pub use markets::MarketScopes;
+pub use planets::PlanetScopes;
+pub use search::SearchScopes;
+pub use skills::SkillScopes;
+pub use ui::UserInterfaceScopes;
+pub use universe::UniverseScopes;
 pub use wallet::WalletScopes;
