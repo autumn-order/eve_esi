@@ -61,3 +61,31 @@ pub struct Asset {
     /// Type ID of the item
     type_id: i64,
 }
+
+/// The coordinates of where an item is located in space
+///
+/// Coordinates will be (0,0,0) if in a station or hangar
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsLocationsPost>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct AssetLocationPosition {
+    /// X coordinate of the item in space
+    x: f64,
+    /// Y coordinate of the item in space
+    y: f64,
+    /// Z coordinate of the item in space
+    z: f64,
+}
+
+/// Where an asset is located in space in EVE Online
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsLocationsPost>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct AssetLocation {
+    /// Unique ID of the item
+    item_id: i64,
+    /// Item coordinates in space, coordinates will be (0,0,0) if in a station or hangar
+    position: AssetLocationPosition,
+}
