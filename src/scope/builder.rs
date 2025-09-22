@@ -5,19 +5,40 @@
 //!
 //! For an overview & usage, see the [module-level documentation](super).
 //!
-//! # Methods
-//! - [`ScopeBuilder::new`]: Creates a new [`ScopeBuilder`] instance
-//! - [`ScopeBuilder::build`]: Builds the list of scopes into a `Vec<`[`String`]`>`
-//! - [`ScopeBuilder::public_data`]: Access to retrieve public information on a character (this scope is mostly just for show)
-//! - [`ScopeBuilder::character`]: Adds scopes from [`CharacterScopes`]
-//! - [`ScopeBuilder::corporation`]: Adds scopes from [`CorporationScopes`]
-//! - [`ScopeBuilder::wallet`]: Adds scopes from [`WalletScopes`]
-//! - [`ScopeBuilder::market`]: Adds scopes from [`MarketScopes`]
-//! - [`ScopeBuilder::custom`]: Adds a custom scope
+//! ## Methods
+//! | Method                         | Description                                          |
+//! | ------------------------------ | ---------------------------------------------------- |
+//! | [`ScopeBuilder::new`]          | Creates a new [`ScopeBuilder`] instance              |
+//! | [`ScopeBuilder::build`]        | Builds the list of scopes into a `Vec<`[`String`]`>` |
+//! | [`ScopeBuilder::custom`]       | Adds a custom scope                                  |
+//! | [`ScopeBuilder::public_data`]  | Access to retrieve public information on a character |
+//! | [`ScopeBuilder::alliances`]    | Adds scopes from [`AlliancesScopes`]                 |
+//! | [`ScopeBuilder::assets`]       | Adds scopes from [`AssetsScopes`]                    |
+//! | [`ScopeBuilder::calendar` ]    | Adds scopes from [`CalendarScopes`]                  |
+//! | [`ScopeBuilder::characters`]   | Adds scopes from [`CharactersScopes`]                |
+//! | [`ScopeBuilder::clones`]       | Adds scopes from [`ClonesScopes`]                    |
+//! | [`ScopeBuilder::contracts`]    | Adds scopes from [`ContractsScopes`]                 |
+//! | [`ScopeBuilder::corporations`] | Adds scopes from [`CorporationsScopes`]              |
+//! | [`ScopeBuilder::fittings`]     | Adds scopes from [`FittingsScopes`]                  |
+//! | [`ScopeBuilder::fleets`]       | Adds scopes from [`FleetsScopes`]                    |
+//! | [`ScopeBuilder::industry`]     | Adds scopes from [`IndustryScopes`]                  |
+//! | [`ScopeBuilder::killmails`]    | Adds scopes from [`KillmailsScopes`]                 |
+//! | [`ScopeBuilder::location`]     | Adds scopes from [`LocationScopes`]                  |
+//! | [`ScopeBuilder::mail`]         | Adds scopes from [`MailScopes`]                      |
+//! | [`ScopeBuilder::markets`]      | Adds scopes from [`MarketsScopes`]                   |
+//! | [`ScopeBuilder::planets`]      | Adds scopes from [`PlanetsScopes`]                   |
+//! | [`ScopeBuilder::search`]       | Adds scopes from [`SearchScopes`]                    |
+//! | [`ScopeBuilder::skills`]       | Adds scopes from [`SkillsScopes`]                    |
+//! | [`ScopeBuilder::ui`]           | Adds scopes from [`UiScopes`]                        |
+//! | [`ScopeBuilder::universe`]     | Adds scopes from [`UniverseScopes`]                  |
+//! | [`ScopeBuilder::wallet`]       | Adds scopes from [`WalletScopes`]                    |
 
-use crate::scope::{CorporationScopes, MarketScopes, WalletScopes};
-
-use super::character::CharacterScopes;
+use crate::scope::{
+    AlliancesScopes, AssetsScopes, CalendarScopes, CharactersScopes, ClonesScopes, ContractsScopes,
+    CorporationsScopes, FittingsScopes, FleetsScopes, IndustryScopes, KillmailsScopes,
+    LocationScopes, MailScopes, MarketsScopes, PlanetsScopes, SearchScopes, SkillsScopes, UiScopes,
+    UniverseScopes, WalletScopes,
+};
 
 /// `publicData` scope
 pub const PUBLIC_DATA: &str = "publicData";
@@ -46,16 +67,38 @@ impl ScopeBuilder {
     pub fn all() -> Vec<String> {
         ScopeBuilder::new()
             .public_data()
-            .character(CharacterScopes::all())
-            .corporation(CorporationScopes::all())
+            .alliances(AlliancesScopes::all())
+            .assets(AssetsScopes::all())
+            .calendar(CalendarScopes::all())
+            .characters(CharactersScopes::all())
+            .clones(ClonesScopes::all())
+            .contracts(ContractsScopes::all())
+            .corporations(CorporationsScopes::all())
+            .fittings(FittingsScopes::all())
+            .fleets(FleetsScopes::all())
+            .industry(IndustryScopes::all())
+            .killmails(KillmailsScopes::all())
+            .location(LocationScopes::all())
+            .mail(MailScopes::all())
+            .markets(MarketsScopes::all())
+            .planets(PlanetsScopes::all())
+            .search(SearchScopes::all())
+            .skills(SkillsScopes::all())
+            .ui(UiScopes::all())
+            .universe(UniverseScopes::all())
             .wallet(WalletScopes::all())
-            .market(MarketScopes::all())
             .build()
     }
 
     /// Builds a [`ScopeBuilder`] into a `Vec<`[`String`]`>` containing the configured scopes
     pub fn build(self) -> Vec<String> {
         self.scopes
+    }
+
+    /// Adds a custom scope
+    pub fn custom(mut self, scope: &str) -> Self {
+        self.scopes.push(scope.to_string());
+        self
     }
 
     /// Access to retrieve public information on a character (this scope is mostly just for show)
@@ -66,33 +109,123 @@ impl ScopeBuilder {
         self
     }
 
-    /// Adds scopes from [`CharacterScopes`]
-    pub fn character(mut self, character_scopes: CharacterScopes) -> Self {
-        self.scopes.extend(character_scopes.scopes);
+    /// Adds scopes from [`AlliancesScopes`]
+    pub fn alliances(mut self, alliances_scopes: AlliancesScopes) -> Self {
+        self.scopes.extend(alliances_scopes.scopes);
         self
     }
 
-    /// Adds scopes from [`CorporationScopes`]
-    pub fn corporation(mut self, corporation_scopes: CorporationScopes) -> Self {
-        self.scopes.extend(corporation_scopes.scopes);
+    /// Adds scopes from [`AssetsScopes`]
+    pub fn assets(mut self, assets_scopes: AssetsScopes) -> Self {
+        self.scopes.extend(assets_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`CalendarScopes`]
+    pub fn calendar(mut self, calendar_scopes: CalendarScopes) -> Self {
+        self.scopes.extend(calendar_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`CharactersScopes`]
+    pub fn characters(mut self, characters_scopes: CharactersScopes) -> Self {
+        self.scopes.extend(characters_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`ClonesScopes`]
+    pub fn clones(mut self, clones_scopes: ClonesScopes) -> Self {
+        self.scopes.extend(clones_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`ContractsScopes`]
+    pub fn contracts(mut self, contracts_scopes: ContractsScopes) -> Self {
+        self.scopes.extend(contracts_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`CorporationsScopes`]
+    pub fn corporations(mut self, corporations_scopes: CorporationsScopes) -> Self {
+        self.scopes.extend(corporations_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`FittingsScopes`]
+    pub fn fittings(mut self, fittings_scopes: FittingsScopes) -> Self {
+        self.scopes.extend(fittings_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`FleetsScopes`]
+    pub fn fleets(mut self, fleets_scopes: FleetsScopes) -> Self {
+        self.scopes.extend(fleets_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`IndustryScopes`]
+    pub fn industry(mut self, industry_scopes: IndustryScopes) -> Self {
+        self.scopes.extend(industry_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`KillmailsScopes`]
+    pub fn killmails(mut self, killmails_scopes: KillmailsScopes) -> Self {
+        self.scopes.extend(killmails_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`LocationScopes`]
+    pub fn location(mut self, location_scopes: LocationScopes) -> Self {
+        self.scopes.extend(location_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`MailScopes`]
+    pub fn mail(mut self, mail_scopes: MailScopes) -> Self {
+        self.scopes.extend(mail_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`MarketsScopes`]
+    pub fn markets(mut self, markets_scopes: MarketsScopes) -> Self {
+        self.scopes.extend(markets_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`PlanetsScopes`]
+    pub fn planets(mut self, planets_scopes: PlanetsScopes) -> Self {
+        self.scopes.extend(planets_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`SearchScopes`]
+    pub fn search(mut self, search_scopes: SearchScopes) -> Self {
+        self.scopes.extend(search_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`SkillsScopes`]
+    pub fn skills(mut self, skills_scopes: SkillsScopes) -> Self {
+        self.scopes.extend(skills_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`UiScopes`]
+    pub fn ui(mut self, ui_scopes: UiScopes) -> Self {
+        self.scopes.extend(ui_scopes.scopes);
+        self
+    }
+
+    /// Adds scopes from [`UniverseScopes`]
+    pub fn universe(mut self, universe_scopes: UniverseScopes) -> Self {
+        self.scopes.extend(universe_scopes.scopes);
         self
     }
 
     /// Adds scopes from [`WalletScopes`]
     pub fn wallet(mut self, wallet_scopes: WalletScopes) -> Self {
         self.scopes.extend(wallet_scopes.scopes);
-        self
-    }
-
-    /// Adds scopes from [`MarketScopes`]
-    pub fn market(mut self, market_scopes: MarketScopes) -> Self {
-        self.scopes.extend(market_scopes.scopes);
-        self
-    }
-
-    /// Adds a custom scope
-    pub fn custom(mut self, scope: &str) -> Self {
-        self.scopes.push(scope.to_string());
         self
     }
 }

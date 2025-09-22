@@ -1,7 +1,7 @@
 //! # EVE Online OAuth2 Login
 //!
 //! Provides the method to create a login URL to begin the EVE Online single sign-on (SSO) process.
-//! See the [OAuth2Api::login_url] method for details.
+//! See the [`OAuth2Endpoints::login_url`] method for details.
 //!
 //! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 //!
@@ -44,15 +44,15 @@ use oauth2::{CsrfToken, Scope};
 
 use crate::error::{Error, OAuthError};
 use crate::model::oauth2::AuthenticationData;
-use crate::oauth2::OAuth2Api;
+use crate::oauth2::OAuth2Endpoints;
 
-impl<'a> OAuth2Api<'a> {
+impl<'a> OAuth2Endpoints<'a> {
     /// Generates a login URL and state string for initiating the EVE Online OAuth2 authentication process.
     ///
     /// This method constructs the URL that begins the login process for EVE Online SSO (single sign-on) or also known as OAuth2.
     /// After successful authentication, EVE Online will redirect the user to the callback URL (`callback_url`) specified
     /// in your [`Client`](crate::Client) configuration with an authorization code used to request an access token with the
-    /// [crate::oauth2::OAuth2Api::get_token] method.
+    /// [crate::oauth2::OAuth2Endpoints::get_token] method.
     ///
     /// # Arguments
     /// - `scopes` (`Vec<`[`String`]`>`): A vec of scope strings representing the permissions your application is requesting.

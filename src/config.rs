@@ -14,23 +14,23 @@
 //!
 //! ## Builder Methods
 //!
-//! | Method          | Purpose                                    |
-//! | --------------- | ------------------------------------------ |
-//! | `new`           | Create a new [`ConfigBuilder`]          |
-//! | `build`         | Build the [`Config`]                    |
-//! | `esi_url`       | Base URL for ESI endpoints                 |
-//! | `auth_url`      | URL for sign in with EVE Online            |
-//! | `token_url`     | URL to retrieve access tokens for OAuth2   |
-//! | `jwk_url`       | URL for JWT keys to validate tokens        |
-//! | `jwk_cache_ttl`     | The time that JWT keys are cached for      |
-//! | `jwk_refresh_backoff`     | How long to wait between retries         |
-//! | `jwk_refresh_timeout`     | How long to wait for another thread to refresh |
-//! | `jwk_refresh_cooldown`    | Cooldown between sets of JWT key refresh attempts |
-//! | `jwk_refresh_max_retries` | Amount of retries when a key fetch fails |
-//! | `jwk_background_refresh_enabled` | Enable/disable background refresh          |
-//! | `jwk_background_refresh_threshold` | Percentage at which cache is refreshed proactively |
-//! | `jwt_issuers`   | Expected issuer(s) of JWT tokens |
-//! | `jwt_audience` | Intended audience JWT tokens are to be used with |
+//! | Method                              | Description                                                |
+//! | ----------------------------------- | ---------------------------------------------------------- |
+//! | `new`                               | Create a new [`ConfigBuilder`]                             |
+//! | `build`                             | Build the [`Config`]                                       |
+//! | `esi_url`                           | Base URL for ESI endpoints                                 |
+//! | `auth_url`                          | URL for sign in with EVE Online                            |
+//! | `token_url`                         | URL to retrieve access tokens for OAuth2                   |
+//! | `jwk_url`                           | URL for JWT keys to validate tokens                        |
+//! | `jwk_cache_ttl`                     | The time that JWT keys are cached for                      |
+//! | `jwk_refresh_backoff`               | How long to wait between retries                           |
+//! | `jwk_refresh_timeout`               | How long to wait for another thread to refresh             |
+//! | `jwk_refresh_cooldown`              | Cooldown between sets of JWT key refresh attempts          |
+//! | `jwk_refresh_max_retries`           | Amount of retries when a key fetch fails                   |
+//! | `jwk_background_refresh_enabled`    | Enable/disable background refresh                          |
+//! | `jwk_background_refresh_threshold`  | Percentage at which cache is refreshed proactively         |
+//! | `jwt_issuers`                       | Expected issuer(s) of JWT tokens                           |
+//! | `jwt_audience`                      | Intended audience JWT tokens are to be used with           |
 //! | `esi_validate_token_before_request` | Toggle validating tokens before authenticated ESI requests |
 //!
 //! ## Usage

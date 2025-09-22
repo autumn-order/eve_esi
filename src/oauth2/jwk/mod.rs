@@ -74,7 +74,7 @@ use crate::oauth2::jwk::refresh::refresh_jwt_keys;
 use crate::oauth2::jwk::util::{
     check_refresh_cooldown, is_cache_approaching_expiry, is_cache_expired,
 };
-use crate::oauth2::OAuth2Api;
+use crate::oauth2::OAuth2Endpoints;
 use crate::Client;
 
 /// Provides access to JWK endpoints & caching for EVE Online's OAuth2 endpoints
@@ -90,7 +90,7 @@ pub struct JwkApi<'a> {
     pub(super) client: &'a Client,
 }
 
-impl OAuth2Api<'_> {
+impl OAuth2Endpoints<'_> {
     /// Access to EVE Online's OAuth2 JWK endpoints used to validate tokens
     ///
     /// Additionally provides access to methods that implement caching and refreshing

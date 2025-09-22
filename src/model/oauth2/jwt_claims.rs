@@ -2,7 +2,7 @@
 //!
 //! Provides the [`EveJwtClaims`] struct to represent the claims of a JWT
 //! token returned from EVE Online's OAuth2 API after login. These claims
-//! are returned after using the [crate::oauth2::OAuth2Api::validate_token]
+//! are returned after using the [crate::oauth2::OAuth2Endpoints::validate_token]
 //! method.
 //!
 //! For usage of OAuth2 in the `eve_esi` crate, please see the [`crate::oauth2`]

@@ -5,9 +5,9 @@
 //! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
 //!
 //! ## Methods
-//! - [`OAuth2Api::get_token`]: Retrieves a token from EVE Online's OAuth2 API
-//! - [`OAuth2Api::get_token_refresh`]: Retrieves a new token using a refresh token
-//! - [`OAuth2Api::validate_token`]: Validates token retrieved via the [`OAuth2Api::get_token`] method
+//! - [`OAuth2Endpoints::get_token`]: Retrieves a token from EVE Online's OAuth2 API
+//! - [`OAuth2Endpoints::get_token_refresh`]: Retrieves a new token using a refresh token
+//! - [`OAuth2Endpoints::validate_token`]: Validates token retrieved via the [`OAuth2Endpoints::get_token`] method
 //!
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/docs/services/sso/>
@@ -72,10 +72,10 @@ use oauth2::{AuthorizationCode, EmptyExtraTokenFields, RefreshToken, StandardTok
 use crate::error::{Error, OAuthError};
 use crate::model::oauth2::{EveJwtClaims, EveJwtKey};
 use crate::oauth2::client::OAuth2Client;
-use crate::oauth2::OAuth2Api;
+use crate::oauth2::OAuth2Endpoints;
 use crate::Client;
 
-impl<'a> OAuth2Api<'a> {
+impl<'a> OAuth2Endpoints<'a> {
     /// Retrieves a token from EVE Online's OAuth2 API
     ///
     /// This method uses the configured Client to retrieve a token from EVE Online's

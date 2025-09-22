@@ -1,6 +1,6 @@
 //! # EVE ESI Alliance Endpoints
 //!
-//! This module provides the [`AllianceApi`] struct and associated methods for accessing
+//! This module provides the [`AllianceEndpoints`] struct and associated methods for accessing
 //! alliance-related ESI endpoints.
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)
@@ -10,31 +10,32 @@
 //!
 //! ## Endpoints (4)
 //! ### Public (4)
-//! - [`AllianceApi::list_all_alliances`]: Retrieves a list of IDs of every alliance in EVE Online
-//! - [`AllianceApi::get_alliance_information`]: Retrieves public information for the requested alliance_id
-//! - [`AllianceApi::list_alliance_corporations`]: Retrieves the IDs of all corporations part of the requested alliance_id
-//! - [`AllianceApi::get_alliance_icon`]: Get the 128x128 & 64x64 icon URLs for the requested alliance_id
+//! |                    Endpoint                       |                           Description                                   |
+//! | ------------------------------------------------- | ----------------------------------------------------------------------- |
+//! | [`AllianceEndpoints::list_all_alliances`]         | Retrieves a list of IDs of every alliance in EVE Online                 |
+//! | [`AllianceEndpoints::get_alliance_information`]   | Retrieves public information for the requested alliance_id              |
+//! | [`AllianceEndpoints::list_alliance_corporations`] | Retrieves the IDs of all corporations part of the requested alliance_id |
+//! | [`AllianceEndpoints::get_alliance_icon`]          | Get the 128x128 & 64x64 icon URLs for the requested alliance_id         |
 
 use crate::{
     model::alliance::{Alliance, AllianceIcons},
     Client, Error,
 };
 
-/// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
+/// Provides methods for accessing alliance-related endpoints of the EVE Online ESI API.
 ///
 /// For an overview & usage examples, see the [endpoints module documentation](super)
-pub struct AllianceApi<'a> {
+pub struct AllianceEndpoints<'a> {
     client: &'a Client,
 }
 
-impl<'a> AllianceApi<'a> {
-    /// Creates a new instance of `AllianceApi`.
+impl<'a> AllianceEndpoints<'a> {
+    /// Creates a new instance of [`AllianceEndpoints].
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)e
     ///
     /// # Arguments
     /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
-    ///
-    /// # Returns
-    /// - [`AllianceApi`]: Struct providing methods to interact with alliance ESI endpoints
     pub(super) fn new(client: &'a Client) -> Self {
         Self { client }
     }
