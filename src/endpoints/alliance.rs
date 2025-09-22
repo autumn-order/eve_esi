@@ -1,6 +1,6 @@
 //! # EVE ESI Alliance Endpoints
 //!
-//! This module provides the [`AllianceApi`] struct and associated methods for accessing
+//! This module provides the [`AllianceEndpoints`] struct and associated methods for accessing
 //! alliance-related ESI endpoints.
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)

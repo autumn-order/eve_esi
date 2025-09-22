@@ -1,5 +1,5 @@
 use eve_esi::model::enums::market::OrderType;
-use eve_esi::{scope::MarketScopes, ScopeBuilder};
+use eve_esi::{scope::MarketsScopes, ScopeBuilder};
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 use crate::util::integration_test_setup;
@@ -16,7 +16,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/orders",
     required_scopes = ScopeBuilder::new()
-        .market(MarketScopes::new().read_character_orders())
+        .markets(MarketsScopes::new().read_character_orders())
         .build();
     mock_response = serde_json::json!([
       {
@@ -51,7 +51,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/characters/2114794365/orders/history?page=1",
     required_scopes = ScopeBuilder::new()
-        .market(MarketScopes::new().read_character_orders())
+        .markets(MarketsScopes::new().read_character_orders())
         .build();
     mock_response = serde_json::json!([
       {
@@ -86,7 +86,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/orders",
     required_scopes = ScopeBuilder::new()
-        .market(MarketScopes::new().read_corporation_orders())
+        .markets(MarketsScopes::new().read_corporation_orders())
         .build();
     mock_response = serde_json::json!([
       {
@@ -122,7 +122,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/orders/history?page=1",
     required_scopes = ScopeBuilder::new()
-        .market(MarketScopes::new().read_corporation_orders())
+        .markets(MarketsScopes::new().read_corporation_orders())
         .build();
     mock_response = serde_json::json!([
       {
@@ -215,7 +215,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/markets/structures/1?page=1",
     required_scopes = ScopeBuilder::new()
-        .market(MarketScopes::new().structure_markets())
+        .markets(MarketsScopes::new().structure_markets())
         .build();
     mock_response = serde_json::json!([
       {

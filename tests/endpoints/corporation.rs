@@ -1,4 +1,4 @@
-use eve_esi::scope::{CorporationScopes, WalletScopes};
+use eve_esi::scope::{CorporationsScopes, WalletScopes};
 use eve_esi::ScopeBuilder;
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
@@ -79,7 +79,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/blueprints?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_blueprints())
+        .corporations(CorporationsScopes::new().read_blueprints())
         .build();
     mock_response = serde_json::json!([{
         "item_id": 0,
@@ -106,7 +106,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/containers/logs?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_container_logs())
+        .corporations(CorporationsScopes::new().read_container_logs())
         .build();
     mock_response = serde_json::json!([{
         "action": "enter_password",
@@ -135,7 +135,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/divisions",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_divisions())
+        .corporations(CorporationsScopes::new().read_divisions())
         .build();
     mock_response = serde_json::json!({
         "hangar": [{
@@ -161,7 +161,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/facilities",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_facilities())
+        .corporations(CorporationsScopes::new().read_facilities())
         .build();
     mock_response = serde_json::json!([
         {
@@ -203,7 +203,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/medals?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_medals())
+        .corporations(CorporationsScopes::new().read_medals())
         .build();
     mock_response = serde_json::json!([
         {
@@ -229,7 +229,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/medals/issued?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_medals())
+        .corporations(CorporationsScopes::new().read_medals())
         .build();
     mock_response = serde_json::json!([
         {
@@ -254,7 +254,7 @@ authenticated_endpoint_test! {
     },
     request_type = "GET",
     url = "/corporations/98785281/members",
-    required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
+    required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
     mock_response = serde_json::json!([2114794365, 2117053828]),
 }
 
@@ -270,7 +270,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/members/limit",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().track_members())
+        .corporations(CorporationsScopes::new().track_members())
         .build();
     mock_response = serde_json::json!(20),
 }
@@ -287,7 +287,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/members/titles",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_titles())
+        .corporations(CorporationsScopes::new().read_titles())
         .build();
     mock_response = serde_json::json!([
         {
@@ -309,7 +309,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/membertracking",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().track_members())
+        .corporations(CorporationsScopes::new().track_members())
         .build();
     mock_response = serde_json::json!([
         {
@@ -336,7 +336,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/roles",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_corporation_membership())
+        .corporations(CorporationsScopes::new().read_corporation_membership())
         .build();
     mock_response = serde_json::json!([
       {
@@ -382,7 +382,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/roles/history?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_corporation_membership())
+        .corporations(CorporationsScopes::new().read_corporation_membership())
         .build();
     mock_response = serde_json::json!([
       {
@@ -437,7 +437,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/standings?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_standings())
+        .corporations(CorporationsScopes::new().read_standings())
         .build();
     mock_response = serde_json::json!([
       {
@@ -461,7 +461,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/starbases?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_starbases())
+        .corporations(CorporationsScopes::new().read_starbases())
         .build();
     mock_response = serde_json::json!([
       {
@@ -491,7 +491,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/starbases/1?system_id=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_starbases())
+        .corporations(CorporationsScopes::new().read_starbases())
         .build();
     mock_response = serde_json::json!({
       "allow_alliance_members": true,
@@ -529,7 +529,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/structures?page=1",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_structures())
+        .corporations(CorporationsScopes::new().read_structures())
         .build();
     mock_response = serde_json::json!([
       {
@@ -569,7 +569,7 @@ authenticated_endpoint_test! {
     request_type = "GET",
     url = "/corporations/98785281/titles",
     required_scopes = ScopeBuilder::new()
-        .corporation(CorporationScopes::new().read_titles())
+        .corporations(CorporationsScopes::new().read_titles())
         .build();
     mock_response = serde_json::json!([
       {

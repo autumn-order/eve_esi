@@ -36,7 +36,7 @@ use crate::{
             MarketItemPrices, MarketItemRegionStatistics, MarketRegionOrder, StructureMarketOrder,
         },
     },
-    scope::MarketScopes,
+    scope::MarketsScopes,
     Client, Error, ScopeBuilder,
 };
 
@@ -67,7 +67,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdOrders>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_character_orders`](crate::scope::MarketScopes::read_character_orders):
+        /// - [`MarketsScopes::read_character_orders`](crate::scope::MarketsScopes::read_character_orders):
         ///   `esi-markets.read_character_orders.v1`
         ///
         /// # Arguments
@@ -84,7 +84,7 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<CharacterMarketOrder>, Error>
         url = "{}/characters/{}/orders";
         label = "open market orders";
-        required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_character_orders()).build();
+        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_character_orders()).build();
     }
 
     define_endpoint! {
@@ -96,7 +96,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdOrdersHistory>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_character_orders`](crate::scope::MarketScopes::read_character_orders):
+        /// - [`MarketsScopes::read_character_orders`](crate::scope::MarketsScopes::read_character_orders):
         ///   `esi-markets.read_character_orders.v1`
         ///
         /// # Arguments
@@ -115,7 +115,7 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<CharacterMarketOrder>, Error>
         url = "{}/characters/{}/orders/history?page={}";
         label = "historical orders";
-        required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_character_orders()).build();
+        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_character_orders()).build();
     }
 
     define_endpoint! {
@@ -130,7 +130,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrders>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_corporation_orders`](crate::scope::MarketScopes::read_corporation_orders):
+        /// - [`MarketsScopes::read_corporation_orders`](crate::scope::MarketsScopes::read_corporation_orders):
         ///   `esi-markets.read_corporation_orders.v1`
         ///
         /// # Arguments
@@ -147,7 +147,7 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<CorporationMarketOrder>, Error>
         url = "{}/corporations/{}/orders";
         label = "open orders";
-        required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_corporation_orders()).build();
+        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_corporation_orders()).build();
     }
 
     define_endpoint! {
@@ -162,7 +162,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrdersHistory>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::read_corporation_orders`](crate::scope::MarketScopes::read_corporation_orders):
+        /// - [`MarketsScopes::read_corporation_orders`](crate::scope::MarketsScopes::read_corporation_orders):
         ///   `esi-markets.read_corporation_orders.v1`
         ///
         /// # Arguments
@@ -181,7 +181,7 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<CorporationMarketOrder>, Error>
         url = "{}/corporations/{}/orders/history?page={}";
         label = "historical orders";
-        required_scopes = ScopeBuilder::new().market(MarketScopes::new().read_corporation_orders()).build();
+        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_corporation_orders()).build();
     }
 
     define_endpoint! {
@@ -251,7 +251,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrdersHistory>
         ///
         /// # Required Scopes
-        /// - [`MarketScopes::structure_markets`](crate::scope::MarketScopes::structure_markets):
+        /// - [`MarketsScopes::structure_markets`](crate::scope::MarketsScopes::structure_markets):
         ///   `esi-markets.structure_markets.v1`
         ///
         /// # Arguments
@@ -270,7 +270,7 @@ impl<'a> MarketEndpoints<'a> {
         ) -> Result<Vec<StructureMarketOrder>, Error>
         url = "{}/markets/structures/{}?page={}";
         label = "market orders";
-        required_scopes = ScopeBuilder::new().market(MarketScopes::new().structure_markets()).build();
+        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().structure_markets()).build();
     }
 
     define_endpoint! {

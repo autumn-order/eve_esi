@@ -1,6 +1,6 @@
 //! # EVE ESI Corporation Endpoints
 //!
-//! This module provides the [`CorporationApi`] struct and associated methods for accessing
+//! This module provides the [`CorporationEndpoints`] struct and associated methods for accessing
 //! corporation-related ESI endpoints.
 //!
 //! For an overview & usage examples, see the [endpoints module documentation](super)
@@ -49,7 +49,7 @@ use crate::model::corporation::{
     CorporationStarbaseDetails, CorporationStructure, CorporationTitle,
 };
 use crate::model::standing::Standing;
-use crate::scope::{CorporationScopes, WalletScopes};
+use crate::scope::{CorporationsScopes, WalletScopes};
 use crate::{Client, ScopeBuilder};
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
@@ -142,7 +142,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdBlueprints>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_blueprints`](crate::scope::CorporationScopes::read_blueprints):
+        /// - [`CorporationsScopes::read_blueprints`](crate::scope::CorporationsScopes::read_blueprints):
         ///   `esi-corporations.read_blueprints.v1`
         ///
         /// # Arguments
@@ -161,7 +161,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<Blueprint>, Error>
         url = "{}/corporations/{}/blueprints?page={}";
         label = "blueprints";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_blueprints()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_blueprints()).build();
     }
 
     define_endpoint! {
@@ -178,7 +178,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdContainersLogs>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_container_logs`](crate::scope::CorporationScopes::read_container_logs):
+        /// - [`CorporationsScopes::read_container_logs`](crate::scope::CorporationsScopes::read_container_logs):
         ///   `esi-corporations.read_container_logs.v1`
         ///
         /// # Arguments
@@ -197,7 +197,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationSecureContainerLog>, Error>
         url = "{}/corporations/{}/containers/logs?page={}";
         label = "audit secure container log entries";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_container_logs()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_container_logs()).build();
     }
 
     define_endpoint! {
@@ -212,7 +212,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdDivisions>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_divisions`](crate::scope::CorporationScopes::read_divisions):
+        /// - [`CorporationsScopes::read_divisions`](crate::scope::CorporationsScopes::read_divisions):
         ///   `esi-corporations.read_divisions.v1`
         ///
         /// # Arguments
@@ -229,7 +229,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<CorporationDivisions, Error>
         url = "{}/corporations/{}/divisions";
         label = "hangar & wallet divisions";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_divisions()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_divisions()).build();
     }
 
     define_endpoint! {
@@ -244,7 +244,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdFacilities>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_facilities`](crate::scope::CorporationScopes::read_facilities):
+        /// - [`CorporationsScopes::read_facilities`](crate::scope::CorporationsScopes::read_facilities):
         ///   `esi-corporations.read_facilities.v1`
         ///
         /// # Arguments
@@ -261,7 +261,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationFacilities>, Error>
         url = "{}/corporations/{}/facilities";
         label = "industry facilities";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_facilities()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_facilities()).build();
     }
 
     define_endpoint! {
@@ -298,7 +298,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMedals>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_medals`](crate::scope::CorporationScopes::read_medals):
+        /// - [`CorporationsScopes::read_medals`](crate::scope::CorporationsScopes::read_medals):
         ///   `esi-corporations.read_medals.v1`
         ///
         /// # Arguments
@@ -317,7 +317,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationMedal>, Error>
         url = "{}/corporations/{}/medals?page={}";
         label = "medals";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_medals()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
 
     define_endpoint! {
@@ -335,7 +335,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMedalsIssued>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_medals`](crate::scope::CorporationScopes::read_medals):
+        /// - [`CorporationsScopes::read_medals`](crate::scope::CorporationsScopes::read_medals):
         ///   `esi-corporations.read_medals.v1`
         ///
         /// # Arguments
@@ -354,7 +354,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationIssuedMedal>, Error>
         url = "{}/corporations/{}/medals/issued?page={}";
         label = "medals";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_medals()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
 
     define_endpoint! {
@@ -366,7 +366,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembers>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_corporation_membership`](crate::scope::CorporationScopes::read_corporation_membership):
+        /// - [`CorporationsScopes::read_corporation_membership`](crate::scope::CorporationsScopes::read_corporation_membership):
         ///   `esi-corporations.read_corporation_membership.v1`
         ///
         /// # Arguments
@@ -383,7 +383,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<i64>, Error>
         url = "{}/corporations/{}/members";
         label = "character IDs of all members";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
     }
 
     define_endpoint! {
@@ -398,7 +398,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembersLimit>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::track_members`](crate::scope::CorporationScopes::track_members):
+        /// - [`CorporationsScopes::track_members`](crate::scope::CorporationsScopes::track_members):
         ///   `esi-corporations.track_members.v1`
         ///
         /// # Arguments
@@ -415,7 +415,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<i64, Error>
         url = "{}/corporations/{}/members/limit";
         label = "member limit";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().track_members()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().track_members()).build();
     }
 
     define_endpoint! {
@@ -430,7 +430,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembersTitles>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_titles`](crate::scope::CorporationScopes::read_titles):
+        /// - [`CorporationsScopes::read_titles`](crate::scope::CorporationsScopes::read_titles):
         ///   `esi-corporations.read_titles.v1`
         ///
         /// # Arguments
@@ -447,7 +447,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationMemberTitles>, Error>
         url = "{}/corporations/{}/members/titles";
         label = "member titles";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_titles()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_titles()).build();
     }
 
     define_endpoint! {
@@ -462,7 +462,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembertracking>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::track_members`](crate::scope::CorporationScopes::track_members):
+        /// - [`CorporationsScopes::track_members`](crate::scope::CorporationsScopes::track_members):
         ///   `esi-corporations.track_members.v1`
         ///
         /// # Arguments
@@ -480,7 +480,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationMemberTracking>, Error>
         url = "{}/corporations/{}/membertracking";
         label = "member tracking";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().track_members()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().track_members()).build();
     }
 
     define_endpoint! {
@@ -495,7 +495,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdRoles>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_corporation_membership`](crate::scope::CorporationScopes::read_corporation_membership):
+        /// - [`CorporationsScopes::read_corporation_membership`](crate::scope::CorporationsScopes::read_corporation_membership):
         ///   `esi-corporations.read_corporation_membership.v1`
         ///
         /// # Arguments
@@ -513,7 +513,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationMemberRoles>, Error>
         url = "{}/corporations/{}/roles";
         label = "member roles";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
     }
 
     define_endpoint! {
@@ -528,7 +528,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdRolesHistory>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_corporation_membership`](crate::scope::CorporationScopes::read_corporation_membership):
+        /// - [`CorporationsScopes::read_corporation_membership`](crate::scope::CorporationsScopes::read_corporation_membership):
         ///   `esi-corporations.read_corporation_membership.v1`
         ///
         /// # Arguments
@@ -548,7 +548,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationMemberRolesHistory>, Error>
         url = "{}/corporations/{}/roles/history?page={}";
         label = "member roles";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_corporation_membership()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
     }
 
     define_endpoint! {
@@ -594,7 +594,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStandings>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_standings`](crate::scope::CorporationScopes::read_standings):
+        /// - [`CorporationsScopes::read_standings`](crate::scope::CorporationsScopes::read_standings):
         ///   `esi-corporations.read_standings.v1`
         ///
         /// # Arguments
@@ -613,7 +613,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<Standing>, Error>
         url = "{}/corporations/{}/standings?page={}";
         label = "NPC standings";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_standings()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_standings()).build();
     }
 
     define_endpoint! {
@@ -628,7 +628,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStarbases>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_starbases`](crate::scope::CorporationScopes::read_starbases):
+        /// - [`CorporationsScopes::read_starbases`](crate::scope::CorporationsScopes::read_starbases):
         ///   `esi-corporations.read_starbases.v1`
         ///
         /// # Arguments
@@ -647,7 +647,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationStarbase>, Error>
         url = "{}/corporations/{}/starbases?page={}";
         label = "starbases (POSes)";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_starbases()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_starbases()).build();
     }
 
     define_endpoint! {
@@ -662,7 +662,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStarbasesStarbaseId>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_starbases`](crate::scope::CorporationScopes::read_starbases):
+        /// - [`CorporationsScopes::read_starbases`](crate::scope::CorporationsScopes::read_starbases):
         ///   `esi-corporations.read_starbases.v1`
         ///
         /// # Arguments
@@ -683,7 +683,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<CorporationStarbaseDetails, Error>
         url = "{}/corporations/{}/starbases/{}?system_id={}";
         label = "a starbase's (POS) details";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_starbases()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_starbases()).build();
     }
 
     define_endpoint! {
@@ -698,7 +698,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdStructures>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_structures`](crate::scope::CorporationScopes::read_structures):
+        /// - [`CorporationsScopes::read_structures`](crate::scope::CorporationsScopes::read_structures):
         ///   `esi-corporations.read_structures.v1`
         ///
         /// # Arguments
@@ -717,7 +717,7 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationStructure>, Error>
         url = "{}/corporations/{}/structures?page={}";
         label = "structures";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_structures()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_structures()).build();
     }
 
     define_endpoint! {
@@ -732,7 +732,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdTitles>
         ///
         /// # Required Scopes
-        /// - [`CorporationScopes::read_titles`](crate::scope::CorporationScopes::read_titles):
+        /// - [`CorporationsScopes::read_titles`](crate::scope::CorporationsScopes::read_titles):
         ///   `esi-corporations.read_titles.v1`
         ///
         /// # Arguments
@@ -749,6 +749,6 @@ impl<'a> CorporationEndpoints<'a> {
         ) -> Result<Vec<CorporationTitle>, Error>
         url = "{}/corporations/{}/titles";
         label = "titles";
-        required_scopes = ScopeBuilder::new().corporation(CorporationScopes::new().read_titles()).build();
+        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_titles()).build();
     }
 }
