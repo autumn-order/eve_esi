@@ -160,7 +160,7 @@ impl Client {
     /// Access to calendar ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn calendar(&self) -> CalendarEndpoints<'_> {
+    pub fn calendar(&self) -> CalendarEndpoints<'_> {
         CalendarEndpoints::new(self)
     }
 
