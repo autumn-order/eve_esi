@@ -33,3 +33,16 @@ impl PlanetsScopes {
         PlanetsScopes::new()
     }
 }
+
+#[cfg(test)]
+mod planets_scopes_tests {
+    use crate::scope::PlanetsScopes;
+
+    /// Tests initializing a default instance of [`PlanetsScopes`]
+    #[test]
+    fn test_planets_scopes_default() {
+        let planets_scopes = PlanetsScopes::default();
+
+        assert_eq!(planets_scopes.scopes.len(), 0)
+    }
+}

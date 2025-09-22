@@ -33,3 +33,16 @@ impl AlliancesScopes {
         AlliancesScopes::new()
     }
 }
+
+#[cfg(test)]
+mod alliances_scopes_tests {
+    use crate::scope::AlliancesScopes;
+
+    /// Tests initializing a default instance of [`AlliancesScopes`]
+    #[test]
+    fn test_alliances_scopes_default() {
+        let alliances_scopes = AlliancesScopes::default();
+
+        assert_eq!(alliances_scopes.scopes.len(), 0)
+    }
+}

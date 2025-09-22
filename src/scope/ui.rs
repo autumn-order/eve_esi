@@ -33,3 +33,16 @@ impl UiScopes {
         UiScopes::new()
     }
 }
+
+#[cfg(test)]
+mod ui_scopes_tests {
+    use crate::scope::UiScopes;
+
+    /// Tests initializing a default instance of [`UiScopes`]
+    #[test]
+    fn test_ui_scopes_default() {
+        let ui_scopes = UiScopes::default();
+
+        assert_eq!(ui_scopes.scopes.len(), 0)
+    }
+}

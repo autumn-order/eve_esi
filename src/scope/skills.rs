@@ -33,3 +33,16 @@ impl SkillsScopes {
         SkillsScopes::new()
     }
 }
+
+#[cfg(test)]
+mod skills_scopes_tests {
+    use crate::scope::SkillsScopes;
+
+    /// Tests initializing a default instance of [`SkillsScopes`]
+    #[test]
+    fn test_skills_scopes_default() {
+        let skills_scopes = SkillsScopes::default();
+
+        assert_eq!(skills_scopes.scopes.len(), 0)
+    }
+}

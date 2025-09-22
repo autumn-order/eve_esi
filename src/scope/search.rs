@@ -33,3 +33,16 @@ impl SearchScopes {
         SearchScopes::new()
     }
 }
+
+#[cfg(test)]
+mod search_scopes_tests {
+    use crate::scope::SearchScopes;
+
+    /// Tests initializing a default instance of [`SearchScopes`]
+    #[test]
+    fn test_search_scopes_default() {
+        let search_scopes = SearchScopes::default();
+
+        assert_eq!(search_scopes.scopes.len(), 0)
+    }
+}

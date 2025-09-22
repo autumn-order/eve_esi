@@ -33,3 +33,16 @@ impl ContractsScopes {
         ContractsScopes::new()
     }
 }
+
+#[cfg(test)]
+mod contracts_scopes_tests {
+    use crate::scope::ContractsScopes;
+
+    /// Tests initializing a default instance of [`ContractsScopes`]
+    #[test]
+    fn test_contracts_scopes_default() {
+        let contracts_scopes = ContractsScopes::default();
+
+        assert_eq!(contracts_scopes.scopes.len(), 0)
+    }
+}

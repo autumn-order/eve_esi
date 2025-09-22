@@ -33,3 +33,16 @@ impl FittingsScopes {
         FittingsScopes::new()
     }
 }
+
+#[cfg(test)]
+mod fittings_scopes_tests {
+    use crate::scope::FittingsScopes;
+
+    /// Tests initializing a default instance of [`FittingsScopes`]
+    #[test]
+    fn test_fittings_scopes_default() {
+        let fittings_scopes = FittingsScopes::default();
+
+        assert_eq!(fittings_scopes.scopes.len(), 0)
+    }
+}

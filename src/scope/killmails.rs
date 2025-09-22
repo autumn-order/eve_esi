@@ -33,3 +33,16 @@ impl KillmailsScopes {
         KillmailsScopes::new()
     }
 }
+
+#[cfg(test)]
+mod killmails_scopes_tests {
+    use crate::scope::KillmailsScopes;
+
+    /// Tests initializing a default instance of [`KillmailsScopes`]
+    #[test]
+    fn test_killmails_scopes_default() {
+        let killmails_scopes = KillmailsScopes::default();
+
+        assert_eq!(killmails_scopes.scopes.len(), 0)
+    }
+}

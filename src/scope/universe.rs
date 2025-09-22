@@ -33,3 +33,16 @@ impl UniverseScopes {
         UniverseScopes::new()
     }
 }
+
+#[cfg(test)]
+mod universe_scopes_tests {
+    use crate::scope::UniverseScopes;
+
+    /// Tests initializing a default instance of [`UniverseScopes`]
+    #[test]
+    fn test_universe_scopes_default() {
+        let universe_scopes = UniverseScopes::default();
+
+        assert_eq!(universe_scopes.scopes.len(), 0)
+    }
+}

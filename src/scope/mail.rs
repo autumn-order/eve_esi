@@ -33,3 +33,16 @@ impl MailScopes {
         MailScopes::new()
     }
 }
+
+#[cfg(test)]
+mod mail_scopes_tests {
+    use crate::scope::MailScopes;
+
+    /// Tests initializing a default instance of [`MailScopes`]
+    #[test]
+    fn test_mail_scopes_default() {
+        let mail_scopes = MailScopes::default();
+
+        assert_eq!(mail_scopes.scopes.len(), 0)
+    }
+}

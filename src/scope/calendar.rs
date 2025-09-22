@@ -33,3 +33,16 @@ impl CalendarScopes {
         CalendarScopes::new()
     }
 }
+
+#[cfg(test)]
+mod calendar_scopes_tests {
+    use crate::scope::CalendarScopes;
+
+    /// Tests initializing a default instance of [`CalendarScopes`]
+    #[test]
+    fn test_calendar_scopes_default() {
+        let calendar_scopes = CalendarScopes::default();
+
+        assert_eq!(calendar_scopes.scopes.len(), 0)
+    }
+}

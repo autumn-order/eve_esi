@@ -33,3 +33,16 @@ impl AssetsScopes {
         AssetsScopes::new()
     }
 }
+
+#[cfg(test)]
+mod assets_scopes_tests {
+    use crate::scope::AssetsScopes;
+
+    /// Tests initializing a default instance of [`AssetsScopes`]
+    #[test]
+    fn test_assets_scopes_default() {
+        let assets_scopes = AssetsScopes::default();
+
+        assert_eq!(assets_scopes.scopes.len(), 0)
+    }
+}

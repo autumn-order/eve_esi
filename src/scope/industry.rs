@@ -33,3 +33,16 @@ impl IndustryScopes {
         IndustryScopes::new()
     }
 }
+
+#[cfg(test)]
+mod industry_scopes_tests {
+    use crate::scope::IndustryScopes;
+
+    /// Tests initializing a default instance of [`IndustryScopes`]
+    #[test]
+    fn test_industry_scopes_default() {
+        let industry_scopes = IndustryScopes::default();
+
+        assert_eq!(industry_scopes.scopes.len(), 0)
+    }
+}

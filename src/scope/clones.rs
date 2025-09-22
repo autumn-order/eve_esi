@@ -33,3 +33,16 @@ impl ClonesScopes {
         ClonesScopes::new()
     }
 }
+
+#[cfg(test)]
+mod clones_scopes_tests {
+    use crate::scope::ClonesScopes;
+
+    /// Tests initializing a default instance of [`ClonesScopes`]
+    #[test]
+    fn test_clones_scopes_default() {
+        let clones_scopes = ClonesScopes::default();
+
+        assert_eq!(clones_scopes.scopes.len(), 0)
+    }
+}

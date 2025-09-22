@@ -150,8 +150,8 @@ mod character_scopes_tests {
     /// Tests initializing a default instance of [`CharactersScopes`]
     #[test]
     fn test_character_scopes_default() {
-        let character_scopes = CharactersScopes::default();
+        let characters_scopes = CharactersScopes::default();
 
-        assert_eq!(character_scopes.scopes.len(), 0)
+        assert_eq!(characters_scopes.scopes.len(), 0)
     }
 }

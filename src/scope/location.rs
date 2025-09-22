@@ -33,3 +33,16 @@ impl LocationScopes {
         LocationScopes::new()
     }
 }
+
+#[cfg(test)]
+mod location_scopes_tests {
+    use crate::scope::LocationScopes;
+
+    /// Tests initializing a default instance of [`LocationScopes`]
+    #[test]
+    fn test_location_scopes_default() {
+        let location_scopes = LocationScopes::default();
+
+        assert_eq!(location_scopes.scopes.len(), 0)
+    }
+}

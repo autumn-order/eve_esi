@@ -33,3 +33,16 @@ impl FleetsScopes {
         FleetsScopes::new()
     }
 }
+
+#[cfg(test)]
+mod fleets_scopes_tests {
+    use crate::scope::FleetsScopes;
+
+    /// Tests initializing a default instance of [`FleetsScopes`]
+    #[test]
+    fn test_fleets_scopes_default() {
+        let fleets_scopes = FleetsScopes::default();
+
+        assert_eq!(fleets_scopes.scopes.len(), 0)
+    }
+}

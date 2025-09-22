@@ -77,8 +77,8 @@ mod market_scopes_tests {
     /// Tests initializing a default instance of [`MarketsScopes`]
     #[test]
     fn test_market_scopes_default() {
-        let market_scopes = MarketsScopes::default();
+        let markets_scopes = MarketsScopes::default();
 
-        assert_eq!(market_scopes.scopes.len(), 0)
+        assert_eq!(markets_scopes.scopes.len(), 0)
     }
 }
