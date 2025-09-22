@@ -7,6 +7,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::model::enums::asset::LocationType;
+
 use super::enums::asset::LocationFlag;
 
 /// Information regarding a character's blueprints
@@ -34,4 +36,28 @@ pub struct Blueprint {
     pub time_efficiency: i64,
     /// Represents the type of blueprint
     pub type_id: i64,
+}
+
+/// An asset in EVE Online
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct Asset {
+    /// If item is a blueprint, bool indicating whether or not it is a copy
+    is_blueprint_copy: Option<bool>,
+    /// If item is stackable or not
+    is_singleton: bool,
+    /// Unique ID of the item
+    item_id: i64,
+    /// Flag indicating the location of the item
+    location_flag: LocationFlag,
+    /// ID of the item's location
+    location_id: i64,
+    /// The type of location ID
+    location_type: LocationType,
+    /// The quantity of the item
+    quantity: i64,
+    /// Type ID of the item
+    type_id: i64,
 }

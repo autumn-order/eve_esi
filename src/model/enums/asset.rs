@@ -7,6 +7,26 @@
 
 use serde::{Deserialize, Serialize};
 
+/// The type of location for the [`LocationFlag`]
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum LocationType {
+    /// Item location type is a station
+    #[serde(rename = "station")]
+    Station,
+    /// Item location type is a solar system
+    #[serde(rename = "solar_sytem")]
+    SolarSystem,
+    /// Item location type is within an item
+    #[serde(rename = "item")]
+    Item,
+    /// Item location type is other
+    #[serde(rename = "other")]
+    Other,
+}
+
 /// Indicates where an item, module, or ship in EVE Online is located
 ///
 /// This enum represents the location of items, ships, and modules returned by primarily assets
