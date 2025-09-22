@@ -9,8 +9,9 @@
 //! | ----------------------------------------- | ------------------------------------------------------------------ |
 //! | [`SearchScopes::new`]                     | Creates a new instance of [`SearchScopes`]                         |
 //! | [`SearchScopes::all`]                     | Creates a new instance of [`SearchScopes`] with all scopes applied |
+//! | [`SearchScopes::search_structures`]       | Access to search for structures character has access to            |
 
-/// Access to search structures character has access to
+/// Access to search for structures character has access to
 pub const SEARCH_STRUCTURES: &str = "esi-search.search_structures.v1";
 
 /// Struct with methods for listing search scopes to request for OAuth2
@@ -33,7 +34,15 @@ impl SearchScopes {
 
     /// Creates a new instance of [`SearchScopes`] with all scopes applied
     pub fn all() -> Self {
-        SearchScopes::new()
+        SearchScopes::new().search_structures()
+    }
+
+    /// Access to search for structures character has access to
+    ///
+    /// Adds the `esi-search.search_structures.v1` scope
+    pub fn search_structures(mut self) -> Self {
+        self.scopes.push(SEARCH_STRUCTURES.to_string());
+        self
     }
 }
 

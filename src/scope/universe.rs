@@ -9,6 +9,7 @@
 //! | ------------------------------------------- | -------------------------------------------------------------------- |
 //! | [`UniverseScopes::new`]                     | Creates a new instance of [`UniverseScopes`]                         |
 //! | [`UniverseScopes::all`]                     | Creates a new instance of [`UniverseScopes`] with all scopes applied |
+//! | [`UniverseScopes::read_structures`]         | Read access to information on structures character has access to     |
 
 /// Read access to information on structures character has access to
 pub const READ_STRUCTURES: &str = "esi-universe.read_structures.v1";
@@ -33,7 +34,15 @@ impl UniverseScopes {
 
     /// Creates a new instance of [`UniverseScopes`] with all scopes applied
     pub fn all() -> Self {
-        UniverseScopes::new()
+        UniverseScopes::new().read_structures()
+    }
+
+    /// Read access to information on structures character has access to
+    ///
+    /// Adds the `esi-universe.read_structures.v1` scope
+    pub fn read_structures(mut self) -> Self {
+        self.scopes.push(READ_STRUCTURES.to_string());
+        self
     }
 }
 

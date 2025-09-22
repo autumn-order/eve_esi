@@ -9,10 +9,12 @@
 //! | ----------------------------------------- | ------------------------------------------------------------------ |
 //! | [`FleetsScopes::new`]                     | Creates a new instance of [`FleetsScopes`]                         |
 //! | [`FleetsScopes::all`]                     | Creates a new instance of [`FleetsScopes`] with all scopes applied |
+//! | [`FleetsScopes::read_fleet`]              | Read access to character fleet information                         |
+//! | [`FleetsScopes::write_fleet`]             | Write access to fleet if character holds sufficient fleet roles    |
 
 /// Read access to character fleet information
 pub const READ_FLEET: &str = "esi-fleets.read_fleet.v1";
-/// Write access to fleet if character holds fleet sufficient roles
+/// Write access to fleet if character holds sufficient fleet roles
 pub const WRITE_FLEET: &str = "esi-fleets.write_fleet.v1";
 
 /// Struct with methods for listing fleet scopes to request for OAuth2
@@ -35,7 +37,23 @@ impl FleetsScopes {
 
     /// Creates a new instance of [`FleetsScopes`] with all scopes applied
     pub fn all() -> Self {
-        FleetsScopes::new()
+        FleetsScopes::new().read_fleet().write_fleet()
+    }
+
+    /// Read access to character fleet information
+    ///
+    /// Adds the `esi-fittings.read_fittings.v1` scope
+    pub fn read_fleet(mut self) -> Self {
+        self.scopes.push(READ_FLEET.to_string());
+        self
+    }
+
+    /// Write access to fleet if character holds sufficient fleet roles
+    ///
+    /// Adds the `esi-fittings.write_fittings.v1` scope
+    pub fn write_fleet(mut self) -> Self {
+        self.scopes.push(WRITE_FLEET.to_string());
+        self
     }
 }
 

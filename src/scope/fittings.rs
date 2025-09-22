@@ -9,6 +9,8 @@
 //! | ------------------------------------------- | -------------------------------------------------------------------- |
 //! | [`FittingsScopes::new`]                     | Creates a new instance of [`FittingsScopes`]                         |
 //! | [`FittingsScopes::all`]                     | Creates a new instance of [`FittingsScopes`] with all scopes applied |
+//! | [`FittingsScopes::read_fittings`]           | Read access to character fittings                                    |
+//! | [`FittingsScopes::write_fittings`]          | Write access to character fittings                                   |
 
 /// Read access to character fittings
 pub const READ_FITTINGS: &str = "esi-fittings.read_fittings.v1";
@@ -35,7 +37,23 @@ impl FittingsScopes {
 
     /// Creates a new instance of [`FittingsScopes`] with all scopes applied
     pub fn all() -> Self {
-        FittingsScopes::new()
+        FittingsScopes::new().read_fittings().write_fittings()
+    }
+
+    /// Read access to character fittings
+    ///
+    /// Adds the `esi-fittings.read_fittings.v1` scope
+    pub fn read_fittings(mut self) -> Self {
+        self.scopes.push(READ_FITTINGS.to_string());
+        self
+    }
+
+    /// Write access to character fittings
+    ///
+    /// Adds the `esi-fittings.write_fittings.v1` scope
+    pub fn write_fittings(mut self) -> Self {
+        self.scopes.push(WRITE_FITTINGS.to_string());
+        self
     }
 }
 

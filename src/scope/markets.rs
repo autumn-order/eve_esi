@@ -43,6 +43,7 @@ impl MarketsScopes {
         MarketsScopes::new()
             .read_character_orders()
             .read_corporation_orders()
+            .structure_markets()
     }
 
     /// Access to retrieve information on character's market orders

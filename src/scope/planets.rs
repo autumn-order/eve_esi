@@ -9,6 +9,8 @@
 //! | ------------------------------------------ | ------------------------------------------------------------------- |
 //! | [`PlanetsScopes::new`]                     | Creates a new instance of [`PlanetsScopes`]                         |
 //! | [`PlanetsScopes::all`]                     | Creates a new instance of [`PlanetsScopes`] with all scopes applied |
+//! | [`PlanetsScopes::manage_planets`]          | Read access to character's planetary interaction                    |
+//! | [`PlanetsScopes::read_customs_offices`]    | Read access to corporation-owned customs offices                    |
 
 /// Read access to character's planetary interaction
 pub const MANAGE_PLANETS: &str = "esi-planets.manage_planets.v1";
@@ -35,7 +37,23 @@ impl PlanetsScopes {
 
     /// Creates a new instance of [`PlanetsScopes`] with all scopes applied
     pub fn all() -> Self {
-        PlanetsScopes::new()
+        PlanetsScopes::new().manage_planets().read_customs_offices()
+    }
+
+    /// Read access to character's planetary interaction
+    ///
+    /// Adds the `esi-planets.manage_planets.v1` scope
+    pub fn manage_planets(mut self) -> Self {
+        self.scopes.push(MANAGE_PLANETS.to_string());
+        self
+    }
+
+    /// Read access to corporation-owned customs offices
+    ///
+    /// Adds the `esi-planets.read_customs_offices.v1` scope
+    pub fn read_customs_offices(mut self) -> Self {
+        self.scopes.push(READ_CUSTOMS_OFFICES.to_string());
+        self
     }
 }
 

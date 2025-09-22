@@ -9,6 +9,9 @@
 //! | ----------------------------------------- | ---------------------------------------------------------------- |
 //! | [`MailScopes::new`]                       | Creates a new instance of [`MailScopes`]                         |
 //! | [`MailScopes::all`]                       | Creates a new instance of [`MailScopes`] with all scopes applied |
+//! | [`MailScopes::organize_mail`]             | Access to organize character's mail                              |
+//! | [`MailScopes::read_mail`]                 | Read access to character's eve mails                             |
+//! | [`MailScopes::send_mail`]                 | Write access to send eve mails on behalf of character            |
 
 /// Access to organize character's mail
 pub const ORGANIZE_MAIL: &str = "esi-mail.organize_mail.v1";
@@ -37,7 +40,31 @@ impl MailScopes {
 
     /// Creates a new instance of [`MailScopes`] with all scopes applied
     pub fn all() -> Self {
-        MailScopes::new()
+        MailScopes::new().organize_mail().read_mail().send_mail()
+    }
+
+    /// Access to organize character's mail
+    ///
+    /// Adds the `esi-mail.organize_mail.v1` scope
+    pub fn organize_mail(mut self) -> Self {
+        self.scopes.push(ORGANIZE_MAIL.to_string());
+        self
+    }
+
+    /// Read access to character's eve mails
+    ///
+    /// Adds the `esi-mail.read_mail.v1` scope
+    pub fn read_mail(mut self) -> Self {
+        self.scopes.push(READ_MAIL.to_string());
+        self
+    }
+
+    /// Write access to send eve mails on behalf of character
+    ///
+    /// Adds the `esi-mail.send_mail.v1` scope
+    pub fn send_mail(mut self) -> Self {
+        self.scopes.push(SEND_MAIL.to_string());
+        self
     }
 }
 

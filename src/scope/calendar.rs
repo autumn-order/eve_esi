@@ -9,8 +9,10 @@
 //! | ------------------------------------------- | -------------------------------------------------------------------- |
 //! | [`CalendarScopes::new`]                     | Creates a new instance of [`CalendarScopes`]                         |
 //! | [`CalendarScopes::all`]                     | Creates a new instance of [`CalendarScopes`] with all scopes applied |
+//! | [`CalendarScopes::read_calendar_events`]    | Read access to calendar events                                       |
+//! | [`CalendarScopes::respond_calendar_events`] | Access to respond to calendar events on behalf of the character      |
 
-///Access to read calendar events
+/// Read access to calendar events
 pub const READ_CALENDAR_EVENTS: &str = "esi-calendar.read_calendar_events.v1";
 /// Access to respond to calendar events on behalf of the character
 pub const RESPOND_CALENDAR_EVENTS: &str = "esi-calendar.respond_calendar_events.v1";
@@ -36,6 +38,24 @@ impl CalendarScopes {
     /// Creates a new instance of [`CalendarScopes`] with all scopes applied
     pub fn all() -> Self {
         CalendarScopes::new()
+            .read_calendar_events()
+            .respond_calendar_events()
+    }
+
+    /// Read access to calendar events
+    ///
+    /// Adds the `esi-calendar.read_calendar_events.v1` scope
+    pub fn read_calendar_events(mut self) -> Self {
+        self.scopes.push(READ_CALENDAR_EVENTS.to_string());
+        self
+    }
+
+    /// Access to respond to calendar events on behalf of the character
+    ///
+    /// Adds the `esi-calendar.respond_calendar_events.v1` scope
+    pub fn respond_calendar_events(mut self) -> Self {
+        self.scopes.push(RESPOND_CALENDAR_EVENTS.to_string());
+        self
     }
 }
 

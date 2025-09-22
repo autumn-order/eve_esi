@@ -18,6 +18,10 @@
 //! | [`CharactersScopes::read_corporation_roles`] | Access to read the character's corporation roles                       |
 //! | [`CharactersScopes::read_standings`]         | Access to read the character's standings                               |
 //! | [`CharactersScopes::read_titles`]            | Access to read the character's corporation titles                      |
+//! | [`CharactersScopes::read_chat_channels`]     | Access to read chat channels character is in                           |
+//! | [`CharactersScopes::read_fw_stats`]          | Access to retrieve character's faction warfare stats                   |
+//! | [`CharactersScopes::read_loyalty`]           | Access to retrieve character's loyalty point information               |
+//! | [`CharactersScopes::write_contacts`]         | Access to add/modify character contacts                                |
 
 /// Access to retrieve information on character's research agents
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";
@@ -69,13 +73,17 @@ impl CharactersScopes {
         CharactersScopes::new()
             .read_agents_research()
             .read_blueprints()
+            .read_chat_channels()
             .read_contacts()
+            .read_corporation_roles()
             .read_fatigue()
+            .read_fw_stats()
+            .read_loyalty()
             .read_medals()
             .read_notifications()
-            .read_corporation_roles()
             .read_standings()
             .read_titles()
+            .write_contacts()
     }
 
     /// Access to retrieve information on character's research agents
@@ -91,6 +99,14 @@ impl CharactersScopes {
     /// Adds the `esi-characters.read_blueprints.v1` scope
     pub fn read_blueprints(mut self) -> Self {
         self.scopes.push(READ_BLUEPRINTS.to_string());
+        self
+    }
+
+    /// Access to read chat channels character is in (does not include channel messages)
+    ///
+    /// Adds the `esi-characters.read_chat_channels.v1` scope
+    pub fn read_chat_channels(mut self) -> Self {
+        self.scopes.push(READ_CHAT_CHANNELS.to_string());
         self
     }
 
@@ -115,6 +131,22 @@ impl CharactersScopes {
     /// Adds the `esi-characters.read_fatigue.v1` scope
     pub fn read_fatigue(mut self) -> Self {
         self.scopes.push(READ_FATIGUE.to_string());
+        self
+    }
+
+    /// Access to retrieve character's faction warfare stats
+    ///
+    /// Adds the `esi-characters.read_fw_stats.v1` scope
+    pub fn read_fw_stats(mut self) -> Self {
+        self.scopes.push(READ_FW_STATS.to_string());
+        self
+    }
+
+    /// Access to retrieve character's loyalty point information
+    ///
+    /// Adds the `esi-characters.read_loyalty.v1` scope
+    pub fn read_loyalty(mut self) -> Self {
+        self.scopes.push(READ_LOYALTY.to_string());
         self
     }
 
@@ -147,6 +179,14 @@ impl CharactersScopes {
     /// Adds the `esi-characters.read_titles.v1` scope
     pub fn read_titles(mut self) -> Self {
         self.scopes.push(READ_TITLES.to_string());
+        self
+    }
+
+    /// Access to add/modify character contacts
+    ///
+    /// Adds the `esi-characters.write_contacts.v1` scope
+    pub fn write_contacts(mut self) -> Self {
+        self.scopes.push(WRITE_CONTACTS.to_string());
         self
     }
 }

@@ -9,8 +9,9 @@
 //! | -------------------------------------------- | --------------------------------------------------------------------- |
 //! | [`AlliancesScopes::new`]                     | Creates a new instance of [`AlliancesScopes`]                         |
 //! | [`AlliancesScopes::all`]                     | Creates a new instance of [`AlliancesScopes`] with all scopes applied |
+//! | [`AlliancesScopes::read_contacts`]           | Read access to alliance contact information                           |
 
-/// Access to read alliance contact information
+/// Read access to alliance contact information
 pub const READ_CONTACTS: &str = "esi-alliances.read_contacts.v1";
 
 /// Struct with methods for listing alliance scopes to request for OAuth2
@@ -33,7 +34,15 @@ impl AlliancesScopes {
 
     /// Creates a new instance of [`AlliancesScopes`] with all scopes applied
     pub fn all() -> Self {
-        AlliancesScopes::new()
+        AlliancesScopes::new().read_contacts()
+    }
+
+    /// Read access to alliance contact information
+    ///
+    /// Adds the `esi-alliances.read_contacts.v1` scope
+    pub fn read_contacts(mut self) -> Self {
+        self.scopes.push(READ_CONTACTS.to_string());
+        self
     }
 }
 

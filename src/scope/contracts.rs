@@ -5,10 +5,12 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                       | Description                                                           |
-//! | -------------------------------------------- | --------------------------------------------------------------------- |
-//! | [`ContractsScopes::new`]                     | Creates a new instance of [`ContractsScopes`]                         |
-//! | [`ContractsScopes::all`]                     | Creates a new instance of [`ContractsScopes`] with all scopes applied |
+//! | Method                                          | Description                                                           |
+//! | ----------------------------------------------- | --------------------------------------------------------------------- |
+//! | [`ContractsScopes::new`]                        | Creates a new instance of [`ContractsScopes`]                         |
+//! | [`ContractsScopes::all`]                        | Creates a new instance of [`ContractsScopes`] with all scopes applied |
+//! | [`ContractsScopes::read_character_contracts`]   | Read access to character contracts                                    |
+//! | [`ContractsScopes::read_corporation_contracts`] | Read access to corporation contracts                                  |
 
 /// Read access to character contracts
 pub const READ_CHARACTER_CONTRACTS: &str = "esi-contracts.read_character_contracts.v1";
@@ -36,6 +38,24 @@ impl ContractsScopes {
     /// Creates a new instance of [`ContractsScopes`] with all scopes applied
     pub fn all() -> Self {
         ContractsScopes::new()
+            .read_character_contracts()
+            .read_corporation_contracts()
+    }
+
+    /// Read access to character contracts
+    ///
+    /// Adds the `esi-contracts.read_character_contracts.v1` scope
+    pub fn read_character_contracts(mut self) -> Self {
+        self.scopes.push(READ_CHARACTER_CONTRACTS.to_string());
+        self
+    }
+
+    /// Read access to corporation contracts
+    ///
+    /// Adds the `esi-contracts.read_corporation_contracts.v1` scope
+    pub fn read_corporation_contracts(mut self) -> Self {
+        self.scopes.push(READ_CORPORATION_CONTRACTS.to_string());
+        self
     }
 }
 

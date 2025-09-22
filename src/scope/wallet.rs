@@ -9,11 +9,12 @@
 //! | ------------------------------------------ | --------------------------------------------------------------------- |
 //! | [`WalletScopes::new`]                      | Creates a new instance of [`WalletScopes`]                            |
 //! | [`WalletScopes::new`]                      | Creates a new instance of [`WalletScopes`] with all scopes applied    |
-//! | [`WalletScopes::read_corporation_wallets`] | Access to retrieve information for character's corporation wallets    |
+//! | [`WalletScopes::read_character_wallets`]   | Read access to character's wallet                                     |
+//! | [`WalletScopes::read_corporation_wallets`] | Read access to corporation's wallets                                  |
 
 /// Read access to character's wallet
 pub const READ_CHARACTER_WALLET: &str = "esi-wallet.read_character_wallet.v1";
-/// Access to retrieve information on corporation's wallets
+/// Read access to corporation's wallets
 pub const READ_CORPORATION_WALLETS: &str = "esi-wallet.read_corporation_wallets.v1";
 
 /// Struct with methods for listing wallet scopes to request for OAuth2
@@ -36,10 +37,20 @@ impl WalletScopes {
 
     /// Creates a new instance of [`WalletScopes`] with all scopes applied
     pub fn all() -> Self {
-        WalletScopes::new().read_corporation_wallets()
+        WalletScopes::new()
+            .read_character_wallets()
+            .read_corporation_wallets()
     }
 
-    /// Access to retrieve information for character's corporation wallets
+    /// Read access to character's wallet
+    ///
+    /// Adds the `esi-wallet.read_character_wallet.v1` scope
+    pub fn read_character_wallets(mut self) -> Self {
+        self.scopes.push(READ_CHARACTER_WALLET.to_string());
+        self
+    }
+
+    /// Read access to corporation's wallets
     ///
     /// Adds the `esi-wallet.read_corporation_wallets.v1` scope
     pub fn read_corporation_wallets(mut self) -> Self {

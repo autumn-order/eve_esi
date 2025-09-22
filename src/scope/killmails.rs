@@ -5,10 +5,12 @@
 //! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
 //!
 //! ## Methods
-//! | Method                                     | Description                                                           |
-//! | ------------------------------------------ | --------------------------------------------------------------------- |
-//! | [`KillmailsScopes::new`]                   | Creates a new instance of [`KillmailsScopes`]                         |
-//! | [`KillmailsScopes::all`]                   | Creates a new instance of [`KillmailsScopes`] with all scopes applied |
+//! | Method                                       | Description                                                           |
+//! | -------------------------------------------- | --------------------------------------------------------------------- |
+//! | [`KillmailsScopes::new`]                     | Creates a new instance of [`KillmailsScopes`]                         |
+//! | [`KillmailsScopes::all`]                     | Creates a new instance of [`KillmailsScopes`] with all scopes applied |
+//! | [`KillmailsScopes::read_corporation_jobs`]   | Read access to corporation killmails                                  |
+//! | [`KillmailsScopes::read_corporation_mining`] | Read access to character killmails                                    |
 
 /// Read access to corporation killmails
 pub const READ_CORPORATION_KILLMAILS: &str = "esi-killmails.read_corporation_killmails.v1";
@@ -36,6 +38,24 @@ impl KillmailsScopes {
     /// Creates a new instance of [`KillmailsScopes`] with all scopes applied
     pub fn all() -> Self {
         KillmailsScopes::new()
+            .read_corporation_killmails()
+            .read_killmails()
+    }
+
+    /// Read access to corporation killmails
+    ///
+    /// Adds the `esi-killmails.read_corporation_killmails.v1` scope
+    pub fn read_corporation_killmails(mut self) -> Self {
+        self.scopes.push(READ_CORPORATION_KILLMAILS.to_string());
+        self
+    }
+
+    /// Read access to character killmails
+    ///
+    /// Adds the `esi-killmails.read_killmails.v1` scope
+    pub fn read_killmails(mut self) -> Self {
+        self.scopes.push(READ_KILLMAILS.to_string());
+        self
     }
 }
 

@@ -9,6 +9,8 @@
 //! | ----------------------------------------- | ------------------------------------------------------------------ |
 //! | [`ClonesScopes::new`]                     | Creates a new instance of [`ClonesScopes`]                         |
 //! | [`ClonesScopes::all`]                     | Creates a new instance of [`ClonesScopes`] with all scopes applied |
+//! | [`ClonesScopes::read_clones`]             | Access to read information on character's clones                   |
+//! | [`ClonesScopes::read_implants`]           | Access to read character's implants                                |
 
 /// Access to read information on character's clones
 pub const READ_CLONES: &str = "esi-clones.read_clones.v1";
@@ -35,7 +37,23 @@ impl ClonesScopes {
 
     /// Creates a new instance of [`ClonesScopes`] with all scopes applied
     pub fn all() -> Self {
-        ClonesScopes::new()
+        ClonesScopes::new().read_clones().read_implants()
+    }
+
+    /// Access to read information on character's clones
+    ///
+    /// Adds the `esi-clones.read_clones.v1` scope
+    pub fn read_clones(mut self) -> Self {
+        self.scopes.push(READ_CLONES.to_string());
+        self
+    }
+
+    /// Access to read character's implants
+    ///
+    /// Adds the `esi-clones.read_implants.v1` scope
+    pub fn read_implants(mut self) -> Self {
+        self.scopes.push(READ_IMPLANTS.to_string());
+        self
     }
 }
 

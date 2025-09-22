@@ -9,6 +9,8 @@
 //! | ----------------------------------------- | ------------------------------------------------------------------ |
 //! | [`SkillsScopes::new`]                     | Creates a new instance of [`SkillsScopes`]                         |
 //! | [`SkillsScopes::all`]                     | Creates a new instance of [`SkillsScopes`] with all scopes applied |
+//! | [`SkillsScopes::read_skillqueue`]         | Read access to character's skill queue                             |
+//! | [`SkillsScopes::read_skills`]             | Read access to character's skills                                  |
 
 /// Read access to character's skill queue
 pub const READ_SKILLQUEUE: &str = "esi-skills.read_skillqueue.v1";
@@ -35,7 +37,23 @@ impl SkillsScopes {
 
     /// Creates a new instance of [`SkillsScopes`] with all scopes applied
     pub fn all() -> Self {
-        SkillsScopes::new()
+        SkillsScopes::new().read_skillqueue().read_skills()
+    }
+
+    /// Read access to character's skill queue
+    ///
+    /// Adds the `esi-skills.read_skillqueue.v1` scope
+    pub fn read_skillqueue(mut self) -> Self {
+        self.scopes.push(READ_SKILLQUEUE.to_string());
+        self
+    }
+
+    /// Read access to character's skills
+    ///
+    /// Adds the `esi-skills.read_skills.v1` scope
+    pub fn read_skills(mut self) -> Self {
+        self.scopes.push(READ_SKILLS.to_string());
+        self
     }
 }
 

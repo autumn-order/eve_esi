@@ -9,10 +9,12 @@
 //! | ----------------------------------------- | ------------------------------------------------------------------ |
 //! | [`AssetsScopes::new`]                     | Creates a new instance of [`AssetsScopes`]                         |
 //! | [`AssetsScopes::all`]                     | Creates a new instance of [`AssetsScopes`] with all scopes applied |
+//! | [`AssetsScopes::read_assets`]             | Read access to character's assets                                  |
+//! | [`AssetsScopes::read_corporation_assets`] | Read access to corporation's assets                                |
 
-/// Access to read character assets
+/// Read access to character's assets
 pub const READ_ASSETS: &str = "esi-assets.read_assets.v1";
-/// Access to read corporation assets
+/// Read access to corporation's assets
 pub const READ_CORPORATION_ASSETS: &str = "esi-assets.read_corporation_assets.v1";
 
 /// Struct with methods for listing asset scopes to request for OAuth2
@@ -35,7 +37,23 @@ impl AssetsScopes {
 
     /// Creates a new instance of [`AssetsScopes`] with all scopes applied
     pub fn all() -> Self {
-        AssetsScopes::new()
+        AssetsScopes::new().read_assets().read_corporation_assets()
+    }
+
+    /// Read access to character's assets
+    ///
+    /// Adds the `esi-assets.read_assets.v1` scope
+    pub fn read_assets(mut self) -> Self {
+        self.scopes.push(READ_ASSETS.to_string());
+        self
+    }
+
+    /// Read access to corporation's assets
+    ///
+    /// Adds the `esi-assets.read_corporation_assets.v1` scope
+    pub fn read_corporation_assets(mut self) -> Self {
+        self.scopes.push(READ_CORPORATION_ASSETS.to_string());
+        self
     }
 }
 
