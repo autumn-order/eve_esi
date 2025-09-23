@@ -8,9 +8,9 @@
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
-//! ## Endpoints (0)
+//! ## Endpoints (6)
 //!
-//! ### Authenticated (0)
+//! ### Authenticated (6)
 //!
 //! | Endpoint                                             | Description                                                                                       |
 //! | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -62,7 +62,7 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - Vec<[`Asset`]>: Paginated list of assets for the provided character ID
+        /// - `Vec<`[`Asset`]>`: Paginated list of assets for the provided character ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_character_assets(
             access_token: &str,
@@ -97,7 +97,7 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - Vec<[`Asset`]>: List of structs containing coordinates for items' location in space
+        /// - `Vec<`[`Asset`]`>`: List of structs containing coordinates for items' location in space
         /// - [`Error`]: An error if the fetch request fails
         auth_post get_character_asset_locations(
             access_token: &str,
@@ -135,7 +135,7 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - Vec<[`AssetName`]>: List of item names from list of item IDs & a character's ID
+        /// - `Vec<`[`AssetName`]`>`: List of item names from list of item IDs & a character's ID
         /// - [`Error`]: An error if the fetch request fails
         auth_post get_character_asset_names(
             access_token: &str,
@@ -168,7 +168,7 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - Vec<[`Asset`]>: Paginated list of assets for the provided corporation's ID
+        /// - `Vec<`[`Asset`]`>`: Paginated list of assets for the provided corporation's ID
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_assets(
             access_token: &str,
@@ -203,7 +203,7 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - Vec<[`Asset`]>: List of structs containing coordinates for items' location in space
+        /// - `Vec<`[`Asset`]`>`: List of structs containing coordinates for items' location in space
         /// - [`Error`]: An error if the fetch request fails
         auth_post get_corporation_asset_locations(
             access_token: &str,
@@ -241,7 +241,7 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - Vec<[`AssetName`]>: List of item names from list of item IDs & a corporation's ID
+        /// - `Vec<`[`AssetName`]`>`: List of item names from list of item IDs & a corporation's ID
         /// - [`Error`]: An error if the fetch request fails
         auth_post get_corporation_asset_names(
             access_token: &str,
