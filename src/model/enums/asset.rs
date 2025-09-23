@@ -3,9 +3,30 @@
 //! Provides enums related to assets in EVE Online
 //!
 //! ## Enums
+//! - [`LocationType`]: The type of location for an asset's location ID
 //! - [`LocationFlag`]: Indicates where an item, module, or ship in EVE Online is located
 
 use serde::{Deserialize, Serialize};
+
+/// The type of location for an asset's location ID
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum LocationType {
+    /// Item location type is a station
+    #[serde(rename = "station")]
+    Station,
+    /// Item location type is a solar system
+    #[serde(rename = "solar_sytem")]
+    SolarSystem,
+    /// Item location type is within an item
+    #[serde(rename = "item")]
+    Item,
+    /// Item location type is other
+    #[serde(rename = "other")]
+    Other,
+}
 
 /// Indicates where an item, module, or ship in EVE Online is located
 ///

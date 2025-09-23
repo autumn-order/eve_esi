@@ -153,14 +153,14 @@ impl Client {
     /// Access to assets ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn assets(&self) -> AssetsEndpoints<'_> {
+    pub fn assets(&self) -> AssetsEndpoints<'_> {
         AssetsEndpoints::new(self)
     }
 
     /// Access to calendar ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn calendar(&self) -> CalendarEndpoints<'_> {
+    pub fn calendar(&self) -> CalendarEndpoints<'_> {
         CalendarEndpoints::new(self)
     }
 
