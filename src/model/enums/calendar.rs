@@ -27,6 +27,26 @@ pub enum CalendarEventResponse {
     Tentative,
 }
 
+/// The response to send for a calendar event on behalf of a character
+///
+/// Differs from [`CalendarEventResponse`] in that it does not have the [`CalendarEventResponse::NotResponded`]
+/// variant.
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/operations/PutCharactersCharacterIdCalendarEventId>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum PutCalendarEventResponse {
+    /// Character declined calendar event
+    #[serde(rename = "declined")]
+    Declined,
+    /// Character accepted calendar event
+    #[serde(rename = "accepted")]
+    Accepted,
+    /// Character's calendar event attendance is tentative
+    #[serde(rename = "tentative")]
+    Tentative,
+}
+
 /// Represents a character's response to a calendar event
 ///
 /// # Documentation

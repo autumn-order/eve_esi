@@ -14,10 +14,15 @@
 //!
 //! | Endpoint                                             | Description                                                                                       |
 //! | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-//! | [`AssetsEndpoints::list_calendar_event_summaries`]   | Get list of summaries for the last 50 calendar events for provided character ID                   |
+//! | [`CalendarEndpoints::list_calendar_event_summaries`] | Get list of summaries for the last 50 calendar events for provided character ID                   |
+//! | [`CalendarEndpoints::get_an_event`]                  | Get all information for the provided calendar event ID                                            |
+//! | [`CalendarEndpoints::respond_to_an_event`]           | Respond to a calendar event on behalf of the provided character ID                                |
 
 use crate::{
-    model::calendar::{CalendarEvent, CalendarEventSummary},
+    model::{
+        calendar::{CalendarEvent, CalendarEventSummary},
+        enums::calendar::PutCalendarEventResponse,
+    },
     scope::CalendarScopes,
     Client, Error, ScopeBuilder,
 };
@@ -106,6 +111,41 @@ impl<'a> CalendarEndpoints<'a> {
         label = "calendar events";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().read_calendar_events())
+            .build();
+    }
+
+    define_endpoint! {
+        /// Respond to a calendar event on behalf of the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/PutCharactersCharacterIdCalendarEventId>
+        ///
+        /// # Required Scopes
+        /// - [`CalendarScopes::respond_calendar_events`](crate::scope::CalendarScopes::respond_calendar_events):
+        ///   `esi-assets.respond_calendar_events.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `event_response` ([`PutCalendarEventResponse`]): The response to send for the character
+        /// - `character_id`  (`i64`): The ID of the character to respond to the event on behalf of.
+        /// - `event_id`      (`i64`): The ID of the calendar event to respond to
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - (): If no error, response was successful
+        /// - [`Error`]: An error if the fetch request fails
+        auth_put respond_to_an_event(
+            access_token: &str,
+            event_response: PutCalendarEventResponse,
+            character_id: i64,
+            event_id: i64
+        ) -> Result<(), Error>
+        url = "{}/characters/{}/calendar/{}";
+        label = "respond to calendar event";
+        required_scopes = ScopeBuilder::new()
+            .calendar(CalendarScopes::new().respond_calendar_events())
             .build();
     }
 }

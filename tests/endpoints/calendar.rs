@@ -1,4 +1,6 @@
-use eve_esi::{scope::CalendarScopes, ScopeBuilder};
+use eve_esi::{
+    model::enums::calendar::PutCalendarEventResponse, scope::CalendarScopes, ScopeBuilder,
+};
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 
@@ -54,4 +56,23 @@ authenticated_endpoint_test! {
       "text": "string",
       "title": "string"
     }),
+}
+
+authenticated_endpoint_test! {
+    respond_to_an_event,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        let event_id = 1;
+        let response = PutCalendarEventResponse::Accepted;
+        esi_client
+            .calendar()
+            .respond_to_an_event(&access_token, response, character_id, event_id)
+            .await
+    },
+    request_type = "PUT",
+    url = "/characters/2114794365/calendar/1",
+    required_scopes = ScopeBuilder::new()
+        .calendar(CalendarScopes::new().respond_calendar_events())
+        .build();
+    mock_response = serde_json::json!(()),
 }
