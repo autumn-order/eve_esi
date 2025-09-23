@@ -56,3 +56,15 @@ pub struct CalendarEvent {
     /// Name of the event
     title: String,
 }
+
+/// An entry for a calendar event attendee character ID & their response to the event
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdCalendarEventIdAttendeesGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CalendarEventAttendee {
+    /// Unique ID of the character
+    character_id: i64,
+    /// Character's response to the event
+    event_response: CalendarEventResponse,
+}

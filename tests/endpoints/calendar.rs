@@ -76,3 +76,26 @@ authenticated_endpoint_test! {
         .build();
     mock_response = serde_json::json!(()),
 }
+
+authenticated_endpoint_test! {
+    get_attendees,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        let event_id = 1;
+        esi_client
+            .calendar()
+            .get_attendees(&access_token, character_id, event_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/calendar/1/attendees",
+    required_scopes = ScopeBuilder::new()
+        .calendar(CalendarScopes::new().read_calendar_events())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "character_id": 0,
+        "event_response": "declined"
+      }
+    ]),
+}
