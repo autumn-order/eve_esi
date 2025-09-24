@@ -176,7 +176,7 @@ impl Client {
     /// Access to clones ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn clones(&self) -> ClonesEndpoints<'_> {
+    pub fn clones(&self) -> ClonesEndpoints<'_> {
         ClonesEndpoints::new(self)
     }
 

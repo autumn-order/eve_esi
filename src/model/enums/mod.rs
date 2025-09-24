@@ -11,6 +11,7 @@
 pub mod asset;
 pub mod calendar;
 pub mod character;
+pub mod clones;
 pub mod corporation;
 pub mod market;
 pub mod notification;
