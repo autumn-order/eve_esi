@@ -9,14 +9,15 @@
 //! - <https://developers.eveonline.com/api-explorer>
 //!
 //! ## Endpoints (2)
-
+//!
 //! ### Authenticated (2)
 //!
-//! | Endpoint                        | Description                                      |
-//! | ------------------------------- | ------------------------------------------------ |
-//! | [`ClonesEndpoints::get_clones`] | Get list of clones for the provided character ID |
+//! | Endpoint                                 | Description                                                                   |
+//! | ---------------------------------------- | ----------------------------------------------------------------------------- |
+//! | [`ClonesEndpoints::get_clones`]          | Get list of clones for the provided character ID                              |
+//! | [`ClonesEndpoints::get_active_implants`] | Get list of type IDs of implants for the provided character ID's active clone |
 
-use crate::{model::clone::CharacterClones, scope::ClonesScopes, Client, Error, ScopeBuilder};
+use crate::{model::clones::CharacterClones, scope::ClonesScopes, Client, Error, ScopeBuilder};
 
 /// Provides methods for accessing clone-related endpoints of the EVE Online ESI API.
 ///
@@ -43,12 +44,12 @@ impl<'a> ClonesEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdClones>
         ///
         /// # Required Scopes
-        /// - [`ClonesEndpoints::get_clones`](crate::scope::ClonesEndpoints::get_clones):
-        ///   `esi-assets.get_clones.v1`
+        /// - [`ClonesScopes::read_clones`](crate::scope::ClonesScopes::read_clones):
+        ///   `esi-assets.read_clones.v1`
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `character_id`  (`i64`): The ID of the character to retrieve calendar event attendees for.
+        /// - `character_id`  (`i64`): The ID of the character to retrieve clones for
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -62,6 +63,37 @@ impl<'a> ClonesEndpoints<'a> {
         label = "clones";
         required_scopes = ScopeBuilder::new()
             .clones(ClonesScopes::new().read_clones())
+            .build();
+    }
+
+    define_endpoint! {
+        /// Get list of type IDs of implants for the provided character ID's active clone
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdImplants>
+        ///
+        /// # Required Scopes
+        /// - [`ClonesScopes::read_implants`](crate::scope::ClonesScopes::read_implants):
+        ///   `esi-assets.read_implants.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id`  (`i64`): The ID of the character to retrieve implants for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`i64`]`>`: List of type IDs of implants for the provided character ID's active clone
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_active_implants(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<i64>, Error>
+        url = "{}/characters/{}/implants";
+        label = "clones";
+        required_scopes = ScopeBuilder::new()
+            .clones(ClonesScopes::new().read_implants())
             .build();
     }
 }

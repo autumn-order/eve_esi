@@ -21,7 +21,7 @@ pub mod alliance;
 pub mod asset;
 pub mod calendar;
 pub mod character;
-pub mod clone;
+pub mod clones;
 pub mod corporation;
 pub mod enums;
 pub mod market;

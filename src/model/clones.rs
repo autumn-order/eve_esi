@@ -8,12 +8,12 @@
 //! ## Models
 //! - [`CharacterCloneHomeLocation`]: A character's home station
 //! - [`CharacterJumpClone`]: An entry for a character's jump clones
-//! - [`CharacterClone`]: Character's home station, list of jump clones, and info on last home station change and last clone jump
+//! - [`CharacterClones`]: Character's home station, list of jump clones, and info on last home station change and last clone jump
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::enums::clone::CharacterCloneLocationType;
+use crate::model::enums::clones::CharacterCloneLocationType;
 
 /// A character's home station
 ///

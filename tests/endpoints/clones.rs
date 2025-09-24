@@ -37,3 +37,22 @@ authenticated_endpoint_test! {
       "last_station_change_date": "2019-08-24T14:15:22Z"
     }),
 }
+
+authenticated_endpoint_test! {
+    get_active_implants,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .clones()
+            .get_active_implants(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/implants",
+    required_scopes = ScopeBuilder::new()
+        .clones(ClonesScopes::new().read_implants())
+        .build();
+    mock_response = serde_json::json!([
+      0
+    ]),
+}
