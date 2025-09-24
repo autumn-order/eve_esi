@@ -183,7 +183,7 @@ impl Client {
     /// Access to contacts ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn contacts(&self) -> ContactsEndpoints<'_> {
+    pub fn contacts(&self) -> ContactsEndpoints<'_> {
         ContactsEndpoints::new(self)
     }
 

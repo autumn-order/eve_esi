@@ -76,7 +76,7 @@ impl<'a> ClonesEndpoints<'a> {
         ///
         /// # Required Scopes
         /// - [`ClonesScopes::read_implants`](crate::scope::ClonesScopes::read_implants):
-        ///   `esi-assets.read_implants.v1`
+        ///   `esi-clones.read_implants.v1`
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
@@ -91,7 +91,7 @@ impl<'a> ClonesEndpoints<'a> {
             character_id: i64
         ) -> Result<Vec<i64>, Error>
         url = "{}/characters/{}/implants";
-        label = "clones";
+        label = "implants for active clone";
         required_scopes = ScopeBuilder::new()
             .clones(ClonesScopes::new().read_implants())
             .build();

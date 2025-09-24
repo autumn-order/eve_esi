@@ -21,7 +21,9 @@
 //! | -------- | ----------- |
 //! |          |             |
 
-use crate::Client;
+use crate::{
+    model::contacts::AllianceContact, scope::AlliancesScopes, Client, Error, ScopeBuilder,
+};
 
 /// Provides methods for accessing contact-related endpoints of the EVE Online ESI API.
 ///
@@ -37,5 +39,36 @@ impl<'a> ContactsEndpoints<'a> {
     /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
     pub(super) fn new(client: &'a Client) -> Self {
         Self { client }
+    }
+
+    define_endpoint! {
+        /// Get list contacts for the provided alliance ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetAlliancesAllianceIdContacts>
+        ///
+        /// # Required Scopes
+        /// - [`AlliancesScopes::read_contacts`](crate::scope::AlliancesScopes::read_contacts):
+        ///   `esi-alliances.read_contacts.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id`  (`i64`): The ID of the character to retrieve clones for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`AllianceContact`]`>`: list of contacts for the provided alliance ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_alliance_contacts(
+            access_token: &str,
+            alliance_id: i64
+        ) -> Result<Vec<AllianceContact>, Error>
+        url = "{}/alliances/{}/contacts";
+        label = "contacts";
+        required_scopes = ScopeBuilder::new()
+            .alliances(AlliancesScopes::new().read_contacts())
+            .build();
     }
 }
