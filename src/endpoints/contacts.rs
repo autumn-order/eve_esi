@@ -397,4 +397,35 @@ impl<'a> ContactsEndpoints<'a> {
             .corporations(CorporationsScopes::new().read_contacts())
             .build();
     }
+
+    define_endpoint! {
+        /// Get list of contact labels for the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdContactsLabels>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationsScopes::read_contacts`](crate::scope::CorporationsScopes::read_contacts):
+        ///   `esi-corporations.read_contacts.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id` (`i64`): The ID of the corporation to retrieve contacts labels for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`ContactLabel`]`>`: list of contact labels for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_contact_labels(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<Vec<ContactLabel>, Error>
+        url = "{}/corporations/{}/contacts/labels";
+        label = "contact labels";
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_contacts())
+            .build();
+    }
 }

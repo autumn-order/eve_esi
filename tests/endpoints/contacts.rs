@@ -190,3 +190,25 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_corporation_contact_labels,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .contacts()
+            .get_corporation_contact_labels(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/contacts/labels",
+    required_scopes = ScopeBuilder::new()
+        .corporations(CorporationsScopes::new().read_contacts())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "label_id": 0,
+        "label_name": "string"
+      }
+    ]),
+}
