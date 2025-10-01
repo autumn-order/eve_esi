@@ -5,7 +5,7 @@
 //! # Modules
 //! - [`asset`]: Asset-related enums
 //! - [`character`]: Character-related enums
-//! - [`corporation]: Corporation-related enums
+//! - [`corporation`]: Corporation-related enums
 //! - [`notification`]: Notification-related enums
 
 pub mod asset;

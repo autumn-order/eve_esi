@@ -8,18 +8,21 @@
 //! ## ESI Documentation
 //! - <https://developers.eveonline.com/api-explorer>
 //!
-//! ## Endpoints (0)
-//! ### Public (0)
+//! ## Endpoints (9)
 //!
-//! | Endpoint | Description |
-//! | -------- | ----------- |
-//! |          |             |
+//! ### Authenticated (9)
 //!
-//! ### Authenticated (0)
-//!
-//! | Endpoint | Description |
-//! | -------- | ----------- |
-//! |          |             |
+//! | Endpoint                                              | Description                                                |
+//! | ----------------------------------------------------- | ---------------------------------------------------------- |
+//! | [`ContactsEndpoints::get_alliance_contacts`]          | Get list of contacts for the provided alliance ID          |
+//! | [`ContactsEndpoints::get_alliance_contact_labels`]    | Get list of contact labels for the provided alliance ID    |
+//! | [`ContactsEndpoints::delete_contacts`]                | Delete list of contacts by ID for provided character ID    |
+//! | [`ContactsEndpoints::get_contacts`]                   | Get list of contacts for the provided character ID         |
+//! | [`ContactsEndpoints::add_contacts`]                   | Add list of contact IDs for the provided character ID      |
+//! | [`ContactsEndpoints::edit_contacts`]                  | Edit list of contact IDs for the provided character ID     |
+//! | [`ContactsEndpoints::get_contact_labels`]             | Get list of contact labels for the provided character ID   |
+//! | [`ContactsEndpoints::get_corporation_contacts`]       | Get list of contacts for the provided corporation ID       |
+//! | [`ContactsEndpoints::get_corporation_contact_labels`] | Get list of contact labels for the provided corporation ID |
 
 use crate::{
     model::contacts::{AllianceContact, CharacterContact, ContactLabel, CorporationContact},

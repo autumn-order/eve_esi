@@ -6,12 +6,14 @@
 //! - <https://developers.eveonline.com/api-explorer#>
 //!
 //! ## Enums
-//! | Enum | Description
-//! - [`CharacterCloneLocationType`]: The location type of a character's clone
+//!
+//! | Enum            | Description                                       |
+//! | --------------- | ------------------------------------------------- |
+//! | [`ContactType`] | Represents the contact type for the contact entry |
 
 use serde::{Deserialize, Serialize};
 
-/// Represents the type of contact
+/// Represents the contact type for the contact entry
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdContactsGet>

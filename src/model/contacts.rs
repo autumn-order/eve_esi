@@ -6,9 +6,12 @@
 //! - <https://developers.eveonline.com/api-explorer#>
 //!
 //! ## Models
-//! | Model               | Description                     |
-//! | ------------------- | ------------------------------- |
-//! | [`AllianceContact`] | A contact entry for an alliance |
+//! | Model                  | Description                                                                 |
+//! | ---------------------- | --------------------------------------------------------------------------- |
+//! | [`AllianceContact`]    | A contact entry for an alliance                                             |
+//! | [`ContactLabel`]       | A contact label entry shared across alliances, corporations, and characters |
+//! | [`CharacterContact`]   | A contact entry for character                                               |
+//! | [`CorporationContact`] | A contact entry for a corporation                                           |
 
 use serde::{Deserialize, Serialize};
 
