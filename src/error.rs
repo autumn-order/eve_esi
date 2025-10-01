@@ -70,6 +70,11 @@ pub enum Error {
     /// For a more detailed description, see [`reqwest::Error`].
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
+    /// Errors related to parsing a URL for HTTP requests
+    ///
+    /// For a more detailed description, see [`url::ParseError`].
+    #[error(transparent)]
+    UrlParseError(#[from] url::ParseError),
 }
 
 /// Errors when building a new [`Client`](crate::Client) or [`Config`](crate::Config)
