@@ -27,6 +27,9 @@ use crate::{
     Client, Error, ScopeBuilder,
 };
 
+use url::form_urlencoded::Serializer;
+use url::Url;
+
 /// Provides methods for accessing contact-related endpoints of the EVE Online ESI API.
 ///
 /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -185,5 +188,75 @@ impl<'a> ContactsEndpoints<'a> {
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_contacts())
             .build();
+    }
+
+    /// Add list of contact IDs for the provided character ID
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/PostCharactersCharacterIdContacts>
+    ///
+    /// # Required Scopes
+    /// - [`CharactersScopes::write_contacts`](crate::scope::CharactersScopes::write_contacts):
+    ///   `esi-characters.write_contacts.v1`
+    ///
+    /// # Arguments
+    /// - `access_token`    (`&str`): Access token used for authenticated ESI routes in string format.
+    /// - `contact_ids` (`Vec<i64>`): List of contact IDs to add for the provided character ID
+    /// - `standing`         (`f64`): The standing to set for the provided contact IDs
+    /// - `label_ids`   (`Vec<i64>`): List of label IDs to add to the contacts (Use an empty Vec if none)
+    /// - `watched`         (`bool`): Bool indicating whether or not to add contacts to buddy list (will only
+    ///                               be applied to characters)
+    /// - `character_id`     (`i64`): The ID of the character to add contacts for
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - `Vec<i64>`: List of IDs of the created contacts
+    /// - [`Error`]: An error if the fetch request fails
+    pub async fn add_contacts(
+        &self,
+        access_token: &str,
+        contact_ids: Vec<i64>,
+        standing: f64,
+        label_ids: Vec<i64>,
+        watched: bool,
+        character_id: i64,
+    ) -> Result<Vec<i64>, Error> {
+        let label_array_string = format!(
+            "[{}]",
+            label_ids
+                .into_iter()
+                .map(|id| id.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        );
+
+        let mut url = Url::parse(&format!(
+            "{}/characters/{}/contacts",
+            self.client.inner.esi_url, character_id
+        ))?;
+
+        {
+            let mut ser = Serializer::new(String::new());
+            ser.append_pair("standing", &standing.to_string());
+            ser.append_pair("label_ids", &label_array_string);
+            ser.append_pair("watched", &watched.to_string());
+            url.set_query(Some(&ser.finish()));
+        }
+
+        let required_scopes = ScopeBuilder::new()
+            .characters(CharactersScopes::new().write_contacts())
+            .build();
+
+        let esi = self.client.esi();
+        let api_call = esi.post_to_authenticated_esi::<Vec<i64>, Vec<i64>>(
+            url.as_str(),
+            &contact_ids,
+            &access_token,
+            required_scopes,
+        );
+
+        esi_common_impl!("add contacts", url, api_call, (character_id))
     }
 }
