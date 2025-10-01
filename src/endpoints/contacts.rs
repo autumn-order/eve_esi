@@ -134,8 +134,7 @@ impl<'a> ContactsEndpoints<'a> {
         contact_ids: Vec<i64>,
         character_id: i64,
     ) -> Result<(), Error> {
-        // Can't use auth_delete endpoint macro due to having to convert contact_ids into an array for the URL parameter
-        let array_string = format!(
+        let contact_array_string = format!(
             "[{}]",
             contact_ids
                 .into_iter()
@@ -144,17 +143,24 @@ impl<'a> ContactsEndpoints<'a> {
                 .join(",")
         );
 
-        let url = format!(
-            "{}/characters/{}/contacts?contact_ids={}",
-            self.client.inner.esi_url, character_id, array_string
-        );
+        let mut url = Url::parse(&format!(
+            "{}/characters/{}/contacts",
+            self.client.inner.esi_url, character_id
+        ))?;
+
+        {
+            let mut ser = Serializer::new(String::new());
+            ser.append_pair("contact_ids", &contact_array_string);
+            url.set_query(Some(&ser.finish()));
+        }
+
         let required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().write_contacts())
             .build();
 
         let esi = self.client.esi();
         let api_call =
-            esi.delete_from_authenticated_esi::<()>(&url, &access_token, required_scopes);
+            esi.delete_from_authenticated_esi::<()>(url.as_str(), &access_token, required_scopes);
 
         esi_common_impl!("delete contacts", url, api_call, (character_id))
     }

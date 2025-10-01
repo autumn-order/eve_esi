@@ -55,14 +55,15 @@ authenticated_endpoint_test! {
     delete_contacts,
     |esi_client: eve_esi::Client, access_token: String | async move {
         let character_id = 2114794365;
-        let contact_ids = vec![1];
+        let contact_ids = vec![1,2,3];
         esi_client
             .contacts()
             .delete_contacts(&access_token, contact_ids, character_id)
             .await
     },
     request_type = "DELETE",
-    url = "/characters/2114794365/contacts?contact_ids=[1]",
+    // Note: contact_ids array is percent encoded due to usage of URL serializer
+    url = "/characters/2114794365/contacts?contact_ids=%5B1%2C2%2C3%5D",
     required_scopes = ScopeBuilder::new()
         .characters(CharactersScopes::new().write_contacts())
         .build();
@@ -100,7 +101,7 @@ authenticated_endpoint_test! {
 authenticated_endpoint_test! {
     add_contacts,
     |esi_client: eve_esi::Client, access_token: String | async move {
-        let contact_ids = vec![1];
+        let contact_ids = vec![1,2,3];
         let standing = -10.0;
         let label_ids = vec![1,2,3];
         let watched = false;
@@ -111,10 +112,10 @@ authenticated_endpoint_test! {
             .await
     },
     request_type = "POST",
-    // Note: label_ids is percent encoded due to usage of URL serializer
+    // Note: label_ids array is percent encoded due to usage of URL serializer
     url = "/characters/2114794365/contacts?standing=-10&label_ids=%5B1%2C2%2C3%5D&watched=false",
     required_scopes = ScopeBuilder::new()
         .characters(CharactersScopes::new().write_contacts())
         .build();
-    mock_response = serde_json::json!([1]),
+    mock_response = serde_json::json!([1,2,3]),
 }
