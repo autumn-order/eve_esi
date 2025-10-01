@@ -23,7 +23,7 @@
 
 use crate::{
     model::contacts::{AllianceContact, ContactLabel},
-    scope::AlliancesScopes,
+    scope::{AlliancesScopes, CharactersScopes},
     Client, Error, ScopeBuilder,
 };
 
@@ -103,5 +103,56 @@ impl<'a> ContactsEndpoints<'a> {
         required_scopes = ScopeBuilder::new()
             .alliances(AlliancesScopes::new().read_contacts())
             .build();
+    }
+
+    /// Delete list of contacts by ID for provided character ID
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/DeleteCharactersCharacterIdContacts>
+    ///
+    /// # Required Scopes
+    /// - [`CharactersScopes::write_contacts`](crate::scope::CharactersScopes::write_contacts):
+    ///   `esi-characters.write_contacts.v1`
+    ///
+    /// # Arguments
+    /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
+    /// - `character_id`  (`i64`): The ID of the alliance to retrieve contacts labels for
+    /// - `contact_ids`   (`Vec<i64>`): List of contact IDs to delete (up to 20 per request)
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - `()`: No error if request was successful
+    /// - [`Error`]: An error if the fetch request fails
+    pub async fn delete_contacts(
+        &self,
+        access_token: &str,
+        contact_ids: Vec<i64>,
+        character_id: i64,
+    ) -> Result<(), Error> {
+        // Can't use auth_delete endpoint macro due to having to convert contact_ids into an array for the URL parameter
+        let array_string = format!(
+            "[{}]",
+            contact_ids
+                .into_iter()
+                .map(|id| id.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        );
+
+        let url = format!(
+            "{}/characters/{}/contacts?contact_ids={}",
+            self.client.inner.esi_url, character_id, array_string
+        );
+        let required_scopes = ScopeBuilder::new()
+            .characters(CharactersScopes::new().write_contacts())
+            .build();
+
+        let esi = self.client.esi();
+        let api_call =
+            esi.delete_from_authenticated_esi::<()>(&url, &access_token, required_scopes);
+
+        esi_common_impl!("delete contacts", url, api_call, (character_id))
     }
 }
