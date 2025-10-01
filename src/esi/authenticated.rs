@@ -23,7 +23,7 @@ impl<'a> EsiApi<'a> {
     /// See the [module-level documentation](super) for an overview, methods, & usage example.
     ///
     /// # Arguments
-    /// - `url` ([`DeserializeOwned`]): The ESI API endpoint URL to request.
+    /// - `url` (`&str`): The ESI API endpoint URL to request.
     /// - `access_token` (`&str`): Access token in &str format for making requests to authenticated ESI routes,
     ///   see [`crate::oauth2`] module docs for how to obtain an access token.
     /// - `required_scopes` (`Vec<String>`): Vec of strings representing the required scopes for an authenticated ESI endpoint.
@@ -65,7 +65,7 @@ impl<'a> EsiApi<'a> {
     /// See the [module-level documentation](super) for an overview, methods, & usage example.
     ///
     /// # Arguments
-    /// - `url` ([`DeserializeOwned`]):  The ESI API endpoint URL to request.
+    /// - `url` (`&str`):  The ESI API endpoint URL to request.
     /// - `data` ([`Serialize`]): The data to send in the request body.
     /// - `access_token` (`&str`): Access token in &str format for making requests to authenticated ESI routes,
     ///   see [`crate::oauth2`] module docs for how to obtain an access token.
@@ -112,7 +112,7 @@ impl<'a> EsiApi<'a> {
     /// See the [module-level documentation](super) for an overview, methods, & usage example.
     ///
     /// # Arguments
-    /// - `url` ([`DeserializeOwned`]):  The ESI API endpoint URL to request.
+    /// - `url` (`&str`):  The ESI API endpoint URL to request.
     /// - `data` ([`Serialize`]): The data to send in the request body.
     /// - `access_token` (`&str`): Access token in &str format for making requests to authenticated ESI routes,
     ///   see [`crate::oauth2`] module docs for how to obtain an access token.
@@ -159,7 +159,7 @@ impl<'a> EsiApi<'a> {
     /// See the [module-level documentation](super) for an overview, methods, & usage example.
     ///
     /// # Arguments
-    /// - `url` ([`DeserializeOwned`]):  The ESI API endpoint URL to request.
+    /// - `url` (`&str`):  The ESI API endpoint URL to request.
     /// - `access_token` (`&str`): Access token in &str format for making requests to authenticated ESI routes,
     ///   see [`crate::oauth2`] module docs for how to obtain an access token.
     /// - `required_scopes` (`Vec<String>`): Vec of strings representing the required scopes for an authenticated ESI endpoint.
