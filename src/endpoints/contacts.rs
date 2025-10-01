@@ -335,4 +335,35 @@ impl<'a> ContactsEndpoints<'a> {
 
         esi_common_impl!("add contacts", url, api_call, (character_id))
     }
+
+    define_endpoint! {
+        /// Get list of contact labels for the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdContactsLabels>
+        ///
+        /// # Required Scopes
+        /// - [`CharactersScopes::read_contacts`](crate::scope::CharactersScopes::read_contacts):
+        ///   `esi-characters.read_contacts.v1`
+        ///
+        /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id`  (`i64`): The ID of the character to retrieve contacts labels for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`ContactLabel`]`>`: list of contact labels for the provided character ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_contact_labels(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<ContactLabel>, Error>
+        url = "{}/characters/{}/contacts/labels";
+        label = "contact labels";
+        required_scopes = ScopeBuilder::new()
+            .characters(CharactersScopes::new().read_contacts())
+            .build();
+    }
 }

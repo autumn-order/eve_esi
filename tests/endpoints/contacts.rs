@@ -141,3 +141,25 @@ authenticated_endpoint_test! {
         .build();
     mock_response = serde_json::json!([1,2,3]),
 }
+
+authenticated_endpoint_test! {
+    get_contact_labels,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .contacts()
+            .get_contact_labels(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/contacts/labels",
+    required_scopes = ScopeBuilder::new()
+        .characters(CharactersScopes::new().read_contacts())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "label_id": 0,
+        "label_name": "string"
+      }
+    ]),
+}
