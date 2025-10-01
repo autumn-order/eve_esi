@@ -68,3 +68,31 @@ authenticated_endpoint_test! {
         .build();
     mock_response = serde_json::json!(()),
 }
+
+authenticated_endpoint_test! {
+    get_contacts,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let character_id = 2114794365;
+        esi_client
+            .contacts()
+            .get_contacts(&access_token, character_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/characters/2114794365/contacts",
+    required_scopes = ScopeBuilder::new()
+        .characters(CharactersScopes::new().read_contacts())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "contact_id": 0,
+        "contact_type": "character",
+        "is_blocked": true,
+        "is_watched": true,
+        "label_ids": [
+          0
+        ],
+        "standing": 0
+      }
+    ]),
+}

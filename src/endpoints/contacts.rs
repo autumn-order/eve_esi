@@ -22,7 +22,7 @@
 //! |          |             |
 
 use crate::{
-    model::contacts::{AllianceContact, ContactLabel},
+    model::contacts::{AllianceContact, CharacterContact, ContactLabel},
     scope::{AlliancesScopes, CharactersScopes},
     Client, Error, ScopeBuilder,
 };
@@ -118,8 +118,8 @@ impl<'a> ContactsEndpoints<'a> {
     ///
     /// # Arguments
     /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
-    /// - `character_id`  (`i64`): The ID of the alliance to retrieve contacts labels for
     /// - `contact_ids`   (`Vec<i64>`): List of contact IDs to delete (up to 20 per request)
+    /// - `character_id`  (`i64`): The ID of the alliance to retrieve contacts labels for
     ///
     /// # Returns
     /// Returns a [`Result`] containing either:
@@ -154,5 +154,36 @@ impl<'a> ContactsEndpoints<'a> {
             esi.delete_from_authenticated_esi::<()>(&url, &access_token, required_scopes);
 
         esi_common_impl!("delete contacts", url, api_call, (character_id))
+    }
+
+    define_endpoint! {
+        /// Get list of contacts for the provided character ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdContacts>
+        ///
+        /// # Required Scopes
+        /// - [`CharactersScopes::read_contacts`](crate::scope::CharactersScopes::read_contacts):
+        ///   `esi-characters.read_contacts.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id`  (`i64`): The ID of the character to retrieve contacts for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CharacterContact`]`>`: list of contacts for the provided character ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_contacts(
+            access_token: &str,
+            character_id: i64
+        ) -> Result<Vec<CharacterContact>, Error>
+        url = "{}/characters/{}/contacts";
+        label = "contacts";
+        required_scopes = ScopeBuilder::new()
+            .characters(CharactersScopes::new().read_contacts())
+            .build();
     }
 }
