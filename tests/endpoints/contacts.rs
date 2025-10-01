@@ -1,4 +1,4 @@
-use eve_esi::scope::{AlliancesScopes, CharactersScopes};
+use eve_esi::scope::{AlliancesScopes, CharactersScopes, CorporationsScopes};
 use eve_esi::ScopeBuilder;
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
@@ -160,6 +160,33 @@ authenticated_endpoint_test! {
       {
         "label_id": 0,
         "label_name": "string"
+      }
+    ]),
+}
+
+authenticated_endpoint_test! {
+    get_corporation_contacts,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let corporation_id = 98785281;
+        esi_client
+            .contacts()
+            .get_corporation_contacts(&access_token, corporation_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/corporations/98785281/contacts",
+    required_scopes = ScopeBuilder::new()
+        .corporations(CorporationsScopes::new().read_contacts())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "contact_id": 0,
+        "contact_type": "character",
+        "is_watched": true,
+        "label_ids": [
+          0
+        ],
+        "standing": 0
       }
     ]),
 }

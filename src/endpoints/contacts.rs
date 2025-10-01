@@ -22,8 +22,8 @@
 //! |          |             |
 
 use crate::{
-    model::contacts::{AllianceContact, CharacterContact, ContactLabel},
-    scope::{AlliancesScopes, CharactersScopes},
+    model::contacts::{AllianceContact, CharacterContact, ContactLabel, CorporationContact},
+    scope::{AlliancesScopes, CharactersScopes, CorporationsScopes},
     Client, Error, ScopeBuilder,
 };
 
@@ -364,6 +364,37 @@ impl<'a> ContactsEndpoints<'a> {
         label = "contact labels";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_contacts())
+            .build();
+    }
+
+    define_endpoint! {
+        /// Get list of contacts for the provided corporation ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdContacts>
+        ///
+        /// # Required Scopes
+        /// - [`CorporationsScopes::read_contacts`](crate::scope::CorporationsScopes::read_contacts):
+        ///   `esi-alliances.read_contacts.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve contacts for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`CorporationContact`]`>`: list of contacts for the provided corporation ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_corporation_contacts(
+            access_token: &str,
+            corporation_id: i64
+        ) -> Result<Vec<CorporationContact>, Error>
+        url = "{}/corporations/{}/contacts";
+        label = "contacts";
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_contacts())
             .build();
     }
 }

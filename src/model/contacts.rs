@@ -25,6 +25,7 @@ pub struct AllianceContact {
     /// Indicates whether contact ID is a `character`, `corporation`, `alliance`, or `faction`
     pub contact_type: ContactType,
     /// List of unique IDs applied to the contact entry
+    #[serde(default)]
     pub label_ids: Vec<i64>,
     /// Standings towards the contact
     pub standing: f64,
@@ -55,13 +56,41 @@ pub struct CharacterContact {
     /// Indicates whether contact ID is a `character`, `corporation`, `alliance`, or `faction`
     pub contact_type: ContactType,
     /// If true, character is blocked
+    #[serde(default)]
     pub is_blocked: bool,
     /// If true, character is on buddy list
     ///
     /// Note: There used to be a watchlist a long time ago to notify when someone is online but it has since been
     /// changed to buddy list which requires the characters to mutual set each other as buddy AKA watched to see online notification.
+    #[serde(default)]
     pub is_watched: bool,
     /// List of unique IDs applied to the contact entry
+    #[serde(default)]
+    pub label_ids: Vec<i64>,
+    /// Standings towards the contact
+    pub standing: f64,
+}
+
+/// A contact entry for a corporation
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdContactsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CorporationContact {
+    /// Unique ID of the contact
+    pub contact_id: i64,
+    /// Indicates whether contact ID is a `character`, `corporation`, `alliance`, or `faction`
+    pub contact_type: ContactType,
+    // Unknown if this applicable to corporations with the deprecation of the original watchlist, ESI defines this as part of the
+    // get corporation contact response body so it has been included just in case.
+    /// If true, character is on buddy list
+    ///
+    /// Note: There used to be a watchlist a long time ago to notify when someone is online but it has since been
+    /// changed to buddy list which requires the characters to mutual set each other as buddy AKA watched to see online notification.
+    #[serde(default)]
+    pub is_watched: bool,
+    /// List of unique IDs applied to the contact entry
+    #[serde(default)]
     pub label_ids: Vec<i64>,
     /// Standings towards the contact
     pub standing: f64,
