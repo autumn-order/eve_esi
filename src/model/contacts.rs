@@ -29,3 +29,17 @@ pub struct AllianceContact {
     /// Standings towards the contact
     standing: f64,
 }
+
+/// A contact label entry shared across alliances, corporations, and characters
+///
+/// # Documentation
+/// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdContactsLabelsGet>
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdContactsLabelsGet>
+/// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdContactsLabelsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct ContactLabel {
+    /// Unique ID of the contact label
+    pub label_id: i64,
+    /// Name of the label
+    pub label_name: String,
+}

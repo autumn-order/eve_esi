@@ -22,7 +22,9 @@
 //! |          |             |
 
 use crate::{
-    model::contacts::AllianceContact, scope::AlliancesScopes, Client, Error, ScopeBuilder,
+    model::contacts::{AllianceContact, ContactLabel},
+    scope::AlliancesScopes,
+    Client, Error, ScopeBuilder,
 };
 
 /// Provides methods for accessing contact-related endpoints of the EVE Online ESI API.
@@ -42,7 +44,7 @@ impl<'a> ContactsEndpoints<'a> {
     }
 
     define_endpoint! {
-        /// Get list contacts for the provided alliance ID
+        /// Get list of contacts for the provided alliance ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -55,7 +57,7 @@ impl<'a> ContactsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `character_id`  (`i64`): The ID of the character to retrieve clones for
+        /// - `alliance_id`  (`i64`): The ID of the alliance to retrieve contacts for
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
@@ -67,6 +69,37 @@ impl<'a> ContactsEndpoints<'a> {
         ) -> Result<Vec<AllianceContact>, Error>
         url = "{}/alliances/{}/contacts";
         label = "contacts";
+        required_scopes = ScopeBuilder::new()
+            .alliances(AlliancesScopes::new().read_contacts())
+            .build();
+    }
+
+    define_endpoint! {
+        /// Get list of contact labels for the provided alliance ID
+        ///
+        /// For an overview & usage examples, see the [endpoints module documentation](super)
+        ///
+        /// # ESI Documentation
+        /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdContactsLabelsGet>
+        ///
+        /// # Required Scopes
+        /// - [`AlliancesScopes::read_contacts`](crate::scope::AlliancesScopes::read_contacts):
+        ///   `esi-alliances.read_contacts.v1`
+        ///
+        /// # Arguments
+        /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `alliance_id`  (`i64`): The ID of the alliance to retrieve contacts labels for
+        ///
+        /// # Returns
+        /// Returns a [`Result`] containing either:
+        /// - `Vec<`[`ContactLabel`]`>`: list of contact labels for the provided alliance ID
+        /// - [`Error`]: An error if the fetch request fails
+        auth_get get_alliance_contact_labels(
+            access_token: &str,
+            alliance_id: i64
+        ) -> Result<Vec<ContactLabel>, Error>
+        url = "{}/alliances/{}/contacts/labels";
+        label = "contact labels";
         required_scopes = ScopeBuilder::new()
             .alliances(AlliancesScopes::new().read_contacts())
             .build();

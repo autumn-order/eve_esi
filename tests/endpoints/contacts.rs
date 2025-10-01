@@ -28,3 +28,25 @@ authenticated_endpoint_test! {
       }
     ]),
 }
+
+authenticated_endpoint_test! {
+    get_alliance_contact_labels,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let alliance_id = 99013534;
+        esi_client
+            .contacts()
+            .get_alliance_contact_labels(&access_token, alliance_id)
+            .await
+    },
+    request_type = "GET",
+    url = "/alliances/99013534/contacts/labels",
+    required_scopes = ScopeBuilder::new()
+        .alliances(AlliancesScopes::new().read_contacts())
+        .build();
+    mock_response = serde_json::json!([
+      {
+        "label_id": 0,
+        "label_name": "string"
+      }
+    ]),
+}
