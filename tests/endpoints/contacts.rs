@@ -119,3 +119,25 @@ authenticated_endpoint_test! {
         .build();
     mock_response = serde_json::json!([1,2,3]),
 }
+
+authenticated_endpoint_test! {
+    edit_contacts,
+    |esi_client: eve_esi::Client, access_token: String | async move {
+        let contact_ids = vec![1,2,3];
+        let standing = -10.0;
+        let label_ids = vec![1,2,3];
+        let watched = false;
+        let character_id = 2114794365;
+        esi_client
+            .contacts()
+            .edit_contacts(&access_token, contact_ids, standing, label_ids, watched, character_id)
+            .await
+    },
+    request_type = "PUT",
+    // Note: label_ids array is percent encoded due to usage of URL serializer
+    url = "/characters/2114794365/contacts?standing=-10&label_ids=%5B1%2C2%2C3%5D&watched=false",
+    required_scopes = ScopeBuilder::new()
+        .characters(CharactersScopes::new().write_contacts())
+        .build();
+    mock_response = serde_json::json!([1,2,3]),
+}

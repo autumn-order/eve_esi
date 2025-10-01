@@ -211,7 +211,7 @@ impl<'a> ContactsEndpoints<'a> {
     /// - `access_token`    (`&str`): Access token used for authenticated ESI routes in string format.
     /// - `contact_ids` (`Vec<i64>`): List of contact IDs to add for the provided character ID
     /// - `standing`         (`f64`): The standing to set for the provided contact IDs
-    /// - `label_ids`   (`Vec<i64>`): List of label IDs to add to the contacts (Use an empty Vec if none)
+    /// - `label_ids`   (`Vec<i64>`): List of label IDs to set for the contacts (Use an empty Vec if none)
     /// - `watched`         (`bool`): Bool indicating whether or not to add contacts to buddy list (will only
     ///                               be applied to characters)
     /// - `character_id`     (`i64`): The ID of the character to add contacts for
@@ -257,6 +257,76 @@ impl<'a> ContactsEndpoints<'a> {
 
         let esi = self.client.esi();
         let api_call = esi.post_to_authenticated_esi::<Vec<i64>, Vec<i64>>(
+            url.as_str(),
+            &contact_ids,
+            &access_token,
+            required_scopes,
+        );
+
+        esi_common_impl!("add contacts", url, api_call, (character_id))
+    }
+
+    /// Edit list of contact IDs for the provided character ID
+    ///
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
+    ///
+    /// # ESI Documentation
+    /// - <https://developers.eveonline.com/api-explorer#/operations/PutCharactersCharacterIdContacts>
+    ///
+    /// # Required Scopes
+    /// - [`CharactersScopes::write_contacts`](crate::scope::CharactersScopes::write_contacts):
+    ///   `esi-characters.write_contacts.v1`
+    ///
+    /// # Arguments
+    /// - `access_token`    (`&str`): Access token used for authenticated ESI routes in string format.
+    /// - `contact_ids` (`Vec<i64>`): List of contact IDs to edit for the provided character ID
+    /// - `standing`         (`f64`): The standing to set for the provided contact IDs
+    /// - `label_ids`   (`Vec<i64>`): List of label IDs to set for the contacts (Use an empty Vec if none)
+    /// - `watched`         (`bool`): Bool indicating whether or not to add contacts to buddy list (will only
+    ///                               be applied to characters)
+    /// - `character_id`     (`i64`): The ID of the character to edit contacts for
+    ///
+    /// # Returns
+    /// Returns a [`Result`] containing either:
+    /// - `Vec<i64>`: List of IDs of the edited contacts
+    /// - [`Error`]: An error if the fetch request fails
+    pub async fn edit_contacts(
+        &self,
+        access_token: &str,
+        contact_ids: Vec<i64>,
+        standing: f64,
+        label_ids: Vec<i64>,
+        watched: bool,
+        character_id: i64,
+    ) -> Result<Vec<i64>, Error> {
+        let label_array_string = format!(
+            "[{}]",
+            label_ids
+                .into_iter()
+                .map(|id| id.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        );
+
+        let mut url = Url::parse(&format!(
+            "{}/characters/{}/contacts",
+            self.client.inner.esi_url, character_id
+        ))?;
+
+        {
+            let mut ser = Serializer::new(String::new());
+            ser.append_pair("standing", &standing.to_string());
+            ser.append_pair("label_ids", &label_array_string);
+            ser.append_pair("watched", &watched.to_string());
+            url.set_query(Some(&ser.finish()));
+        }
+
+        let required_scopes = ScopeBuilder::new()
+            .characters(CharactersScopes::new().write_contacts())
+            .build();
+
+        let esi = self.client.esi();
+        let api_call = esi.put_to_authenticated_esi::<Vec<i64>, Vec<i64>>(
             url.as_str(),
             &contact_ids,
             &access_token,
