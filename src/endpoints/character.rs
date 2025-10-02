@@ -212,7 +212,7 @@ impl<'a> CharacterEndpoints<'a> {
         auth_post calculate_a_cspa_charge_cost(
             access_token: &str,
             character_ids: Vec<i64>,
-            character_id: i64
+            character_id: i64;
         ) -> Result<f64, Error>
         url = "{}/characters/{}/cspa";
         label = "CSPA charge cost";
