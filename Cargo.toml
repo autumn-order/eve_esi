@@ -1,11 +1,11 @@
 [package]
 name = "eve_esi"
-version = "0.4.5"
+version = "0.4.6"
 authors = ["Hyziri <hyziri@protonmail.com>"]
 edition = "2021"
 description = "Thread-safe, asynchronous client for EVE Online's ESI & OAuth2"
 keywords = ["eve_online", "esi", "eve",  "eve_esi", "eve_oauth2"]
-repository = "https://github.com/hyziri/eve_esi"
+repository = "https://github.com/autumn-order/eve_esi"
 documentation = "https://docs.rs/eve_esi/latest/eve_esi/"
 license = "MIT"
 readme = "README.md"
