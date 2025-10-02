@@ -20,7 +20,7 @@ impl<'a> EsiApi<'a> {
     /// See the [module-level documentation](super) for an overview, methods, & usage example.
     ///
     /// # Arguments
-    /// - `url` ([`DeserializeOwned`]): The ESI API endpoint URL to request.
+    /// - `url` (`&str`): The ESI API endpoint URL to request.
     ///
     /// # Returns
     /// A Result containing the deserialized response data or a reqwest error.
@@ -41,7 +41,7 @@ impl<'a> EsiApi<'a> {
     /// See the [module-level documentation](super) for an overview, methods, & usage example.
     ///
     /// # Arguments
-    /// - `url` ([`DeserializeOwned`]):  The ESI API endpoint URL to request.
+    /// - `url` (`&str`):  The ESI API endpoint URL to request.
     /// - `data` ([`Serialize`]): The data to send in the request body.
     ///
     /// # Returns

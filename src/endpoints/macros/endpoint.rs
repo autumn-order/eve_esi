@@ -150,4 +150,29 @@ macro_rules! define_endpoint {
             esi_common_impl!($label, url, api_call, ($($param_name),*))
         }
     };
+
+
+    // Authenticated DELETE endpoint macro
+    (
+        $(#[$attr:meta])*
+        auth_delete $fn_name:ident(
+            $(&self,)?
+            access_token: &str,
+            $($param_name:ident: $param_type:ty),* $(,)?
+        ) -> Result<$return_type:ty, Error>
+        url = $url:expr;
+        label = $label:expr;
+        required_scopes = $required_scopes:expr;
+    ) => {
+        $(#[$attr])*
+        pub async fn $fn_name(&self, access_token: &str, $($param_name: $param_type),*) -> Result<$return_type, Error> {
+            let url = format!($url, self.client.inner.esi_url, $($param_name),*);
+
+            let esi = self.client.esi();
+            let api_call = esi
+                .delete_from_authenticated_esi::<$return_type>(&url, &access_token, $required_scopes);
+
+            esi_common_impl!($label, url, api_call, ($($param_name),*))
+        }
+    };
 }

@@ -3,10 +3,16 @@
 //! This module provides access to the different categories of endpoints available for EVE Online's ESI API.
 //!
 //! ## Modules
-//! - [`alliance`]: Alliance endpoints (4/4 endpoints)
-//! - [`character`]: Character endpoints (11/11 endpoints)
-//! - [`corporation`]: Corporation endpoints (22/22 endpoints)
-//! - [`market`]: Market endpoints (11/11 endpoints)
+//! | Module          | Description           | Public Endpoints | Authenticated Endpoints |
+//! | --------------- | --------------------- | ---------------- | ----------------------- |
+//! | [`alliance`]    | Alliance endpoints    | 4                |                         |
+//! | [`assets`]      | Clone endpoints       |                  | 6                       |
+//! | [`calendar`]    | Calendar endpoints    |                  | 4                       |
+//! | [`character`]   | Character endpoints   | 3                | 9                       |
+//! | [`clones`]      | Clone endpoints       |                  | 2                       |
+//! | [`contacts`]    | Contact endpoints     |                  | 9                       |
+//! | [`corporation`] | Corporation endpoints | 4                | 18                      |
+//! | [`market`]      | Market endpoints      | 6                | 5                       |
 //!
 //! The rest of the declared endpoints submodules have yet to have any endpoints implemented.
 //!
@@ -183,7 +189,7 @@ impl Client {
     /// Access to contacts ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn contacts(&self) -> ContactsEndpoints<'_> {
+    pub fn contacts(&self) -> ContactsEndpoints<'_> {
         ContactsEndpoints::new(self)
     }
 

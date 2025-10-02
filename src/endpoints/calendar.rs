@@ -61,7 +61,7 @@ impl<'a> CalendarEndpoints<'a> {
         ///
         /// # Required Scopes
         /// - [`CalendarScopes::read_calendar_events`](crate::scope::CalendarScopes::read_calendar_events):
-        ///   `esi-assets.read_calendar_events.v1`
+        ///   `esi-calendar.read_calendar_events.v1`
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
@@ -92,7 +92,7 @@ impl<'a> CalendarEndpoints<'a> {
         ///
         /// # Required Scopes
         /// - [`CalendarScopes::read_calendar_events`](crate::scope::CalendarScopes::read_calendar_events):
-        ///   `esi-assets.read_calendar_events.v1`
+        ///   `esi-calendar.read_calendar_events.v1`
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
@@ -125,7 +125,7 @@ impl<'a> CalendarEndpoints<'a> {
         ///
         /// # Required Scopes
         /// - [`CalendarScopes::respond_calendar_events`](crate::scope::CalendarScopes::respond_calendar_events):
-        ///   `esi-assets.respond_calendar_events.v1`
+        ///   `esi-calendar.respond_calendar_events.v1`
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
@@ -160,7 +160,7 @@ impl<'a> CalendarEndpoints<'a> {
         ///
         /// # Required Scopes
         /// - [`CalendarScopes::read_calendar_events`](crate::scope::CalendarScopes::read_calendar_events):
-        ///   `esi-assets.read_calendar_events.v1`
+        ///   `esi-calendar.read_calendar_events.v1`
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
