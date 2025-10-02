@@ -110,10 +110,10 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_historical_orders_by_a_character(
             access_token: &str,
-            character_id: i64,
-            page: i32,
+            character_id: i64;
+            page: i32
         ) -> Result<Vec<CharacterMarketOrder>, Error>
-        url = "{}/characters/{}/orders/history?page={}";
+        url = "{}/characters/{}/orders/history";
         label = "historical orders";
         required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_character_orders()).build();
     }
@@ -176,10 +176,10 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_historical_orders_from_a_corporation(
             access_token: &str,
-            corporation_d: i64,
-            page: i32,
+            corporation_d: i64;
+            page: i32
         ) -> Result<Vec<CorporationMarketOrder>, Error>
-        url = "{}/corporations/{}/orders/history?page={}";
+        url = "{}/corporations/{}/orders/history";
         label = "historical orders";
         required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_corporation_orders()).build();
     }
@@ -265,10 +265,10 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_orders_in_a_structure(
             access_token: &str,
-            structure_id: i64,
-            page: i32,
+            structure_id: i64;
+            page: i32
         ) -> Result<Vec<StructureMarketOrder>, Error>
-        url = "{}/markets/structures/{}?page={}";
+        url = "{}/markets/structures/{}";
         label = "market orders";
         required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().structure_markets()).build();
     }
@@ -315,11 +315,11 @@ impl<'a> MarketEndpoints<'a> {
         /// Returns a [`Result`] containing either:
         /// - `Vec<`[`MarketRegionOrder`]`>`: list of market orders within the provided region ID and of the specified order type
         pub_get list_orders_in_a_region(
-            region_id: i64,
+            region_id: i64;
             order_type: OrderType,
             page: i32
         ) -> Result<Vec<MarketRegionOrder>, Error>
-        url = "{}/markets/{}/orders?order_type={}&page={}";
+        url = "{}/markets/{}/orders";
         label = "market orders";
     }
 
@@ -339,10 +339,10 @@ impl<'a> MarketEndpoints<'a> {
         /// Returns a [`Result`] containing either:
         /// - `Vec<i64>`: list of type IDs that have active market orders for the given region ID
         pub_get list_type_ids_relevant_to_a_market(
-            region_id: i64,
+            region_id: i64;
             page: i32
         ) -> Result<Vec<i64>, Error>
-        url = "{}/markets/{}/types?page={}";
+        url = "{}/markets/{}/types";
         label = "item type IDs with active market orders";
     }
 }

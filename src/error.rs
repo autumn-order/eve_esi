@@ -70,6 +70,22 @@ pub enum Error {
     /// For a more detailed description, see [`reqwest::Error`].
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
+    /// Errors related to parsing a URL for HTTP requests
+    ///
+    /// This would occur if a URL for making an ESI request is
+    /// improperly formatted making it an invalid URL.
+    ///
+    /// For a more detailed description, see [`url::ParseError`].
+    #[error(transparent)]
+    UrlParseError(#[from] url::ParseError),
+    /// Errors related to serializing or deserializing JSON data
+    ///
+    /// This would occur if there is an issue serializing a Rust type
+    /// to JSON for usage in URL query params for ESI endpoints.
+    ///
+    /// For a more detailed description, see [`serde_json::Error`].
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
 }
 
 /// Errors when building a new [`Client`](crate::Client) or [`Config`](crate::Config)

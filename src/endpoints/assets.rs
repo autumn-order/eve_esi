@@ -66,10 +66,10 @@ impl<'a> AssetsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_character_assets(
             access_token: &str,
-            character_id: i64,
+            character_id: i64;
             page: i32
         ) -> Result<Vec<Asset>, Error>
-        url = "{}/characters/{}/assets?page={}";
+        url = "{}/characters/{}/assets";
         label = "assets";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
@@ -102,7 +102,7 @@ impl<'a> AssetsEndpoints<'a> {
         auth_post get_character_asset_locations(
             access_token: &str,
             item_ids: Vec<i64>,
-            character_id: i64,
+            character_id: i64
         ) -> Result<Vec<AssetLocation>, Error>
         url = "{}/characters/{}/assets/locations";
         label = "asset locations";
@@ -140,7 +140,7 @@ impl<'a> AssetsEndpoints<'a> {
         auth_post get_character_asset_names(
             access_token: &str,
             item_ids: Vec<i64>,
-            character_id: i64,
+            character_id: i64
         ) -> Result<Vec<AssetName>, Error>
         url = "{}/characters/{}/assets/names";
         label = "asset names";
@@ -172,10 +172,10 @@ impl<'a> AssetsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_assets(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<Asset>, Error>
-        url = "{}/corporations/{}/assets?page={}";
+        url = "{}/corporations/{}/assets";
         label = "assets";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_corporation_assets())
@@ -208,7 +208,7 @@ impl<'a> AssetsEndpoints<'a> {
         auth_post get_corporation_asset_locations(
             access_token: &str,
             item_ids: Vec<i64>,
-            corporation_id: i64,
+            corporation_id: i64
         ) -> Result<Vec<AssetLocation>, Error>
         url = "{}/corporations/{}/assets/locations";
         label = "asset locations";
@@ -246,7 +246,7 @@ impl<'a> AssetsEndpoints<'a> {
         auth_post get_corporation_asset_names(
             access_token: &str,
             item_ids: Vec<i64>,
-            corporation_id: i64,
+            corporation_id: i64
         ) -> Result<Vec<AssetName>, Error>
         url = "{}/corporations/{}/assets/names";
         label = "asset names";
