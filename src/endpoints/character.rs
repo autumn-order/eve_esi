@@ -126,7 +126,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_agents_research(
             access_token: &str,
-            character_id: i64,
+            character_id: i64;
         ) -> Result<Vec<CharacterResearchAgent>, Error>
         url = "{}/characters/{}/agents_research";
         label = "research agents";
@@ -158,10 +158,10 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_blueprints(
             access_token: &str,
-            character_id: i64,
+            character_id: i64;
             page: i32,
         ) -> Result<Vec<Blueprint>, Error>
-        url = "{}/characters/{}/blueprints?page={}";
+        url = "{}/characters/{}/blueprints";
         label = "blueprints";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_blueprints()).build();
     }
@@ -241,7 +241,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_jump_fatigue(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<CharacterJumpFatigue, Error>
         url = "{}/characters/{}/fatigue";
         label = "jump fatigue";
@@ -270,7 +270,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_medals(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<Vec<CharacterMedal>, Error>
         url = "{}/characters/{}/medals";
         label = "medals";
@@ -299,7 +299,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_character_notifications(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<Vec<CharacterNotification>, Error>
         url = "{}/characters/{}/notifications";
         label = "notifications";
@@ -329,7 +329,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_new_contact_notifications(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<Vec<CharacterNewContactNotification>, Error>
         url = "{}/characters/{}/notifications/contacts";
         label = "new contact notifications";
@@ -379,7 +379,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_character_corporation_roles(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<CharacterCorporationRole, Error>
         url = "{}/characters/{}/roles";
         label = "corporation roles";
@@ -407,7 +407,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_standings(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<Vec<Standing>, Error>
         url = "{}/characters/{}/standings";
         label = "NPC standings";
@@ -436,7 +436,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_character_corporation_titles(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<Vec<CharacterCorporationTitle>, Error>
         url = "{}/characters/{}/titles";
         label = "standings";

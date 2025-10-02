@@ -80,7 +80,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_open_orders_from_a_character(
             access_token: &str,
-            character_id: i64
+            character_id: i64;
         ) -> Result<Vec<CharacterMarketOrder>, Error>
         url = "{}/characters/{}/orders";
         label = "open market orders";
@@ -110,10 +110,10 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_historical_orders_by_a_character(
             access_token: &str,
-            character_id: i64,
-            page: i32,
+            character_id: i64;
+            page: i32
         ) -> Result<Vec<CharacterMarketOrder>, Error>
-        url = "{}/characters/{}/orders/history?page={}";
+        url = "{}/characters/{}/orders/history";
         label = "historical orders";
         required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_character_orders()).build();
     }
@@ -143,7 +143,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_open_orders_from_a_corporation(
             access_token: &str,
-            corporation_id: i64
+            corporation_id: i64;
         ) -> Result<Vec<CorporationMarketOrder>, Error>
         url = "{}/corporations/{}/orders";
         label = "open orders";
@@ -176,10 +176,10 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_historical_orders_from_a_corporation(
             access_token: &str,
-            corporation_d: i64,
-            page: i32,
+            corporation_d: i64;
+            page: i32
         ) -> Result<Vec<CorporationMarketOrder>, Error>
-        url = "{}/corporations/{}/orders/history?page={}";
+        url = "{}/corporations/{}/orders/history";
         label = "historical orders";
         required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_corporation_orders()).build();
     }
@@ -265,10 +265,10 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_orders_in_a_structure(
             access_token: &str,
-            structure_id: i64,
-            page: i32,
+            structure_id: i64;
+            page: i32
         ) -> Result<Vec<StructureMarketOrder>, Error>
-        url = "{}/markets/structures/{}?page={}";
+        url = "{}/markets/structures/{}";
         label = "market orders";
         required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().structure_markets()).build();
     }

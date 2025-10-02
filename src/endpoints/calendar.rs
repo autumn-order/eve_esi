@@ -73,7 +73,7 @@ impl<'a> CalendarEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_calendar_event_summaries(
             access_token: &str,
-            character_id: i64,
+            character_id: i64;
         ) -> Result<Vec<CalendarEventSummary>, Error>
         url = "{}/characters/{}/calendar";
         label = "calendar events";
@@ -106,7 +106,7 @@ impl<'a> CalendarEndpoints<'a> {
         auth_get get_an_event(
             access_token: &str,
             character_id: i64,
-            event_id: i64
+            event_id: i64;
         ) -> Result<CalendarEvent, Error>
         url = "{}/characters/{}/calendar/{}";
         label = "calendar events";
@@ -174,7 +174,7 @@ impl<'a> CalendarEndpoints<'a> {
         auth_get get_attendees(
             access_token: &str,
             character_id: i64,
-            event_id: i64
+            event_id: i64;
         ) -> Result<Vec<CalendarEventAttendee>, Error>
         url = "{}/characters/{}/calendar/{}/attendees";
         label = "calendar event attendees";
