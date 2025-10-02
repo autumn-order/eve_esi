@@ -163,7 +163,7 @@ impl<'a> ContactsEndpoints<'a> {
 
         let esi = self.client.esi();
         let api_call =
-            esi.delete_from_authenticated_esi::<()>(url.as_str(), &access_token, required_scopes);
+            esi.delete_from_authenticated_esi::<()>(url.as_str(), access_token, required_scopes);
 
         esi_common_impl!("delete contacts", url, api_call, (character_id))
     }
@@ -216,7 +216,7 @@ impl<'a> ContactsEndpoints<'a> {
     /// - `standing`         (`f64`): The standing to set for the provided contact IDs
     /// - `label_ids`   (`Vec<i64>`): List of label IDs to set for the contacts (Use an empty Vec if none)
     /// - `watched`         (`bool`): Bool indicating whether or not to add contacts to buddy list (will only
-    ///                               be applied to characters)
+    ///   be applied to characters)
     /// - `character_id`     (`i64`): The ID of the character to add contacts for
     ///
     /// # Returns
@@ -262,7 +262,7 @@ impl<'a> ContactsEndpoints<'a> {
         let api_call = esi.post_to_authenticated_esi::<Vec<i64>, Vec<i64>>(
             url.as_str(),
             &contact_ids,
-            &access_token,
+            access_token,
             required_scopes,
         );
 
@@ -286,7 +286,7 @@ impl<'a> ContactsEndpoints<'a> {
     /// - `standing`         (`f64`): The standing to set for the provided contact IDs
     /// - `label_ids`   (`Vec<i64>`): List of label IDs to set for the contacts (Use an empty Vec if none)
     /// - `watched`         (`bool`): Bool indicating whether or not to add contacts to buddy list (will only
-    ///                               be applied to characters)
+    ///   be applied to characters)
     /// - `character_id`     (`i64`): The ID of the character to edit contacts for
     ///
     /// # Returns
@@ -332,7 +332,7 @@ impl<'a> ContactsEndpoints<'a> {
         let api_call = esi.put_to_authenticated_esi::<Vec<i64>, Vec<i64>>(
             url.as_str(),
             &contact_ids,
-            &access_token,
+            access_token,
             required_scopes,
         );
 
