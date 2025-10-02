@@ -58,7 +58,7 @@ authenticated_endpoint_test! {
         let contact_ids = vec![1,2,3];
         esi_client
             .contacts()
-            .delete_contacts(&access_token, contact_ids, character_id)
+            .delete_contacts(&access_token, character_id, contact_ids)
             .await
     },
     request_type = "DELETE",
