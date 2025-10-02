@@ -1,4 +1,4 @@
-// Common macro for handling the shared implementation parts
+/// Common macro for handling the ESI endpoint parts
 macro_rules! esi_common_impl {
     (
         $label:expr,
@@ -30,6 +30,7 @@ macro_rules! esi_common_impl {
     };
 }
 
+/// Macro for constructing an ESI endpoint request URL
 macro_rules! build_endpoint_url {
     // No query params
     ($self_ident:ident, $fmt:expr, ($($path:ident),* $(,)?)) => {{
@@ -53,7 +54,9 @@ macro_rules! build_endpoint_url {
     }};
 }
 
-// Macro for defining public & authenticated ESI endpoints
+/// Macro for defining public & authenticated ESI endpoints
+///
+/// For an overview of methods and a usage example, please see the [module-level documentation](super)
 macro_rules! define_endpoint {
     // GET endpoint macro
     (
