@@ -4,7 +4,7 @@
 >
 > **This crate is still under development, APIs may change between versions**
 >
-> Currently the crate features OAuth2 login with EVE Online and we're now currently working on implementing all ESI endpoints. The goal is to implement an average of around 10 endpoints per day, it takes about 15 minutes to implement each endpoint due to writing related structs, enums, documentation & integration tests. All endpoints are expected to be added around early October at this rate.
+> Currently the crate features OAuth2 login with EVE Online and we're now currently working on implementing all ESI endpoints. The goal is to implement new endpoints at a pace of 2-3 new categories per week, it takes about 15 minutes to implement each endpoint due to writing related structs, enums, documentation & integration tests. All endpoints should be implemented end of October/early November.
 >
 > Documentation for this crate is still work-in-progress, if you see any issues or areas for improvement in documentation contributions are always welcome to help make this crate more accessible to other developers.
 
