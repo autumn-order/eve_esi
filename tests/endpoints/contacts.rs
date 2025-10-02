@@ -58,7 +58,7 @@ authenticated_endpoint_test! {
         let contact_ids = vec![1,2,3];
         esi_client
             .contacts()
-            .delete_contacts(&access_token, contact_ids, character_id)
+            .delete_contacts(&access_token, character_id, contact_ids)
             .await
     },
     request_type = "DELETE",
@@ -102,18 +102,18 @@ authenticated_endpoint_test! {
     add_contacts,
     |esi_client: eve_esi::Client, access_token: String | async move {
         let contact_ids = vec![1,2,3];
+        let character_id = 2114794365;
         let standing = -10.0;
         let label_ids = vec![1,2,3];
         let watched = false;
-        let character_id = 2114794365;
         esi_client
             .contacts()
-            .add_contacts(&access_token, contact_ids, standing, label_ids, watched, character_id)
+            .add_contacts(&access_token, contact_ids, character_id, standing, label_ids, watched)
             .await
     },
     request_type = "POST",
     // Note: label_ids array is percent encoded due to usage of URL serializer
-    url = "/characters/2114794365/contacts?standing=-10&label_ids=%5B1%2C2%2C3%5D&watched=false",
+    url = "/characters/2114794365/contacts?standing=-10.0&label_ids=%5B1%2C2%2C3%5D&watched=false",
     required_scopes = ScopeBuilder::new()
         .characters(CharactersScopes::new().write_contacts())
         .build();
@@ -124,18 +124,18 @@ authenticated_endpoint_test! {
     edit_contacts,
     |esi_client: eve_esi::Client, access_token: String | async move {
         let contact_ids = vec![1,2,3];
+        let character_id = 2114794365;
         let standing = -10.0;
         let label_ids = vec![1,2,3];
         let watched = false;
-        let character_id = 2114794365;
         esi_client
             .contacts()
-            .edit_contacts(&access_token, contact_ids, standing, label_ids, watched, character_id)
+            .edit_contacts(&access_token, contact_ids, character_id, standing, label_ids, watched)
             .await
     },
     request_type = "PUT",
     // Note: label_ids array is percent encoded due to usage of URL serializer
-    url = "/characters/2114794365/contacts?standing=-10&label_ids=%5B1%2C2%2C3%5D&watched=false",
+    url = "/characters/2114794365/contacts?standing=-10.0&label_ids=%5B1%2C2%2C3%5D&watched=false",
     required_scopes = ScopeBuilder::new()
         .characters(CharactersScopes::new().write_contacts())
         .build();

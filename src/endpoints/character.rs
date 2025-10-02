@@ -126,7 +126,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_agents_research(
             access_token: &str,
-            character_id: i64,
+            character_id: i64
         ) -> Result<Vec<CharacterResearchAgent>, Error>
         url = "{}/characters/{}/agents_research";
         label = "research agents";
@@ -158,10 +158,10 @@ impl<'a> CharacterEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_blueprints(
             access_token: &str,
-            character_id: i64,
-            page: i32,
+            character_id: i64;
+            page: i32
         ) -> Result<Vec<Blueprint>, Error>
-        url = "{}/characters/{}/blueprints?page={}";
+        url = "{}/characters/{}/blueprints";
         label = "blueprints";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_blueprints()).build();
     }

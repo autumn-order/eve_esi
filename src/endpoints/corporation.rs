@@ -156,10 +156,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_blueprints(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<Blueprint>, Error>
-        url = "{}/corporations/{}/blueprints?page={}";
+        url = "{}/corporations/{}/blueprints";
         label = "blueprints";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_blueprints()).build();
     }
@@ -192,10 +192,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_all_corporation_alsc_logs(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<CorporationSecureContainerLog>, Error>
-        url = "{}/corporations/{}/containers/logs?page={}";
+        url = "{}/corporations/{}/containers/logs";
         label = "audit secure container log entries";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_container_logs()).build();
     }
@@ -312,10 +312,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_medals(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<CorporationMedal>, Error>
-        url = "{}/corporations/{}/medals?page={}";
+        url = "{}/corporations/{}/medals";
         label = "medals";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
@@ -349,10 +349,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_issued_medals(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<CorporationIssuedMedal>, Error>
-        url = "{}/corporations/{}/medals/issued?page={}";
+        url = "{}/corporations/{}/medals/issued";
         label = "medals";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
@@ -543,10 +543,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_member_roles_history(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<CorporationMemberRolesHistory>, Error>
-        url = "{}/corporations/{}/roles/history?page={}";
+        url = "{}/corporations/{}/roles/history";
         label = "member roles";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
     }
@@ -577,10 +577,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_shareholders(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<CorporationShareholder>, Error>
-        url = "{}/corporations/{}/shareholders?page={}";
+        url = "{}/corporations/{}/shareholders";
         label = "shareholders";
         required_scopes = ScopeBuilder::new().wallet(WalletScopes::new().read_corporation_wallets()).build();
     }
@@ -608,10 +608,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_standings(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<Standing>, Error>
-        url = "{}/corporations/{}/standings?page={}";
+        url = "{}/corporations/{}/standings";
         label = "NPC standings";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_standings()).build();
     }
@@ -642,10 +642,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_starbases(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<CorporationStarbase>, Error>
-        url = "{}/corporations/{}/starbases?page={}";
+        url = "{}/corporations/{}/starbases";
         label = "starbases (POSes)";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_starbases()).build();
     }
@@ -678,10 +678,10 @@ impl<'a> CorporationEndpoints<'a> {
         auth_get get_starbase_detail(
             access_token: &str,
             corporation_id: i64,
-            starbase_id: i64,
+            starbase_id: i64;
             system_id: i64
         ) -> Result<CorporationStarbaseDetails, Error>
-        url = "{}/corporations/{}/starbases/{}?system_id={}";
+        url = "{}/corporations/{}/starbases/{}";
         label = "a starbase's (POS) details";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_starbases()).build();
     }
@@ -712,10 +712,10 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_structures(
             access_token: &str,
-            corporation_id: i64,
+            corporation_id: i64;
             page: i32
         ) -> Result<Vec<CorporationStructure>, Error>
-        url = "{}/corporations/{}/structures?page={}";
+        url = "{}/corporations/{}/structures";
         label = "structures";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_structures()).build();
     }
