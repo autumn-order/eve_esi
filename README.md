@@ -59,14 +59,18 @@ For more usage examples, ESI client configuration, and logging configuration, pl
 
 The following categories from the [ESI API Explorer](https://developers.eveonline.com/api-explorer) have been implemented:
 
-| Category    | Implemented |
-| ----------- | ----------- |
-| Alliance    | 4/4         |
-| Character   | 11/11       |
-| Corporation | 22/22       |
-| Market      | 11/11       |
+| Category      | Description           | Public Endpoints | Authenticated Endpoints |
+| ------------- | --------------------- | ---------------- | ----------------------- |
+| `alliance`    | Alliance endpoints    | 4                |                         |
+| `assets`      | Clone endpoints       |                  | 6                       |
+| `calendar`    | Calendar endpoints    |                  | 4                       |
+| `character`   | Character endpoints   | 3                | 9                       |
+| `clones`      | Clone endpoints       |                  | 2                       |
+| `contacts`    | Contact endpoints     |                  | 9                       |
+| `corporation` | Corporation endpoints | 4                | 18                      |
+| `market`      | Market endpoints      | 6                | 5                       |
 
-New endpoints are being implemented at a goal pace of 10/day with a new version release every 2-3 days featuring a new endpoint category
+New endpoints are being implemented at a pace of 2-3 new categories per week, all categories should be implemented end of October/early November.
 
 ## Examples
 
