@@ -30,6 +30,29 @@ macro_rules! esi_common_impl {
     };
 }
 
+macro_rules! build_endpoint_url {
+    // No query params
+    ($self_ident:ident, $fmt:expr, ($($path:ident),* $(,)?)) => {{
+        url::Url::parse(&format!($fmt, $self_ident.client.inner.esi_url, $($path),* ))?
+    }};
+
+    // One or more query params
+    ($self_ident:ident, $fmt:expr, ($($path:ident),* $(,)?), ($($query:ident),+ $(,)?)) => {{
+        let mut url = url::Url::parse(&format!($fmt, $self_ident.client.inner.esi_url, $($path),* ))?;
+
+        let mut ser = url::form_urlencoded::Serializer::new(String::new());
+
+        $(
+            let val = serde_json::to_string(&$query).map_err(|e| Error::from(e))?;
+            ser.append_pair(stringify!($query), &val);
+        )*
+
+        url.set_query(Some(&ser.finish()));
+
+        url
+    }};
+}
+
 // Macro for defining public & authenticated ESI endpoints
 macro_rules! define_endpoint {
     // GET endpoint macro
@@ -45,30 +68,7 @@ macro_rules! define_endpoint {
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            // Add URL path params
-            let url = url::Url::parse(&format!(
-                $url, self.client.inner.esi_url, $($path_name),*
-            ))?;
-
-            // Add query params
-            $(
-                let mut url = url;
-
-                {
-                    let mut ser = url::form_urlencoded::Serializer::new(String::new());
-
-                        $(
-                            let val = serde_json::to_string(&$query_name).map_err(|e| Error::from(e))?;
-
-                            ser.append_pair(stringify!($query_name), &val);
-                        )*
-
-                    let q = ser.finish();
-                    if !q.is_empty() {
-                        url.set_query(Some(&q));
-                    }
-                }
-            )?
+            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             let esi = self.client.esi();
             let api_call = esi
@@ -92,30 +92,7 @@ macro_rules! define_endpoint {
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, $body_name: $body_type, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            // Add URL path params
-            let url = url::Url::parse(&format!(
-                $url, self.client.inner.esi_url, $($path_name),*
-            ))?;
-
-            // Add query params
-            $(
-                let mut url = url;
-
-                {
-                    let mut ser = url::form_urlencoded::Serializer::new(String::new());
-
-                        $(
-                            let val = serde_json::to_string(&$query_name).map_err(|e| Error::from(e))?;
-
-                            ser.append_pair(stringify!($query_name), &val);
-                        )*
-
-                    let q = ser.finish();
-                    if !q.is_empty() {
-                        url.set_query(Some(&q));
-                    }
-                }
-            )?
+            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             let esi = self.client.esi();
             let api_call = esi
@@ -140,30 +117,7 @@ macro_rules! define_endpoint {
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            // Add URL path params
-            let url = url::Url::parse(&format!(
-                $url, self.client.inner.esi_url, $($path_name),*
-            ))?;
-
-            // Add query params
-            $(
-                let mut url = url;
-
-                {
-                    let mut ser = url::form_urlencoded::Serializer::new(String::new());
-
-                        $(
-                            let val = serde_json::to_string(&$query_name).map_err(|e| Error::from(e))?;
-
-                            ser.append_pair(stringify!($query_name), &val);
-                        )*
-
-                    let q = ser.finish();
-                    if !q.is_empty() {
-                        url.set_query(Some(&q));
-                    }
-                }
-            )?
+            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             let esi = self.client.esi();
             let api_call = esi
@@ -189,30 +143,7 @@ macro_rules! define_endpoint {
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, access_token: &str, $body_name: $body_type, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            // Add URL path params
-            let url = url::Url::parse(&format!(
-                $url, self.client.inner.esi_url, $($path_name),*
-            ))?;
-
-            // Add query params
-            $(
-                let mut url = url;
-
-                {
-                    let mut ser = url::form_urlencoded::Serializer::new(String::new());
-
-                        $(
-                            let val = serde_json::to_string(&$query_name).map_err(|e| Error::from(e))?;
-
-                            ser.append_pair(stringify!($query_name), &val);
-                        )*
-
-                    let q = ser.finish();
-                    if !q.is_empty() {
-                        url.set_query(Some(&q));
-                    }
-                }
-            )?
+            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             let esi = self.client.esi();
             let api_call = esi
@@ -238,30 +169,7 @@ macro_rules! define_endpoint {
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, access_token: &str, $body_name: $body_type, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            // Add URL path params
-            let url = url::Url::parse(&format!(
-                $url, self.client.inner.esi_url, $($path_name),*
-            ))?;
-
-            // Add query params
-            $(
-                let mut url = url;
-
-                {
-                    let mut ser = url::form_urlencoded::Serializer::new(String::new());
-
-                        $(
-                            let val = serde_json::to_string(&$query_name).map_err(|e| Error::from(e))?;
-
-                            ser.append_pair(stringify!($query_name), &val);
-                        )*
-
-                    let q = ser.finish();
-                    if !q.is_empty() {
-                        url.set_query(Some(&q));
-                    }
-                }
-            )?
+            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             let esi = self.client.esi();
             let api_call = esi
@@ -287,30 +195,7 @@ macro_rules! define_endpoint {
     ) => {
         $(#[$attr])*
         pub async fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            // Add URL path params
-            let url = url::Url::parse(&format!(
-                $url, self.client.inner.esi_url, $($path_name),*
-            ))?;
-
-            // Add query params
-            $(
-                let mut url = url;
-
-                {
-                    let mut ser = url::form_urlencoded::Serializer::new(String::new());
-
-                        $(
-                            let val = serde_json::to_string(&$query_name).map_err(|e| Error::from(e))?;
-
-                            ser.append_pair(stringify!($query_name), &val);
-                        )*
-
-                    let q = ser.finish();
-                    if !q.is_empty() {
-                        url.set_query(Some(&q));
-                    }
-                }
-            )?
+            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             let esi = self.client.esi();
             let api_call = esi

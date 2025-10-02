@@ -143,7 +143,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_open_orders_from_a_corporation(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<CorporationMarketOrder>, Error>
         url = "{}/corporations/{}/orders";
         label = "open orders";
