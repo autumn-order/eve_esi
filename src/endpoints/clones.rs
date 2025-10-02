@@ -57,7 +57,7 @@ impl<'a> ClonesEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_clones(
             access_token: &str,
-            character_id: i64;
+            character_id: i64
         ) -> Result<CharacterClones, Error>
         url = "{}/characters/{}/clones";
         label = "clones";
@@ -88,7 +88,7 @@ impl<'a> ClonesEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_active_implants(
             access_token: &str,
-            character_id: i64;
+            character_id: i64
         ) -> Result<Vec<i64>, Error>
         url = "{}/characters/{}/implants";
         label = "implants for active clone";

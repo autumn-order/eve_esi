@@ -80,7 +80,7 @@ impl<'a> MarketEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get list_open_orders_from_a_character(
             access_token: &str,
-            character_id: i64;
+            character_id: i64
         ) -> Result<Vec<CharacterMarketOrder>, Error>
         url = "{}/characters/{}/orders";
         label = "open market orders";
@@ -315,11 +315,11 @@ impl<'a> MarketEndpoints<'a> {
         /// Returns a [`Result`] containing either:
         /// - `Vec<`[`MarketRegionOrder`]`>`: list of market orders within the provided region ID and of the specified order type
         pub_get list_orders_in_a_region(
-            region_id: i64,
+            region_id: i64;
             order_type: OrderType,
             page: i32
         ) -> Result<Vec<MarketRegionOrder>, Error>
-        url = "{}/markets/{}/orders?order_type={}&page={}";
+        url = "{}/markets/{}/orders";
         label = "market orders";
     }
 
@@ -339,10 +339,10 @@ impl<'a> MarketEndpoints<'a> {
         /// Returns a [`Result`] containing either:
         /// - `Vec<i64>`: list of type IDs that have active market orders for the given region ID
         pub_get list_type_ids_relevant_to_a_market(
-            region_id: i64,
+            region_id: i64;
             page: i32
         ) -> Result<Vec<i64>, Error>
-        url = "{}/markets/{}/types?page={}";
+        url = "{}/markets/{}/types";
         label = "item type IDs with active market orders";
     }
 }

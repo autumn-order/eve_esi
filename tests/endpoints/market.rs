@@ -270,7 +270,7 @@ public_endpoint_test! {
             .await
     },
     request_type = "GET",
-    url = "/markets/1/orders?order_type=all&page=1",
+    url = "/markets/1/orders?order_type=%22all%22&page=1",
     mock_response = serde_json::json!([
       {
         "duration": 0,

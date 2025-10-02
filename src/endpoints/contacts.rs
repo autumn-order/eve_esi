@@ -71,7 +71,7 @@ impl<'a> ContactsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_alliance_contacts(
             access_token: &str,
-            alliance_id: i64;
+            alliance_id: i64
         ) -> Result<Vec<AllianceContact>, Error>
         url = "{}/alliances/{}/contacts";
         label = "contacts";
@@ -102,7 +102,7 @@ impl<'a> ContactsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_alliance_contact_labels(
             access_token: &str,
-            alliance_id: i64;
+            alliance_id: i64
         ) -> Result<Vec<ContactLabel>, Error>
         url = "{}/alliances/{}/contacts/labels";
         label = "contact labels";
@@ -166,7 +166,7 @@ impl<'a> ContactsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_contacts(
             access_token: &str,
-            character_id: i64;
+            character_id: i64
         ) -> Result<Vec<CharacterContact>, Error>
         url = "{}/characters/{}/contacts";
         label = "contacts";
@@ -337,7 +337,7 @@ impl<'a> ContactsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_contact_labels(
             access_token: &str,
-            character_id: i64;
+            character_id: i64
         ) -> Result<Vec<ContactLabel>, Error>
         url = "{}/characters/{}/contacts/labels";
         label = "contact labels";
@@ -368,7 +368,7 @@ impl<'a> ContactsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_contacts(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<CorporationContact>, Error>
         url = "{}/corporations/{}/contacts";
         label = "contacts";
@@ -399,7 +399,7 @@ impl<'a> ContactsEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_contact_labels(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<ContactLabel>, Error>
         url = "{}/corporations/{}/contacts/labels";
         label = "contact labels";

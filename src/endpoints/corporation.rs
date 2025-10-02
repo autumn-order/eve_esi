@@ -225,7 +225,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_divisions(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<CorporationDivisions, Error>
         url = "{}/corporations/{}/divisions";
         label = "hangar & wallet divisions";
@@ -257,7 +257,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_facilities(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<CorporationFacilities>, Error>
         url = "{}/corporations/{}/facilities";
         label = "industry facilities";
@@ -379,7 +379,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_members(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<i64>, Error>
         url = "{}/corporations/{}/members";
         label = "character IDs of all members";
@@ -411,7 +411,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_member_limit(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<i64, Error>
         url = "{}/corporations/{}/members/limit";
         label = "member limit";
@@ -443,7 +443,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_members_titles(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<CorporationMemberTitles>, Error>
         url = "{}/corporations/{}/members/titles";
         label = "member titles";
@@ -476,7 +476,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get track_corporation_members(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<CorporationMemberTracking>, Error>
         url = "{}/corporations/{}/membertracking";
         label = "member tracking";
@@ -509,7 +509,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_member_roles(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<CorporationMemberRoles>, Error>
         url = "{}/corporations/{}/roles";
         label = "member roles";
@@ -745,7 +745,7 @@ impl<'a> CorporationEndpoints<'a> {
         /// - [`Error`]: An error if the fetch request fails
         auth_get get_corporation_titles(
             access_token: &str,
-            corporation_id: i64;
+            corporation_id: i64
         ) -> Result<Vec<CorporationTitle>, Error>
         url = "{}/corporations/{}/titles";
         label = "titles";
