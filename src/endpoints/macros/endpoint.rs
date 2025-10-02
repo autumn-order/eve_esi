@@ -60,20 +60,44 @@ macro_rules! define_endpoint {
         pub_post $fn_name:ident(
             $(&self,)?
             $body_name:ident: $body_type:ty,
-            $($param_name:ident: $param_type:ty),* $(,)?
+            $($path_name:ident: $path_ty:ty),* $(,)?
+            $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
         ) -> Result<$return_type:ty, Error>
         url = $url:expr;
         label = $label:expr;
     ) => {
         $(#[$attr])*
-        pub async fn $fn_name(&self, $body_name: $body_type, $($param_name: $param_type),*) -> Result<$return_type, Error> {
-            let url = format!($url, self.client.inner.esi_url, $($param_name),*);
+        pub async fn $fn_name(&self, $body_name: $body_type, $(, $($path_name: $path_ty),* )? $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
+            // Add URL path params
+            let url = url::Url::parse(&format!(
+                $url, self.client.inner.esi_url, $($path_name),*
+            ))?;
+
+            // Add query params
+            $(
+                let mut url = url;
+
+                {
+                    let mut ser = url::form_urlencoded::Serializer::new(String::new());
+
+                        $(
+                            let val = serde_json::to_string(&$query_name).map_err(|e| Error::from(e))?;
+
+                            ser.append_pair(stringify!($query_name), &val);
+                        )*
+
+                    let q = ser.finish();
+                    if !q.is_empty() {
+                        url.set_query(Some(&q));
+                    }
+                }
+            )?
 
             let esi = self.client.esi();
             let api_call = esi
-                .post_to_public_esi::<$return_type, $body_type>(&url, &$body_name);
+                .post_to_public_esi::<$return_type, $body_type>(url.as_str(), &$body_name);
 
-            esi_common_impl!($label, url, api_call, ($($param_name),*))
+            esi_common_impl!($label, url, api_call, ($($path_name),*))
         }
     };
 
