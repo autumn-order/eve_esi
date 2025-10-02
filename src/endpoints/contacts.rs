@@ -125,8 +125,8 @@ impl<'a> ContactsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `contact_ids`   (`Vec<i64>`): List of contact IDs to delete (up to 20 per request)
         /// - `character_id`  (`i64`): The ID of the alliance to retrieve contacts labels for
+        /// - `contact_ids`   (`Vec<i64>`): List of contact IDs to delete (up to 20 per request)
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:

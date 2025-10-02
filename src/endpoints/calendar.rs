@@ -141,7 +141,7 @@ impl<'a> CalendarEndpoints<'a> {
             access_token: &str,
             event_response: PutCalendarEventResponse,
             character_id: i64,
-            event_id: i64
+            event_id: i64;
         ) -> Result<(), Error>
         url = "{}/characters/{}/calendar/{}";
         label = "respond to calendar event";
