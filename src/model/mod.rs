@@ -28,3 +28,4 @@ pub mod enums;
 pub mod market;
 pub mod oauth2;
 pub mod standing;
+pub mod universe;

@@ -13,6 +13,7 @@
 //! | [`contacts`]    | Contact endpoints     |                  | 9                       |
 //! | [`corporation`] | Corporation endpoints | 4                | 18                      |
 //! | [`market`]      | Market endpoints      | 6                | 5                       |
+//! | [`universe`]    | Universe endpoints    | 1                |                         |
 //!
 //! The rest of the declared endpoints submodules have yet to have any endpoints implemented.
 //!
@@ -352,7 +353,7 @@ impl Client {
     /// Access to universe ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn universe(&self) -> UniverseEndpoints<'_> {
+    pub fn universe(&self) -> UniverseEndpoints<'_> {
         UniverseEndpoints::new(self)
     }
 

@@ -1,14 +1,13 @@
 [package]
 name = "eve_esi"
-version = "0.4.6"
-authors = ["Hyziri <hyziri@protonmail.com>"]
+version = "0.4.7"
 edition = "2021"
 description = "Thread-safe, asynchronous client for EVE Online's ESI & OAuth2"
-keywords = ["eve_online", "esi", "eve",  "eve_esi", "eve_oauth2"]
-repository = "https://github.com/autumn-order/eve_esi"
 documentation = "https://docs.rs/eve_esi/latest/eve_esi/"
-license = "MIT"
 readme = "README.md"
+repository = "https://github.com/autumn-order/eve_esi"
+license = "MIT"
+keywords = ["esi", "eve", "eve_esi", "eve_oauth2", "eve_online"]
 include = ["/src", "LICENSE", "README.md"]
 
 [dependencies]
@@ -20,18 +19,18 @@ reqwest = { version = "0.12.22", features = ["json"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.142"
 thiserror = "2.0.12"
-tokio = { version = "1.47.1", features = ["sync", "macros", "time"] }
+tokio = { version = "1.47.1", features = ["macros", "sync", "time"] }
 url = "2.5.7"
 
 [dev-dependencies]
 axum = "0.8.4"
-tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
-mockito = "1.7.0"
-serde_json = "1.0.142"
+base64 = "0.22.1"
 dotenvy = "0.15.7"
 env_logger = "0.11.8"
-tower-sessions = "0.14.0"
-time = "0.3.43"
+mockito = "1.7.0"
 openssl = "0.10.73"
-base64 = "0.22.1"
 paste = "1.0.15"
+serde_json = "1.0.142"
+time = "0.3.43"
+tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
+tower-sessions = "0.14.0"
