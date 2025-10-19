@@ -4,9 +4,7 @@
 >
 > **This crate is still under development, APIs may change between versions**
 >
-> Currently the crate features OAuth2 login with EVE Online and we're now currently working on implementing all ESI endpoints. The goal is to implement new endpoints at a pace of 2-3 new categories per week, it takes about 15 minutes to implement each endpoint due to writing related structs, enums, documentation & integration tests. All endpoints should be implemented end of October/early November.
->
-> Documentation for this crate is still work-in-progress, if you see any issues or areas for improvement in documentation contributions are always welcome to help make this crate more accessible to other developers.
+> Currently the crate features OAuth2 login with EVE Online and we're now adding additional ESI endpoints as needed. If you wish to see specific endpoints added, please open a GitHub issue, submit a pull request, or simply reach out via the [Autumn Discord](https://discord.gg/HjaGsBBtFg).
 
 [![Crates.io Version](https://img.shields.io/crates/v/eve_esi?logo=rust)](https://crates.io/crates/eve_esi/)
 [![codecov](https://codecov.io/gh/hyziri/eve_esi/graph/badge.svg?token=OXD57P1UY6)](https://codecov.io/gh/hyziri/eve_esi)
@@ -22,7 +20,7 @@ A thread-safe, asynchronous client which provides methods & types for interactio
 
 For usage examples, ESI client configuration, and logging configuration, please see the [documentation](https://docs.rs/eve_esi/latest/eve_esi/)
 
-Have questions about this crate or EVE Online's ESI in general? Ask us in [Discord](https://discord.gg/HjaGsBBtFg)!
+Have questions about this crate or EVE Online's ESI in general? Ask us in the [Autumn Discord](https://discord.gg/HjaGsBBtFg)!
 
 ## Features
 
@@ -69,8 +67,9 @@ The following categories from the [ESI API Explorer](https://developers.eveonlin
 | `contacts`    | Contact endpoints     |                  | 9                       |
 | `corporation` | Corporation endpoints | 4                | 18                      |
 | `market`      | Market endpoints      | 6                | 5                       |
+| `universe`    | Universe endpoints    | 1                |                         |
 
-New endpoints are being implemented at a pace of 2-3 new categories per week, all categories should be implemented end of October/early November.
+New endpoints are being implemented as needed. If you wish to see specific endpoints added, please open a GitHub issue, submit a pull request, or simply reach out via the [Autumn Discord](https://discord.gg/HjaGsBBtFg).
 
 ## Examples
 
