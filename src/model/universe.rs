@@ -20,23 +20,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Faction {
     /// Primary corporation ID for the faction if applicable
-    corporation_d: Option<i64>,
+    pub corporation_d: Option<i64>,
     /// Description for the faction
-    description: String,
+    pub description: String,
     /// Unique ID of the faction
-    faction_id: i64,
+    pub faction_id: i64,
     /// ???
-    is_unique: bool,
+    pub is_unique: bool,
     /// The faction warfare militia corporation if applicable
-    militia_corporation_id: Option<i64>,
+    pub militia_corporation_id: Option<i64>,
     /// The name of the faction
-    name: String,
+    pub name: String,
     /// The size of the faction
-    size_factor: f64,
+    pub size_factor: f64,
     /// The unique ID of the faction's home system if applicable
-    solar_system_id: Option<i64>,
+    pub solar_system_id: Option<i64>,
     /// The amount of NPC stations the faction owns
-    station_count: i64,
+    pub station_count: i64,
     /// The amount of systems the NPC faction has stations in
-    station_system_count: i64,
+    pub station_system_count: i64,
 }

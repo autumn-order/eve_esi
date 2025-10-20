@@ -1,6 +1,6 @@
 [package]
 name = "eve_esi"
-version = "0.4.7"
+version = "0.4.8"
 edition = "2021"
 description = "Thread-safe, asynchronous client for EVE Online's ESI & OAuth2"
 documentation = "https://docs.rs/eve_esi/latest/eve_esi/"
