@@ -16,11 +16,11 @@ use serde::{Deserialize, Serialize};
 /// Represents an NPC faction in EVE Online
 ///
 /// # Documentation
-///- <https://developers.eveonline.com/api-explorer#/schemas/UniverseFactionsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+/// - <https://developers.eveonline.com/api-explorer#/schemas/UniverseFactionsGet>
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Faction {
     /// Primary corporation ID for the faction if applicable
-    pub corporation_d: Option<i64>,
+    pub corporation_id: Option<i64>,
     /// Description for the faction
     pub description: String,
     /// Unique ID of the faction
