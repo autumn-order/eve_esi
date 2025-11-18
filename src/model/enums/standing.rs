@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
 ///
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum StandingType {
     /// Standing type is with an NPC agent
     #[serde(rename = "agent")]

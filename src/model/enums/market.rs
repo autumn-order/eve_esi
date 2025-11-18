@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdOrdersGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum MarketOrderRange {
     /// Market order has a range of within 1 jump
     #[serde(rename = "1")]
@@ -59,7 +59,7 @@ pub enum MarketOrderRange {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdOrdersHistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum HistoricalMarketOrderState {
     /// Market order was cancelled
     #[serde(rename = "cancelled")]
@@ -73,7 +73,7 @@ pub enum HistoricalMarketOrderState {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsRegionIdOrders>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum OrderType {
     /// Request only buy orders
     #[serde(rename = "buy")]

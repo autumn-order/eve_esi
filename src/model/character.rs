@@ -33,7 +33,7 @@ use crate::model::enums::{
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Character {
     /// The ID of the alliance the character belongs to, if applicable.
     pub alliance_id: Option<i64>,
@@ -63,7 +63,7 @@ pub struct Character {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersAffiliationPost>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterAffiliation {
     /// The ID of the alliance the character belongs to, if applicable.
     pub alliance_id: Option<i64>,
@@ -79,7 +79,7 @@ pub struct CharacterAffiliation {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAgentsResearchGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterResearchAgent {
     /// ID of the research agent
     pub agent_id: i64,
@@ -97,7 +97,7 @@ pub struct CharacterResearchAgent {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdCorporationhistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterCorporationHistory {
     /// The ID of the corporation
     pub corporation_id: i64,
@@ -114,7 +114,7 @@ pub struct CharacterCorporationHistory {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdFatigueGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterJumpFatigue {
     /// Character's jump fatigue expiry
     pub jump_fatigue_expire_date: DateTime<Utc>,
@@ -128,7 +128,7 @@ pub struct CharacterJumpFatigue {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdMedalsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterMedalGraphics {
     /// Color of the medal graphic
     pub color: i64,
@@ -144,7 +144,7 @@ pub struct CharacterMedalGraphics {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdMedalsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterMedal {
     /// The corporation which had issued the medal
     pub corporation_id: i64,
@@ -170,7 +170,7 @@ pub struct CharacterMedal {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterNotification {
     /// Whether or not the notification has been read
     #[serde(default)]
@@ -193,7 +193,7 @@ pub struct CharacterNotification {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdNotificationsContactsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterNewContactNotification {
     /// The message content of the notification
     pub message: String,
@@ -215,7 +215,7 @@ pub struct CharacterNewContactNotification {
 /// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
 /// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
 /// GitHub repository. Fields will be set as not optional for the time being.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterPortraits {
     /// Character's portrait URL in 64x64px
     pub px64x64: String,
@@ -231,7 +231,7 @@ pub struct CharacterPortraits {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdRolesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterCorporationRole {
     /// Roles applicable across the entire corp
     pub roles: Vec<CorporationRole>,
@@ -251,7 +251,7 @@ pub struct CharacterCorporationRole {
 /// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
 /// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
 /// GitHub repository. Fields will be set as not optional for the time being.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterCorporationTitle {
     /// The title content
     pub name: String,

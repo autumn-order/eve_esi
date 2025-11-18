@@ -1,9 +1,11 @@
-use eve_esi::model::oauth2::EveJwtClaims;
 use mockito::{Mock, ServerGuard};
 use oauth2::TokenResponse;
 
 use crate::{
-    oauth2::util::{jwk_response::get_jwk_success_response, jwt::create_mock_token_with_claims},
+    oauth2::util::{
+        jwk_response::get_jwk_success_response,
+        jwt::{create_mock_jwt_claims, create_mock_token_with_claims},
+    },
     util::integration_test_setup,
 };
 
@@ -19,7 +21,7 @@ pub(super) async fn authenticated_endpoint_test_setup() -> (eve_esi::Client, Ser
 
 /// Utility to create an access token for authenticated ESI routes
 pub(super) fn mock_access_token_with_scopes(scopes: Vec<String>) -> String {
-    let mut mock_access_token_claims = EveJwtClaims::mock();
+    let mut mock_access_token_claims = create_mock_jwt_claims();
     mock_access_token_claims.scp = scopes;
 
     let token = create_mock_token_with_claims(false, mock_access_token_claims);

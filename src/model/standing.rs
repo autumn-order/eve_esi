@@ -11,7 +11,7 @@ use crate::model::enums::standing::StandingType;
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStandingsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Standing {
     /// The ID of the entity the standing is with
     pub from_id: i64,

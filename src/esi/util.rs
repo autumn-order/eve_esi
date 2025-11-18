@@ -79,12 +79,12 @@ mod check_token_expiration_tests {
     use chrono::Utc;
 
     use super::check_token_expiration;
-    use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
+    use crate::{tests::util::create_mock_jwt_claims, Error, OAuthError};
 
     /// No errors due to token not being expired
     #[test]
     fn test_check_token_expiration_success() {
-        let mock_claims = EveJwtClaims::mock();
+        let mock_claims = create_mock_jwt_claims();
 
         let result = check_token_expiration(&mock_claims);
 
@@ -94,7 +94,7 @@ mod check_token_expiration_tests {
     /// Error occurs due to token being expired
     #[test]
     fn test_check_token_expiration_error() {
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.exp = Utc::now() - Duration::from_secs(60); // expired 1 minute ago
         mock_claims.iat = Utc::now() - Duration::from_secs(960); // created 16 minutes ago
 
@@ -111,14 +111,14 @@ mod check_token_expiration_tests {
 #[cfg(test)]
 mod test_check_token_scopes {
     use super::check_token_scopes;
-    use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
+    use crate::{tests::util::create_mock_jwt_claims, Error, OAuthError};
 
     /// No errors due to token having all required scopes
     #[test]
     fn test_check_token_claims_success() {
         let required_scopes = vec!["publicData".to_string()];
 
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.scp = required_scopes.clone();
 
         let result = check_token_scopes(&mock_claims, required_scopes);
@@ -131,7 +131,7 @@ mod test_check_token_scopes {
     async fn test_check_token_claims_scope_error() {
         let required_scopes = vec!["publicData".to_string()];
 
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.scp = Vec::new();
 
         let result = check_token_scopes(&mock_claims, required_scopes);

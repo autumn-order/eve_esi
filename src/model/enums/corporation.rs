@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdRolesHistoryGet>
 /// - <https://support.eveonline.com/hc/en-us/articles/203217712-Roles-Listing> (See location identifier setion)
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CorporationRoleType {
     /// Roles character is capable of granting corporation-wide
     #[serde(rename = "grantable_roles")]
@@ -52,7 +52,7 @@ pub enum CorporationRoleType {
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdRolesGet>
 /// - <https://support.eveonline.com/hc/en-us/articles/203217712-Roles-Listing>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CorporationRole {
     /// Access to take funds from master corporation wallet
     #[serde(rename = "Account_Take_1")]
@@ -221,7 +221,7 @@ pub enum CorporationRole {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdContainersLogsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CorporationSecureContainerAction {
     /// Added item to container
     #[serde(rename = "add")]
@@ -259,7 +259,7 @@ pub enum CorporationSecureContainerAction {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdShareholdersGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum ShareholderType {
     /// Shares are held by a character
     #[serde(rename = "character")]
@@ -273,7 +273,7 @@ pub enum ShareholderType {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CorporationStarbaseState {
     /// The starbase (POS) is offline
     #[serde(rename = "offline")]
@@ -296,7 +296,7 @@ pub enum CorporationStarbaseState {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CorporationStarbasePermission {
     /// Alliance members have permission
     #[serde(rename = "alliance_member")]
@@ -316,7 +316,7 @@ pub enum CorporationStarbasePermission {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CorporationStructureServiceState {
     /// Structure service is currently online
     #[serde(rename = "online")]
@@ -333,7 +333,7 @@ pub enum CorporationStructureServiceState {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CorporationStructureState {
     /// Structure finished anchoring but has not yet had quantum core installed and is currently vulnerable
     #[serde(rename = "anchor_vulnerable")]

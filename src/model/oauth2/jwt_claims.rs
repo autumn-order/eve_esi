@@ -15,7 +15,7 @@
 //!
 /// ## EVE Online OAuth2 Documentation
 /// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, OAuthError};
@@ -27,7 +27,7 @@ use crate::{Error, OAuthError};
 ///
 /// # EVE Online OAuth2 Documentation
 /// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EveJwtClaims {
     // There are two possible issuers but only 1 will be present at a time
     // See `constant.rs`, `DEFAULT_JWT_ISSUERS` for possible issuers.
@@ -185,31 +185,6 @@ impl EveJwtClaims {
 
         true
     }
-
-    /// Utility function to create a mock of EveJwtClaims
-    pub fn mock() -> Self {
-        let expires_in_fifteen_minutes = Utc::now() + Duration::seconds(900);
-        let created_now = Utc::now();
-
-        // Create JWT mock claims matching what EVE Online would return
-        EveJwtClaims {
-            // ESI SSO docs defines 2 different JWT issuers but typically only returns 1 of them at a time
-            // The default defines 2 but for tests we'll define 1 to ensure validation works
-            iss: "https://login.eveonline.com".to_string(),
-            sub: "CHARACTER:EVE:123456789".to_string(),
-            aud: vec!["client_id".to_string(), "EVE Online".to_string()],
-            jti: "abc123def456".to_string(),
-            kid: "JWT-Signature-Key-1".to_string(),
-            tenant: "tranquility".to_string(),
-            region: "world".to_string(),
-            exp: expires_in_fifteen_minutes,
-            iat: created_now,
-            scp: vec![],
-            name: "Test Character".to_string(),
-            owner: "123456789".to_string(),
-            azp: "client_id".to_string(),
-        }
-    }
 }
 
 /// Custom deserializer for the `scp` field in JWT claims
@@ -286,12 +261,12 @@ mod jwt_timestamp_format {
 
 #[cfg(test)]
 mod claims_character_id_tests {
-    use crate::{model::oauth2::EveJwtClaims, Error, OAuthError};
+    use crate::{tests::util::create_mock_jwt_claims, Error, OAuthError};
 
     /// Success when `sub` field is properly formatted
     #[test]
     fn test_claims_character_id_success() {
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.sub = "CHARACTER:EVE:123456789".to_string();
 
         let result = mock_claims.character_id();
@@ -305,7 +280,7 @@ mod claims_character_id_tests {
     /// Error when sub field is not segmented into 3 parts by ":"
     #[test]
     fn test_claims_character_id_segment_error() {
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.sub = "not_segmented".to_string();
 
         let result = mock_claims.character_id();
@@ -321,7 +296,7 @@ mod claims_character_id_tests {
     /// Error when `sub` field is properly segmented but expected ID is not a number
     #[test]
     fn test_claims_character_id_i64_parse_error() {
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.sub = "CHARACTER:EVE:not_a_number".to_string();
 
         let result = mock_claims.character_id();
@@ -340,12 +315,12 @@ mod is_expired_tests {
 
     use chrono::{Duration, Utc};
 
-    use crate::model::oauth2::EveJwtClaims;
+    use crate::tests::util::create_mock_jwt_claims;
 
     /// Ensures that when token is not expired, function returns false
     #[tokio::test]
     pub async fn test_is_expired_false() {
-        let mock_claims = EveJwtClaims::mock();
+        let mock_claims = create_mock_jwt_claims();
 
         let result = mock_claims.is_expired();
 
@@ -355,7 +330,7 @@ mod is_expired_tests {
     /// Ensures that when token is expired, function returns true
     #[tokio::test]
     async fn test_is_expired_true() {
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.exp = Utc::now() - Duration::seconds(60); // Expired 1 minute ago
         mock_claims.iat = Utc::now() - Duration::seconds(960); // Created 16 minutes ago
 
@@ -367,12 +342,12 @@ mod is_expired_tests {
 
 #[cfg(test)]
 mod has_scopes_tests {
-    use crate::model::oauth2::EveJwtClaims;
+    use crate::tests::util::create_mock_jwt_claims;
 
     /// Test that function returns true since all scopes are present
     #[test]
     fn test_has_scopes_true() {
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.scp = vec!["publicData".to_string()];
 
         let expected_scopes = vec!["publicData".to_string()];
@@ -384,7 +359,7 @@ mod has_scopes_tests {
     /// Test that function returns false due to missing scopes
     #[test]
     fn test_has_scopes_false() {
-        let mut mock_claims = EveJwtClaims::mock();
+        let mut mock_claims = create_mock_jwt_claims();
         mock_claims.scp = vec!["".to_string()];
 
         let expected_scopes = vec!["publicData".to_string()];

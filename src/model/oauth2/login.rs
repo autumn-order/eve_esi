@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 /// # Fields
 /// - `login_url`: The URL where users should be redirected to login
 /// - `state`: A random state parameter used to prevent CSRF attacks
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthenticationData {
     /// The URL where users should be redirected to login
     pub login_url: String,

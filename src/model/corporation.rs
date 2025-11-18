@@ -44,7 +44,7 @@ use crate::model::enums::{
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Corporation {
     /// The ID of the alliance which the corporation is a member of, if applicable.
     pub alliance_id: Option<i64>,
@@ -80,7 +80,7 @@ pub struct Corporation {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdAlliancehistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationAllianceHistory {
     /// The ID of the alliance if applicable
     pub alliance_id: Option<i64>,
@@ -97,7 +97,7 @@ pub struct CorporationAllianceHistory {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdAlliancehistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationSecureContainerLog {
     /// The action taken on the container
     pub action: CorporationSecureContainerAction,
@@ -127,7 +127,7 @@ pub struct CorporationSecureContainerLog {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationDivisionEntry {
     /// The number of the division (1-7), for wallet divisions: 1 = master wallet
     pub division: i64,
@@ -139,7 +139,7 @@ pub struct CorporationDivisionEntry {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationDivisions {
     /// List of hangar division entries
     pub hangar: Vec<CorporationDivisionEntry>,
@@ -151,7 +151,7 @@ pub struct CorporationDivisions {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdDivisionsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationFacilities {
     /// ID of the facility
     pub facility_id: i64,
@@ -169,7 +169,7 @@ pub struct CorporationFacilities {
 /// Note: ESI documentation shows all fields of this struct as optional, this may be misdocumented,
 /// if any deserialization errors regarding this struct occur please open an issue on the eve_esi crate
 /// GitHub repository. Fields will be set as not optional for the time being.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationIcon {
     /// URL of the 128x128 px variant of the corporation's logo
     pub px128x128: String,
@@ -186,7 +186,7 @@ pub struct CorporationIcon {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMedalsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationMedal {
     /// The timestamp of when the medal was created
     pub created_at: DateTime<Utc>,
@@ -207,7 +207,7 @@ pub struct CorporationMedal {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMedalsIssuedGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationIssuedMedal {
     /// ID of the character who was granted the medal
     pub character_id: i64,
@@ -227,7 +227,7 @@ pub struct CorporationIssuedMedal {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMembersTitlesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationMemberTitles {
     /// ID of the character who the titles belong to
     pub character_id: i64,
@@ -239,7 +239,7 @@ pub struct CorporationMemberTitles {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdMembertrackingGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationMemberTracking {
     /// Corporation base ID which the character belongs to
     pub base_id: Option<i64>,
@@ -261,7 +261,7 @@ pub struct CorporationMemberTracking {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdRolesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationMemberRoles {
     /// ID of character who the roles belong to
     pub character_id: i64,
@@ -287,7 +287,7 @@ pub struct CorporationMemberRoles {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdRolesHistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationMemberRolesHistory {
     /// Timestamp of the role change log entry
     pub changed_at: DateTime<Utc>,
@@ -307,7 +307,7 @@ pub struct CorporationMemberRolesHistory {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdShareholdersGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationShareholder {
     /// Amount of shares held by the shareholder
     pub share_count: i64,
@@ -321,7 +321,7 @@ pub struct CorporationShareholder {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationStarbase {
     /// Optional ID of the moon which the starbase (POS) is anchored on,
     /// will be None if POS is unanchored
@@ -350,7 +350,7 @@ pub struct CorporationStarbase {
 ///
 /// # ESI Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationStarbaseFuel {
     /// The quantity of fuel stored in the starbase (POS)
     pub quantity: i64,
@@ -362,7 +362,7 @@ pub struct CorporationStarbaseFuel {
 ///
 /// # ESI Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStarbasesStarbaseIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationStarbaseDetails {
     /// Allow alliance members to access POS
     pub allow_alliance_members: bool,
@@ -398,7 +398,7 @@ pub struct CorporationStarbaseDetails {
 ///
 /// # ESI Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationStructureService {
     /// The name of the structure service
     pub name: String,
@@ -410,7 +410,7 @@ pub struct CorporationStructureService {
 ///
 /// # ESI Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdStructuresGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationStructure {
     /// ID of the corporation that owns the structures
     pub corporation_id: i64,
@@ -449,7 +449,7 @@ pub struct CorporationStructure {
 ///
 /// # ESI Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdTitlesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationTitle {
     /// Roles title is capable of granting corporation-wide
     pub grantable_roles: Vec<CorporationRole>,
