@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdCalendar>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CalendarEventResponse {
     /// Character declined calendar event
     #[serde(rename = "declined")]
@@ -34,7 +34,7 @@ pub enum CalendarEventResponse {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/operations/PutCharactersCharacterIdCalendarEventId>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum PutCalendarEventResponse {
     /// Character declined calendar event
     #[serde(rename = "declined")]
@@ -51,7 +51,7 @@ pub enum PutCalendarEventResponse {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/operations/GetCharactersCharacterIdCalendar>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CalendarEventOwnerType {
     /// Calendar event created by EVE server
     #[serde(rename = "eve_server")]

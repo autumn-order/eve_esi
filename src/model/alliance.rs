@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Alliance {
     /// The ID of the corporation that created the alliance.
     pub creator_corporation_id: i64,
@@ -39,7 +39,7 @@ pub struct Alliance {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdIconsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AllianceIcons {
     /// 128x128 icon URL for an alliance
     pub px128x128: String,

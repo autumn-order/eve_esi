@@ -23,7 +23,7 @@ use crate::model::enums::market::{HistoricalMarketOrderState, MarketOrderRange};
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdOrdersGet>
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdOrdersHistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterMarketOrder {
     /// Number of days for which the order is valid
     /// starting from the issued date.
@@ -66,7 +66,7 @@ pub struct CharacterMarketOrder {
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdOrdersGet>
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdOrdersHistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationMarketOrder {
     /// Number of days for which the order is valid
     /// starting from the issued date.
@@ -108,7 +108,7 @@ pub struct CorporationMarketOrder {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsGroupsMarketGroupIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MarketItemGroupInformation {
     /// The description of the market item group
     pub description: String,
@@ -126,7 +126,7 @@ pub struct MarketItemGroupInformation {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsPricesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MarketItemPrices {
     /// The estimated price of what the item actually sells for on the market
     pub adjusted_price: Option<f64>,
@@ -140,7 +140,7 @@ pub struct MarketItemPrices {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsStructuresStructureIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StructureMarketOrder {
     /// Number of days for which the order is valid
     /// starting from the issued date.
@@ -174,7 +174,7 @@ pub struct StructureMarketOrder {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsRegionIdHistoryGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MarketItemRegionStatistics {
     /// The average price of the item in this entry
     pub average: f64,
@@ -194,7 +194,7 @@ pub struct MarketItemRegionStatistics {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/MarketsRegionIdOrdersGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MarketRegionOrder {
     /// Number of days for which the order is valid
     /// starting from the issued date.

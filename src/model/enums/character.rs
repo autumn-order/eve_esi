@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdMedalsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CharacterMedalStatus {
     /// Medal visibility is set to public
     #[serde(rename = "public")]

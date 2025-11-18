@@ -21,7 +21,7 @@ use crate::model::enums::contacts::ContactType;
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdContactsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AllianceContact {
     /// Unique ID of the contact
     pub contact_id: i64,
@@ -40,7 +40,7 @@ pub struct AllianceContact {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/AlliancesAllianceIdContactsLabelsGet>
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdContactsLabelsGet>
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdContactsLabelsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ContactLabel {
     /// Unique ID of the contact label
     pub label_id: i64,
@@ -52,7 +52,7 @@ pub struct ContactLabel {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdContactsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterContact {
     /// Unique ID of the contact
     pub contact_id: i64,
@@ -78,7 +78,7 @@ pub struct CharacterContact {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CorporationsCorporationIdContactsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CorporationContact {
     /// Unique ID of the contact
     pub contact_id: i64,

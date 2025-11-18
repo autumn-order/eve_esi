@@ -15,7 +15,7 @@ use super::enums::asset::LocationFlag;
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdBlueprintsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Blueprint {
     /// Unique ID for the item
     pub item_id: i64,
@@ -42,7 +42,7 @@ pub struct Blueprint {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Asset {
     /// If item is a blueprint, bool indicating whether or not it is a copy
     is_blueprint_copy: Option<bool>,
@@ -68,7 +68,7 @@ pub struct Asset {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsLocationsPost>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AssetLocationPosition {
     /// X coordinate of the item in space
     x: f64,
@@ -82,7 +82,7 @@ pub struct AssetLocationPosition {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsLocationsPost>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AssetLocation {
     /// Unique ID of the item
     item_id: i64,
@@ -94,7 +94,7 @@ pub struct AssetLocation {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdAssetsNamesPost>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AssetName {
     /// Unique ID of the item
     item_id: i64,

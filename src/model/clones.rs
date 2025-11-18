@@ -19,7 +19,7 @@ use crate::model::enums::clones::CharacterCloneLocationType;
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdClonesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterCloneHomeLocation {
     /// Location ID of the station or structure
     pub location_id: i64,
@@ -31,7 +31,7 @@ pub struct CharacterCloneHomeLocation {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdClonesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterJumpClone {
     /// List of type IDs for clone's implants
     ///
@@ -51,7 +51,7 @@ pub struct CharacterJumpClone {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdClonesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CharacterClones {
     /// The character's home station
     pub home_location: Option<CharacterCloneHomeLocation>,

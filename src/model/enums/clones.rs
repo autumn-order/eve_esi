@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdClonesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum CharacterCloneLocationType {
     /// Clone is located in a station
     #[serde(rename = "station")]

@@ -14,7 +14,7 @@ use crate::model::enums::calendar::{CalendarEventOwnerType, CalendarEventRespons
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdCalendarGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CalendarEventSummary {
     /// Timestamp of the event
     event_date: DateTime<Utc>,
@@ -32,7 +32,7 @@ pub struct CalendarEventSummary {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdCalendarEventIdGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CalendarEvent {
     /// Timestamp of the event
     date: DateTime<Utc>,
@@ -61,7 +61,7 @@ pub struct CalendarEvent {
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdCalendarEventIdAttendeesGet>
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CalendarEventAttendee {
     /// Unique ID of the character
     character_id: i64,

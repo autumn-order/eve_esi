@@ -27,7 +27,7 @@ use crate::{Error, OAuthError};
 ///
 /// # EVE Online OAuth2 Documentation
 /// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EveJwtClaims {
     // There are two possible issuers but only 1 will be present at a time
     // See `constant.rs`, `DEFAULT_JWT_ISSUERS` for possible issuers.
