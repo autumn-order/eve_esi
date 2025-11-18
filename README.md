@@ -7,9 +7,8 @@
 > Currently the crate features OAuth2 login with EVE Online and we're now adding additional ESI endpoints as needed. If you wish to see specific endpoints added, please open a GitHub issue, submit a pull request, or simply reach out via the [Autumn Discord](https://discord.gg/HjaGsBBtFg).
 
 [![Crates.io Version](https://img.shields.io/crates/v/eve_esi?logo=rust)](https://crates.io/crates/eve_esi/)
-[![codecov](https://codecov.io/gh/hyziri/eve_esi/graph/badge.svg?token=OXD57P1UY6)](https://codecov.io/gh/hyziri/eve_esi)
-[![Maintainability](https://qlty.sh/gh/hyziri/projects/eve_esi/maintainability.svg)](https://qlty.sh/gh/hyziri/projects/eve_esi)
-[![wakatime](https://wakatime.com/badge/github/hyziri/eve_esi.svg)](https://wakatime.com/badge/github/hyziri/eve_esi)
+[![codecov](https://codecov.io/gh/autumn-order/eve_esi/graph/badge.svg?token=OXD57P1UY6)](https://codecov.io/gh/autumn-order/eve_esi)
+[![wakatime](https://wakatime.com/badge/github/autumn-order/eve_esi.svg)](https://wakatime.com/badge/github/autumn-order/eve_esi)
 [![Discord](https://img.shields.io/discord/1414000815017824288?logo=Discord&color=%235865F2)](https://discord.gg/HjaGsBBtFg)
 
 A thread-safe, asynchronous client which provides methods & types for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer) & [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
@@ -28,7 +27,7 @@ Have questions about this crate or EVE Online's ESI in general? Ask us in the [A
 - **EVE Online OAuth2:** Features full implementation of OAuth2 single sign-on with EVE Online including out of the box JWT token key caching and refreshing ahead of expiration to validate access tokens.
 - **Thread-safe:** Implements the usage of read/write locks, compare exchanges, atomic bools, & tokio notifiers to provide high concurrency performance in applications at scale.
 - **Configurable:** Allows for the creation of simple ESI clients only for public endpoints, to clients created with a builder method for OAuth2, to providing a custom config to fine-tune settings to your application's needs.
-- **Documentation:** The endpoints, models, & enums within this crate are all documented to help clarify what certain fields or enum variants are for, making it more accessible to developers unfamiliar with some areas of the game. Even the 250~ variants of the `NotificationType` enum have documentation.
+- **Documentation:** The endpoints, models, & enums within this crate are all documented to help clarify what certain fields or enum variants are for, making it more accessible to developers unfamiliar with some areas of the game. 
 
 ## Usage Example
 
@@ -57,17 +56,17 @@ For more usage examples, ESI client configuration, and logging configuration, pl
 
 The following categories from the [ESI API Explorer](https://developers.eveonline.com/api-explorer) have been implemented:
 
-| Category      | Description           | Public Endpoints | Authenticated Endpoints |
-| ------------- | --------------------- | ---------------- | ----------------------- |
-| `alliance`    | Alliance endpoints    | 4                |                         |
-| `assets`      | Clone endpoints       |                  | 6                       |
-| `calendar`    | Calendar endpoints    |                  | 4                       |
-| `character`   | Character endpoints   | 3                | 9                       |
-| `clones`      | Clone endpoints       |                  | 2                       |
-| `contacts`    | Contact endpoints     |                  | 9                       |
-| `corporation` | Corporation endpoints | 4                | 18                      |
-| `market`      | Market endpoints      | 6                | 5                       |
-| `universe`    | Universe endpoints    | 1                |                         |
+| Category      | Public Endpoints | Authenticated Endpoints |
+| ------------- | ---------------- | ----------------------- |
+| `alliance`    | 4                |                         |
+| `assets`      |                  | 6                       |
+| `calendar`    |                  | 4                       |
+| `character`   | 3                | 9                       |
+| `clones`      |                  | 2                       |
+| `contacts`    |                  | 9                       |
+| `corporation` | 4                | 18                      |
+| `market`      | 6                | 5                       |
+| `universe`    | 1                |                         |
 
 New endpoints are being implemented as needed. If you wish to see specific endpoints added, please open a GitHub issue, submit a pull request, or simply reach out via the [Autumn Discord](https://discord.gg/HjaGsBBtFg).
 
