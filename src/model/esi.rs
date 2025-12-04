@@ -22,7 +22,7 @@
 //! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
 //! let client = Client::new(user_agent)?;
 //!
-//! let status: ServerStatus = EsiRequest::new("https://esi.evetech.net/latest/status/")
+//! let status = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/")
 //!     .send(&client)
 //!     .await?;
 //! # Ok(())
@@ -43,7 +43,7 @@ use crate::{Client, Error};
 /// and ESI-specific HTTP headers like compatibility date, language, and caching headers.
 ///
 /// For a full overview and usage examples, see the [module-level documentation](self).
-pub struct EsiRequest {
+pub struct EsiRequest<T> {
     /// The endpoint to request e.g. "https://esi.evetech.net/latest/status/"
     endpoint: String,
     /// HTTP method for the request (GET, POST, PUT, DELETE, PATCH)
@@ -56,9 +56,11 @@ pub struct EsiRequest {
     body_json: Option<Value>,
     /// Headers to send with ESI request
     headers: HashMap<String, String>,
+    /// Phantom data to hold the response type
+    _phantom: std::marker::PhantomData<T>,
 }
 
-impl EsiRequest {
+impl<T: DeserializeOwned> EsiRequest<T> {
     /// Creates a new [`EsiRequest`] with the specified endpoint.
     ///
     /// For a full overview and usage examples, see the [module-level documentation](self).
@@ -72,8 +74,14 @@ impl EsiRequest {
     /// # Example
     /// ```rust
     /// use eve_esi::EsiRequest;
+    /// use serde::Deserialize;
     ///
-    /// let request = EsiRequest::new("https://esi.evetech.net/latest/status/");
+    /// #[derive(Deserialize)]
+    /// struct ServerStatus {
+    ///     players: i32,
+    /// }
+    ///
+    /// let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
     /// ```
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
@@ -83,6 +91,7 @@ impl EsiRequest {
             required_scopes: Vec::new(),
             body_json: None,
             headers: HashMap::new(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -98,8 +107,12 @@ impl EsiRequest {
     /// ```rust
     /// use eve_esi::EsiRequest;
     /// use reqwest::Method;
+    /// use serde::Deserialize;
     ///
-    /// let request = EsiRequest::new("https://esi.evetech.net/latest/status/")
+    /// #[derive(Deserialize)]
+    /// struct Response {}
+    ///
+    /// let request = EsiRequest::<Response>::new("https://esi.evetech.net/latest/status/")
     ///     .with_method(Method::POST);
     /// ```
     pub fn with_method(mut self, method: Method) -> Self {
@@ -248,8 +261,12 @@ impl EsiRequest {
     /// # Example
     /// ```rust
     /// use eve_esi::EsiRequest;
+    /// use serde::Deserialize;
     ///
-    /// let request = EsiRequest::new("https://esi.evetech.net/latest/characters/12345/")
+    /// #[derive(Deserialize)]
+    /// struct Character {}
+    ///
+    /// let request = EsiRequest::<Character>::new("https://esi.evetech.net/latest/characters/12345/")
     ///     .with_access_token("token")
     ///     .with_required_scopes(vec!["publicData".to_string()]);
     /// ```
@@ -279,8 +296,12 @@ impl EsiRequest {
     /// use eve_esi::EsiRequest;
     /// use serde_json::json;
     /// use reqwest::Method;
+    /// use serde::Deserialize;
     ///
-    /// let request = EsiRequest::new("https://esi.evetech.net/latest/characters/affiliation/")
+    /// #[derive(Deserialize)]
+    /// struct Affiliation {}
+    ///
+    /// let request = EsiRequest::<Vec<Affiliation>>::new("https://esi.evetech.net/latest/characters/affiliation/")
     ///     .with_method(Method::POST)
     ///     .with_body_json(json!([2114794365]));
     /// ```
@@ -325,9 +346,7 @@ impl EsiRequest {
     /// # Returns
     /// A Result containing the deserialized response data or an error
     ///
-    /// # Type Parameters
-    /// - `T` - The expected return type that implements `DeserializeOwned`
-    pub async fn send<T: DeserializeOwned>(self, client: &Client) -> Result<T, Error> {
+    pub async fn send(self, client: &Client) -> Result<T, Error> {
         client.esi().request(self).await
     }
 }

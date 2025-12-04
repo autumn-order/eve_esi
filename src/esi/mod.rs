@@ -97,9 +97,6 @@ impl<'a> EsiApi<'a> {
     /// # Returns
     /// A Result containing the deserialized response data or an error
     ///
-    /// # Type Parameters
-    /// - `T` - The expected return type that implements `DeserializeOwned`
-    ///
     /// # Example
     /// ```no_run
     /// use eve_esi::{EsiRequest, Client};
@@ -117,15 +114,15 @@ impl<'a> EsiApi<'a> {
     /// let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
     /// let client = Client::new(user_agent)?;
     ///
-    /// let request = EsiRequest::new("https://esi.evetech.net/latest/status/")
+    /// let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/")
     ///     .with_method(Method::GET)
     ///     .with_compatibility_date("2025-11-06");
     ///
-    /// let status: ServerStatus = client.esi().request(request).await?;
+    /// let status = client.esi().request(request).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn request<T: DeserializeOwned>(&self, request: EsiRequest) -> Result<T, Error> {
+    pub async fn request<T: DeserializeOwned>(&self, request: EsiRequest<T>) -> Result<T, Error> {
         // Validate token if this is an authenticated request
         if let Some(access_token) = request.access_token() {
             self.validate_token_before_request(access_token, request.required_scopes().clone())
