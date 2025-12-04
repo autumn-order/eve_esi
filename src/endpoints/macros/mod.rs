@@ -71,3 +71,5 @@
 mod logging;
 #[macro_use]
 mod endpoint;
+#[macro_use]
+mod new_endpoint;
