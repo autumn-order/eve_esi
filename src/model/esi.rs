@@ -6,40 +6,36 @@
 //! - [`EsiRequest`]: Builder for ESI API requests with optional headers and authentication
 //! - [`EsiLanguage`]: Type-safe enum for ESI language headers
 //!
-//! ## Usage
-//! ### Basic public request
-//! ```rust
-//! use eve_esi::EsiRequest;
+//! ## Example
+//! ```no_run
+//! use eve_esi::{EsiRequest, Client};
+//! use serde::Deserialize;
 //!
-//! let request = EsiRequest::new("https://esi.evetech.net/latest/status/")
-//!     .with_compatibility_date("2025-11-06");
-//! ```
+//! #[derive(Deserialize)]
+//! struct ServerStatus {
+//!     players: i32,
+//!     server_version: String,
+//!     start_time: String,
+//! }
 //!
-//! ### Request with language and caching headers
-//! ```rust
-//! use eve_esi::{EsiRequest, EsiLanguage};
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
+//! let client = Client::new(user_agent)?;
 //!
-//! let request = EsiRequest::new("https://esi.evetech.net/latest/markets/prices/")
-//!     .with_compatibility_date("2025-11-06")
-//!     .with_language(EsiLanguage::German)
-//!     .with_if_none_match("\"abc123\"");
-//! ```
-//!
-//! ### Authenticated request
-//! ```rust
-//! use eve_esi::{EsiRequest, EsiLanguage};
-//!
-//! let request = EsiRequest::new("https://esi.evetech.net/latest/characters/12345/")
-//!     .with_access_token("access_token_here")
-//!     .with_compatibility_date("2025-11-06")
-//!     .with_language(EsiLanguage::English)
-//!     .with_tenant("tranquility");
+//! let status: ServerStatus = EsiRequest::new("https://esi.evetech.net/latest/status/")
+//!     .send(&client)
+//!     .await?;
+//! # Ok(())
+//! # }
 //! ```
 
 use std::collections::HashMap;
 
 use reqwest::Method;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
+
+use crate::{Client, Error};
 
 /// Builder for ESI API requests with configurable headers and authentication.
 ///
@@ -316,6 +312,23 @@ impl EsiRequest {
     /// The HTTP method for this request
     pub fn method(&self) -> &Method {
         &self.method
+    }
+
+    /// Consumes the [`EsiRequest`] and sends it using the provided [`Client`].
+    ///
+    /// This is a convenience method that allows for a fluent API where you build the request
+    /// and then send it in a single chain. It delegates to the [`crate::esi::EsiApi::request`] method.
+    ///
+    /// # Arguments
+    /// - `client`: Reference to the [`Client`] to use for sending the request
+    ///
+    /// # Returns
+    /// A Result containing the deserialized response data or an error
+    ///
+    /// # Type Parameters
+    /// - `T` - The expected return type that implements `DeserializeOwned`
+    pub async fn send<T: DeserializeOwned>(self, client: &Client) -> Result<T, Error> {
+        client.esi().request(self).await
     }
 }
 
