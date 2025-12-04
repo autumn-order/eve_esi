@@ -55,7 +55,9 @@ pub mod public;
 
 mod util;
 
-use crate::Client;
+use serde::de::DeserializeOwned;
+
+use crate::{model::esi::EsiRequest, Client, Error};
 
 /// Provides utility methods for making requests EVE Online's ESI endpoints
 ///
@@ -77,5 +79,86 @@ impl<'a> EsiApi<'a> {
     /// Creates a new instance of [`EsiApi`]
     fn new(client: &'a Client) -> Self {
         Self { client }
+    }
+
+    /// Make a request to ESI using the provided [`EsiRequest`] configuration.
+    ///
+    /// This method consolidates all ESI request logic, handling both authenticated and public requests
+    /// based on the configuration in the [`EsiRequest`] struct. It automatically:
+    /// - Validates access tokens if present (expiration & scope checks)
+    /// - Adds authentication headers for authenticated requests
+    /// - Applies all custom headers from the request
+    /// - Handles request body for POST, PUT, and PATCH methods
+    /// - Returns deserialized response data
+    ///
+    /// # Arguments
+    /// - `request`: The configured [`EsiRequest`] containing endpoint, method, headers, and authentication details
+    ///
+    /// # Returns
+    /// A Result containing the deserialized response data or an error
+    ///
+    /// # Type Parameters
+    /// - `T` - The expected return type that implements `DeserializeOwned`
+    ///
+    /// # Example
+    /// ```no_run
+    /// use eve_esi::{EsiRequest, Client};
+    /// use reqwest::Method;
+    /// use serde::Deserialize;
+    ///
+    /// #[derive(Deserialize)]
+    /// struct ServerStatus {
+    ///     players: i32,
+    ///     server_version: String,
+    ///     start_time: String,
+    /// }
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
+    /// let client = Client::new(user_agent)?;
+    ///
+    /// let request = EsiRequest::new("https://esi.evetech.net/latest/status/")
+    ///     .with_method(Method::GET)
+    ///     .with_compatibility_date("2025-11-06");
+    ///
+    /// let status: ServerStatus = client.esi().request(request).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn request<T: DeserializeOwned>(&self, request: EsiRequest) -> Result<T, Error> {
+        // Validate token if this is an authenticated request
+        if let Some(access_token) = request.access_token() {
+            self.validate_token_before_request(access_token, request.required_scopes().clone())
+                .await?;
+        }
+
+        let reqwest_client = &self.client.inner.reqwest_client;
+
+        // Build the request with the appropriate HTTP method
+        let mut req_builder = reqwest_client.request(request.method().clone(), request.endpoint());
+
+        // Add authorization header if access token is present
+        if let Some(access_token) = request.access_token() {
+            let bearer = format!("Bearer {}", access_token);
+            req_builder = req_builder.header("Authorization", bearer);
+        }
+
+        // Add all custom headers from the request
+        for (key, value) in request.headers() {
+            req_builder = req_builder.header(key, value);
+        }
+
+        // Add JSON body if present (for POST, PUT, PATCH requests)
+        if let Some(body) = request.body_json() {
+            req_builder = req_builder.json(body);
+        }
+
+        // Send the request
+        let response = req_builder.send().await?;
+        response.error_for_status_ref()?;
+
+        // Deserialize and return the response
+        let result: T = response.json().await?;
+        Ok(result)
     }
 }

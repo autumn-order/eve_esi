@@ -38,6 +38,9 @@
 
 use std::collections::HashMap;
 
+use reqwest::Method;
+use serde_json::Value;
+
 /// Builder for ESI API requests with configurable headers and authentication.
 ///
 /// Provides a fluent interface for setting endpoint URLs, authentication tokens,
@@ -47,8 +50,14 @@ use std::collections::HashMap;
 pub struct EsiRequest {
     /// The endpoint to request e.g. "https://esi.evetech.net/latest/status/"
     endpoint: String,
+    /// HTTP method for the request (GET, POST, PUT, DELETE, PATCH)
+    method: Method,
     /// Access token used to access authenticated endpoints
     access_token: Option<String>,
+    /// Required OAuth2 scopes for authenticated requests
+    required_scopes: Vec<String>,
+    /// Optional JSON body data for POST, PUT, PATCH requests
+    body_json: Option<Value>,
     /// Headers to send with ESI request
     headers: HashMap<String, String>,
 }
@@ -73,9 +82,33 @@ impl EsiRequest {
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
             endpoint: endpoint.into(),
+            method: Method::GET,
             access_token: None,
+            required_scopes: Vec::new(),
+            body_json: None,
             headers: HashMap::new(),
         }
+    }
+
+    /// Sets the HTTP method for the request.
+    ///
+    /// # Arguments
+    /// - `method`: The HTTP method to use
+    ///
+    /// # Returns
+    /// Updated instance with the HTTP method set
+    ///
+    /// # Example
+    /// ```rust
+    /// use eve_esi::EsiRequest;
+    /// use reqwest::Method;
+    ///
+    /// let request = EsiRequest::new("https://esi.evetech.net/latest/status/")
+    ///     .with_method(Method::POST);
+    /// ```
+    pub fn with_method(mut self, method: Method) -> Self {
+        self.method = method;
+        self
     }
 
     /// Sets the access token for authenticated ESI requests.
@@ -208,12 +241,81 @@ impl EsiRequest {
         self.access_token.as_deref()
     }
 
+    /// Sets the required OAuth2 scopes for authenticated requests.
+    ///
+    /// # Arguments
+    /// - `scopes`: Vector of scope strings required for the endpoint
+    ///
+    /// # Returns
+    /// Updated instance with the required scopes set
+    ///
+    /// # Example
+    /// ```rust
+    /// use eve_esi::EsiRequest;
+    ///
+    /// let request = EsiRequest::new("https://esi.evetech.net/latest/characters/12345/")
+    ///     .with_access_token("token")
+    ///     .with_required_scopes(vec!["publicData".to_string()]);
+    /// ```
+    pub fn with_required_scopes(mut self, scopes: Vec<String>) -> Self {
+        self.required_scopes = scopes;
+        self
+    }
+
+    /// Returns the required OAuth2 scopes.
+    ///
+    /// # Returns
+    /// Reference to the vector of required scope strings
+    pub fn required_scopes(&self) -> &Vec<String> {
+        &self.required_scopes
+    }
+
+    /// Sets the JSON body for POST, PUT, or PATCH requests.
+    ///
+    /// # Arguments
+    /// - `body`: The JSON value to send in the request body
+    ///
+    /// # Returns
+    /// Updated instance with the body JSON set
+    ///
+    /// # Example
+    /// ```rust
+    /// use eve_esi::EsiRequest;
+    /// use serde_json::json;
+    /// use reqwest::Method;
+    ///
+    /// let request = EsiRequest::new("https://esi.evetech.net/latest/characters/affiliation/")
+    ///     .with_method(Method::POST)
+    ///     .with_body_json(json!([2114794365]));
+    /// ```
+    pub fn with_body_json(mut self, body: Value) -> Self {
+        self.body_json = Some(body);
+        self
+    }
+
+    /// Returns the JSON body if set.
+    ///
+    /// # Returns
+    /// `Some(&Value)`: Reference to the JSON value if present
+    /// `None`: No body is set
+    pub fn body_json(&self) -> Option<&Value> {
+        self.body_json.as_ref()
+    }
+
     /// Returns a reference to all headers.
     ///
     /// # Returns
     /// Reference to the headers map
     pub fn headers(&self) -> &HashMap<String, String> {
         &self.headers
+    }
+
+    /// Returns the HTTP method.
+    ///
+    /// # Returns
+    /// The HTTP method for this request
+    pub fn method(&self) -> &Method {
+        &self.method
     }
 }
 
