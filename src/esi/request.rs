@@ -1,33 +1,11 @@
-//! # ESI Request Models
+//! Request builder types for ESI API calls.
 //!
-//! This module provides types for building ESI requests with configurable headers and authentication.
+//! This module provides types for building and configuring ESI requests with
+//! type-safe headers, authentication, and caching strategies.
 //!
-//! ## Basic Example
+//! # Example
 //! ```no_run
-//! use eve_esi::{EsiRequest, Client};
-//! use serde::Deserialize;
-//!
-//! #[derive(Deserialize)]
-//! struct ServerStatus {
-//!     players: i32,
-//!     server_version: String,
-//!     start_time: String,
-//! }
-//!
-//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
-//! let client = Client::new(user_agent)?;
-//!
-//! let status = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/")
-//!     .send(&client)
-//!     .await?;
-//! # Ok(())
-//! # }
-//! ```
-//!
-//! ## Caching Example
-//! ```no_run
-//! use eve_esi::{EsiRequest, Client, CacheStrategy};
+//! use eve_esi::{Client, EsiRequest, CacheStrategy};
 //! use chrono::{DateTime, Utc};
 //! use serde::Deserialize;
 //!
@@ -37,23 +15,18 @@
 //! }
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let user_agent = "MyApp/1.0 (contact@example.com)";
-//! let client = Client::new(user_agent)?;
+//! let client = Client::new("MyApp/1.0")?;
 //!
-//! // First request - get fresh data with caching headers
+//! // Simple request
 //! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
-//! let response = request.send(&client).await?;
+//! let status = request.send(&client).await?;
 //!
-//! // Later request - use stored timestamp for efficient caching
+//! // Cached request
 //! let last_check: DateTime<Utc> = Utc::now();
 //! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
-//! let cached_response = request
+//! let response = request
 //!     .send_with_cache(&client, CacheStrategy::IfModifiedSince(last_check))
 //!     .await?;
-//!
-//! if cached_response.is_not_modified() {
-//!     println!("Data hasn't changed - use cached version");
-//! }
 //! # Ok(())
 //! # }
 //! ```
@@ -65,7 +38,9 @@ use reqwest::Method;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::{esi::CachedResponse, Client, Error};
+use crate::{Client, Error};
+
+use super::CachedResponse;
 
 /// Strategy for conditional caching requests to ESI.
 ///
@@ -81,46 +56,18 @@ pub enum CacheStrategy {
     /// Use `If-None-Match` header with an ETag value.
     ///
     /// The server returns 304 Not Modified if the ETag matches the current resource.
-    ///
-    /// # Example
-    /// ```rust
-    /// use eve_esi::CacheStrategy;
-    ///
-    /// let strategy = CacheStrategy::IfNoneMatch("W/\"abc123\"".to_string());
-    /// ```
     IfNoneMatch(String),
 
     /// Use `If-Modified-Since` header with a timestamp.
     ///
     /// The server returns 304 Not Modified if the resource hasn't been modified since the date.
     /// The datetime is automatically formatted to HTTP date format (RFC 2822).
-    ///
-    /// # Example
-    /// ```rust
-    /// use eve_esi::CacheStrategy;
-    /// use chrono::{DateTime, Utc};
-    ///
-    /// let last_modified: DateTime<Utc> = "2024-01-15T10:30:00Z".parse().unwrap();
-    /// let strategy = CacheStrategy::IfModifiedSince(last_modified);
-    /// ```
     IfModifiedSince(DateTime<Utc>),
 
     /// Use both `If-None-Match` and `If-Modified-Since` headers.
     ///
     /// When both are present, `If-None-Match` takes precedence but the server should respect both.
     /// This provides defensive caching. The datetime is automatically formatted to HTTP date format.
-    ///
-    /// # Example
-    /// ```rust
-    /// use eve_esi::CacheStrategy;
-    /// use chrono::{DateTime, Utc};
-    ///
-    /// let last_modified: DateTime<Utc> = "2024-01-15T10:30:00Z".parse().unwrap();
-    /// let strategy = CacheStrategy::Both {
-    ///     etag: "W/\"abc123\"".to_string(),
-    ///     modified_since: last_modified,
-    /// };
-    /// ```
     Both {
         /// ETag value for If-None-Match header
         etag: String,
@@ -133,8 +80,6 @@ pub enum CacheStrategy {
 ///
 /// Provides a fluent interface for setting endpoint URLs, authentication tokens,
 /// and ESI-specific HTTP headers like compatibility date, language, and caching headers.
-///
-/// For a full overview and usage examples, see the [module-level documentation](self).
 pub struct EsiRequest<T> {
     /// The endpoint to request e.g. "https://esi.evetech.net/latest/status/"
     endpoint: String,
@@ -155,26 +100,11 @@ pub struct EsiRequest<T> {
 impl<T: DeserializeOwned> EsiRequest<T> {
     /// Creates a new [`EsiRequest`] with the specified endpoint.
     ///
-    /// For a full overview and usage examples, see the [module-level documentation](self).
-    ///
     /// # Arguments
     /// - `endpoint`: The ESI API endpoint URL to request
     ///
     /// # Returns
     /// New instance with the endpoint set and all other fields at default values
-    ///
-    /// # Example
-    /// ```rust
-    /// use eve_esi::EsiRequest;
-    /// use serde::Deserialize;
-    ///
-    /// #[derive(Deserialize)]
-    /// struct ServerStatus {
-    ///     players: i32,
-    /// }
-    ///
-    /// let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
-    /// ```
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
             endpoint: endpoint.into(),
@@ -194,19 +124,6 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     ///
     /// # Returns
     /// Updated instance with the HTTP method set
-    ///
-    /// # Example
-    /// ```rust
-    /// use eve_esi::EsiRequest;
-    /// use reqwest::Method;
-    /// use serde::Deserialize;
-    ///
-    /// #[derive(Deserialize)]
-    /// struct Response {}
-    ///
-    /// let request = EsiRequest::<Response>::new("https://esi.evetech.net/latest/status/")
-    ///     .with_method(Method::POST);
-    /// ```
     pub fn with_method(mut self, method: Method) -> Self {
         self.method = method;
         self
@@ -260,7 +177,7 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     ///
     /// # Returns
     /// Updated instance with the language header set
-    pub fn with_language(mut self, lang: EsiLanguage) -> Self {
+    pub fn with_language(mut self, lang: Language) -> Self {
         self.headers
             .insert("Accept-Language".to_string(), lang.as_str().to_string());
         self
@@ -268,7 +185,8 @@ impl<T: DeserializeOwned> EsiRequest<T> {
 
     /// Sets the `If-Match` header for conditional requests.
     ///
-    /// Only performs the request if the ETag matches.
+    /// Only performs the request if the ETag matches. This is typically used
+    /// for conditional updates (PUT/POST) to prevent lost updates.
     ///
     /// # Arguments
     /// - `etag`: The ETag that must match
@@ -319,19 +237,6 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     ///
     /// # Returns
     /// Updated instance with the required scopes set
-    ///
-    /// # Example
-    /// ```rust
-    /// use eve_esi::EsiRequest;
-    /// use serde::Deserialize;
-    ///
-    /// #[derive(Deserialize)]
-    /// struct Character {}
-    ///
-    /// let request = EsiRequest::<Character>::new("https://esi.evetech.net/latest/characters/12345/")
-    ///     .with_access_token("token")
-    ///     .with_required_scopes(vec!["publicData".to_string()]);
-    /// ```
     pub fn with_required_scopes(mut self, scopes: Vec<String>) -> Self {
         self.required_scopes = scopes;
         self
@@ -352,21 +257,6 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     ///
     /// # Returns
     /// Updated instance with the body JSON set
-    ///
-    /// # Example
-    /// ```rust
-    /// use eve_esi::EsiRequest;
-    /// use serde_json::json;
-    /// use reqwest::Method;
-    /// use serde::Deserialize;
-    ///
-    /// #[derive(Deserialize)]
-    /// struct Affiliation {}
-    ///
-    /// let request = EsiRequest::<Vec<Affiliation>>::new("https://esi.evetech.net/latest/characters/affiliation/")
-    ///     .with_method(Method::POST)
-    ///     .with_body_json(json!([2114794365]));
-    /// ```
     pub fn with_body_json(mut self, body: Value) -> Self {
         self.body_json = Some(body);
         self
@@ -409,7 +299,6 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     ///
     /// # Returns
     /// A Result containing the deserialized response data or an error
-    ///
     pub async fn send(self, client: &Client) -> Result<T, Error> {
         client.esi().request(self).await
     }
@@ -460,10 +349,8 @@ impl<T: DeserializeOwned> EsiRequest<T> {
 /// Type-safe enum for ESI language headers.
 ///
 /// Represents the supported languages for the `Accept-Language` header in ESI requests.
-///
-/// For a full overview and usage examples, see the [module-level documentation](self).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EsiLanguage {
+pub enum Language {
     /// English (en)
     English,
     /// German (de)
@@ -482,7 +369,7 @@ pub enum EsiLanguage {
     Spanish,
 }
 
-impl EsiLanguage {
+impl Language {
     /// Returns the ISO 639-1 language code string.
     ///
     /// # Returns
@@ -490,10 +377,10 @@ impl EsiLanguage {
     ///
     /// # Example
     /// ```rust
-    /// use eve_esi::EsiLanguage;
+    /// use eve_esi::Language;
     ///
-    /// assert_eq!(EsiLanguage::English.as_str(), "en");
-    /// assert_eq!(EsiLanguage::German.as_str(), "de");
+    /// assert_eq!(Language::English.as_str(), "en");
+    /// assert_eq!(Language::German.as_str(), "de");
     /// ```
     pub fn as_str(&self) -> &str {
         match self {

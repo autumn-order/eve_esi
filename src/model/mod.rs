@@ -25,7 +25,6 @@ pub mod clones;
 pub mod contacts;
 pub mod corporation;
 pub mod enums;
-pub mod esi;
 pub mod market;
 pub mod oauth2;
 pub mod standing;

@@ -10,10 +10,8 @@
 //! - <https://developers.eveonline.com/api-explorer>
 
 use crate::{
-    model::{
-        alliance::{Alliance, AllianceIcons},
-        esi::EsiRequest,
-    },
+    esi::EsiRequest,
+    model::alliance::{Alliance, AllianceIcons},
     Client, Error,
 };
 use reqwest::Method;
