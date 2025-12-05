@@ -52,6 +52,13 @@ impl<'a> EsiApi<'a> {
     /// # Returns
     /// A Result containing the deserialized response data or an error
     pub async fn request<T: DeserializeOwned>(&self, request: EsiRequest<T>) -> Result<T, Error> {
+        let method = request.method().clone();
+        let endpoint = request.endpoint().to_string();
+
+        log::debug!("ESI Request: {} {}", method, endpoint);
+
+        let start_time = std::time::Instant::now();
+
         // Validate token if this is an authenticated request
         if let Some(access_token) = request.access_token() {
             self.validate_token_before_request(access_token, request.required_scopes().clone())
@@ -61,7 +68,7 @@ impl<'a> EsiApi<'a> {
         let reqwest_client = &self.client.inner.reqwest_client;
 
         // Build the request with the appropriate HTTP method
-        let mut req_builder = reqwest_client.request(request.method().clone(), request.endpoint());
+        let mut req_builder = reqwest_client.request(method.clone(), &endpoint);
 
         // Add authorization header if access token is present
         if let Some(access_token) = request.access_token() {
@@ -80,11 +87,45 @@ impl<'a> EsiApi<'a> {
         }
 
         // Send the request
-        let response = req_builder.send().await?;
-        response.error_for_status_ref()?;
+        let response = req_builder.send().await;
+
+        let elapsed = start_time.elapsed();
+
+        let response = match response {
+            Ok(r) => r,
+            Err(err) => {
+                log::error!(
+                    "ESI Request failed: {} {} ({}ms) - {}",
+                    method,
+                    endpoint,
+                    elapsed.as_millis(),
+                    err
+                );
+                return Err(err.into());
+            }
+        };
+
+        if let Err(err) = response.error_for_status_ref() {
+            log::error!(
+                "ESI Request failed: {} {} ({}ms) - HTTP {}",
+                method,
+                endpoint,
+                elapsed.as_millis(),
+                err
+            );
+            return Err(err.into());
+        }
 
         // Deserialize and return the response
         let result: T = response.json().await?;
+
+        log::info!(
+            "ESI Request succeeded: {} {} ({}ms)",
+            method,
+            endpoint,
+            elapsed.as_millis()
+        );
+
         Ok(result)
     }
 
@@ -108,6 +149,13 @@ impl<'a> EsiApi<'a> {
         &self,
         request: EsiRequest<T>,
     ) -> Result<CachedResponse<T>, Error> {
+        let method = request.method().clone();
+        let endpoint = request.endpoint().to_string();
+
+        log::debug!("ESI Cached Request: {} {}", method, endpoint);
+
+        let start_time = std::time::Instant::now();
+
         // Validate token if this is an authenticated request
         if let Some(access_token) = request.access_token() {
             self.validate_token_before_request(access_token, request.required_scopes().clone())
@@ -117,7 +165,7 @@ impl<'a> EsiApi<'a> {
         let reqwest_client = &self.client.inner.reqwest_client;
 
         // Build the request with the appropriate HTTP method
-        let mut req_builder = reqwest_client.request(request.method().clone(), request.endpoint());
+        let mut req_builder = reqwest_client.request(method.clone(), &endpoint);
 
         // Add authorization header if access token is present
         if let Some(access_token) = request.access_token() {
@@ -136,15 +184,46 @@ impl<'a> EsiApi<'a> {
         }
 
         // Send the request
-        let response = req_builder.send().await?;
+        let response = req_builder.send().await;
+
+        let elapsed = start_time.elapsed();
+
+        let response = match response {
+            Ok(r) => r,
+            Err(err) => {
+                log::error!(
+                    "ESI Cached Request failed: {} {} ({}ms) - {}",
+                    method,
+                    endpoint,
+                    elapsed.as_millis(),
+                    err
+                );
+                return Err(err.into());
+            }
+        };
 
         // Check for 304 Not Modified
         if response.status() == reqwest::StatusCode::NOT_MODIFIED {
+            log::info!(
+                "ESI Cached Request succeeded (not modified): {} {} ({}ms)",
+                method,
+                endpoint,
+                elapsed.as_millis()
+            );
             return Ok(CachedResponse::NotModified);
         }
 
         // Check for other errors
-        response.error_for_status_ref()?;
+        if let Err(err) = response.error_for_status_ref() {
+            log::error!(
+                "ESI Cached Request failed: {} {} ({}ms) - HTTP {}",
+                method,
+                endpoint,
+                elapsed.as_millis(),
+                err
+            );
+            return Err(err.into());
+        }
 
         // Extract ETag header if present
         let etag = response
@@ -163,6 +242,14 @@ impl<'a> EsiApi<'a> {
 
         // Deserialize and return the response
         let result: T = response.json().await?;
+
+        log::info!(
+            "ESI Cached Request succeeded (fresh): {} {} ({}ms)",
+            method,
+            endpoint,
+            elapsed.as_millis()
+        );
+
         Ok(CachedResponse::Fresh {
             data: result,
             etag,
