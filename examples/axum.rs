@@ -95,11 +95,11 @@ async fn get_esi_corporation(
     let corporation_id: i64 = params.0.id;
 
     // Request corporation information from ESI
-    match esi_client
+    let request = esi_client
         .corporation()
-        .get_corporation_information(corporation_id)
-        .await
-    {
+        .get_corporation_information(corporation_id);
+
+    match request.send(&esi_client).await {
         // Return the corporation information
         Ok(corporation) => (StatusCode::OK, Json(corporation)).into_response(),
         // Return an error if fetching corporation information fails
