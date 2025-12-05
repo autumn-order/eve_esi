@@ -1,12 +1,11 @@
 use crate::util::integration_test_setup;
 
-public_endpoint_test! {
+public_esi_request_test! {
     get_factions,
-    |esi_client: eve_esi::Client | async move {
+    |esi_client: eve_esi::Client | {
         esi_client
             .universe()
             .get_factions()
-            .await
     },
     request_type = "GET",
     url = "/universe/factions",
