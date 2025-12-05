@@ -22,10 +22,12 @@
 //! | [`AssetsEndpoints::get_corporation_asset_names`]     | Get list of item names from list of item IDs & a corporation's ID                                 |
 
 use crate::{
+    esi::EsiRequest,
     model::asset::{Asset, AssetLocation, AssetName},
     scope::AssetsScopes,
     Client, Error, ScopeBuilder,
 };
+use reqwest::Method;
 
 /// Provides methods for accessing asset-related endpoints of the EVE Online ESI API.
 ///
@@ -43,7 +45,7 @@ impl<'a> AssetsEndpoints<'a> {
         Self { client }
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get paginated list of assets for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -62,21 +64,21 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Asset`]>`: Paginated list of assets for the provided character ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_character_assets(
+        /// - `Ok(request)`: Request builder for a vector of assets
+        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        auth fn get_character_assets(
             access_token: &str,
             character_id: i64;
             page: i32
-        ) -> Result<Vec<Asset>, Error>
+        ) -> Result<EsiRequest<Vec<Asset>>, Error>
+        method = Method::GET;
         url = "{}/characters/{}/assets";
-        label = "assets";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of coordinates for items' location in space using provided item IDs & a character's ID
         ///
         /// You can get the item IDs using the [`AssetsEndpoints::get_character_assets`] method
@@ -92,26 +94,26 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         /// - `character_id` (`i64`): The ID of the character to retrieve asset locations for.
+        /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Asset`]`>`: List of structs containing coordinates for items' location in space
-        /// - [`Error`]: An error if the fetch request fails
-        auth_post get_character_asset_locations(
+        /// - `Ok(request)`: Request builder for a vector of asset locations
+        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        auth fn get_character_asset_locations(
             access_token: &str,
-            item_ids: Vec<i64>,
             character_id: i64
-        ) -> Result<Vec<AssetLocation>, Error>
+        ) -> Result<EsiRequest<Vec<AssetLocation>>, Error>
+        method = Method::POST;
         url = "{}/characters/{}/assets/locations";
-        label = "asset locations";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
             .build();
+        body = item_ids: Vec<i64>;
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of item names from list of item IDs & a character's ID
         ///
         /// Useful for retrieving the names of items with customizable names such as ships or
@@ -130,26 +132,26 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `character_id` (`i64`): The ID of the character to retrieve asset names for.
         /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get names for (Limit of 1000 IDs per request)
-        /// - `character_id` (`i64`): The ID of the character to retrieve asset locations for.
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`AssetName`]`>`: List of item names from list of item IDs & a character's ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_post get_character_asset_names(
+        /// - `Ok(request)`: Request builder for a vector of asset names
+        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        auth fn get_character_asset_names(
             access_token: &str,
-            item_ids: Vec<i64>,
             character_id: i64
-        ) -> Result<Vec<AssetName>, Error>
+        ) -> Result<EsiRequest<Vec<AssetName>>, Error>
+        method = Method::POST;
         url = "{}/characters/{}/assets/names";
-        label = "asset names";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
             .build();
+        body = item_ids: Vec<i64>;
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get paginated list of assets for the provided corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -168,21 +170,21 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Asset`]`>`: Paginated list of assets for the provided corporation's ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_assets(
+        /// - `Ok(request)`: Request builder for a vector of assets
+        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        auth fn get_corporation_assets(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<Asset>, Error>
+        ) -> Result<EsiRequest<Vec<Asset>>, Error>
+        method = Method::GET;
         url = "{}/corporations/{}/assets";
-        label = "assets";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_corporation_assets())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of coordinates for items' location in space using provided item IDs & a corporation's ID
         ///
         /// You can get the item IDs using the [`AssetsEndpoints::get_corporation_assets`] method
@@ -198,26 +200,26 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `item_ids`       (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         /// - `corporation_id` (`i64`): The ID of the corporation to retrieve asset locations for.
+        /// - `item_ids`       (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Asset`]`>`: List of structs containing coordinates for items' location in space
-        /// - [`Error`]: An error if the fetch request fails
-        auth_post get_corporation_asset_locations(
+        /// - `Ok(request)`: Request builder for a vector of asset locations
+        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        auth fn get_corporation_asset_locations(
             access_token: &str,
-            item_ids: Vec<i64>,
             corporation_id: i64
-        ) -> Result<Vec<AssetLocation>, Error>
+        ) -> Result<EsiRequest<Vec<AssetLocation>>, Error>
+        method = Method::POST;
         url = "{}/corporations/{}/assets/locations";
-        label = "asset locations";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_corporation_assets())
             .build();
+        body = item_ids: Vec<i64>;
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of item names from list of item IDs & a corporation's ID
         ///
         /// Useful for retrieving the names of items with customizable names such as ships or
@@ -236,22 +238,22 @@ impl<'a> AssetsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
+        /// - `corporation_id` (`i64`): The ID of the corporation to retrieve asset names for.
         /// - `item_ids`       (`Vec<i64>`): Vec of item IDs to get names for (Limit of 1000 IDs per request)
-        /// - `corporation_id` (`i64`): The ID of the corporation to retrieve asset locations for.
         ///
         /// # Returns
         /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`AssetName`]`>`: List of item names from list of item IDs & a corporation's ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_post get_corporation_asset_names(
+        /// - `Ok(request)`: Request builder for a vector of asset names
+        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        auth fn get_corporation_asset_names(
             access_token: &str,
-            item_ids: Vec<i64>,
             corporation_id: i64
-        ) -> Result<Vec<AssetName>, Error>
+        ) -> Result<EsiRequest<Vec<AssetName>>, Error>
+        method = Method::POST;
         url = "{}/corporations/{}/assets/names";
-        label = "asset names";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_corporation_assets())
             .build();
+        body = item_ids: Vec<i64>;
     }
 }

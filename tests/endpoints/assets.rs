@@ -2,15 +2,14 @@ use eve_esi::{scope::AssetsScopes, ScopeBuilder};
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_character_assets,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let page = 1;
         esi_client
             .assets()
             .get_character_assets(&access_token, character_id, page)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/assets?page=1",
@@ -31,15 +30,14 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_character_asset_locations,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let item_ids = vec![0];
         esi_client
             .assets()
-            .get_character_asset_locations(&access_token, item_ids, character_id)
-            .await
+            .get_character_asset_locations(&access_token, character_id, item_ids)
     },
     request_type = "POST",
     url = "/characters/2114794365/assets/locations",
@@ -58,15 +56,14 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_character_asset_names,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let item_ids = vec![0];
         esi_client
             .assets()
-            .get_character_asset_names(&access_token, item_ids, character_id)
-            .await
+            .get_character_asset_names(&access_token, character_id, item_ids)
     },
     request_type = "POST",
     url = "/characters/2114794365/assets/names",
@@ -81,15 +78,14 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_corporation_assets,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
             .assets()
             .get_corporation_assets(&access_token, corporation_id, page)
-            .await
     },
     request_type = "GET",
     url = "/corporations/98785281/assets?page=1",
@@ -110,15 +106,14 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_corporation_asset_locations,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let item_ids = vec![0];
         esi_client
             .assets()
-            .get_corporation_asset_locations(&access_token, item_ids, corporation_id)
-            .await
+            .get_corporation_asset_locations(&access_token, corporation_id, item_ids)
     },
     request_type = "POST",
     url = "/corporations/98785281/assets/locations",
@@ -137,15 +132,14 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_corporation_asset_names,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let item_ids = vec![0];
         esi_client
             .assets()
-            .get_corporation_asset_names(&access_token, item_ids, corporation_id)
-            .await
+            .get_corporation_asset_names(&access_token, corporation_id, item_ids)
     },
     request_type = "POST",
     url = "/corporations/98785281/assets/names",
