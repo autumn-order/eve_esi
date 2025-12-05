@@ -81,9 +81,9 @@ pub enum CacheStrategy {
 /// Provides a fluent interface for setting endpoint URLs, authentication tokens,
 /// and ESI-specific HTTP headers like compatibility date, language, and caching headers.
 #[derive(Clone)]
-pub struct EsiRequest<'a, T> {
-    /// Reference to the ESI client
-    client: &'a Client,
+pub struct EsiRequest<T> {
+    /// The ESI client (cloned - uses Arc internally so this is cheap)
+    client: Client,
     /// The endpoint to request e.g. "https://esi.evetech.net/latest/status/"
     endpoint: String,
     /// HTTP method for the request (GET, POST, PUT, DELETE, PATCH)
@@ -100,7 +100,7 @@ pub struct EsiRequest<'a, T> {
     _phantom: std::marker::PhantomData<T>,
 }
 
-impl<'a, T: DeserializeOwned> EsiRequest<'a, T> {
+impl<T: DeserializeOwned> EsiRequest<T> {
     /// Creates a new [`EsiRequest`] with the specified client and endpoint.
     ///
     /// **Note:** It's recommended to use [`crate::esi::EsiApi::new_request`] instead:
@@ -114,9 +114,9 @@ impl<'a, T: DeserializeOwned> EsiRequest<'a, T> {
     ///
     /// # Returns
     /// New instance with the client and endpoint set and all other fields at default values
-    pub fn new(client: &'a Client, endpoint: impl Into<String>) -> Self {
+    pub fn new(client: &Client, endpoint: impl Into<String>) -> Self {
         Self {
-            client,
+            client: client.clone(),
             endpoint: endpoint.into(),
             method: Method::GET,
             access_token: None,

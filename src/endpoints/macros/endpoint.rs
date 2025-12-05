@@ -184,7 +184,7 @@ macro_rules! define_esi_endpoint {
         body = $body_name:ident: $body_type:ty;
     ) => {
         $(#[$attr])*
-        pub fn $fn_name(&self, $body_name: $body_type) -> EsiRequest<'_, $return_type> {
+        pub fn $fn_name(&self, $body_name: $body_type) -> EsiRequest<$return_type> {
             let url = format!($url, self.client.inner.esi_url);
 
             build_esi_request_internal!(
@@ -210,7 +210,7 @@ macro_rules! define_esi_endpoint {
         $(body = $body_name:ident: $body_type:ty;)?
     ) => {
         $(#[$attr])*
-        pub fn $fn_name(&self, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<'_, $return_type> {
+        pub fn $fn_name(&self, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<$return_type> {
             let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             build_esi_request_internal!(
@@ -238,7 +238,7 @@ macro_rules! define_esi_endpoint {
         $(body = $body_name:ident: $body_type:ty;)?
     ) => {
         $(#[$attr])*
-        pub fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<'_, $return_type> {
+        pub fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<$return_type> {
             let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             build_esi_request_internal!(

@@ -65,7 +65,6 @@ async fn get_esi_character(
     // Get character id from request URL
     let character_id: i64 = params.0.id;
 
-    // Request character public information from ESI
     match esi_client
         .character()
         .get_character_public_information(character_id)

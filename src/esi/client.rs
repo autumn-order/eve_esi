@@ -65,10 +65,7 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Returns
     /// A new [`EsiRequest`] instance ready to be configured with headers, authentication, etc.
-    pub fn new_request<T: DeserializeOwned>(
-        &self,
-        endpoint: impl Into<String>,
-    ) -> EsiRequest<'a, T> {
+    pub fn new_request<T: DeserializeOwned>(&self, endpoint: impl Into<String>) -> EsiRequest<T> {
         EsiRequest::new(self.client, endpoint)
     }
 
@@ -86,7 +83,7 @@ impl<'a> EsiApi<'a> {
     /// A Result containing the raw [`reqwest::Response`] or an error
     async fn execute_request<T: DeserializeOwned>(
         &self,
-        request: &EsiRequest<'_, T>,
+        request: &EsiRequest<T>,
     ) -> Result<reqwest::Response, Error> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
@@ -165,10 +162,7 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Returns
     /// A Result containing the deserialized response data or an error
-    pub async fn request<T: DeserializeOwned>(
-        &self,
-        request: &EsiRequest<'_, T>,
-    ) -> Result<T, Error> {
+    pub async fn request<T: DeserializeOwned>(&self, request: &EsiRequest<T>) -> Result<T, Error> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
 
@@ -215,7 +209,7 @@ impl<'a> EsiApi<'a> {
     /// - `Err(Error)`: Request failed
     pub async fn request_cached<T: DeserializeOwned>(
         &self,
-        request: &EsiRequest<'_, T>,
+        request: &EsiRequest<T>,
     ) -> Result<CachedResponse<T>, Error> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
