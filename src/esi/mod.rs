@@ -98,7 +98,7 @@ mod response;
 // Re-export public API
 pub use client::EsiApi;
 pub use request::{CacheStrategy, EsiRequest, Language};
-pub use response::CachedResponse;
+pub use response::{CacheHeaders, CachedResponse, EsiResponse, RateLimitHeaders};
 
 // Internal utilities
 mod util;
