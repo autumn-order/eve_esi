@@ -27,7 +27,7 @@
 //!         .expect("Failed to build Client");
 //!
 //!     // Get information about the corporation The Order of Autumn (id: 98785281)
-//!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
+//!     let corporation = esi_client.corporation().get_corporation_information(98785281).send().await.unwrap();
 //!     println!("Corporation name: {}", corporation.name);
 //! }
 //! ```

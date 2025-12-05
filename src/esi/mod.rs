@@ -100,18 +100,5 @@ pub use client::EsiApi;
 pub use request::{CacheStrategy, EsiRequest, Language};
 pub use response::CachedResponse;
 
-// Deprecated legacy modules (will be removed in future versions)
-#[deprecated(
-    since = "0.5.0",
-    note = "Use EsiRequest with .send() or .send_with_cache() instead"
-)]
-pub mod authenticated;
-
-#[deprecated(
-    since = "0.5.0",
-    note = "Use EsiRequest with .send() or .send_with_cache() instead"
-)]
-pub mod public;
-
 // Internal utilities
 mod util;
