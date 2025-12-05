@@ -3,14 +3,13 @@ use eve_esi::ScopeBuilder;
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_alliance_contacts,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let alliance_id = 99013534;
         esi_client
             .contacts()
             .get_alliance_contacts(&access_token, alliance_id)
-            .await
     },
     request_type = "GET",
     url = "/alliances/99013534/contacts",
@@ -29,14 +28,13 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_alliance_contact_labels,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let alliance_id = 99013534;
         esi_client
             .contacts()
             .get_alliance_contact_labels(&access_token, alliance_id)
-            .await
     },
     request_type = "GET",
     url = "/alliances/99013534/contacts/labels",
@@ -51,15 +49,14 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     delete_contacts,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let contact_ids = vec![1,2,3];
         esi_client
             .contacts()
             .delete_contacts(&access_token, character_id, contact_ids)
-            .await
     },
     request_type = "DELETE",
     // Note: contact_ids array is percent encoded due to usage of URL serializer
@@ -70,14 +67,13 @@ authenticated_endpoint_test! {
     mock_response = serde_json::json!(()),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_contacts,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .contacts()
             .get_contacts(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/contacts",
@@ -98,18 +94,17 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     add_contacts,
-    |esi_client: eve_esi::Client, access_token: String | async move {
-        let contact_ids = vec![1,2,3];
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let standing = -10.0;
         let label_ids = vec![1,2,3];
         let watched = false;
+        let contact_ids = vec![1,2,3];
         esi_client
             .contacts()
-            .add_contacts(&access_token, contact_ids, character_id, standing, label_ids, watched)
-            .await
+            .add_contacts(&access_token, character_id, standing, label_ids, watched, contact_ids)
     },
     request_type = "POST",
     // Note: label_ids array is percent encoded due to usage of URL serializer
@@ -120,18 +115,17 @@ authenticated_endpoint_test! {
     mock_response = serde_json::json!([1,2,3]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     edit_contacts,
-    |esi_client: eve_esi::Client, access_token: String | async move {
-        let contact_ids = vec![1,2,3];
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let standing = -10.0;
         let label_ids = vec![1,2,3];
         let watched = false;
+        let contact_ids = vec![1,2,3];
         esi_client
             .contacts()
-            .edit_contacts(&access_token, contact_ids, character_id, standing, label_ids, watched)
-            .await
+            .edit_contacts(&access_token, character_id, standing, label_ids, watched, contact_ids)
     },
     request_type = "PUT",
     // Note: label_ids array is percent encoded due to usage of URL serializer
@@ -142,14 +136,13 @@ authenticated_endpoint_test! {
     mock_response = serde_json::json!([1,2,3]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_contact_labels,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .contacts()
             .get_contact_labels(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/contacts/labels",
@@ -164,14 +157,13 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_corporation_contacts,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .contacts()
             .get_corporation_contacts(&access_token, corporation_id)
-            .await
     },
     request_type = "GET",
     url = "/corporations/98785281/contacts",
@@ -191,14 +183,13 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_corporation_contact_labels,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .contacts()
             .get_corporation_contact_labels(&access_token, corporation_id)
-            .await
     },
     request_type = "GET",
     url = "/corporations/98785281/contacts/labels",
