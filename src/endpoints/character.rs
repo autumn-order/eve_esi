@@ -73,7 +73,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve information for.
         ///
         /// # Returns
-        /// Request builder for character public information
+        /// An ESI request builder that returns the character's public information when sent.
         pub fn get_character_public_information(
             character_id: i64
         ) -> EsiRequest<Character>
@@ -93,7 +93,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_ids` (Vec<[`i64`]>): A vec of character IDs to retrieve affiliations for.
         ///
         /// # Returns
-        /// Request builder for a vector of character affiliations
+        /// An ESI request builder that returns a list of character affiliations including corporation and alliance IDs when sent.
         pub fn character_affiliation(
         ) -> EsiRequest<Vec<CharacterAffiliation>>
         method = Method::POST;
@@ -118,7 +118,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
         ///
         /// # Returns
-        /// Request builder for a vector of character research agents
+        /// An ESI request builder that returns a list of the character's research agents when sent.
         auth fn get_agents_research(
             access_token: &str,
             character_id: i64
@@ -148,7 +148,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `page`         (`i32`): The page of blueprints to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Request builder for a vector of blueprints
+        /// An ESI request builder that returns a paginated list of the character's blueprints when sent.
         auth fn get_blueprints(
             access_token: &str,
             character_id: i64;
@@ -171,7 +171,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve corporation history for.
         ///
         /// # Returns
-        /// Request builder for a vector of corporation history entries
+        /// An ESI request builder that returns the character's corporation history when sent.
         pub fn get_corporation_history(
             character_id: i64
         ) -> EsiRequest<Vec<CharacterCorporationHistory>>
@@ -197,7 +197,7 @@ impl<'a> CharacterEndpoints<'a> {
         ///   evemail.
         ///
         /// # Returns
-        /// Request builder for the CSPA charge cost
+        /// An ESI request builder that returns the calculated CSPA charge cost for evemailing the provided characters when sent.
         auth fn calculate_a_cspa_charge_cost(
             access_token: &str,
             character_id: i64
@@ -225,7 +225,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
         ///
         /// # Returns
-        /// Request builder for character jump fatigue information
+        /// An ESI request builder that returns the character's jump fatigue information when sent.
         auth fn get_jump_fatigue(
             access_token: &str,
             character_id: i64
@@ -252,7 +252,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve medals for
         ///
         /// # Returns
-        /// Request builder for a vector of character medals
+        /// An ESI request builder that returns a list of medals awarded to the character when sent.
         auth fn get_medals(
             access_token: &str,
             character_id: i64
@@ -279,7 +279,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve notifications for
         ///
         /// # Returns
-        /// Request builder for a vector of character notifications
+        /// An ESI request builder that returns a list of the character's notifications when sent.
         auth fn get_character_notifications(
             access_token: &str,
             character_id: i64
@@ -306,7 +306,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve added as contact notifications
         ///
         /// # Returns
-        /// Request builder for a vector of new contact notifications
+        /// An ESI request builder that returns a list of notifications about being added to someone's contact list when sent.
         auth fn get_new_contact_notifications(
             access_token: &str,
             character_id: i64
@@ -328,7 +328,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve portrait image URLs for
         ///
         /// # Returns
-        /// Request builder for character portrait URLs
+        /// An ESI request builder that returns the character's portrait image URLs in various sizes when sent.
         pub fn get_character_portraits(
             character_id: i64
         ) -> EsiRequest<CharacterPortraits>
@@ -353,7 +353,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve corporation roles for
         ///
         /// # Returns
-        /// Request builder for character corporation roles
+        /// An ESI request builder that returns the character's corporation roles when sent.
         auth fn get_character_corporation_roles(
             access_token: &str,
             character_id: i64
@@ -380,7 +380,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve standings for
         ///
         /// # Returns
-        /// Request builder for a vector of NPC standings
+        /// An ESI request builder that returns a list of the character's NPC standings when sent.
         auth fn get_standings(
             access_token: &str,
             character_id: i64
@@ -407,7 +407,7 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve corporation titles for
         ///
         /// # Returns
-        /// Request builder for a vector of corporation titles
+        /// An ESI request builder that returns a list of the character's corporation titles when sent.
         auth fn get_character_corporation_titles(
             access_token: &str,
             character_id: i64

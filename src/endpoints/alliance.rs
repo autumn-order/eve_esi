@@ -12,7 +12,7 @@
 use crate::{
     esi::EsiRequest,
     model::alliance::{Alliance, AllianceIcons},
-    Client, Error,
+    Client,
 };
 use reqwest::Method;
 
@@ -44,7 +44,7 @@ impl<'a> AllianceEndpoints<'a> {
         /// <https://developers.eveonline.com/api-explorer#/operations/GetAlliances>
         ///
         /// # Returns
-        /// Request builder for a vector of alliance IDs
+        /// An ESI request builder that returns a vector of alliance IDs when sent.
         pub fn list_all_alliances() -> EsiRequest<Vec<i64>>
         method = Method::GET;
         url = "{}/alliances";
@@ -64,7 +64,7 @@ impl<'a> AllianceEndpoints<'a> {
         /// - `alliance_id`: The ID of the alliance to retrieve information for
         ///
         /// # Returns
-        /// Request builder for alliance public information
+        /// An ESI request builder that returns alliance public information when sent.
         pub fn get_alliance_information(
             alliance_id: i64
         ) -> EsiRequest<Alliance>
@@ -86,7 +86,7 @@ impl<'a> AllianceEndpoints<'a> {
         /// - `alliance_id`: ID of the alliance to fetch corporation IDs for
         ///
         /// # Returns
-        /// Request builder for a vector of corporation IDs
+        /// An ESI request builder that returns a vector of corporation IDs belonging to the alliance when sent.
         pub fn list_alliance_corporations(
             alliance_id: i64
         ) -> EsiRequest<Vec<i64>>
@@ -108,7 +108,7 @@ impl<'a> AllianceEndpoints<'a> {
         /// - `alliance_id`: ID of the alliance to fetch icons for
         ///
         /// # Returns
-        /// Request builder for alliance icon URLs
+        /// An ESI request builder that returns the alliance's 128x128 and 64x64 icon URLs when sent.
         pub fn get_alliance_icon(
             alliance_id: i64
         ) -> EsiRequest<AllianceIcons>

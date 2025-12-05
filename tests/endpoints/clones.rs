@@ -3,14 +3,13 @@ use eve_esi::ScopeBuilder;
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_clones,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .clones()
             .get_clones(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/clones",
@@ -38,14 +37,13 @@ authenticated_endpoint_test! {
     }),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_active_implants,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .clones()
             .get_active_implants(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/implants",

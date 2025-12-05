@@ -26,7 +26,7 @@ use crate::{
         enums::calendar::PutCalendarEventResponse,
     },
     scope::CalendarScopes,
-    Client, Error, ScopeBuilder,
+    Client, ScopeBuilder,
 };
 use reqwest::Method;
 
@@ -70,7 +70,7 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `character_id`  (`i64`): The ID of the character to retrieve calendar event summaries for.
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a list of calendar event summaries for the character when sent.
         auth fn list_calendar_event_summaries(
             access_token: &str,
             character_id: i64
@@ -100,7 +100,7 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_id`      (`i64`): The ID of the calendar event to retrieve information for
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns detailed information about a specific calendar event when sent.
         auth fn get_an_event(
             access_token: &str,
             character_id: i64,
@@ -132,7 +132,7 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_response` ([`PutCalendarEventResponse`]): The response to send for the character
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that submits a response to a calendar event when sent.
         auth fn respond_to_an_event(
             access_token: &str,
             character_id: i64,
@@ -164,7 +164,7 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_id`      (`i64`): The ID of the calendar event to retrieve attendees for
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a list of attendees and their responses for a calendar event when sent.
         auth fn get_attendees(
             access_token: &str,
             character_id: i64,

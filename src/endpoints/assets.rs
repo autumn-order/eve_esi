@@ -25,7 +25,7 @@ use crate::{
     esi::EsiRequest,
     model::asset::{Asset, AssetLocation, AssetName},
     scope::AssetsScopes,
-    Client, Error, ScopeBuilder,
+    Client, ScopeBuilder,
 };
 use reqwest::Method;
 
@@ -63,7 +63,7 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `page`          (`i32`): The page of assets to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a paginated list of assets for the character when sent.
         auth fn get_character_assets(
             access_token: &str,
             character_id: i64;
@@ -96,7 +96,7 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a list of asset locations with coordinates when sent.
         auth fn get_character_asset_locations(
             access_token: &str,
             character_id: i64
@@ -132,7 +132,7 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get names for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a list of asset names for items with customizable names when sent.
         auth fn get_character_asset_names(
             access_token: &str,
             character_id: i64
@@ -163,7 +163,7 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `page`            (`i32`): The page of assets to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a paginated list of assets for the corporation when sent.
         auth fn get_corporation_assets(
             access_token: &str,
             corporation_id: i64;
@@ -196,7 +196,7 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`       (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a list of corporation asset locations with coordinates when sent.
         auth fn get_corporation_asset_locations(
             access_token: &str,
             corporation_id: i64
@@ -232,7 +232,7 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`       (`Vec<i64>`): Vec of item IDs to get names for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Request builder for
+        /// An ESI request builder that returns a list of corporation asset names for items with customizable names when sent.
         auth fn get_corporation_asset_names(
             access_token: &str,
             corporation_id: i64
