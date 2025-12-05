@@ -3,14 +3,13 @@ use eve_esi::{scope::CharactersScopes, ScopeBuilder};
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 use crate::util::integration_test_setup;
 
-public_endpoint_test! {
+public_esi_request_test! {
     get_character_public_information,
-    |esi_client: eve_esi::Client | async move {
+    |esi_client: eve_esi::Client | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_character_public_information(character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365",
@@ -29,14 +28,13 @@ public_endpoint_test! {
     })
 }
 
-public_endpoint_test! {
+public_esi_request_test! {
     character_affiliation,
-    |esi_client: eve_esi::Client | async move {
+    |esi_client: eve_esi::Client | {
         let character_ids = vec![2114794365, 2117053828];
         esi_client
             .character()
             .character_affiliation(character_ids)
-            .await
     },
     request_type = "POST",
     url = "/characters/affiliation",
@@ -56,14 +54,13 @@ public_endpoint_test! {
     ])
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_agents_research,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_agents_research(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/agents_research",
@@ -79,15 +76,14 @@ authenticated_endpoint_test! {
     }]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_blueprints,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let page = 0;
         esi_client
             .character()
             .get_blueprints(&access_token, character_id, page)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/blueprints?page=0",
@@ -106,14 +102,13 @@ authenticated_endpoint_test! {
     }]),
 }
 
-public_endpoint_test! {
+public_esi_request_test! {
     get_corporation_history,
-    |esi_client: eve_esi::Client | async move {
+    |esi_client: eve_esi::Client | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_corporation_history(character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/corporationhistory",
@@ -126,15 +121,14 @@ public_endpoint_test! {
     ])
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     calculate_a_cspa_charge_cost,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_ids = vec![2117053828];
         let character_id = 2114794365;
         esi_client
             .character()
-            .calculate_a_cspa_charge_cost(&access_token, character_ids, character_id)
-            .await
+            .calculate_a_cspa_charge_cost(&access_token, character_id, character_ids)
     },
     request_type = "POST",
     url = "/characters/2114794365/cspa",
@@ -144,14 +138,13 @@ authenticated_endpoint_test! {
     mock_response = serde_json::json!(5000000),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_jump_fatigue,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_jump_fatigue(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/fatigue",
@@ -165,14 +158,13 @@ authenticated_endpoint_test! {
     }),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_medals,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_medals(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/medals",
@@ -201,14 +193,13 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_character_notifications,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_character_notifications(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/notifications",
@@ -228,14 +219,13 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_new_contact_notifications,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_new_contact_notifications(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/notifications/contacts",
@@ -253,14 +243,13 @@ authenticated_endpoint_test! {
     ]),
 }
 
-public_endpoint_test! {
+public_esi_request_test! {
     get_character_portraits,
-    |esi_client: eve_esi::Client | async move {
+    |esi_client: eve_esi::Client | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_character_portraits(character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/portrait",
@@ -272,14 +261,13 @@ public_endpoint_test! {
     })
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     read_corporation_roles,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_character_corporation_roles(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/roles",
@@ -294,14 +282,13 @@ authenticated_endpoint_test! {
     }),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_standings,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_standings(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/standings",
@@ -315,14 +302,13 @@ authenticated_endpoint_test! {
     }]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_character_corporation_titles,
-    |esi_client: eve_esi::Client, access_token: String | async move {
+    |esi_client: eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
             .get_character_corporation_titles(&access_token, character_id)
-            .await
     },
     request_type = "GET",
     url = "/characters/2114794365/titles",
@@ -334,3 +320,4 @@ authenticated_endpoint_test! {
         "title_id": 1
     }]),
 }
+

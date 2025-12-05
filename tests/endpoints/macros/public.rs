@@ -101,10 +101,7 @@ macro_rules! public_esi_request_success_test {
                     .create();
 
                 let request = ($call)(esi_client.clone());
-                let result = match request {
-                    Ok(req) => req.send(&esi_client).await,
-                    Err(e) => Err(e),
-                };
+                let result = request.send(&esi_client).await;
 
                 // Assert 1 request was received for mock endpoint
                 mock_endpoint.assert();
@@ -135,10 +132,7 @@ macro_rules! public_esi_request_error_test {
                     .create();
 
                 let request = ($call)(esi_client.clone());
-                let result = match request {
-                    Ok(req) => req.send(&esi_client).await,
-                    Err(e) => Err(e),
-                };
+                let result = request.send(&esi_client).await;
 
                 // Assert 1 request was received for mock endpoint
                 mock_endpoint.assert();

@@ -123,10 +123,7 @@ macro_rules! authenticated_esi_request_success_test {
                     .create();
 
                 let request = ($call)(esi_client.clone(), access_token.clone());
-                let result = match request {
-                    Ok(req) => req.send(&esi_client).await,
-                    Err(e) => Err(e),
-                };
+                let result = request.send(&esi_client).await;
 
                 // Assert JWT keys were fetched for token validation prior to request
                 mock_jwt_key_endpoint.assert();
@@ -165,10 +162,7 @@ macro_rules! authenticated_esi_request_error_test {
                     .create();
 
                 let request = ($call)(esi_client.clone(), access_token.clone());
-                let result = match request {
-                    Ok(req) => req.send(&esi_client).await,
-                    Err(e) => Err(e),
-                };
+                let result = request.send(&esi_client).await;
 
                 // Assert JWT keys were fetched for token validation prior to request
                 mock_jwt_key_endpoint.assert();

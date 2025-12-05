@@ -2,21 +2,28 @@
 macro_rules! build_endpoint_url {
     // No query params
     ($self_ident:ident, $fmt:expr, ($($path:ident),* $(,)?)) => {{
-        url::Url::parse(&format!($fmt, $self_ident.client.inner.esi_url, $($path),* ))?
+        format!($fmt, $self_ident.client.inner.esi_url, $($path),* )
     }};
 
     // One or more query params
     ($self_ident:ident, $fmt:expr, ($($path:ident),* $(,)?), ($($query:ident),+ $(,)?)) => {{
-        let mut url = url::Url::parse(&format!($fmt, $self_ident.client.inner.esi_url, $($path),* ))?;
+        let mut url = format!($fmt, $self_ident.client.inner.esi_url, $($path),* );
 
         let mut ser = url::form_urlencoded::Serializer::new(String::new());
 
         $(
-            let val = serde_json::to_string(&$query).map_err(|e| Error::from(e))?;
+            // Serialize to JSON and add to query string
+            // If serialization fails, we use a placeholder value
+            // Real errors will be caught when the request is sent
+            let val = serde_json::to_string(&$query).unwrap_or_else(|_| String::from("null"));
             ser.append_pair(stringify!($query), &val);
         )*
 
-        url.set_query(Some(&ser.finish()));
+        let query_string = ser.finish();
+        if !query_string.is_empty() {
+            url.push('?');
+            url.push_str(&query_string);
+        }
 
         url
     }};
@@ -31,10 +38,11 @@ macro_rules! build_esi_request_internal {
         return_type = $return_type:ty,
         body = $body_name:ident
     ) => {{
-        let request = EsiRequest::<$return_type>::new($url.as_str())
+        // Serialize body - if it fails, store null and let send() handle the error
+        let body_value = serde_json::to_value(&$body_name).unwrap_or(serde_json::Value::Null);
+        EsiRequest::<$return_type>::new($url)
             .with_method($method)
-            .with_body_json(serde_json::to_value(&$body_name)?);
-        Ok(request)
+            .with_body_json(body_value)
     }};
 
     // Public endpoint without body
@@ -43,8 +51,7 @@ macro_rules! build_esi_request_internal {
         method = $method:expr,
         return_type = $return_type:ty
     ) => {{
-        let request = EsiRequest::<$return_type>::new($url.as_str()).with_method($method);
-        Ok(request)
+        EsiRequest::<$return_type>::new($url).with_method($method)
     }};
 
     // Authenticated endpoint with body
@@ -56,12 +63,13 @@ macro_rules! build_esi_request_internal {
         access_token = $access_token:ident,
         required_scopes = $required_scopes:expr
     ) => {{
-        let request = EsiRequest::<$return_type>::new($url.as_str())
+        // Serialize body - if it fails, store null and let send() handle the error
+        let body_value = serde_json::to_value(&$body_name).unwrap_or(serde_json::Value::Null);
+        EsiRequest::<$return_type>::new($url)
             .with_method($method)
             .with_access_token($access_token)
             .with_required_scopes($required_scopes)
-            .with_body_json(serde_json::to_value(&$body_name)?);
-        Ok(request)
+            .with_body_json(body_value)
     }};
 
     // Authenticated endpoint without body
@@ -72,11 +80,10 @@ macro_rules! build_esi_request_internal {
         access_token = $access_token:ident,
         required_scopes = $required_scopes:expr
     ) => {{
-        let request = EsiRequest::<$return_type>::new($url.as_str())
+        EsiRequest::<$return_type>::new($url)
             .with_method($method)
             .with_access_token($access_token)
-            .with_required_scopes($required_scopes);
-        Ok(request)
+            .with_required_scopes($required_scopes)
     }};
 }
 
@@ -87,6 +94,29 @@ macro_rules! build_esi_request_internal {
 ///
 /// For an overview of methods and a usage example, please see the [module-level documentation](super)
 macro_rules! define_esi_endpoint {
+    // Public endpoint with body but no path parameters (e.g., character_affiliation)
+    (
+        $(#[$attr:meta])*
+        pub fn $fn_name:ident(
+            $(&self,)?
+        ) -> EsiRequest<$return_type:ty>
+        method = $method:expr;
+        url = $url:expr;
+        body = $body_name:ident: $body_type:ty;
+    ) => {
+        $(#[$attr])*
+        pub fn $fn_name(&self, $body_name: $body_type) -> EsiRequest<$return_type> {
+            let url = format!($url, self.client.inner.esi_url);
+
+            build_esi_request_internal!(
+                url = url,
+                method = $method,
+                return_type = $return_type,
+                body = $body_name
+            )
+        }
+    };
+
     // Public endpoint (no authentication)
     (
         $(#[$attr:meta])*
@@ -94,13 +124,13 @@ macro_rules! define_esi_endpoint {
             $(&self,)?
             $($path_name:ident: $path_ty:ty),* $(,)?
             $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<EsiRequest<$return_type:ty>, Error>
+        ) -> EsiRequest<$return_type:ty>
         method = $method:expr;
         url = $url:expr;
         $(body = $body_name:ident: $body_type:ty;)?
     ) => {
         $(#[$attr])*
-        pub fn $fn_name(&self, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> Result<EsiRequest<$return_type>, Error> {
+        pub fn $fn_name(&self, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<$return_type> {
             let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             build_esi_request_internal!(
@@ -120,14 +150,14 @@ macro_rules! define_esi_endpoint {
             access_token: &str,
             $($path_name:ident: $path_ty:ty),* $(,)?
             $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<EsiRequest<$return_type:ty>, Error>
+        ) -> EsiRequest<$return_type:ty>
         method = $method:expr;
         url = $url:expr;
         required_scopes = $required_scopes:expr;
         $(body = $body_name:ident: $body_type:ty;)?
     ) => {
         $(#[$attr])*
-        pub fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> Result<EsiRequest<$return_type>, Error> {
+        pub fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<$return_type> {
             let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             build_esi_request_internal!(

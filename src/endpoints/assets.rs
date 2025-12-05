@@ -63,14 +63,12 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `page`          (`i32`): The page of assets to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of assets
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_character_assets(
             access_token: &str,
             character_id: i64;
             page: i32
-        ) -> Result<EsiRequest<Vec<Asset>>, Error>
+        ) -> EsiRequest<Vec<Asset>>
         method = Method::GET;
         url = "{}/characters/{}/assets";
         required_scopes = ScopeBuilder::new()
@@ -98,13 +96,11 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of asset locations
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_character_asset_locations(
             access_token: &str,
             character_id: i64
-        ) -> Result<EsiRequest<Vec<AssetLocation>>, Error>
+        ) -> EsiRequest<Vec<AssetLocation>>
         method = Method::POST;
         url = "{}/characters/{}/assets/locations";
         required_scopes = ScopeBuilder::new()
@@ -136,13 +132,11 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`     (`Vec<i64>`): Vec of item IDs to get names for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of asset names
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_character_asset_names(
             access_token: &str,
             character_id: i64
-        ) -> Result<EsiRequest<Vec<AssetName>>, Error>
+        ) -> EsiRequest<Vec<AssetName>>
         method = Method::POST;
         url = "{}/characters/{}/assets/names";
         required_scopes = ScopeBuilder::new()
@@ -169,14 +163,12 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `page`            (`i32`): The page of assets to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of assets
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_corporation_assets(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<EsiRequest<Vec<Asset>>, Error>
+        ) -> EsiRequest<Vec<Asset>>
         method = Method::GET;
         url = "{}/corporations/{}/assets";
         required_scopes = ScopeBuilder::new()
@@ -204,13 +196,11 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`       (`Vec<i64>`): Vec of item IDs to get coordinates for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of asset locations
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_corporation_asset_locations(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<EsiRequest<Vec<AssetLocation>>, Error>
+        ) -> EsiRequest<Vec<AssetLocation>>
         method = Method::POST;
         url = "{}/corporations/{}/assets/locations";
         required_scopes = ScopeBuilder::new()
@@ -242,13 +232,11 @@ impl<'a> AssetsEndpoints<'a> {
         /// - `item_ids`       (`Vec<i64>`): Vec of item IDs to get names for (Limit of 1000 IDs per request)
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of asset names
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_corporation_asset_names(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<EsiRequest<Vec<AssetName>>, Error>
+        ) -> EsiRequest<Vec<AssetName>>
         method = Method::POST;
         url = "{}/corporations/{}/assets/names";
         required_scopes = ScopeBuilder::new()

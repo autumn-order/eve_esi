@@ -66,11 +66,11 @@ async fn get_esi_character(
     let character_id: i64 = params.0.id;
 
     // Request character public information from ESI
-    match esi_client
+    let request = esi_client
         .character()
-        .get_character_public_information(character_id)
-        .await
-    {
+        .get_character_public_information(character_id);
+
+    match request.send(&esi_client).await {
         // Return the character information
         Ok(character) => (StatusCode::OK, Json(character)).into_response(),
         // Return an error if fetching character information fails

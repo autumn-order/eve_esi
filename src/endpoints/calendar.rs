@@ -70,13 +70,11 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `character_id`  (`i64`): The ID of the character to retrieve calendar event summaries for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of calendar event summaries
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn list_calendar_event_summaries(
             access_token: &str,
             character_id: i64
-        ) -> Result<EsiRequest<Vec<CalendarEventSummary>>, Error>
+        ) -> EsiRequest<Vec<CalendarEventSummary>>
         method = Method::GET;
         url = "{}/characters/{}/calendar";
         required_scopes = ScopeBuilder::new()
@@ -102,14 +100,12 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_id`      (`i64`): The ID of the calendar event to retrieve information for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for calendar event information
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_an_event(
             access_token: &str,
             character_id: i64,
             event_id: i64
-        ) -> Result<EsiRequest<CalendarEvent>, Error>
+        ) -> EsiRequest<CalendarEvent>
         method = Method::GET;
         url = "{}/characters/{}/calendar/{}";
         required_scopes = ScopeBuilder::new()
@@ -136,14 +132,12 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_response` ([`PutCalendarEventResponse`]): The response to send for the character
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for the response action
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn respond_to_an_event(
             access_token: &str,
             character_id: i64,
             event_id: i64
-        ) -> Result<EsiRequest<()>, Error>
+        ) -> EsiRequest<()>
         method = Method::PUT;
         url = "{}/characters/{}/calendar/{}";
         required_scopes = ScopeBuilder::new()
@@ -170,14 +164,12 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_id`      (`i64`): The ID of the calendar event to retrieve attendees for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Ok(request)`: Request builder for a vector of calendar event attendees
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for
         auth fn get_attendees(
             access_token: &str,
             character_id: i64,
             event_id: i64
-        ) -> Result<EsiRequest<Vec<CalendarEventAttendee>>, Error>
+        ) -> EsiRequest<Vec<CalendarEventAttendee>>
         method = Method::GET;
         url = "{}/characters/{}/calendar/{}/attendees";
         required_scopes = ScopeBuilder::new()

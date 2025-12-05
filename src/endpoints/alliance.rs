@@ -44,9 +44,8 @@ impl<'a> AllianceEndpoints<'a> {
         /// <https://developers.eveonline.com/api-explorer#/operations/GetAlliances>
         ///
         /// # Returns
-        /// - `Ok(request)`: Request builder for a vector of alliance IDs
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
-        pub fn list_all_alliances() -> Result<EsiRequest<Vec<i64>>, Error>
+        /// Request builder for a vector of alliance IDs
+        pub fn list_all_alliances() -> EsiRequest<Vec<i64>>
         method = Method::GET;
         url = "{}/alliances";
     }
@@ -65,11 +64,10 @@ impl<'a> AllianceEndpoints<'a> {
         /// - `alliance_id`: The ID of the alliance to retrieve information for
         ///
         /// # Returns
-        /// - `Ok(request)`: Request builder for alliance public information
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for alliance public information
         pub fn get_alliance_information(
             alliance_id: i64
-        ) -> Result<EsiRequest<Alliance>, Error>
+        ) -> EsiRequest<Alliance>
         method = Method::GET;
         url = "{}/alliances/{}";
     }
@@ -88,11 +86,10 @@ impl<'a> AllianceEndpoints<'a> {
         /// - `alliance_id`: ID of the alliance to fetch corporation IDs for
         ///
         /// # Returns
-        /// - `Ok(request)`: Request builder for a vector of corporation IDs
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for a vector of corporation IDs
         pub fn list_alliance_corporations(
             alliance_id: i64
-        ) -> Result<EsiRequest<Vec<i64>>, Error>
+        ) -> EsiRequest<Vec<i64>>
         method = Method::GET;
         url = "{}/alliances/{}/corporations";
     }
@@ -111,11 +108,10 @@ impl<'a> AllianceEndpoints<'a> {
         /// - `alliance_id`: ID of the alliance to fetch icons for
         ///
         /// # Returns
-        /// - `Ok(request)`: Request builder for alliance icon URLs
-        /// - `Err(Error::UrlParseError)`: Failed to construct the endpoint URL
+        /// Request builder for alliance icon URLs
         pub fn get_alliance_icon(
             alliance_id: i64
-        ) -> Result<EsiRequest<AllianceIcons>, Error>
+        ) -> EsiRequest<AllianceIcons>
         method = Method::GET;
         url = "{}/alliances/{}/icons";
     }
