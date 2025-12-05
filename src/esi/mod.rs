@@ -55,9 +55,101 @@ pub mod public;
 
 mod util;
 
+use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 
 use crate::{model::esi::EsiRequest, Client, Error};
+
+/// Response from a cached ESI request.
+///
+/// Represents the result of a request that may return 304 Not Modified
+/// when conditional headers like `If-None-Match` or `If-Modified-Since` are used.
+#[derive(Debug, Clone)]
+pub enum CachedResponse<T> {
+    /// Fresh data was returned (200 OK response)
+    ///
+    /// Contains the deserialized response body and optional caching headers for future requests
+    Fresh {
+        /// The deserialized response data
+        data: T,
+        /// ETag from the response headers, if present
+        etag: Option<String>,
+        /// Last-Modified timestamp from the response headers, if present
+        last_modified: Option<DateTime<Utc>>,
+    },
+
+    /// Resource has not been modified (304 Not Modified response)
+    ///
+    /// The server indicates the cached version is still valid
+    NotModified,
+}
+
+impl<T> CachedResponse<T> {
+    /// Returns `true` if the response is fresh data.
+    pub fn is_fresh(&self) -> bool {
+        matches!(self, CachedResponse::Fresh { .. })
+    }
+
+    /// Returns `true` if the response is not modified.
+    pub fn is_not_modified(&self) -> bool {
+        matches!(self, CachedResponse::NotModified)
+    }
+
+    /// Consumes the response and returns the data if fresh, or None if not modified.
+    pub fn into_data(self) -> Option<T> {
+        match self {
+            CachedResponse::Fresh { data, .. } => Some(data),
+            CachedResponse::NotModified => None,
+        }
+    }
+
+    /// Consumes the response and returns a tuple of (data, etag, last_modified) if fresh.
+    ///
+    /// This is useful when you want to extract all caching metadata along with the data.
+    ///
+    /// # Returns
+    /// - `Some((T, Option<String>, Option<DateTime<Utc>>))`: The data with caching headers if fresh
+    /// - `None`: If the response was not modified
+    pub fn into_parts(self) -> Option<(T, Option<String>, Option<DateTime<Utc>>)> {
+        match self {
+            CachedResponse::Fresh {
+                data,
+                etag,
+                last_modified,
+            } => Some((data, etag, last_modified)),
+            CachedResponse::NotModified => None,
+        }
+    }
+
+    /// Returns a reference to the data if fresh, or None if not modified.
+    pub fn data(&self) -> Option<&T> {
+        match self {
+            CachedResponse::Fresh { data, .. } => Some(data),
+            CachedResponse::NotModified => None,
+        }
+    }
+
+    /// Returns the ETag if the response is fresh and contains one.
+    pub fn etag(&self) -> Option<&str> {
+        match self {
+            CachedResponse::Fresh {
+                etag: Some(etag), ..
+            } => Some(etag.as_str()),
+            _ => None,
+        }
+    }
+
+    /// Returns the Last-Modified timestamp if the response is fresh and contains one.
+    pub fn last_modified(&self) -> Option<DateTime<Utc>> {
+        match self {
+            CachedResponse::Fresh {
+                last_modified: Some(timestamp),
+                ..
+            } => Some(*timestamp),
+            _ => None,
+        }
+    }
+}
 
 /// Provides utility methods for making requests EVE Online's ESI endpoints
 ///
@@ -96,32 +188,6 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Returns
     /// A Result containing the deserialized response data or an error
-    ///
-    /// # Example
-    /// ```no_run
-    /// use eve_esi::{EsiRequest, Client};
-    /// use reqwest::Method;
-    /// use serde::Deserialize;
-    ///
-    /// #[derive(Deserialize)]
-    /// struct ServerStatus {
-    ///     players: i32,
-    ///     server_version: String,
-    ///     start_time: String,
-    /// }
-    ///
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
-    /// let client = Client::new(user_agent)?;
-    ///
-    /// let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/")
-    ///     .with_method(Method::GET)
-    ///     .with_compatibility_date("2025-11-06");
-    ///
-    /// let status = client.esi().request(request).await?;
-    /// # Ok(())
-    /// # }
-    /// ```
     pub async fn request<T: DeserializeOwned>(&self, request: EsiRequest<T>) -> Result<T, Error> {
         // Validate token if this is an authenticated request
         if let Some(access_token) = request.access_token() {
@@ -157,5 +223,84 @@ impl<'a> EsiApi<'a> {
         // Deserialize and return the response
         let result: T = response.json().await?;
         Ok(result)
+    }
+
+    /// Make a cached request to ESI using the provided [`EsiRequest`] configuration.
+    ///
+    /// This method is similar to [`request`](Self::request) but handles 304 Not Modified responses
+    /// when conditional headers are present in the request. It returns a [`CachedResponse`] enum
+    /// that distinguishes between fresh data and cached data that hasn't changed.
+    ///
+    /// # Arguments
+    /// - `request`: The configured [`EsiRequest`] with conditional cache headers already set
+    ///
+    /// # Returns
+    /// - `Ok(CachedResponse::Fresh)`: New data was received with optional ETag
+    /// - `Ok(CachedResponse::NotModified)`: Resource hasn't changed since the conditional header date/ETag
+    /// - `Err(Error)`: Request failed
+    pub async fn request_cached<T: DeserializeOwned>(
+        &self,
+        request: EsiRequest<T>,
+    ) -> Result<CachedResponse<T>, Error> {
+        // Validate token if this is an authenticated request
+        if let Some(access_token) = request.access_token() {
+            self.validate_token_before_request(access_token, request.required_scopes().clone())
+                .await?;
+        }
+
+        let reqwest_client = &self.client.inner.reqwest_client;
+
+        // Build the request with the appropriate HTTP method
+        let mut req_builder = reqwest_client.request(request.method().clone(), request.endpoint());
+
+        // Add authorization header if access token is present
+        if let Some(access_token) = request.access_token() {
+            let bearer = format!("Bearer {}", access_token);
+            req_builder = req_builder.header("Authorization", bearer);
+        }
+
+        // Add all custom headers from the request
+        for (key, value) in request.headers() {
+            req_builder = req_builder.header(key, value);
+        }
+
+        // Add JSON body if present (for POST, PUT, PATCH requests)
+        if let Some(body) = request.body_json() {
+            req_builder = req_builder.json(body);
+        }
+
+        // Send the request
+        let response = req_builder.send().await?;
+
+        // Check for 304 Not Modified
+        if response.status() == reqwest::StatusCode::NOT_MODIFIED {
+            return Ok(CachedResponse::NotModified);
+        }
+
+        // Check for other errors
+        response.error_for_status_ref()?;
+
+        // Extract ETag header if present
+        let etag = response
+            .headers()
+            .get("etag")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_string());
+
+        // Extract Last-Modified header if present and parse it
+        let last_modified = response
+            .headers()
+            .get("last-modified")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
+            .map(|dt| dt.with_timezone(&Utc));
+
+        // Deserialize and return the response
+        let result: T = response.json().await?;
+        Ok(CachedResponse::Fresh {
+            data: result,
+            etag,
+            last_modified,
+        })
     }
 }

@@ -2,11 +2,7 @@
 //!
 //! This module provides types for building ESI requests with configurable headers and authentication.
 //!
-//! ## Types
-//! - [`EsiRequest`]: Builder for ESI API requests with optional headers and authentication
-//! - [`EsiLanguage`]: Type-safe enum for ESI language headers
-//!
-//! ## Example
+//! ## Basic Example
 //! ```no_run
 //! use eve_esi::{EsiRequest, Client};
 //! use serde::Deserialize;
@@ -28,14 +24,110 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! ## Caching Example
+//! ```no_run
+//! use eve_esi::{EsiRequest, Client, CacheStrategy};
+//! use chrono::{DateTime, Utc};
+//! use serde::Deserialize;
+//!
+//! #[derive(Deserialize)]
+//! struct ServerStatus {
+//!     players: i32,
+//! }
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let user_agent = "MyApp/1.0 (contact@example.com)";
+//! let client = Client::new(user_agent)?;
+//!
+//! // First request - get fresh data with caching headers
+//! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
+//! let response = request.send(&client).await?;
+//!
+//! // Later request - use stored timestamp for efficient caching
+//! let last_check: DateTime<Utc> = Utc::now();
+//! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
+//! let cached_response = request
+//!     .send_with_cache(&client, CacheStrategy::IfModifiedSince(last_check))
+//!     .await?;
+//!
+//! if cached_response.is_not_modified() {
+//!     println!("Data hasn't changed - use cached version");
+//! }
+//! # Ok(())
+//! # }
+//! ```
 
 use std::collections::HashMap;
 
+use chrono::{DateTime, Utc};
 use reqwest::Method;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::{Client, Error};
+use crate::{esi::CachedResponse, Client, Error};
+
+/// Strategy for conditional caching requests to ESI.
+///
+/// Used with [`EsiRequest::send_with_cache`] to specify which HTTP conditional
+/// headers to send for cache validation.
+///
+/// # Date Formatting
+///
+/// For `IfModifiedSince` and `Both` variants, the `DateTime<Utc>` is automatically
+/// converted to HTTP date format (RFC 2822) when sent to the server.
+#[derive(Debug, Clone)]
+pub enum CacheStrategy {
+    /// Use `If-None-Match` header with an ETag value.
+    ///
+    /// The server returns 304 Not Modified if the ETag matches the current resource.
+    ///
+    /// # Example
+    /// ```rust
+    /// use eve_esi::CacheStrategy;
+    ///
+    /// let strategy = CacheStrategy::IfNoneMatch("W/\"abc123\"".to_string());
+    /// ```
+    IfNoneMatch(String),
+
+    /// Use `If-Modified-Since` header with a timestamp.
+    ///
+    /// The server returns 304 Not Modified if the resource hasn't been modified since the date.
+    /// The datetime is automatically formatted to HTTP date format (RFC 2822).
+    ///
+    /// # Example
+    /// ```rust
+    /// use eve_esi::CacheStrategy;
+    /// use chrono::{DateTime, Utc};
+    ///
+    /// let last_modified: DateTime<Utc> = "2024-01-15T10:30:00Z".parse().unwrap();
+    /// let strategy = CacheStrategy::IfModifiedSince(last_modified);
+    /// ```
+    IfModifiedSince(DateTime<Utc>),
+
+    /// Use both `If-None-Match` and `If-Modified-Since` headers.
+    ///
+    /// When both are present, `If-None-Match` takes precedence but the server should respect both.
+    /// This provides defensive caching. The datetime is automatically formatted to HTTP date format.
+    ///
+    /// # Example
+    /// ```rust
+    /// use eve_esi::CacheStrategy;
+    /// use chrono::{DateTime, Utc};
+    ///
+    /// let last_modified: DateTime<Utc> = "2024-01-15T10:30:00Z".parse().unwrap();
+    /// let strategy = CacheStrategy::Both {
+    ///     etag: "W/\"abc123\"".to_string(),
+    ///     modified_since: last_modified,
+    /// };
+    /// ```
+    Both {
+        /// ETag value for If-None-Match header
+        etag: String,
+        /// Timestamp for If-Modified-Since header (automatically formatted to HTTP date)
+        modified_since: DateTime<Utc>,
+    },
+}
 
 /// Builder for ESI API requests with configurable headers and authentication.
 ///
@@ -171,36 +263,6 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     pub fn with_language(mut self, lang: EsiLanguage) -> Self {
         self.headers
             .insert("Accept-Language".to_string(), lang.as_str().to_string());
-        self
-    }
-
-    /// Sets the `If-None-Match` header for conditional requests.
-    ///
-    /// Returns a 304 Not Modified response if the ETag matches.
-    ///
-    /// # Arguments
-    /// - `etag`: The ETag from a previous request
-    ///
-    /// # Returns
-    /// Updated instance with the If-None-Match header set
-    pub fn with_if_none_match(mut self, etag: impl Into<String>) -> Self {
-        self.headers
-            .insert("If-None-Match".to_string(), etag.into());
-        self
-    }
-
-    /// Sets the `If-Modified-Since` header for conditional requests.
-    ///
-    /// Returns a 304 Not Modified response if the resource hasn't changed since the specified date.
-    ///
-    /// # Arguments
-    /// - `date`: The date in HTTP-date format
-    ///
-    /// # Returns
-    /// Updated instance with the If-Modified-Since header set
-    pub fn with_if_modified_since(mut self, date: impl Into<String>) -> Self {
-        self.headers
-            .insert("If-Modified-Since".to_string(), date.into());
         self
     }
 
@@ -340,6 +402,8 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     /// This is a convenience method that allows for a fluent API where you build the request
     /// and then send it in a single chain. It delegates to the [`crate::esi::EsiApi::request`] method.
     ///
+    /// For cached requests that handle 304 Not Modified responses, use [`send_with_cache`](Self::send_with_cache) instead.
+    ///
     /// # Arguments
     /// - `client`: Reference to the [`Client`] to use for sending the request
     ///
@@ -348,6 +412,48 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     ///
     pub async fn send(self, client: &Client) -> Result<T, Error> {
         client.esi().request(self).await
+    }
+
+    /// Consumes the [`EsiRequest`] and sends it with caching headers using the provided [`Client`].
+    ///
+    /// This method handles conditional requests that may return 304 Not Modified responses.
+    /// Use the [`CacheStrategy`] parameter to specify which conditional headers to send.
+    ///
+    /// # Arguments
+    /// - `client`: Reference to the [`Client`] to use for sending the request
+    /// - `strategy`: The caching strategy specifying which conditional headers to use
+    ///
+    /// # Returns
+    /// A Result containing a [`CachedResponse`] that may be either fresh data or not modified
+    pub async fn send_with_cache(
+        mut self,
+        client: &Client,
+        strategy: CacheStrategy,
+    ) -> Result<CachedResponse<T>, Error> {
+        // Add the appropriate conditional headers based on strategy
+        match strategy {
+            CacheStrategy::IfNoneMatch(etag) => {
+                self.headers.insert("If-None-Match".to_string(), etag);
+            }
+            CacheStrategy::IfModifiedSince(date) => {
+                // Format DateTime to HTTP date format (RFC 2822)
+                let http_date = date.to_rfc2822();
+                self.headers
+                    .insert("If-Modified-Since".to_string(), http_date);
+            }
+            CacheStrategy::Both {
+                etag,
+                modified_since,
+            } => {
+                self.headers.insert("If-None-Match".to_string(), etag);
+                // Format DateTime to HTTP date format (RFC 2822)
+                let http_date = modified_since.to_rfc2822();
+                self.headers
+                    .insert("If-Modified-Since".to_string(), http_date);
+            }
+        }
+
+        client.esi().request_cached(self).await
     }
 }
 
