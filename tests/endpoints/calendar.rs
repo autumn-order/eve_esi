@@ -6,7 +6,7 @@ use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_toke
 
 authenticated_esi_request_test! {
     list_calendar_event_summaries,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .calendar()
@@ -30,7 +30,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_an_event,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let event_id = 1;
         esi_client
@@ -58,7 +58,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     respond_to_an_event,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let event_id = 1;
         let response = PutCalendarEventResponse::Accepted;
@@ -76,7 +76,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_attendees,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let event_id = 1;
         esi_client

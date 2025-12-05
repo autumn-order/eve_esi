@@ -26,8 +26,8 @@
 //! let client = Client::new("MyApp/1.0 (contact@example.com)")?;
 //!
 //! // Simple request
-//! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
-//! let status = request.send(&client).await?;
+//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
+//! let status = request.send().await?;
 //! println!("Players online: {}", status.players);
 //! # Ok(())
 //! # }
@@ -35,7 +35,7 @@
 //!
 //! ## Cached Requests
 //!
-//! Use [`CacheStrategy`] with [`EsiRequest::send_with_cache`] to handle 304 Not Modified responses:
+//! Use [`CacheStrategy`] with [`EsiRequest::send_cached`] to handle 304 Not Modified responses:
 //!
 //! ```no_run
 //! use eve_esi::{Client, EsiRequest, CacheStrategy};
@@ -52,9 +52,9 @@
 //!
 //! // Make request with caching
 //! let last_check: DateTime<Utc> = Utc::now();
-//! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
+//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
 //! let response = request
-//!     .send_with_cache(&client, CacheStrategy::IfModifiedSince(last_check))
+//!     .send_cached(CacheStrategy::IfModifiedSince(last_check))
 //!     .await?;
 //!
 //! if response.is_not_modified() {
@@ -81,11 +81,11 @@
 //! let client = Client::new("MyApp/1.0")?;
 //! let access_token = "your_oauth2_token";
 //!
-//! let request = EsiRequest::<Character>::new("https://esi.evetech.net/latest/characters/12345/")
+//! let request = client.esi().new_request::<Character>("https://esi.evetech.net/latest/characters/12345/")
 //!     .with_access_token(access_token)
 //!     .with_required_scopes(vec!["publicData".to_string()]);
 //!
-//! let character = request.send(&client).await?;
+//! let character = request.send().await?;
 //! # Ok(())
 //! # }
 //! ```

@@ -5,7 +5,7 @@ use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_toke
 
 authenticated_esi_request_test! {
     get_alliance_contacts,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let alliance_id = 99013534;
         esi_client
             .contacts()
@@ -30,7 +30,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_alliance_contact_labels,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let alliance_id = 99013534;
         esi_client
             .contacts()
@@ -51,7 +51,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     delete_contacts,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let contact_ids = vec![1,2,3];
         esi_client
@@ -69,7 +69,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_contacts,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .contacts()
@@ -96,7 +96,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     add_contacts,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let standing = -10.0;
         let label_ids = vec![1,2,3];
@@ -117,7 +117,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     edit_contacts,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let standing = -10.0;
         let label_ids = vec![1,2,3];
@@ -138,7 +138,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_contact_labels,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .contacts()
@@ -159,7 +159,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_contacts,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .contacts()
@@ -185,7 +185,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_contact_labels,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .contacts()

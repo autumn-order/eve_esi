@@ -5,7 +5,7 @@ use crate::util::integration_test_setup;
 
 public_esi_request_test! {
     get_character_public_information,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -30,7 +30,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     character_affiliation,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let character_ids = vec![2114794365, 2117053828];
         esi_client
             .character()
@@ -56,7 +56,7 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_agents_research,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -78,7 +78,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_blueprints,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let page = 0;
         esi_client
@@ -104,7 +104,7 @@ authenticated_esi_request_test! {
 
 public_esi_request_test! {
     get_corporation_history,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -123,7 +123,7 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     calculate_a_cspa_charge_cost,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_ids = vec![2117053828];
         let character_id = 2114794365;
         esi_client
@@ -140,7 +140,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_jump_fatigue,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -160,7 +160,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_medals,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -195,7 +195,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_character_notifications,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -221,7 +221,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_new_contact_notifications,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -245,7 +245,7 @@ authenticated_esi_request_test! {
 
 public_esi_request_test! {
     get_character_portraits,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -263,7 +263,7 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     read_corporation_roles,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -284,7 +284,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_standings,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -304,7 +304,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_character_corporation_titles,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .character()
@@ -320,4 +320,3 @@ authenticated_esi_request_test! {
         "title_id": 1
     }]),
 }
-

@@ -4,7 +4,7 @@ use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_toke
 
 authenticated_esi_request_test! {
     get_character_assets,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let page = 1;
         esi_client
@@ -32,7 +32,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_character_asset_locations,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let item_ids = vec![0];
         esi_client
@@ -58,7 +58,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_character_asset_names,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let item_ids = vec![0];
         esi_client
@@ -80,7 +80,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_assets,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -108,7 +108,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_asset_locations,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let item_ids = vec![0];
         esi_client
@@ -134,7 +134,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_asset_names,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let item_ids = vec![0];
         esi_client

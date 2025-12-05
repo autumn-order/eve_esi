@@ -6,7 +6,7 @@ use crate::util::integration_test_setup;
 
 authenticated_esi_request_test! {
     list_open_orders_from_a_character,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .market()
@@ -39,7 +39,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     list_historical_orders_by_a_character,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         let page = 1;
         esi_client
@@ -74,7 +74,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     list_open_orders_from_a_corporation,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .market()
@@ -108,7 +108,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     list_historical_orders_from_a_corporation,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -144,7 +144,7 @@ authenticated_esi_request_test! {
 
 public_esi_request_test! {
     get_item_groups,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         esi_client
             .market()
             .get_item_groups()
@@ -158,7 +158,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_item_group_information,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let market_group_id = 1;
         esi_client
             .market()
@@ -179,7 +179,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     list_market_prices,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         esi_client
             .market()
             .list_market_prices()
@@ -197,7 +197,7 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     list_orders_in_a_structure,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let structure_id = 1;
         let page = 1;
         esi_client
@@ -228,7 +228,7 @@ authenticated_esi_request_test! {
 
 public_esi_request_test! {
     list_historical_market_statistics_in_a_region,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let region_id = 1;
         let type_id = 1;
         esi_client
@@ -251,7 +251,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     list_orders_in_a_region,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let region_id = 1;
         let order_type = OrderType::All;
         let page = 1;
@@ -281,7 +281,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     list_type_ids_relevant_to_a_market,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let region_id = 1;
         let page = 1;
         esi_client

@@ -1,7 +1,7 @@
 //! Integration tests for CacheStrategy and send_with_cache API
 
 use chrono::{DateTime, Utc};
-use eve_esi::{CacheStrategy, Client, EsiRequest};
+use eve_esi::{CacheStrategy, Client};
 use mockito::Server;
 use reqwest::Method;
 use serde::Deserialize;
@@ -26,13 +26,13 @@ async fn test_cache_strategy_if_none_match() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
     let response = request
-        .send_with_cache(
-            &client,
-            CacheStrategy::IfNoneMatch("test-etag-123".to_string()),
-        )
+        .send_cached(CacheStrategy::IfNoneMatch("test-etag-123".to_string()))
         .await
         .expect("Request failed");
 
@@ -62,10 +62,13 @@ async fn test_cache_strategy_if_modified_since() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
     let response = request
-        .send_with_cache(&client, CacheStrategy::IfModifiedSince(test_date))
+        .send_cached(CacheStrategy::IfModifiedSince(test_date))
         .await
         .expect("Request failed");
 
@@ -94,16 +97,16 @@ async fn test_cache_strategy_both_headers() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
     let response = request
-        .send_with_cache(
-            &client,
-            CacheStrategy::Both {
-                etag: "test-etag-456".to_string(),
-                modified_since: test_date,
-            },
-        )
+        .send_cached(CacheStrategy::Both {
+            etag: "test-etag-456".to_string(),
+            modified_since: test_date,
+        })
         .await
         .expect("Request failed");
 
@@ -129,10 +132,13 @@ async fn test_cache_strategy_fresh_data_with_etag() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
     let response = request
-        .send_with_cache(&client, CacheStrategy::IfNoneMatch("old-etag".to_string()))
+        .send_cached(CacheStrategy::IfNoneMatch("old-etag".to_string()))
         .await
         .expect("Request failed");
 
@@ -163,9 +169,12 @@ async fn test_send_without_cache_no_conditional_headers() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
-    let response = request.send(&client).await.expect("Request failed");
+    let response = request.send().await.expect("Request failed");
 
     assert_eq!(
         response,
@@ -193,13 +202,13 @@ async fn test_cached_response_into_data() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
     let response = request
-        .send_with_cache(
-            &client,
-            CacheStrategy::IfNoneMatch("wrong-etag".to_string()),
-        )
+        .send_cached(CacheStrategy::IfNoneMatch("wrong-etag".to_string()))
         .await
         .expect("Request failed");
 
@@ -221,13 +230,13 @@ async fn test_cached_response_not_modified_into_data() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
     let response = request
-        .send_with_cache(
-            &client,
-            CacheStrategy::IfNoneMatch("matching-etag".to_string()),
-        )
+        .send_cached(CacheStrategy::IfNoneMatch("matching-etag".to_string()))
         .await
         .expect("Request failed");
 
@@ -255,10 +264,13 @@ async fn test_fresh_response_with_last_modified() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(url)
+        .with_method(Method::GET);
 
     let response = request
-        .send_with_cache(&client, CacheStrategy::IfNoneMatch("old-etag".to_string()))
+        .send_cached(CacheStrategy::IfNoneMatch("old-etag".to_string()))
         .await
         .expect("Request failed");
 
@@ -292,9 +304,12 @@ async fn test_use_last_modified_for_next_request() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let request = EsiRequest::<TestResponse>::new(&url).with_method(Method::GET);
+    let request = client
+        .esi()
+        .new_request::<TestResponse>(&url)
+        .with_method(Method::GET);
 
-    let response = request.send(&client).await.expect("Request failed");
+    let response = request.send().await.expect("Request failed");
     assert_eq!(response.value, "initial data");
 
     mock1.assert_async().await;
@@ -307,9 +322,12 @@ async fn test_use_last_modified_for_next_request() {
         .create_async()
         .await;
 
-    let request2 = EsiRequest::<TestResponse>::new(&url).with_method(Method::GET);
+    let request2 = client
+        .esi()
+        .new_request::<TestResponse>(&url)
+        .with_method(Method::GET);
     let cached_response = request2
-        .send_with_cache(&client, CacheStrategy::IfModifiedSince(test_date))
+        .send_cached(CacheStrategy::IfModifiedSince(test_date))
         .await
         .expect("Request failed");
 

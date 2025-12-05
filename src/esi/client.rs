@@ -2,6 +2,25 @@
 //!
 //! This module contains the core logic for executing ESI requests,
 //! including authentication, header management, and response handling.
+//!
+//!
+//! # Example
+//! ```no_run
+//! use eve_esi::Client;
+//! use serde::Deserialize;
+//!
+//! #[derive(Deserialize)]
+//! struct ServerStatus {
+//!     players: i32,
+//! }
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let client = Client::new("MyApp/1.0")?;
+//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
+//! let status = request.send().await?;
+//! # Ok(())
+//! # }
+//! ```
 
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
@@ -34,6 +53,20 @@ impl<'a> EsiApi<'a> {
     /// Creates a new instance of [`EsiApi`].
     pub(crate) fn new(client: &'a Client) -> Self {
         Self { client }
+    }
+
+    /// Creates a new [`EsiRequest`] for the given endpoint.
+    ///
+    /// This is the recommended way to create ESI requests as it automatically
+    /// ties the request's lifetime to the client.
+    ///
+    /// # Arguments
+    /// - `endpoint`: The ESI API endpoint URL to request
+    ///
+    /// # Returns
+    /// A new [`EsiRequest`] instance ready to be configured with headers, authentication, etc.
+    pub fn new_request<T: DeserializeOwned>(&self, endpoint: impl Into<String>) -> EsiRequest<T> {
+        EsiRequest::new(self.client, endpoint)
     }
 
     /// Make a request to ESI using the provided [`EsiRequest`] configuration.

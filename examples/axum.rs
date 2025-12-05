@@ -66,11 +66,12 @@ async fn get_esi_character(
     let character_id: i64 = params.0.id;
 
     // Request character public information from ESI
-    let request = esi_client
+    match esi_client
         .character()
-        .get_character_public_information(character_id);
-
-    match request.send(&esi_client).await {
+        .get_character_public_information(character_id)
+        .send()
+        .await
+    {
         // Return the character information
         Ok(character) => (StatusCode::OK, Json(character)).into_response(),
         // Return an error if fetching character information fails
@@ -95,11 +96,12 @@ async fn get_esi_corporation(
     let corporation_id: i64 = params.0.id;
 
     // Request corporation information from ESI
-    let request = esi_client
+    match esi_client
         .corporation()
-        .get_corporation_information(corporation_id);
-
-    match request.send(&esi_client).await {
+        .get_corporation_information(corporation_id)
+        .send()
+        .await
+    {
         // Return the corporation information
         Ok(corporation) => (StatusCode::OK, Json(corporation)).into_response(),
         // Return an error if fetching corporation information fails

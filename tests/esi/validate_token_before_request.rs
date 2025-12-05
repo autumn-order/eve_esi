@@ -32,7 +32,7 @@ async fn test_validate_token_before_request_disabled() {
     let request = esi_client
         .character()
         .get_agents_research(&access_token, character_id);
-    let _ = request.send(&esi_client).await;
+    let _ = request.send().await;
 
     // Assert no requests were made due to validation being disabled
     mock_jwt_key_endpoint.assert();

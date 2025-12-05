@@ -2,7 +2,7 @@ use crate::util::integration_test_setup;
 
 public_esi_request_test! {
     list_all_alliances,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         esi_client
             .alliance()
             .list_all_alliances()
@@ -14,7 +14,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_alliance_information,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let alliance_id = 99013534;
         esi_client
             .alliance()
@@ -35,7 +35,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     list_alliance_corporations,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let alliance_id = 99013534;
         esi_client
             .alliance()
@@ -48,7 +48,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_alliance_icon,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let alliance_id = 99013534;
         esi_client
             .alliance()

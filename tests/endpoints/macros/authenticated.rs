@@ -25,8 +25,8 @@ macro_rules! authenticated_esi_request_success_test {
                     .with_body($mock_response.to_string())
                     .create();
 
-                let request = ($call)(esi_client.clone(), access_token.clone());
-                let result = request.send(&esi_client).await;
+                let request = ($call)(&esi_client, access_token.clone());
+                let result = request.send().await;
 
                 // Assert JWT keys were fetched for token validation prior to request
                 mock_jwt_key_endpoint.assert();
@@ -64,8 +64,8 @@ macro_rules! authenticated_esi_request_error_test {
                     .with_body(r#"{"error": "Internal server error"}"#)
                     .create();
 
-                let request = ($call)(esi_client.clone(), access_token.clone());
-                let result = request.send(&esi_client).await;
+                let request = ($call)(&esi_client, access_token.clone());
+                let result = request.send().await;
 
                 // Assert JWT keys were fetched for token validation prior to request
                 mock_jwt_key_endpoint.assert();

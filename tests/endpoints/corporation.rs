@@ -6,7 +6,7 @@ use crate::util::integration_test_setup;
 
 public_esi_request_test! {
     get_npc_corporations,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         esi_client
             .corporation()
             .get_npc_corporations()
@@ -18,7 +18,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_corporation,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -46,7 +46,7 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_alliance_history,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -65,7 +65,7 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_blueprints,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -91,7 +91,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_all_corporation_alsc_logs,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -121,7 +121,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_divisions,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -150,7 +150,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_facilities,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -170,7 +170,7 @@ authenticated_esi_request_test! {
 
 public_esi_request_test! {
     get_corporation_icon,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -187,7 +187,7 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_medals,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -210,7 +210,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_issued_medals,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -234,7 +234,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_members,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -250,7 +250,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_member_limit,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -266,7 +266,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_members_titles,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -285,7 +285,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     track_corporation_members,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -309,7 +309,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_member_roles,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()
@@ -335,7 +335,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_member_roles_history,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -359,7 +359,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_shareholders,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -380,7 +380,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_standings,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -401,7 +401,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_starbases,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -427,7 +427,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_starbase_detail,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let starbase_id = 12345;
         let system_id = 30000142;
@@ -465,7 +465,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_structures,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         let page = 1;
         esi_client
@@ -502,7 +502,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_titles,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let corporation_id = 98785281;
         esi_client
             .corporation()

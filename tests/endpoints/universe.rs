@@ -2,7 +2,7 @@ use crate::util::integration_test_setup;
 
 public_esi_request_test! {
     get_factions,
-    |esi_client: eve_esi::Client | {
+    |esi_client: &eve_esi::Client | {
         esi_client
             .universe()
             .get_factions()

@@ -5,7 +5,7 @@ use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_toke
 
 authenticated_esi_request_test! {
     get_clones,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .clones()
@@ -39,7 +39,7 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_active_implants,
-    |esi_client: eve_esi::Client, access_token: String | {
+    |esi_client: &eve_esi::Client, access_token: String | {
         let character_id = 2114794365;
         esi_client
             .clones()

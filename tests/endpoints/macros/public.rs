@@ -20,8 +20,8 @@ macro_rules! public_esi_request_success_test {
                     .with_body($mock_response.to_string())
                     .create();
 
-                let request = ($call)(esi_client.clone());
-                let result = request.send(&esi_client).await;
+                let request = ($call)(&esi_client.clone());
+                let result = request.send().await;
 
                 // Assert 1 request was received for mock endpoint
                 mock_endpoint.assert();
@@ -51,8 +51,8 @@ macro_rules! public_esi_request_error_test {
                     .with_body(r#"{"error": "Internal server error"}"#)
                     .create();
 
-                let request = ($call)(esi_client.clone());
-                let result = request.send(&esi_client).await;
+                let request = ($call)(&esi_client);
+                let result = request.send().await;
 
                 // Assert 1 request was received for mock endpoint
                 mock_endpoint.assert();

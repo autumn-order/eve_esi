@@ -5,7 +5,7 @@
 //!
 //! # Example
 //! ```no_run
-//! use eve_esi::{Client, EsiRequest, CacheStrategy};
+//! use eve_esi::{Client, CacheStrategy};
 //! use chrono::{DateTime, Utc};
 //! use serde::Deserialize;
 //!
@@ -17,15 +17,15 @@
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let client = Client::new("MyApp/1.0")?;
 //!
-//! // Simple request
-//! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
-//! let status = request.send(&client).await?;
+//! // Simple request - recommended approach
+//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
+//! let status = request.send().await?;
 //!
 //! // Cached request
 //! let last_check: DateTime<Utc> = Utc::now();
-//! let request = EsiRequest::<ServerStatus>::new("https://esi.evetech.net/latest/status/");
+//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
 //! let response = request
-//!     .send_with_cache(&client, CacheStrategy::IfModifiedSince(last_check))
+//!     .send_cached(CacheStrategy::IfModifiedSince(last_check))
 //!     .await?;
 //! # Ok(())
 //! # }
@@ -44,7 +44,7 @@ use super::CachedResponse;
 
 /// Strategy for conditional caching requests to ESI.
 ///
-/// Used with [`EsiRequest::send_with_cache`] to specify which HTTP conditional
+/// Used with [`EsiRequest::send_cached`] to specify which HTTP conditional
 /// headers to send for cache validation.
 ///
 /// # Date Formatting
@@ -81,6 +81,8 @@ pub enum CacheStrategy {
 /// Provides a fluent interface for setting endpoint URLs, authentication tokens,
 /// and ESI-specific HTTP headers like compatibility date, language, and caching headers.
 pub struct EsiRequest<T> {
+    /// Clone of the ESI client (cheap Arc clone)
+    client: Client,
     /// The endpoint to request e.g. "https://esi.evetech.net/latest/status/"
     endpoint: String,
     /// HTTP method for the request (GET, POST, PUT, DELETE, PATCH)
@@ -98,15 +100,22 @@ pub struct EsiRequest<T> {
 }
 
 impl<T: DeserializeOwned> EsiRequest<T> {
-    /// Creates a new [`EsiRequest`] with the specified endpoint.
+    /// Creates a new [`EsiRequest`] with the specified client and endpoint.
+    ///
+    /// **Note:** It's recommended to use [`crate::esi::EsiApi::new_request`] instead:
+    /// ```ignore
+    /// let request = client.esi().new_request::<ResponseType>("endpoint_url");
+    /// ```
     ///
     /// # Arguments
+    /// - `client`: The [`Client`] to use for sending the request (will be cloned internally)
     /// - `endpoint`: The ESI API endpoint URL to request
     ///
     /// # Returns
-    /// New instance with the endpoint set and all other fields at default values
-    pub fn new(endpoint: impl Into<String>) -> Self {
+    /// New instance with the client and endpoint set and all other fields at default values
+    pub fn new(client: &Client, endpoint: impl Into<String>) -> Self {
         Self {
+            client: client.clone(),
             endpoint: endpoint.into(),
             method: Method::GET,
             access_token: None,
@@ -287,36 +296,32 @@ impl<T: DeserializeOwned> EsiRequest<T> {
         &self.method
     }
 
-    /// Consumes the [`EsiRequest`] and sends it using the provided [`Client`].
+    /// Consumes the [`EsiRequest`] and sends it using the stored [`Client`].
     ///
     /// This is a convenience method that allows for a fluent API where you build the request
     /// and then send it in a single chain. It delegates to the [`crate::esi::EsiApi::request`] method.
     ///
-    /// For cached requests that handle 304 Not Modified responses, use [`send_with_cache`](Self::send_with_cache) instead.
-    ///
-    /// # Arguments
-    /// - `client`: Reference to the [`Client`] to use for sending the request
+    /// For cached requests that handle 304 Not Modified responses, use [`send_cached`](Self::send_cached) instead.
     ///
     /// # Returns
     /// A Result containing the deserialized response data or an error
-    pub async fn send(self, client: &Client) -> Result<T, Error> {
+    pub async fn send(self) -> Result<T, Error> {
+        let client = self.client.clone();
         client.esi().request(self).await
     }
 
-    /// Consumes the [`EsiRequest`] and sends it with caching headers using the provided [`Client`].
+    /// Consumes the [`EsiRequest`] and sends it with caching headers using the stored [`Client`].
     ///
     /// This method handles conditional requests that may return 304 Not Modified responses.
     /// Use the [`CacheStrategy`] parameter to specify which conditional headers to send.
     ///
     /// # Arguments
-    /// - `client`: Reference to the [`Client`] to use for sending the request
     /// - `strategy`: The caching strategy specifying which conditional headers to use
     ///
     /// # Returns
     /// A Result containing a [`CachedResponse`] that may be either fresh data or not modified
-    pub async fn send_with_cache(
+    pub async fn send_cached(
         mut self,
-        client: &Client,
         strategy: CacheStrategy,
     ) -> Result<CachedResponse<T>, Error> {
         // Add the appropriate conditional headers based on strategy
@@ -342,6 +347,7 @@ impl<T: DeserializeOwned> EsiRequest<T> {
             }
         }
 
+        let client = self.client.clone();
         client.esi().request_cached(self).await
     }
 }

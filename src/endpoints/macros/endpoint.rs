@@ -47,6 +47,7 @@ macro_rules! build_endpoint_url {
 macro_rules! build_esi_request_internal {
     // Public endpoint with body
     (
+        client = $client:expr,
         url = $url:expr,
         method = $method:expr,
         return_type = $return_type:ty,
@@ -54,22 +55,29 @@ macro_rules! build_esi_request_internal {
     ) => {{
         // Serialize body - if it fails, store null and let send() handle the error
         let body_value = serde_json::to_value(&$body_name).unwrap_or(serde_json::Value::Null);
-        EsiRequest::<$return_type>::new($url)
+        $client
+            .esi()
+            .new_request::<$return_type>($url)
             .with_method($method)
             .with_body_json(body_value)
     }};
 
     // Public endpoint without body
     (
+        client = $client:expr,
         url = $url:expr,
         method = $method:expr,
         return_type = $return_type:ty
     ) => {{
-        EsiRequest::<$return_type>::new($url).with_method($method)
+        $client
+            .esi()
+            .new_request::<$return_type>($url)
+            .with_method($method)
     }};
 
     // Authenticated endpoint with body
     (
+        client = $client:expr,
         url = $url:expr,
         method = $method:expr,
         return_type = $return_type:ty,
@@ -79,7 +87,9 @@ macro_rules! build_esi_request_internal {
     ) => {{
         // Serialize body - if it fails, store null and let send() handle the error
         let body_value = serde_json::to_value(&$body_name).unwrap_or(serde_json::Value::Null);
-        EsiRequest::<$return_type>::new($url)
+        $client
+            .esi()
+            .new_request::<$return_type>($url)
             .with_method($method)
             .with_access_token($access_token)
             .with_required_scopes($required_scopes)
@@ -88,13 +98,16 @@ macro_rules! build_esi_request_internal {
 
     // Authenticated endpoint without body
     (
+        client = $client:expr,
         url = $url:expr,
         method = $method:expr,
         return_type = $return_type:ty,
         access_token = $access_token:ident,
         required_scopes = $required_scopes:expr
     ) => {{
-        EsiRequest::<$return_type>::new($url)
+        $client
+            .esi()
+            .new_request::<$return_type>($url)
             .with_method($method)
             .with_access_token($access_token)
             .with_required_scopes($required_scopes)
@@ -105,7 +118,7 @@ macro_rules! build_esi_request_internal {
 ///
 /// This macro generates endpoint methods that return `EsiRequest<T>` structs, allowing users
 /// to customize requests with additional headers, caching strategies, and other options before
-/// calling `.send()` or `.send_with_cache()` to execute the request.
+/// calling `.send()` or `.send_cached()` to execute the request.
 ///
 /// # Features
 ///
@@ -175,6 +188,7 @@ macro_rules! define_esi_endpoint {
             let url = format!($url, self.client.inner.esi_url);
 
             build_esi_request_internal!(
+                client = self.client,
                 url = url,
                 method = $method,
                 return_type = $return_type,
@@ -200,6 +214,7 @@ macro_rules! define_esi_endpoint {
             let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             build_esi_request_internal!(
+                client = self.client,
                 url = url,
                 method = $method,
                 return_type = $return_type
@@ -227,6 +242,7 @@ macro_rules! define_esi_endpoint {
             let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
 
             build_esi_request_internal!(
+                client = self.client,
                 url = url,
                 method = $method,
                 return_type = $return_type
