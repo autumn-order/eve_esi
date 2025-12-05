@@ -65,10 +65,10 @@ async fn get_esi_character(
     // Get character id from request URL
     let character_id: i64 = params.0.id;
 
-    // Request character public information from ESI
     match esi_client
         .character()
         .get_character_public_information(character_id)
+        .send()
         .await
     {
         // Return the character information
@@ -98,6 +98,7 @@ async fn get_esi_corporation(
     match esi_client
         .corporation()
         .get_corporation_information(corporation_id)
+        .send()
         .await
     {
         // Return the corporation information

@@ -4,15 +4,10 @@ use eve_esi::{
 
 use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     list_calendar_event_summaries,
-    |esi_client: eve_esi::Client, access_token: String | async move {
-        let character_id = 2114794365;
-        esi_client
-            .calendar()
-            .list_calendar_event_summaries(&access_token, character_id)
-            .await
-    },
+    calendar,
+    list_calendar_event_summaries[2114794365],
     request_type = "GET",
     url = "/characters/2114794365/calendar",
     required_scopes = ScopeBuilder::new()
@@ -29,16 +24,10 @@ authenticated_endpoint_test! {
     ]),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_an_event,
-    |esi_client: eve_esi::Client, access_token: String | async move {
-        let character_id = 2114794365;
-        let event_id = 1;
-        esi_client
-            .calendar()
-            .get_an_event(&access_token, character_id, event_id)
-            .await
-    },
+    calendar,
+    get_an_event[2114794365, 1],
     request_type = "GET",
     url = "/characters/2114794365/calendar/1",
     required_scopes = ScopeBuilder::new()
@@ -58,17 +47,10 @@ authenticated_endpoint_test! {
     }),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     respond_to_an_event,
-    |esi_client: eve_esi::Client, access_token: String | async move {
-        let character_id = 2114794365;
-        let event_id = 1;
-        let response = PutCalendarEventResponse::Accepted;
-        esi_client
-            .calendar()
-            .respond_to_an_event(&access_token, response, character_id, event_id)
-            .await
-    },
+    calendar,
+    respond_to_an_event[2114794365, 1, PutCalendarEventResponse::Accepted],
     request_type = "PUT",
     url = "/characters/2114794365/calendar/1",
     required_scopes = ScopeBuilder::new()
@@ -77,16 +59,10 @@ authenticated_endpoint_test! {
     mock_response = serde_json::json!(()),
 }
 
-authenticated_endpoint_test! {
+authenticated_esi_request_test! {
     get_attendees,
-    |esi_client: eve_esi::Client, access_token: String | async move {
-        let character_id = 2114794365;
-        let event_id = 1;
-        esi_client
-            .calendar()
-            .get_attendees(&access_token, character_id, event_id)
-            .await
-    },
+    calendar,
+    get_attendees[2114794365, 1],
     request_type = "GET",
     url = "/characters/2114794365/calendar/1/attendees",
     required_scopes = ScopeBuilder::new()

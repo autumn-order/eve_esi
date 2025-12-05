@@ -1,9 +1,10 @@
 // Macro which creates the success and error response for tests
 
-macro_rules! authenticated_success_test {
+macro_rules! authenticated_esi_request_success_test {
     (
         $test_name:ident,
-        $call:expr,
+        $endpoint:ident,
+        $method:ident [$($args:expr),* $(,)?],
         $request_type:expr,
         $url:expr,
         $required_scopes:expr,
@@ -25,7 +26,9 @@ macro_rules! authenticated_success_test {
                     .with_body($mock_response.to_string())
                     .create();
 
-                let result = ($call)(esi_client, access_token).await;
+                let endpoints = esi_client.$endpoint();
+                let request = endpoints.$method(&access_token, $($args),*);
+                let result = request.send().await;
 
                 // Assert JWT keys were fetched for token validation prior to request
                 mock_jwt_key_endpoint.assert();
@@ -39,10 +42,11 @@ macro_rules! authenticated_success_test {
     };
 }
 
-macro_rules! authenticated_error_test {
+macro_rules! authenticated_esi_request_error_test {
     (
         $test_name:ident,
-        $call:expr,
+        $endpoint:ident,
+        $method:ident [$($args:expr),* $(,)?],
         $request_type:expr,
         $url:expr,
         $required_scopes:expr
@@ -63,7 +67,9 @@ macro_rules! authenticated_error_test {
                     .with_body(r#"{"error": "Internal server error"}"#)
                     .create();
 
-                let result = ($call)(esi_client, access_token).await;
+                let endpoints = esi_client.$endpoint();
+                let request = endpoints.$method(&access_token, $($args),*);
+                let result = request.send().await;
 
                 // Assert JWT keys were fetched for token validation prior to request
                 mock_jwt_key_endpoint.assert();
@@ -81,16 +87,17 @@ macro_rules! authenticated_error_test {
     };
 }
 
-macro_rules! authenticated_endpoint_test {
+macro_rules! authenticated_esi_request_test {
     (
         $test_name:ident,
-        $call:expr,
+        $endpoint:ident,
+        $method:ident [$($args:expr),* $(,)?],
         request_type = $request_type:expr,
         url = $url:expr,
         required_scopes = $required_scopes:expr;
         mock_response = $mock_response:expr,
     ) => {
-        authenticated_success_test! {$test_name, $call, $request_type, $url, $required_scopes, $mock_response}
-        authenticated_error_test! {$test_name, $call, $request_type, $url, $required_scopes}
+        authenticated_esi_request_success_test! {$test_name, $endpoint, $method[$($args),*], $request_type, $url, $required_scopes, $mock_response}
+        authenticated_esi_request_error_test! {$test_name, $endpoint, $method[$($args),*], $request_type, $url, $required_scopes}
     };
 }

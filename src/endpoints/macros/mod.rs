@@ -1,73 +1,124 @@
 //! # EVE ESI Endpoint Request Macros
 //!
-//! Provides the `define_endpoint!` macro which is used to concisely define ESI endpoints in a way that only includes
-//! the info that varies between each endpoints.
+//! Provides the `define_esi_endpoint!` macro which is used to concisely define ESI endpoints that return
+//! `EsiRequest<T>` builders. This allows endpoints to be defined with only the information that varies between them.
 //!
-//! During compilation this macro is then expanded into an actual function which includes all the necessary logic to
-//! build an ESI request URL with path & query parameters, making the request with an HTTP client, and handling
-//! logging of any debug, info, and error messages related to the request.
+//! During compilation, this macro expands into a function that builds an `EsiRequest<T>` with the appropriate
+//! URL (including path and query parameters), HTTP method, access token (for authenticated endpoints), and
+//! required scopes. Users can then customize the request with additional headers before calling `.send()` or
+//! `.send_with_cache()` to execute it.
 //!
 //! ## Endpoint Variants
 //!
-//! | Variant        | Required Arguments                      |
-//! | -------------- | --------------------------------------- |
-//! | `pub_get`      |                                         |
-//! | `pub_post`     | `body_name: body_type`                  |
-//! | `auth_get`     | `&access_token`                         |
-//! | `auth_post`    | `&access_token`, `body_name: body_type` |
-//! | `auth_put`     | `&access_token`, `body_name: body_type` |
-//! | `auth_delete`  | `&access_token`                         |
+//! | Variant  | Required Arguments                      |
+//! | -------- | --------------------------------------- |
+//! | `pub fn` | None (public endpoints)                 |
+//! | `auth fn`| `access_token: &str` (authenticated)    |
+//!
+//! ## HTTP Methods
+//!
+//! The macro supports all HTTP methods via `reqwest::Method`:
+//! - `Method::GET` - Retrieve resources
+//! - `Method::POST` - Create resources or submit data
+//! - `Method::PUT` - Update resources
+//! - `Method::DELETE` - Delete resources
 //!
 //! ## Usage
 //!
-//! Use the already defined endpoints with `define_endpoint!` as a guideline as to how it varies between the different
-//! request types, for example public requests do not utilize an `access_token` or `required_scopes`.
-//!
-//! The `define_endpoint!` macro must be defined as an impl of a struct which contains a `client` field with the type
-//! `&'a Client` (The [`crate::Client`]).
+//! Use existing endpoints defined with `define_esi_endpoint!` as a guideline. The macro must be used
+//! within an `impl` block of a struct that contains a `client` field of type `&'a Client` (the [`crate::Client`]).
 //!
 //! ### URL Path & Query Parameters
-//! The `define_endpoint!` macro is flexible when it comes to URL parameters in that it permits not having any path
-//! or query parameters at all, only path parameters, only query parameters, or both.
-//! - Following the `access_token` for authenticated endpoints & any POST/PUT body (e.g. `contact_ids` in the example below),
-//! the path parameters are then defined.
-//! - A `;` is used as a delimiter to denote where the required endpoint method arguments & path parameters end and the query paramters begin
 //!
-//! ### Example
+//! The macro is flexible with URL parameters:
+//! - **Path parameters**: Listed first after `access_token` (for authenticated endpoints)
+//! - **Query parameters**: Separated by a `;` semicolon after path parameters
+//! - **Body parameters**: Specified with `body = name: Type;` syntax
+//!
+//! ### Required Components
+//!
+//! All endpoints must specify:
+//! - `method = Method::XXX;` - The HTTP method to use
+//! - `url = "...";` - The URL template with `{}` for path parameters
+//! - `required_scopes = ...;` - For authenticated endpoints only
+//!
+//! ### Example: Public Endpoint
 //!
 //! ```ignore
-//! define_endpoint! {
-//!     // Any function documentation will go here
-//!     /// Example function documentation starting with `///`
-//!     // Set the endpoint variant to `auth_post` for an authenticated POST request
-//!     // Set function to be named as `add_contacts`
-//!     auth_post add_contacts(
-//!         // Set access_token argument required for all authenticated routes
-//!         access_token: &str,
-//!         // Set post request body argument
-//!         contact_ids: Vec<i64>,
-//!         // Set URL path parameter argument
-//!         // The `;` marks the end of the URL path parameters and the start of the query parameters
-//!         character_id: i64;
-//!         // Set URL query parameter arguments
-//!         standing: f64,
-//!         label_ids: Vec<i64>,
-//!         watched: bool,
-//!     // Set return type for the function
-//!     ) -> Result<Vec<i64>, Error>
-//! // Set the endpoint URL with `{}` representing the path parameters
-//! url = "{}/characters/{}/contacts";
-//! // Set the label text used in logging messages
-//! label = "add contacts";
-//! // Set the required ESI scopes to be checked for when access token is validated prior to request
-//! // This prevents incurring ESI rate limits by preventing potential errors on the client side
-//! required_scopes =  ScopeBuilder::new()
-//!     .characters(CharactersScopes::new().write_contacts())
-//!     .build();
+//! define_esi_endpoint! {
+//!     /// Retrieves information about a specific market group
+//!     ///
+//!     /// # Arguments
+//!     /// - `market_group_id` (`i64`): The ID of the market group
+//!     ///
+//!     /// # Returns
+//!     /// An ESI request builder that returns market group information when sent.
+//!     pub fn get_market_group_info(
+//!         market_group_id: i64
+//!     ) -> EsiRequest<MarketGroupInfo>
+//!     method = Method::GET;
+//!     url = "{}/markets/groups/{}";
 //! }
 //! ```
+//!
+//! ### Example: Authenticated Endpoint with Query Parameters
+//!
+//! ```ignore
+//! define_esi_endpoint! {
+//!     /// Fetches a character's contacts
+//!     ///
+//!     /// # Arguments
+//!     /// - `access_token` (`&str`): Access token for authentication
+//!     /// - `character_id` (`i64`): The character's ID
+//!     /// - `page` (`i32`): Page number for pagination
+//!     ///
+//!     /// # Returns
+//!     /// An ESI request builder that returns a list of contacts when sent.
+//!     auth fn get_contacts(
+//!         access_token: &str,
+//!         character_id: i64;
+//!         page: i32
+//!     ) -> EsiRequest<Vec<Contact>>
+//!     method = Method::GET;
+//!     url = "{}/characters/{}/contacts";
+//!     required_scopes = ScopeBuilder::new()
+//!         .characters(CharactersScopes::new().read_contacts())
+//!         .build();
+//! }
+//! ```
+//!
+//! ### Example: Authenticated POST with Body
+//!
+//! ```ignore
+//! define_esi_endpoint! {
+//!     /// Adds contacts for a character
+//!     ///
+//!     /// # Arguments
+//!     /// - `access_token` (`&str`): Access token for authentication
+//!     /// - `character_id` (`i64`): The character's ID
+//!     /// - `contact_ids` (`Vec<i64>`): List of contact IDs to add
+//!     /// - `standing` (`f64`): Standing value for the contacts
+//!     ///
+//!     /// # Returns
+//!     /// An ESI request builder that returns a list of added contact IDs when sent.
+//!     auth fn add_contacts(
+//!         access_token: &str,
+//!         character_id: i64;
+//!         standing: f64
+//!     ) -> EsiRequest<Vec<i64>>
+//!     method = Method::POST;
+//!     url = "{}/characters/{}/contacts";
+//!     required_scopes = ScopeBuilder::new()
+//!         .characters(CharactersScopes::new().write_contacts())
+//!         .build();
+//!     body = contact_ids: Vec<i64>;
+//! }
+//! ```
+//!
+//! ## Return Type
+//!
+//! All endpoints return `EsiRequest<T>` where `T` is the expected response type when deserialized.
+//! Users must call `.send()` or `.send_with_cache()` on the returned builder to execute the request.
 
-#[macro_use]
-mod logging;
 #[macro_use]
 mod endpoint;

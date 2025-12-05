@@ -27,7 +27,7 @@
 //!         .expect("Failed to build Client");
 //!
 //!     // Get information about the corporation The Order of Autumn (id: 98785281)
-//!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
+//!     let corporation = esi_client.corporation().get_corporation_information(98785281).send().await.unwrap();
 //!     println!("Corporation name: {}", corporation.name);
 //! }
 //! ```
@@ -110,6 +110,7 @@ pub use crate::builder::ClientBuilder;
 pub use crate::client::Client;
 pub use crate::config::{Config, ConfigBuilder};
 pub use crate::error::{ConfigError, Error};
+pub use crate::esi::{CacheStrategy, CachedResponse, EsiRequest, Language};
 pub use crate::oauth2::error::OAuthError;
 pub use crate::scope::ScopeBuilder;
 

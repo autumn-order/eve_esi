@@ -13,7 +13,7 @@
 //! |                        Endpoint                       |                                Description                                   |
 //! | ----------------------------------------------------- | ---------------------------------------------------------------------------- |
 //! | [`CorporationEndpoints::get_npc_corporations`]        | Fetches a list of all NPC corporation IDs in EVE Online                      |
-//! | [`CorporationEndpoints::get_corporation_information`] | Fetches a corporation’s public information from ESI using the corporation ID |
+//! | [`CorporationEndpoints::get_corporation_information`] | Fetches a corporation's public information from ESI using the corporation ID |
 //! | [`CorporationEndpoints::get_alliance_history`]        | Fetches a corporation's alliance history using the provided corporation ID   |
 //! | [`CorporationEndpoints::get_corporation_icon`]        | Fetches a corporation's icon using the provided corporation ID               |
 //!
@@ -39,7 +39,7 @@
 //! | [`CorporationEndpoints::get_corporation_structures`]           | Retrieves a paginated list of structure information for the provided corporation ID               |
 //! | [`CorporationEndpoints::get_corporation_titles`]               | Retrieves a list of corporation titles and their respective roles for the provided corporation ID |
 
-use crate::error::Error;
+use crate::esi::EsiRequest;
 use crate::model::asset::Blueprint;
 use crate::model::corporation::{
     Corporation, CorporationAllianceHistory, CorporationDivisions, CorporationFacilities,
@@ -51,6 +51,7 @@ use crate::model::corporation::{
 use crate::model::standing::Standing;
 use crate::scope::{CorporationsScopes, WalletScopes};
 use crate::{Client, ScopeBuilder};
+use reqwest::Method;
 
 /// Provides methods for accessing corporation-related endpoints of the EVE Online ESI API.
 ///
@@ -62,7 +63,7 @@ pub struct CorporationEndpoints<'a> {
 impl<'a> CorporationEndpoints<'a> {
     /// Creates a new instance of [`CorporationEndpoints`].
     ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)e
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
     ///
     /// # Arguments
     /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
@@ -70,7 +71,7 @@ impl<'a> CorporationEndpoints<'a> {
         Self { client }
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of all NPC corporation IDs in EVE Online
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -79,16 +80,14 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsNpccorps>
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<i64>`: List of IDs of all NPC corporations in EVE Online
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_npc_corporations(
-        ) -> Result<Vec<i64>, Error>
+        /// An ESI request builder that returns a list of all NPC corporation IDs when sent.
+        pub fn get_npc_corporations(
+        ) -> EsiRequest<Vec<i64>>
+        method = Method::GET;
         url = "{}/corporations/npccorps";
-        label = "NPC corporations";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a corporation's public information from ESI using the corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -100,17 +99,15 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve information for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`Corporation`]: The corporation information if the request was successful.
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_corporation_information(
+        /// An ESI request builder that returns the corporation's public information when sent.
+        pub fn get_corporation_information(
             corporation_id: i64
-        ) -> Result<Corporation, Error>
+        ) -> EsiRequest<Corporation>
+        method = Method::GET;
         url = "{}/corporations/{}";
-        label = "public information";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a corporation's alliance history using the provided corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -122,18 +119,15 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve alliance history for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationAllianceHistory`]`>`: List of entries for the corporation's alliance
-        ///   history.
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_alliance_history(
+        /// An ESI request builder that returns the corporation's alliance history when sent.
+        pub fn get_alliance_history(
             corporation_id: i64
-        ) -> Result<Vec<CorporationAllianceHistory>, Error>
+        ) -> EsiRequest<Vec<CorporationAllianceHistory>>
+        method = Method::GET;
         url = "{}/corporations/{}/alliancehistory";
-        label = "alliance history";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of blueprint entries for the provided corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -151,20 +145,18 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `page`            (`i32`): The page of blueprints to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Blueprint`]`>`: List of blueprint entries for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_blueprints(
+        /// An ESI request builder that returns a paginated list of blueprint entries for the corporation when sent.
+        auth fn get_corporation_blueprints(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<Blueprint>, Error>
+        ) -> EsiRequest<Vec<Blueprint>>
+        method = Method::GET;
         url = "{}/corporations/{}/blueprints";
-        label = "blueprints";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_blueprints()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches audit log secure container (ALSC) log entries for the provided corporation ID
         ///
         /// Contains log information for up to the past 7 days.
@@ -187,20 +179,18 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `page`            (`i32`): The page of ALSC logs to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationSecureContainerLog`]`>`: List of ALSC log entries for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_all_corporation_alsc_logs(
+        /// An ESI request builder that returns a paginated list of audit log secure container entries for the corporation when sent.
+        auth fn get_all_corporation_alsc_logs(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationSecureContainerLog>, Error>
+        ) -> EsiRequest<Vec<CorporationSecureContainerLog>>
+        method = Method::GET;
         url = "{}/corporations/{}/containers/logs";
-        label = "audit secure container log entries";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_container_logs()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of hangar & wallet divisions for the provided corporation ID
         ///
         /// Additional permissions required: the owner of the access token must hold the `director` role within
@@ -220,19 +210,17 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve divisions for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CorporationDivisions`]: Struct containing entries for corporation hangar & wallet divisions
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_divisions(
+        /// An ESI request builder that returns hangar and wallet divisions for the corporation when sent.
+        auth fn get_corporation_divisions(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<CorporationDivisions, Error>
+        ) -> EsiRequest<CorporationDivisions>
+        method = Method::GET;
         url = "{}/corporations/{}/divisions";
-        label = "hangar & wallet divisions";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_divisions()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of industry facilities for the provided corporation ID
         ///
         /// Additional permissions required: the owner of the access token must hold the `Factory_Manager` role within
@@ -252,19 +240,17 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve facilities for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationFacilities`]`>`: List of corporation industry facilities
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_facilities(
+        /// An ESI request builder that returns a list of industry facilities for the corporation when sent.
+        auth fn get_corporation_facilities(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<CorporationFacilities>, Error>
+        ) -> EsiRequest<Vec<CorporationFacilities>>
+        method = Method::GET;
         url = "{}/corporations/{}/facilities";
-        label = "industry facilities";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_facilities()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a corporation's icon using the provided corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -276,17 +262,15 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve the icons for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CorporationIcon`]: The corporation icon URLs
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_corporation_icon(
+        /// An ESI request builder that returns the corporation's icon URLs when sent.
+        pub fn get_corporation_icon(
             corporation_id: i64
-        ) -> Result<CorporationIcon, Error>
+        ) -> EsiRequest<CorporationIcon>
+        method = Method::GET;
         url = "{}/corporations/{}/icons";
-        label = "icons";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a paginated list of medals for the provided corporation ID
         ///
         /// This endpoint differs from [`Self::get_corporation_issued_medals`] in that it describes the medal itself
@@ -307,27 +291,25 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `page`            (`i32`): The page of medals to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationMedal`]`>`: List of corporation medal entries
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_medals(
+        /// An ESI request builder that returns a paginated list of medal definitions for the corporation when sent.
+        auth fn get_corporation_medals(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationMedal>, Error>
+        ) -> EsiRequest<Vec<CorporationMedal>>
+        method = Method::GET;
         url = "{}/corporations/{}/medals";
-        label = "medals";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a paginated list of issued medals for the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
-        /// the corporation to access this information.
-        ///
         /// This endpoint differs from [`Self::get_corporation_medals`] in that it represents who issued the medal
-        /// and who the medal was issued to while [`Self::get_corporation_medals`] describes the medal itself.
+        /// and who the medal was issued to, while [`Self::get_corporation_medals`] describes the medal itself.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
+        /// the corporation to access this information.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -340,25 +322,26 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve medals for
-        /// - `page`            (`i32`): The page of medals to retrieve, page numbers start at `1`
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve issued medals for
+        /// - `page`            (`i32`): The page of issued medals to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationIssuedMedal`]`>`: List of issued corporation medal entries
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_issued_medals(
+        /// An ESI request builder that returns a paginated list of issued medal records for the corporation when sent.
+        auth fn get_corporation_issued_medals(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationIssuedMedal>, Error>
+        ) -> EsiRequest<Vec<CorporationIssuedMedal>>
+        method = Method::GET;
         url = "{}/corporations/{}/medals/issued";
-        label = "medals";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of character IDs of all members part of the provided corporation ID
+        ///
+        /// Additional permissions required: the owner of the access token must have a specific role
+        /// (`Director` or `Personnel_Manager`) in the corporation in order to access this data.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -371,26 +354,28 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id` ([`i64`]): The ID of the corporation to retrieve members for
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve members for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<i64>`: List of character IDs of all members part of the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_members(
+        /// An ESI request builder that returns a list of character IDs of corporation members when sent.
+        auth fn get_corporation_members(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<i64>, Error>
+        ) -> EsiRequest<Vec<i64>>
+        method = Method::GET;
         url = "{}/corporations/{}/members";
-        label = "character IDs of all members";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_corporation_membership())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches the member limit of the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
-        /// the corporation to access this information.
+        /// Useful for determining how many more members a corporation can have before it reaches capacity.
+        ///
+        /// Additional permissions required: the owner of the access token must have a specific role
+        /// (`Director` or `Personnel_Manager`) in the corporation in order to access this data.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -398,30 +383,32 @@ impl<'a> CorporationEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembersLimit>
         ///
         /// # Required Scopes
-        /// - [`CorporationsScopes::track_members`](crate::scope::CorporationsScopes::track_members):
-        ///   `esi-corporations.track_members.v1`
+        /// - [`CorporationsScopes::read_corporation_membership`](crate::scope::CorporationsScopes::read_corporation_membership):
+        ///   `esi-corporations.read_corporation_membership.v1`
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member limit for
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve the member limit for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `i64`: Integer representing the member limit of the corporation not including the CEO
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_member_limit(
+        /// An ESI request builder that returns the maximum number of members the corporation can have when sent.
+        auth fn get_corporation_member_limit(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<i64, Error>
+        ) -> EsiRequest<i32>
+        method = Method::GET;
         url = "{}/corporations/{}/members/limit";
-        label = "member limit";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().track_members()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_corporation_membership())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of title IDs for each member of the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// Returns information associating member character IDs with their title IDs within the corporation.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
         /// the corporation to access this information.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -438,28 +425,30 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member titles for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationMemberTitles`]`>`: List of title IDs for each member of the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_members_titles(
+        /// An ESI request builder that returns a list of member character IDs and their associated title IDs when sent.
+        auth fn get_corporation_members_titles(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<CorporationMemberTitles>, Error>
+        ) -> EsiRequest<Vec<CorporationMemberTitles>>
+        method = Method::GET;
         url = "{}/corporations/{}/members/titles";
-        label = "member titles";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_titles()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_titles())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of tracking information for each character part of the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// Returns data such as member start dates, logon/logoff timestamps, location, and ship type.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
         /// the corporation to access this information.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
         /// # ESI Documentation
-        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembertracking>
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdMembersTracking>
         ///
         /// # Required Scopes
         /// - [`CorporationsScopes::track_members`](crate::scope::CorporationsScopes::track_members):
@@ -470,24 +459,25 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member tracking for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationMemberTracking`]`>`: List of tracking information for each character part of the provided
-        ///   corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get track_corporation_members(
+        /// An ESI request builder that returns a list of tracking information for each corporation member when sent.
+        auth fn track_corporation_members(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<CorporationMemberTracking>, Error>
+        ) -> EsiRequest<Vec<CorporationMemberTracking>>
+        method = Method::GET;
         url = "{}/corporations/{}/membertracking";
-        label = "member tracking";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().track_members()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().track_members())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches a list of roles for each character part of the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Personnel Manager` role within
-        /// the corporation or any other grantable role to access this information.
+        /// Returns information about which roles each member has been granted within the corporation.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
+        /// the corporation to access this information.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -500,26 +490,27 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve roles for
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member roles for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationMemberRoles`]`>`: List of roles for each character part of the provided
-        ///   corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_member_roles(
+        /// An ESI request builder that returns a list of roles for each corporation member when sent.
+        auth fn get_corporation_member_roles(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<CorporationMemberRoles>, Error>
+        ) -> EsiRequest<Vec<CorporationMemberRoles>>
+        method = Method::GET;
         url = "{}/corporations/{}/roles";
-        label = "member roles";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_corporation_membership())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a paginated list of up to a month of role history for the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// Returns historical records of role changes for corporation members.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
         /// the corporation to access this information.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -533,28 +524,29 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve member roles history for
-        /// - `page`            (`i32`): The page of roles history to retrieve, page numbers start at `1`
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve role history for
+        /// - `page`            (`i32`): The page of role history to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationMemberRolesHistory`]`>`: Paginated list of role history for each character
-        ///   part of the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_member_roles_history(
+        /// An ESI request builder that returns a paginated list of role change history for the corporation when sent.
+        auth fn get_corporation_member_roles_history(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationMemberRolesHistory>, Error>
+        ) -> EsiRequest<Vec<CorporationMemberRolesHistory>>
+        method = Method::GET;
         url = "{}/corporations/{}/roles/history";
-        label = "member roles";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_corporation_membership()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_corporation_membership())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a paginated list of shareholders for the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// Returns information about who owns shares in the corporation.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
         /// the corporation to access this information.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -572,21 +564,23 @@ impl<'a> CorporationEndpoints<'a> {
         /// - `page`            (`i32`): The page of shareholders to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationShareholder`]`>`: Paginated list of shareholders for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_shareholders(
+        /// An ESI request builder that returns a paginated list of shareholders for the corporation when sent.
+        auth fn get_corporation_shareholders(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationShareholder>, Error>
+        ) -> EsiRequest<Vec<CorporationShareholder>>
+        method = Method::GET;
         url = "{}/corporations/{}/shareholders";
-        label = "shareholders";
-        required_scopes = ScopeBuilder::new().wallet(WalletScopes::new().read_corporation_wallets()).build();
+        required_scopes = ScopeBuilder::new()
+            .wallet(WalletScopes::new().read_corporation_wallets())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a paginated list of NPC standing entries for the provided corporation ID
+        ///
+        /// Returns the corporation's standings with various NPC entities.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -599,28 +593,30 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve NPC standings for
-        /// - `page`            (`i32`): The page of corporation NPC standings to retrieve, page numbers start at `1`
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve standings for
+        /// - `page`            (`i32`): The page of standings to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Standing`]`>`: Paginated list of NPC standing entries for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_standings(
+        /// An ESI request builder that returns a paginated list of NPC standings for the corporation when sent.
+        auth fn get_corporation_standings(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<Standing>, Error>
+        ) -> EsiRequest<Vec<Standing>>
+        method = Method::GET;
         url = "{}/corporations/{}/standings";
-        label = "NPC standings";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_standings()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_standings())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a paginated list of starbases (POSes) for the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
-        /// the corporation to access this information.
+        /// Returns a list of starbase IDs and system IDs for starbases owned by the corporation.
+        ///
+        /// Additional permissions required: the owner of the access token must be a director in the
+        /// corporation or have the `Station_Manager` role.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -633,28 +629,30 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to starbases (POSes) for
-        /// - `page`            (`i32`): The page of corporation NPC standings to retrieve, page numbers start at `1`
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve starbases for
+        /// - `page`            (`i32`): The page of starbases to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationStarbase`]`>`: Paginated list of starbases (POSes) for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_starbases(
+        /// An ESI request builder that returns a paginated list of starbases owned by the corporation when sent.
+        auth fn get_corporation_starbases(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationStarbase>, Error>
+        ) -> EsiRequest<Vec<CorporationStarbase>>
+        method = Method::GET;
         url = "{}/corporations/{}/starbases";
-        label = "starbases (POSes)";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_starbases()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_starbases())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves details for a starbase (POS) for the provided starbase ID & corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
-        /// the corporation to access this information.
+        /// Returns detailed information about a specific starbase including fuel levels and status.
+        ///
+        /// Additional permissions required: the owner of the access token must be a director in the
+        /// corporation or have the `Station_Manager` role.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -667,30 +665,33 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation to starbases (POSes) for
-        /// - `starbase_id`     (`i64`): The unique ID of the corporation owned starbase (POS) to retrieve
-        /// - `system_id`       (`i64`): The unique ID of the system the starbase (POS) is located in
+        /// - `corporation_id`  (`i64`): The ID of the corporation that owns the starbase
+        /// - `starbase_id`     (`i64`): The ID of the starbase to retrieve details for
+        /// - `system_id`       (`i64`): The ID of the solar system where the starbase is located
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CorporationStarbaseDetails`]: Details of the starbase for the provided starbase_id & corporation_id
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_starbase_detail(
+        /// An ESI request builder that returns detailed information about the specified starbase when sent.
+        auth fn get_starbase_detail(
             access_token: &str,
             corporation_id: i64,
             starbase_id: i64;
             system_id: i64
-        ) -> Result<CorporationStarbaseDetails, Error>
+        ) -> EsiRequest<CorporationStarbaseDetails>
+        method = Method::GET;
         url = "{}/corporations/{}/starbases/{}";
-        label = "a starbase's (POS) details";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_starbases()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_starbases())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a paginated list of structure information for the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Station Manager` role within
-        /// the corporation to access this information.
+        /// Returns information about Upwell structures (Citadels, Engineering Complexes, Refineries, etc.)
+        /// owned by the corporation.
+        ///
+        /// Additional permissions required: the owner of the access token must be a director in the
+        /// corporation or have the `Station_Manager` role.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
@@ -703,27 +704,29 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation retrieve structures information for
-        /// - `page`            (`i32`): The page of structures information to retrieve, page numbers start at `1`
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve structures for
+        /// - `page`            (`i32`): The page of structures to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CorporationStructure`]: Paginated list of structure information for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_structures(
+        /// An ESI request builder that returns a paginated list of structures owned by the corporation when sent.
+        auth fn get_corporation_structures(
             access_token: &str,
             corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationStructure>, Error>
+        ) -> EsiRequest<Vec<CorporationStructure>>
+        method = Method::GET;
         url = "{}/corporations/{}/structures";
-        label = "structures";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_structures()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_structures())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of corporation titles and their respective roles for the provided corporation ID
         ///
-        /// Additional permissions required: the owner of the access token must hold the `Director` role within
+        /// Returns the defined titles within the corporation and what roles each title grants.
+        ///
+        /// Additional permissions required: the owner of the access token must hold the `director` role within
         /// the corporation to access this information.
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -737,18 +740,18 @@ impl<'a> CorporationEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the corporation retrieve titles for
+        /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve titles for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationTitle`]`>`: List of corporation titles and their respective roles
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_titles(
+        /// An ESI request builder that returns a list of corporation titles and their associated roles when sent.
+        auth fn get_corporation_titles(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<CorporationTitle>, Error>
+        ) -> EsiRequest<Vec<CorporationTitle>>
+        method = Method::GET;
         url = "{}/corporations/{}/titles";
-        label = "titles";
-        required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_titles()).build();
+        required_scopes = ScopeBuilder::new()
+            .corporations(CorporationsScopes::new().read_titles())
+            .build();
     }
 }
