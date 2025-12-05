@@ -5,12 +5,8 @@ use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_toke
 
 authenticated_esi_request_test! {
     get_clones,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let character_id = 2114794365;
-        esi_client
-            .clones()
-            .get_clones(&access_token, character_id)
-    },
+    clones,
+    get_clones[2114794365],
     request_type = "GET",
     url = "/characters/2114794365/clones",
     required_scopes = ScopeBuilder::new()
@@ -39,12 +35,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_active_implants,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let character_id = 2114794365;
-        esi_client
-            .clones()
-            .get_active_implants(&access_token, character_id)
-    },
+    clones,
+    get_active_implants[2114794365],
     request_type = "GET",
     url = "/characters/2114794365/implants",
     required_scopes = ScopeBuilder::new()

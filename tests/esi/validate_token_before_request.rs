@@ -29,9 +29,8 @@ async fn test_validate_token_before_request_disabled() {
     let access_token = mock_token.access_token().secret().to_string();
 
     let character_id = 123456789;
-    let request = esi_client
-        .character()
-        .get_agents_research(&access_token, character_id);
+    let character_endpoints = esi_client.character();
+    let request = character_endpoints.get_agents_research(&access_token, character_id);
     let _ = request.send().await;
 
     // Assert no requests were made due to validation being disabled

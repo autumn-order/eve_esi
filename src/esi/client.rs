@@ -65,26 +65,29 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Returns
     /// A new [`EsiRequest`] instance ready to be configured with headers, authentication, etc.
-    pub fn new_request<T: DeserializeOwned>(&self, endpoint: impl Into<String>) -> EsiRequest<T> {
+    pub fn new_request<T: DeserializeOwned>(
+        &self,
+        endpoint: impl Into<String>,
+    ) -> EsiRequest<'a, T> {
         EsiRequest::new(self.client, endpoint)
     }
 
-    /// Make a request to ESI using the provided [`EsiRequest`] configuration.
+    /// Internal method that executes the request with common logic.
     ///
-    /// This method consolidates all ESI request logic, handling both authenticated and public requests
-    /// based on the configuration in the [`EsiRequest`] struct. It automatically:
-    /// - Validates access tokens if present (expiration & scope checks)
-    /// - Adds authentication headers for authenticated requests
-    /// - Applies all custom headers from the request
-    /// - Handles request body for POST, PUT, and PATCH methods
-    /// - Returns deserialized response data
+    /// This consolidates all the shared request execution logic:
+    /// - Token validation
+    /// - Request building with headers, auth, and body
+    /// - Error handling and logging
     ///
     /// # Arguments
-    /// - `request`: The configured [`EsiRequest`] containing endpoint, method, headers, and authentication details
+    /// - `request`: The configured [`EsiRequest`] to execute
     ///
     /// # Returns
-    /// A Result containing the deserialized response data or an error
-    pub async fn request<T: DeserializeOwned>(&self, request: EsiRequest<T>) -> Result<T, Error> {
+    /// A Result containing the raw [`reqwest::Response`] or an error
+    async fn execute_request<T: DeserializeOwned>(
+        &self,
+        request: &EsiRequest<'_, T>,
+    ) -> Result<reqwest::Response, Error> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
 
@@ -124,8 +127,16 @@ impl<'a> EsiApi<'a> {
 
         let elapsed = start_time.elapsed();
 
-        let response = match response {
-            Ok(r) => r,
+        match response {
+            Ok(r) => {
+                log::debug!(
+                    "ESI Request completed: {} {} ({}ms)",
+                    method,
+                    endpoint,
+                    elapsed.as_millis()
+                );
+                Ok(r)
+            }
             Err(err) => {
                 log::error!(
                     "ESI Request failed: {} {} ({}ms) - {}",
@@ -134,30 +145,44 @@ impl<'a> EsiApi<'a> {
                     elapsed.as_millis(),
                     err
                 );
-                return Err(err.into());
+                Err(err.into())
             }
-        };
+        }
+    }
+
+    /// Make a request to ESI using the provided [`EsiRequest`] configuration.
+    ///
+    /// This method handles ESI requests for both authenticated and public endpoints.
+    /// It automatically:
+    /// - Validates access tokens if present (expiration & scope checks)
+    /// - Adds authentication headers for authenticated requests
+    /// - Applies all custom headers from the request
+    /// - Handles request body for POST, PUT, and PATCH methods
+    /// - Returns deserialized response data
+    ///
+    /// # Arguments
+    /// - `request`: The configured [`EsiRequest`] containing endpoint, method, headers, and authentication details
+    ///
+    /// # Returns
+    /// A Result containing the deserialized response data or an error
+    pub async fn request<T: DeserializeOwned>(
+        &self,
+        request: &EsiRequest<'_, T>,
+    ) -> Result<T, Error> {
+        let method = request.method().clone();
+        let endpoint = request.endpoint().to_string();
+
+        let response = self.execute_request(&request).await?;
 
         if let Err(err) = response.error_for_status_ref() {
-            log::error!(
-                "ESI Request failed: {} {} ({}ms) - HTTP {}",
-                method,
-                endpoint,
-                elapsed.as_millis(),
-                err
-            );
+            log::error!("ESI Request failed: {} {} - HTTP {}", method, endpoint, err);
             return Err(err.into());
         }
 
         // Deserialize and return the response
         let result: T = response.json().await?;
 
-        log::info!(
-            "ESI Request succeeded: {} {} ({}ms)",
-            method,
-            endpoint,
-            elapsed.as_millis()
-        );
+        log::info!("ESI Request succeeded: {} {}", method, endpoint);
 
         Ok(result)
     }
@@ -168,7 +193,7 @@ impl<'a> EsiApi<'a> {
     /// when conditional headers are present in the request. It returns a [`CachedResponse`] enum
     /// that distinguishes between fresh data and cached data that hasn't changed.
     ///
-    /// **Note:** This method is typically called internally by [`EsiRequest::send_with_cache`].
+    /// **Note:** This method is typically called internally by [`EsiRequest::send_cached`].
     /// Most users should use that method instead for a more convenient API.
     ///
     /// # Arguments
@@ -180,68 +205,19 @@ impl<'a> EsiApi<'a> {
     /// - `Err(Error)`: Request failed
     pub async fn request_cached<T: DeserializeOwned>(
         &self,
-        request: EsiRequest<T>,
+        request: &EsiRequest<'_, T>,
     ) -> Result<CachedResponse<T>, Error> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
 
-        log::debug!("ESI Cached Request: {} {}", method, endpoint);
-
-        let start_time = std::time::Instant::now();
-
-        // Validate token if this is an authenticated request
-        if let Some(access_token) = request.access_token() {
-            self.validate_token_before_request(access_token, request.required_scopes().clone())
-                .await?;
-        }
-
-        let reqwest_client = &self.client.inner.reqwest_client;
-
-        // Build the request with the appropriate HTTP method
-        let mut req_builder = reqwest_client.request(method.clone(), &endpoint);
-
-        // Add authorization header if access token is present
-        if let Some(access_token) = request.access_token() {
-            let bearer = format!("Bearer {}", access_token);
-            req_builder = req_builder.header("Authorization", bearer);
-        }
-
-        // Add all custom headers from the request
-        for (key, value) in request.headers() {
-            req_builder = req_builder.header(key, value);
-        }
-
-        // Add JSON body if present (for POST, PUT, PATCH requests)
-        if let Some(body) = request.body_json() {
-            req_builder = req_builder.json(body);
-        }
-
-        // Send the request
-        let response = req_builder.send().await;
-
-        let elapsed = start_time.elapsed();
-
-        let response = match response {
-            Ok(r) => r,
-            Err(err) => {
-                log::error!(
-                    "ESI Cached Request failed: {} {} ({}ms) - {}",
-                    method,
-                    endpoint,
-                    elapsed.as_millis(),
-                    err
-                );
-                return Err(err.into());
-            }
-        };
+        let response = self.execute_request(&request).await?;
 
         // Check for 304 Not Modified
         if response.status() == reqwest::StatusCode::NOT_MODIFIED {
             log::info!(
-                "ESI Cached Request succeeded (not modified): {} {} ({}ms)",
+                "ESI Cached Request succeeded (not modified): {} {}",
                 method,
-                endpoint,
-                elapsed.as_millis()
+                endpoint
             );
             return Ok(CachedResponse::NotModified);
         }
@@ -249,10 +225,9 @@ impl<'a> EsiApi<'a> {
         // Check for other errors
         if let Err(err) = response.error_for_status_ref() {
             log::error!(
-                "ESI Cached Request failed: {} {} ({}ms) - HTTP {}",
+                "ESI Cached Request failed: {} {} - HTTP {}",
                 method,
                 endpoint,
-                elapsed.as_millis(),
                 err
             );
             return Err(err.into());
@@ -263,7 +238,7 @@ impl<'a> EsiApi<'a> {
             .headers()
             .get("etag")
             .and_then(|v| v.to_str().ok())
-            .map(|s| s.to_string());
+            .map(String::from);
 
         // Extract Last-Modified header if present and parse it
         let last_modified = response
@@ -274,17 +249,16 @@ impl<'a> EsiApi<'a> {
             .map(|dt| dt.with_timezone(&Utc));
 
         // Deserialize and return the response
-        let result: T = response.json().await?;
+        let data: T = response.json().await?;
 
         log::info!(
-            "ESI Cached Request succeeded (fresh): {} {} ({}ms)",
+            "ESI Cached Request succeeded (fresh): {} {}",
             method,
-            endpoint,
-            elapsed.as_millis()
+            endpoint
         );
 
         Ok(CachedResponse::Fresh {
-            data: result,
+            data,
             etag,
             last_modified,
         })

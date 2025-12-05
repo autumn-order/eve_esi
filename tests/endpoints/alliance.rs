@@ -2,11 +2,8 @@ use crate::util::integration_test_setup;
 
 public_esi_request_test! {
     list_all_alliances,
-    |esi_client: &eve_esi::Client | {
-        esi_client
-            .alliance()
-            .list_all_alliances()
-    },
+    alliance,
+    list_all_alliances[],
     request_type = "GET",
     url = "/alliances",
     mock_response = serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -14,12 +11,8 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_alliance_information,
-    |esi_client: &eve_esi::Client | {
-        let alliance_id = 99013534;
-        esi_client
-            .alliance()
-            .get_alliance_information(alliance_id)
-    },
+    alliance,
+    get_alliance_information[99013534],
     request_type = "GET",
     url = "/alliances/99013534",
     mock_response = serde_json::json!({
@@ -35,12 +28,8 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     list_alliance_corporations,
-    |esi_client: &eve_esi::Client | {
-        let alliance_id = 99013534;
-        esi_client
-            .alliance()
-            .list_alliance_corporations(alliance_id)
-    },
+    alliance,
+    list_alliance_corporations[99013534],
     request_type = "GET",
     url = "/alliances/99013534/corporations",
     mock_response = serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -48,12 +37,8 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_alliance_icon,
-    |esi_client: &eve_esi::Client | {
-        let alliance_id = 99013534;
-        esi_client
-            .alliance()
-            .get_alliance_icon(alliance_id)
-    },
+    alliance,
+    get_alliance_icon[99013534],
     request_type = "GET",
     url = "/alliances/99013534/icons",
     mock_response = serde_json::json!({

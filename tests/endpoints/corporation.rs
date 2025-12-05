@@ -1,16 +1,12 @@
+use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
+use crate::util::integration_test_setup;
 use eve_esi::scope::{CorporationsScopes, WalletScopes};
 use eve_esi::ScopeBuilder;
 
-use crate::endpoints::util::{authenticated_endpoint_test_setup, mock_access_token_with_scopes};
-use crate::util::integration_test_setup;
-
 public_esi_request_test! {
     get_npc_corporations,
-    |esi_client: &eve_esi::Client | {
-        esi_client
-            .corporation()
-            .get_npc_corporations()
-    },
+    corporation,
+    get_npc_corporations[],
     request_type = "GET",
     url = "/corporations/npccorps",
     mock_response = serde_json::json!([98785281])
@@ -18,12 +14,8 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_corporation,
-    |esi_client: &eve_esi::Client | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_information(corporation_id)
-    },
+    corporation,
+    get_corporation_information[98785281],
     request_type = "GET",
     url = "/corporations/98785281",
     mock_response = serde_json::json!({
@@ -46,12 +38,8 @@ public_esi_request_test! {
 
 public_esi_request_test! {
     get_alliance_history,
-    |esi_client: &eve_esi::Client | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_alliance_history(corporation_id)
-    },
+    corporation,
+    get_alliance_history[98785281],
     request_type = "GET",
     url = "/corporations/98785281/alliancehistory",
     mock_response = serde_json::json!([
@@ -65,13 +53,8 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_blueprints,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_blueprints(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_blueprints[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/blueprints?page=1",
     required_scopes = ScopeBuilder::new()
@@ -91,13 +74,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_all_corporation_alsc_logs,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_all_corporation_alsc_logs(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_all_corporation_alsc_logs[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/containers/logs?page=1",
     required_scopes = ScopeBuilder::new()
@@ -121,12 +99,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_divisions,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_divisions(&access_token, corporation_id)
-    },
+    corporation,
+    get_corporation_divisions[98785281],
     request_type = "GET",
     url = "/corporations/98785281/divisions",
     required_scopes = ScopeBuilder::new()
@@ -150,12 +124,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_facilities,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_facilities(&access_token, corporation_id)
-    },
+    corporation,
+    get_corporation_facilities[98785281],
     request_type = "GET",
     url = "/corporations/98785281/facilities",
     required_scopes = ScopeBuilder::new()
@@ -170,12 +140,8 @@ authenticated_esi_request_test! {
 
 public_esi_request_test! {
     get_corporation_icon,
-    |esi_client: &eve_esi::Client | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_icon(corporation_id)
-    },
+    corporation,
+    get_corporation_icon[98785281],
     request_type = "GET",
     url = "/corporations/98785281/icons",
     mock_response = serde_json::json!({
@@ -187,13 +153,8 @@ public_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_medals,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_medals(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_medals[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/medals?page=1",
     required_scopes = ScopeBuilder::new()
@@ -210,13 +171,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_issued_medals,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_issued_medals(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_issued_medals[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/medals/issued?page=1",
     required_scopes = ScopeBuilder::new()
@@ -234,12 +190,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_members,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_members(&access_token, corporation_id)
-    },
+    corporation,
+    get_corporation_members[98785281],
     request_type = "GET",
     url = "/corporations/98785281/members",
     required_scopes = ScopeBuilder::new()
@@ -250,12 +202,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_member_limit,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_member_limit(&access_token, corporation_id)
-    },
+    corporation,
+    get_corporation_member_limit[98785281],
     request_type = "GET",
     url = "/corporations/98785281/members/limit",
     required_scopes = ScopeBuilder::new()
@@ -266,12 +214,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_members_titles,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_members_titles(&access_token, corporation_id)
-    },
+    corporation,
+    get_corporation_members_titles[98785281],
     request_type = "GET",
     url = "/corporations/98785281/members/titles",
     required_scopes = ScopeBuilder::new()
@@ -285,12 +229,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     track_corporation_members,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .track_corporation_members(&access_token, corporation_id)
-    },
+    corporation,
+    track_corporation_members[98785281],
     request_type = "GET",
     url = "/corporations/98785281/membertracking",
     required_scopes = ScopeBuilder::new()
@@ -309,12 +249,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_member_roles,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_member_roles(&access_token, corporation_id)
-    },
+    corporation,
+    get_corporation_member_roles[98785281],
     request_type = "GET",
     url = "/corporations/98785281/roles",
     required_scopes = ScopeBuilder::new()
@@ -335,13 +271,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_member_roles_history,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_member_roles_history(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_member_roles_history[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/roles/history?page=1",
     required_scopes = ScopeBuilder::new()
@@ -359,13 +290,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_shareholders,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_shareholders(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_shareholders[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/shareholders?page=1",
     required_scopes = ScopeBuilder::new()
@@ -380,13 +306,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_standings,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_standings(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_standings[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/standings?page=1",
     required_scopes = ScopeBuilder::new()
@@ -401,13 +322,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_starbases,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_starbases(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_starbases[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/starbases?page=1",
     required_scopes = ScopeBuilder::new()
@@ -427,14 +343,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_starbase_detail,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let starbase_id = 12345;
-        let system_id = 30000142;
-        esi_client
-            .corporation()
-            .get_starbase_detail(&access_token, corporation_id, starbase_id, system_id)
-    },
+    corporation,
+    get_starbase_detail[98785281, 12345, 30000142],
     request_type = "GET",
     url = "/corporations/98785281/starbases/12345?system_id=30000142",
     required_scopes = ScopeBuilder::new()
@@ -465,13 +375,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_structures,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        let page = 1;
-        esi_client
-            .corporation()
-            .get_corporation_structures(&access_token, corporation_id, page)
-    },
+    corporation,
+    get_corporation_structures[98785281, 1],
     request_type = "GET",
     url = "/corporations/98785281/structures?page=1",
     required_scopes = ScopeBuilder::new()
@@ -502,12 +407,8 @@ authenticated_esi_request_test! {
 
 authenticated_esi_request_test! {
     get_corporation_titles,
-    |esi_client: &eve_esi::Client, access_token: String | {
-        let corporation_id = 98785281;
-        esi_client
-            .corporation()
-            .get_corporation_titles(&access_token, corporation_id)
-    },
+    corporation,
+    get_corporation_titles[98785281],
     request_type = "GET",
     url = "/corporations/98785281/titles",
     required_scopes = ScopeBuilder::new()

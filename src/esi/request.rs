@@ -80,9 +80,9 @@ pub enum CacheStrategy {
 ///
 /// Provides a fluent interface for setting endpoint URLs, authentication tokens,
 /// and ESI-specific HTTP headers like compatibility date, language, and caching headers.
-pub struct EsiRequest<T> {
-    /// Clone of the ESI client (cheap Arc clone)
-    client: Client,
+pub struct EsiRequest<'a, T> {
+    /// Reference to the ESI client
+    client: &'a Client,
     /// The endpoint to request e.g. "https://esi.evetech.net/latest/status/"
     endpoint: String,
     /// HTTP method for the request (GET, POST, PUT, DELETE, PATCH)
@@ -99,7 +99,7 @@ pub struct EsiRequest<T> {
     _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T: DeserializeOwned> EsiRequest<T> {
+impl<'a, T: DeserializeOwned> EsiRequest<'a, T> {
     /// Creates a new [`EsiRequest`] with the specified client and endpoint.
     ///
     /// **Note:** It's recommended to use [`crate::esi::EsiApi::new_request`] instead:
@@ -108,14 +108,14 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     /// ```
     ///
     /// # Arguments
-    /// - `client`: The [`Client`] to use for sending the request (will be cloned internally)
+    /// - `client`: The [`Client`] to use for sending the request
     /// - `endpoint`: The ESI API endpoint URL to request
     ///
     /// # Returns
     /// New instance with the client and endpoint set and all other fields at default values
-    pub fn new(client: &Client, endpoint: impl Into<String>) -> Self {
+    pub fn new(client: &'a Client, endpoint: impl Into<String>) -> Self {
         Self {
-            client: client.clone(),
+            client,
             endpoint: endpoint.into(),
             method: Method::GET,
             access_token: None,
@@ -305,9 +305,8 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     ///
     /// # Returns
     /// A Result containing the deserialized response data or an error
-    pub async fn send(self) -> Result<T, Error> {
-        let client = self.client.clone();
-        client.esi().request(self).await
+    pub async fn send(&self) -> Result<T, Error> {
+        self.client.esi().request(&self).await
     }
 
     /// Consumes the [`EsiRequest`] and sends it with caching headers using the stored [`Client`].
@@ -321,7 +320,7 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     /// # Returns
     /// A Result containing a [`CachedResponse`] that may be either fresh data or not modified
     pub async fn send_cached(
-        mut self,
+        &mut self,
         strategy: CacheStrategy,
     ) -> Result<CachedResponse<T>, Error> {
         // Add the appropriate conditional headers based on strategy
@@ -347,8 +346,7 @@ impl<T: DeserializeOwned> EsiRequest<T> {
             }
         }
 
-        let client = self.client.clone();
-        client.esi().request_cached(self).await
+        self.client.esi().request_cached(&self).await
     }
 }
 
