@@ -26,7 +26,7 @@ async fn test_cache_strategy_if_none_match() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let mut request = client
+    let request = client
         .esi()
         .new_request::<TestResponse>(url)
         .with_method(Method::GET);
@@ -62,7 +62,7 @@ async fn test_cache_strategy_if_modified_since() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let mut request = client
+    let request = client
         .esi()
         .new_request::<TestResponse>(url)
         .with_method(Method::GET);
@@ -97,7 +97,7 @@ async fn test_cache_strategy_both_headers() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let mut request = client
+    let request = client
         .esi()
         .new_request::<TestResponse>(url)
         .with_method(Method::GET);
@@ -132,7 +132,7 @@ async fn test_cache_strategy_fresh_data_with_etag() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let mut request = client
+    let request = client
         .esi()
         .new_request::<TestResponse>(url)
         .with_method(Method::GET);
@@ -202,7 +202,7 @@ async fn test_cached_response_into_data() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let mut request = client
+    let request = client
         .esi()
         .new_request::<TestResponse>(url)
         .with_method(Method::GET);
@@ -230,7 +230,7 @@ async fn test_cached_response_not_modified_into_data() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let mut request = client
+    let request = client
         .esi()
         .new_request::<TestResponse>(url)
         .with_method(Method::GET);
@@ -264,7 +264,7 @@ async fn test_fresh_response_with_last_modified() {
         .await;
 
     let url = format!("{}/test", server.url());
-    let mut request = client
+    let request = client
         .esi()
         .new_request::<TestResponse>(url)
         .with_method(Method::GET);
@@ -322,7 +322,7 @@ async fn test_use_last_modified_for_next_request() {
         .create_async()
         .await;
 
-    let mut request2 = client
+    let request2 = client
         .esi()
         .new_request::<TestResponse>(&url)
         .with_method(Method::GET);

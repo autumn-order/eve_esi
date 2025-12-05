@@ -80,6 +80,7 @@ pub enum CacheStrategy {
 ///
 /// Provides a fluent interface for setting endpoint URLs, authentication tokens,
 /// and ESI-specific HTTP headers like compatibility date, language, and caching headers.
+#[derive(Clone)]
 pub struct EsiRequest<'a, T> {
     /// Reference to the ESI client
     client: &'a Client,
@@ -305,7 +306,7 @@ impl<'a, T: DeserializeOwned> EsiRequest<'a, T> {
     ///
     /// # Returns
     /// A Result containing the deserialized response data or an error
-    pub async fn send(&self) -> Result<T, Error> {
+    pub async fn send(self) -> Result<T, Error> {
         self.client.esi().request(&self).await
     }
 
@@ -319,34 +320,35 @@ impl<'a, T: DeserializeOwned> EsiRequest<'a, T> {
     ///
     /// # Returns
     /// A Result containing a [`CachedResponse`] that may be either fresh data or not modified
-    pub async fn send_cached(
-        &mut self,
-        strategy: CacheStrategy,
-    ) -> Result<CachedResponse<T>, Error> {
+    pub async fn send_cached(self, strategy: CacheStrategy) -> Result<CachedResponse<T>, Error> {
+        let mut request = self;
+
         // Add the appropriate conditional headers based on strategy
         match strategy {
             CacheStrategy::IfNoneMatch(etag) => {
-                self.headers.insert("If-None-Match".to_string(), etag);
+                request.headers.insert("If-None-Match".to_string(), etag);
             }
             CacheStrategy::IfModifiedSince(date) => {
                 // Format DateTime to HTTP date format (RFC 2822)
                 let http_date = date.to_rfc2822();
-                self.headers
+                request
+                    .headers
                     .insert("If-Modified-Since".to_string(), http_date);
             }
             CacheStrategy::Both {
                 etag,
                 modified_since,
             } => {
-                self.headers.insert("If-None-Match".to_string(), etag);
+                request.headers.insert("If-None-Match".to_string(), etag);
                 // Format DateTime to HTTP date format (RFC 2822)
                 let http_date = modified_since.to_rfc2822();
-                self.headers
+                request
+                    .headers
                     .insert("If-Modified-Since".to_string(), http_date);
             }
         }
 
-        self.client.esi().request_cached(&self).await
+        request.client.esi().request_cached(&request).await
     }
 }
 

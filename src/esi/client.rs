@@ -138,7 +138,7 @@ impl<'a> EsiApi<'a> {
                 Ok(r)
             }
             Err(err) => {
-                log::error!(
+                log::debug!(
                     "ESI Request failed: {} {} ({}ms) - {}",
                     method,
                     endpoint,
@@ -175,12 +175,22 @@ impl<'a> EsiApi<'a> {
         let response = self.execute_request(&request).await?;
 
         if let Err(err) = response.error_for_status_ref() {
-            log::error!("ESI Request failed: {} {} - HTTP {}", method, endpoint, err);
+            log::error!("ESI Request failed: {} {} - {}", method, endpoint, err);
             return Err(err.into());
         }
 
         // Deserialize and return the response
-        let result: T = response.json().await?;
+        let body = response.text().await?;
+        let result: T = serde_json::from_str(&body).map_err(|e| {
+            log::error!(
+                "Failed to deserialize response for {} {}: {}. Body: {}",
+                method,
+                endpoint,
+                e,
+                body
+            );
+            Error::from(e)
+        })?;
 
         log::info!("ESI Request succeeded: {} {}", method, endpoint);
 
@@ -225,7 +235,7 @@ impl<'a> EsiApi<'a> {
         // Check for other errors
         if let Err(err) = response.error_for_status_ref() {
             log::error!(
-                "ESI Cached Request failed: {} {} - HTTP {}",
+                "ESI Cached Request failed: {} {} - {}",
                 method,
                 endpoint,
                 err
@@ -249,7 +259,17 @@ impl<'a> EsiApi<'a> {
             .map(|dt| dt.with_timezone(&Utc));
 
         // Deserialize and return the response
-        let data: T = response.json().await?;
+        let body = response.text().await?;
+        let data: T = serde_json::from_str(&body).map_err(|e| {
+            log::error!(
+                "Failed to deserialize cached response for {} {}: {}. Body: {}",
+                method,
+                endpoint,
+                e,
+                body
+            );
+            Error::from(e)
+        })?;
 
         log::info!(
             "ESI Cached Request succeeded (fresh): {} {}",
