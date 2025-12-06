@@ -1,8 +1,7 @@
-//! EVE ESI Request Headers Example
+//! EVE ESI Basic Example
 //!
-//! This example demonstrates how to modify request headers when making an ESI request
-//! for the purposes of changing the language of the response, setting the tenant server the
-//! data comes from, or providing a custom header with the `with_header` method.
+//! This example demonstrates initiating an ESI client for public requests
+//! and using the ESI client to fetch a character's information from ESI.
 
 #[tokio::main]
 async fn main() -> Result<(), eve_esi::Error> {
@@ -23,24 +22,22 @@ async fn main() -> Result<(), eve_esi::Error> {
     let character_id: i64 = 2114794365;
 
     // Set the endpoint to make the request to
-    let mut request = esi_client
+    let response = match esi_client
         .character()
         .get_character_public_information(character_id)
-        // Set headers in the original method chain
-        .with_language(eve_esi::Language::English);
-
-    // Or modify headers conditionally
-    if true {
-        request = request.with_language(eve_esi::Language::English);
-    }
-
-    let response = match request.send().await {
-        Ok(response) => response,
-        // Return an error if fetching character information fails
+        .send()
+        .await
+    {
+        Ok(character) => character,
+        // Early return an error if fetching character information fails
         Err(error) => return Err(error.into()),
     };
 
-    println!("{:#?}", response);
+    // Full response
+    println!("Response Data: {:#?}", response);
+
+    // Use `data` method to access only character information
+    println!("Character Info: {:#?}", response);
 
     Ok(())
 }

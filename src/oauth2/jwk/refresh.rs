@@ -297,8 +297,7 @@ pub(super) async fn refresh_jwt_keys(
 
 #[cfg(test)]
 mod wait_for_ongoing_refresh_tests {
-    use crate::error::Error;
-    use crate::oauth2::error::OAuthError;
+    use crate::error::{Error, OAuthError};
     use crate::tests::setup;
 
     use super::super::tests::{create_mock_keys, get_jwk_internal_server_error_response};

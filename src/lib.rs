@@ -109,9 +109,8 @@ pub mod scope;
 pub use crate::builder::ClientBuilder;
 pub use crate::client::Client;
 pub use crate::config::{Config, ConfigBuilder};
-pub use crate::error::{ConfigError, Error};
+pub use crate::error::{ConfigError, Error, EsiResponseError, OAuthError};
 pub use crate::esi::{CacheStrategy, CachedResponse, EsiRequest, EsiResponse, Language};
-pub use crate::oauth2::error::OAuthError;
 pub use crate::scope::ScopeBuilder;
 
 mod constant;

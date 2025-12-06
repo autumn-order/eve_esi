@@ -84,7 +84,7 @@ pub enum CacheStrategy {
 pub struct EsiRequest<T> {
     /// The ESI client (cloned - uses Arc internally so this is cheap)
     client: Client,
-    /// The endpoint to request e.g. "https://esi.evetech.net/latest/status/"
+    /// The endpoint to request e.g. "<https://esi.evetech.net/latest/status/>"
     endpoint: String,
     /// HTTP method for the request (GET, POST, PUT, DELETE, PATCH)
     method: Method,

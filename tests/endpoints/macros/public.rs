@@ -64,7 +64,7 @@ macro_rules! public_esi_request_error_test {
                 assert!(result.is_err());
 
                 assert!(
-                    matches!(result, Err(eve_esi::Error::ReqwestError(ref e)) if e.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR))
+                    matches!(result, Err(eve_esi::Error::EsiResponseError(ref e)) if e.status == 500)
                 );
             }
         }
