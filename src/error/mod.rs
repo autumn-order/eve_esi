@@ -46,10 +46,11 @@
 use thiserror::Error;
 
 mod config;
+mod oauth2;
 mod response;
 
-pub use crate::oauth2::error::OAuthError;
 pub use config::ConfigError;
+pub use oauth2::OAuthError;
 pub use response::EsiResponseError;
 
 /// Runtime errors that can occur when using the EVE ESI client.

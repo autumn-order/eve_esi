@@ -20,7 +20,7 @@ The Client located in `client.rs` is the main client used to interact with the E
 
 ## Errors
 
-We use 3 main error enums, `Error` & `ConfigError` located in `error.rs` for general runtime errors or configuration errors, `OAuthError` located in `oauth2/error.rs` for OAuth2 related errors.
+We use 3 main error enums located in the `error/` module: `Error` for general runtime errors, `ConfigError` for configuration errors, and `OAuthError` for OAuth2 related errors.
 
 ## Configuration
 
