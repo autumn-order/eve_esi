@@ -24,7 +24,6 @@
 
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
-use std::time::Duration;
 
 use crate::{Client, Error};
 
@@ -85,49 +84,56 @@ impl<'a> EsiApi<'a> {
         headers: &reqwest::header::HeaderMap,
         data: T,
     ) -> EsiResponse<T> {
-        // Extract cache headers
+        // Extract cache headers - always present on successful responses
         let cache_control = headers
             .get("cache-control")
             .and_then(|v| v.to_str().ok())
-            .map(String::from);
+            .map(String::from)
+            .unwrap_or_default();
 
         let etag = headers
             .get("etag")
             .and_then(|v| v.to_str().ok())
-            .map(String::from);
+            .map(String::from)
+            .unwrap_or_default();
 
         let last_modified = headers
             .get("last-modified")
             .and_then(|v| v.to_str().ok())
             .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
-            .map(|dt| dt.with_timezone(&Utc));
+            .map(|dt| dt.with_timezone(&Utc))
+            .unwrap_or_else(|| Utc::now());
 
-        // Extract rate limit headers
-        let group = headers
+        // Extract rate limit headers - only present when x-esi-error-limit-group is included
+        let rate_limit = headers
             .get("x-esi-error-limit-group")
             .and_then(|v| v.to_str().ok())
-            .map(String::from);
+            .map(|group| {
+                let limit = headers
+                    .get("x-esi-error-limit-limit")
+                    .and_then(|v| v.to_str().ok())
+                    .map(String::from)
+                    .unwrap_or_default();
 
-        let limit = headers
-            .get("x-esi-error-limit-limit")
-            .and_then(|v| v.to_str().ok())
-            .map(String::from);
+                let remaining = headers
+                    .get("x-esi-error-limit-remain")
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .unwrap_or(0);
 
-        let remaining = headers
-            .get("x-esi-error-limit-remain")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.parse::<u32>().ok());
+                let used = headers
+                    .get("x-esi-error-limit-used")
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .unwrap_or(0);
 
-        let used = headers
-            .get("x-esi-error-limit-used")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.parse::<u32>().ok());
-
-        let retry_after = headers
-            .get("retry-after")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.parse::<u64>().ok())
-            .map(Duration::from_secs);
+                RateLimitHeaders {
+                    group: group.to_string(),
+                    limit,
+                    remaining,
+                    used,
+                }
+            });
 
         EsiResponse {
             data,
@@ -136,13 +142,7 @@ impl<'a> EsiApi<'a> {
                 etag,
                 last_modified,
             },
-            rate_limit: RateLimitHeaders {
-                group,
-                limit,
-                remaining,
-                used,
-                retry_after,
-            },
+            rate_limit,
         }
     }
 

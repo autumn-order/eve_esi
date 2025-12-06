@@ -5,7 +5,6 @@
 
 use chrono::{DateTime, Utc};
 use std::ops::{Deref, DerefMut};
-use std::time::Duration;
 
 /// Response from an ESI request including response data & headers
 ///
@@ -20,58 +19,67 @@ pub struct EsiResponse<T> {
     pub cache: CacheHeaders,
 
     /// Rate limiting headers
-    pub rate_limit: RateLimitHeaders,
+    ///
+    /// Only present when the `x-esi-error-limit-group` header is included in the response.
+    pub rate_limit: Option<RateLimitHeaders>,
 }
 
 /// Caching-related HTTP headers from the ESI response.
-#[derive(Debug, Clone, Default)]
+///
+/// All fields are always present on successful (200) responses.
+#[derive(Debug, Clone)]
 pub struct CacheHeaders {
     /// Cache-Control directives for caching mechanisms.
     ///
     /// Controls how the response can be cached, by whom, and for how long.
-    pub cache_control: Option<String>,
+    pub cache_control: String,
 
     /// The ETag value of the response body.
     ///
     /// Use this with If-None-Match to check whether the resource has changed.
-    pub etag: Option<String>,
+    pub etag: String,
 
     /// The last modified date of the response.
     ///
     /// Use this with If-Modified-Since to check whether the resource has changed.
-    pub last_modified: Option<DateTime<Utc>>,
+    pub last_modified: DateTime<Utc>,
 }
 
 /// Rate limiting HTTP headers from the ESI response.
-#[derive(Debug, Clone, Default)]
+///
+/// These headers are only present when `x-esi-error-limit-group` is included in the response.
+#[derive(Debug, Clone)]
 pub struct RateLimitHeaders {
     /// Route group identifier for this endpoint.
-    pub group: Option<String>,
+    pub group: String,
 
     /// Total tokens per window (e.g., "150/15m").
     ///
     /// Format: `<tokens>/<window>` where window uses:
     /// - `m`: minutes
     /// - `h`: hours
-    pub limit: Option<String>,
+    pub limit: String,
 
     /// Available tokens remaining in the current window.
-    pub remaining: Option<u32>,
+    pub remaining: u32,
 
     /// Tokens consumed by this request.
-    pub used: Option<u32>,
-
-    /// If rate-limited (429), indicates in seconds when to try again.
-    pub retry_after: Option<Duration>,
+    pub used: u32,
 }
 
 impl<T> EsiResponse<T> {
-    /// Creates a new EsiResponse with the given data and default headers.
+    /// Creates a new EsiResponse with the given data and placeholder cache headers.
+    ///
+    /// Note: This is primarily for testing. Real responses should use actual cache headers.
     pub fn new(data: T) -> Self {
         Self {
             data,
-            cache: CacheHeaders::default(),
-            rate_limit: RateLimitHeaders::default(),
+            cache: CacheHeaders {
+                cache_control: String::new(),
+                etag: String::new(),
+                last_modified: chrono::Utc::now(),
+            },
+            rate_limit: None,
         }
     }
 }

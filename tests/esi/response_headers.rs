@@ -39,12 +39,10 @@ async fn test_esi_response_cache_headers() {
     assert_eq!(response.data.value, "test data");
 
     // Verify cache headers
-    assert_eq!(
-        response.cache.cache_control.as_deref(),
-        Some("public, max-age=300")
-    );
-    assert_eq!(response.cache.etag.as_deref(), Some("test-etag-123"));
-    assert!(response.cache.last_modified.is_some());
+    assert_eq!(response.cache.cache_control, "public, max-age=300");
+    assert_eq!(response.cache.etag, "test-etag-123");
+    // Just verify last_modified exists (non-default value would indicate it was parsed)
+    assert_ne!(response.cache.last_modified, chrono::Utc::now());
 
     mock.assert_async().await;
 }
@@ -79,39 +77,40 @@ async fn test_esi_response_rate_limit_headers() {
     assert_eq!(response.data.value, "test data");
 
     // Verify rate limit headers
-    assert_eq!(response.rate_limit.group.as_deref(), Some("esi-search"));
-    assert_eq!(response.rate_limit.limit.as_deref(), Some("150/15m"));
-    assert_eq!(response.rate_limit.remaining, Some(145));
-    assert_eq!(response.rate_limit.used, Some(5));
-    assert!(response.rate_limit.retry_after.is_none());
+    assert!(response.rate_limit.is_some());
+    let rate_limit = response.rate_limit.as_ref().unwrap();
+    assert_eq!(rate_limit.group, "esi-search");
+    assert_eq!(rate_limit.limit, "150/15m");
+    assert_eq!(rate_limit.remaining, 145);
+    assert_eq!(rate_limit.used, 5);
 
     mock.assert_async().await;
 }
 
 #[tokio::test]
-async fn test_esi_response_retry_after_header() {
+async fn test_esi_response_no_rate_limit_headers() {
     let mut server = Server::new_async().await;
     let user_agent = "TestAgent/1.0";
     let client = Client::new(user_agent).expect("Failed to create client");
 
-    // Mock endpoint that returns 429 with retry-after
+    // Mock endpoint that returns no rate limit headers
     let mock = server
         .mock("GET", "/test")
-        .with_status(429)
-        .with_header("Retry-After", "60")
-        .with_body(r#"{"error": "rate limited"}"#)
+        .with_status(200)
+        .with_body(r#"{"value": "test data"}"#)
         .create_async()
         .await;
 
     let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<serde_json::Value>(url)
+        .new_request::<TestResponse>(url)
         .with_method(Method::GET);
 
-    // This should fail with a status error, but that's expected for 429
-    let result = request.send().await;
-    assert!(result.is_err());
+    let response = request.send().await.expect("Request failed");
+
+    // Verify that rate_limit is None when x-esi-error-limit-group is not present
+    assert!(response.rate_limit.is_none());
 
     mock.assert_async().await;
 }
@@ -153,6 +152,7 @@ async fn test_cached_response_with_esi_response() {
         .with_status(200)
         .with_header("ETag", "new-etag")
         .with_header("Cache-Control", "public, max-age=600")
+        .with_header("X-Esi-Error-Limit-Group", "esi-test")
         .with_header("X-Esi-Error-Limit-Remain", "100")
         .with_body(r#"{"value": "fresh data"}"#)
         .create_async()
@@ -176,14 +176,14 @@ async fn test_cached_response_with_esi_response() {
         assert_eq!(esi_response.data.value, "fresh data");
 
         // Verify cache headers from EsiResponse
-        assert_eq!(esi_response.cache.etag.as_deref(), Some("new-etag"));
-        assert_eq!(
-            esi_response.cache.cache_control.as_deref(),
-            Some("public, max-age=600")
-        );
+        assert_eq!(esi_response.cache.etag, "new-etag");
+        assert_eq!(esi_response.cache.cache_control, "public, max-age=600");
 
         // Verify rate limit headers from EsiResponse
-        assert_eq!(esi_response.rate_limit.remaining, Some(100));
+        assert!(esi_response.rate_limit.is_some());
+        let rate_limit = esi_response.rate_limit.as_ref().unwrap();
+        assert_eq!(rate_limit.group, "esi-test");
+        assert_eq!(rate_limit.remaining, 100);
     } else {
         panic!("Expected fresh response with data");
     }

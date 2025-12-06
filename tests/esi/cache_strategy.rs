@@ -151,7 +151,7 @@ async fn test_cache_strategy_fresh_data_with_etag() {
             value: "fresh data".to_string()
         }
     );
-    assert_eq!(esi_response.cache.etag.as_deref(), Some("new-etag-789"));
+    assert_eq!(esi_response.cache.etag, "new-etag-789");
 
     mock.assert_async().await;
 }
@@ -282,16 +282,16 @@ async fn test_fresh_response_with_last_modified() {
     let eve_esi::CachedResponse::Fresh(ref esi_response) = response else {
         panic!("Expected fresh response");
     };
-    assert_eq!(esi_response.cache.etag.as_deref(), Some("test-etag-789"));
-    assert_eq!(esi_response.cache.last_modified, Some(test_date));
+    assert_eq!(esi_response.cache.etag, "test-etag-789");
+    assert_eq!(esi_response.cache.last_modified, test_date);
 
     // Extract the EsiResponse by destructuring
     let eve_esi::CachedResponse::Fresh(esi_response) = response else {
         panic!("Expected fresh response");
     };
     assert_eq!(esi_response.data.value, "fresh data");
-    assert_eq!(esi_response.cache.etag.as_deref(), Some("test-etag-789"));
-    assert_eq!(esi_response.cache.last_modified, Some(test_date));
+    assert_eq!(esi_response.cache.etag, "test-etag-789");
+    assert_eq!(esi_response.cache.last_modified, test_date);
 }
 
 #[tokio::test]
