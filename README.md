@@ -44,7 +44,7 @@ async fn main() {
     let esi_client = eve_esi::Client::new(user_agent).expect("Failed to build ESI Client");
 
     // Get information about the corporation The Order of Autumn (id: 98785281)
-    let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
+    let corporation = esi_client.corporation().get_corporation_information(98785281).send().await.unwrap();
 
     println!("Corporation name: {}", corporation.name);
 }
