@@ -38,7 +38,7 @@ use reqwest::Method;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::{Client, Error};
+use crate::{esi::EsiResponse, Client, Error};
 
 use super::CachedResponse;
 
@@ -305,8 +305,8 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     /// For cached requests that handle 304 Not Modified responses, use [`send_cached`](Self::send_cached) instead.
     ///
     /// # Returns
-    /// A Result containing the deserialized response data or an error
-    pub async fn send(self) -> Result<T, Error> {
+    /// A Result containing an EsiResponse with the deserialized response data and headers
+    pub async fn send(self) -> Result<EsiResponse<T>, Error> {
         self.client.esi().request(&self).await
     }
 
@@ -319,8 +319,11 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     /// - `strategy`: The caching strategy specifying which conditional headers to use
     ///
     /// # Returns
-    /// A Result containing a [`CachedResponse`] that may be either fresh data or not modified
-    pub async fn send_cached(self, strategy: CacheStrategy) -> Result<CachedResponse<T>, Error> {
+    /// A Result containing a [`CachedResponse`] wrapping an EsiResponse that may be either fresh data or not modified
+    pub async fn send_cached(
+        self,
+        strategy: CacheStrategy,
+    ) -> Result<CachedResponse<EsiResponse<T>>, Error> {
         let mut request = self;
 
         // Add the appropriate conditional headers based on strategy

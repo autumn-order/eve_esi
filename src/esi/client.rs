@@ -24,10 +24,11 @@
 
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
+use std::time::Duration;
 
 use crate::{Client, Error};
 
-use super::{CachedResponse, EsiRequest};
+use super::{CacheHeaders, CachedResponse, EsiRequest, EsiResponse, RateLimitHeaders};
 
 /// Provides utility methods for making requests to EVE Online's ESI endpoints.
 ///
@@ -67,6 +68,82 @@ impl<'a> EsiApi<'a> {
     /// A new [`EsiRequest`] instance ready to be configured with headers, authentication, etc.
     pub fn new_request<T: DeserializeOwned>(&self, endpoint: impl Into<String>) -> EsiRequest<T> {
         EsiRequest::new(self.client, endpoint)
+    }
+
+    /// Extracts headers from reqwest::HeaderMap and populates an EsiResponse with data.
+    ///
+    /// This helper function extracts caching and rate limiting headers from the HTTP response
+    /// and wraps the deserialized data in an EsiResponse struct.
+    ///
+    /// # Arguments
+    /// - `headers`: The HTTP headers from the response
+    /// - `data`: The deserialized response data
+    ///
+    /// # Returns
+    /// An EsiResponse containing the data and populated headers
+    fn populate_esi_response_from_headers<T>(
+        headers: &reqwest::header::HeaderMap,
+        data: T,
+    ) -> EsiResponse<T> {
+        // Extract cache headers
+        let cache_control = headers
+            .get("cache-control")
+            .and_then(|v| v.to_str().ok())
+            .map(String::from);
+
+        let etag = headers
+            .get("etag")
+            .and_then(|v| v.to_str().ok())
+            .map(String::from);
+
+        let last_modified = headers
+            .get("last-modified")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
+            .map(|dt| dt.with_timezone(&Utc));
+
+        // Extract rate limit headers
+        let group = headers
+            .get("x-esi-error-limit-group")
+            .and_then(|v| v.to_str().ok())
+            .map(String::from);
+
+        let limit = headers
+            .get("x-esi-error-limit-limit")
+            .and_then(|v| v.to_str().ok())
+            .map(String::from);
+
+        let remaining = headers
+            .get("x-esi-error-limit-remain")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u32>().ok());
+
+        let used = headers
+            .get("x-esi-error-limit-used")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u32>().ok());
+
+        let retry_after = headers
+            .get("retry-after")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u64>().ok())
+            .map(Duration::from_secs);
+
+        EsiResponse {
+            data,
+            cache: CacheHeaders {
+                cache_control,
+                etag,
+                last_modified,
+            },
+            rate_limit: RateLimitHeaders {
+                group,
+                limit,
+                remaining,
+                used,
+                retry_after,
+            },
+        }
     }
 
     /// Internal method that executes the request with common logic.
@@ -155,14 +232,17 @@ impl<'a> EsiApi<'a> {
     /// - Adds authentication headers for authenticated requests
     /// - Applies all custom headers from the request
     /// - Handles request body for POST, PUT, and PATCH methods
-    /// - Returns deserialized response data
+    /// - Returns deserialized response data wrapped in EsiResponse with headers
     ///
     /// # Arguments
     /// - `request`: The configured [`EsiRequest`] containing endpoint, method, headers, and authentication details
     ///
     /// # Returns
-    /// A Result containing the deserialized response data or an error
-    pub async fn request<T: DeserializeOwned>(&self, request: &EsiRequest<T>) -> Result<T, Error> {
+    /// A Result containing an EsiResponse with the deserialized response data and headers
+    pub async fn request<T: DeserializeOwned>(
+        &self,
+        request: &EsiRequest<T>,
+    ) -> Result<EsiResponse<T>, Error> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
 
@@ -172,6 +252,9 @@ impl<'a> EsiApi<'a> {
             log::error!("ESI Request failed: {} {} - {}", method, endpoint, err);
             return Err(err.into());
         }
+
+        // Extract headers before consuming the response
+        let headers = response.headers().clone();
 
         // Deserialize and return the response
         let body = response.text().await?;
@@ -188,7 +271,8 @@ impl<'a> EsiApi<'a> {
 
         log::info!("ESI Request succeeded: {} {}", method, endpoint);
 
-        Ok(result)
+        // Create a temporary response-like struct for header extraction
+        Ok(Self::populate_esi_response_from_headers(&headers, result))
     }
 
     /// Make a cached request to ESI using the provided [`EsiRequest`] configuration.
@@ -204,13 +288,13 @@ impl<'a> EsiApi<'a> {
     /// - `request`: The configured [`EsiRequest`] with conditional cache headers already set
     ///
     /// # Returns
-    /// - `Ok(CachedResponse::Fresh)`: New data was received with optional ETag and Last-Modified
+    /// - `Ok(CachedResponse::Fresh)`: New data was received wrapped in EsiResponse with all headers
     /// - `Ok(CachedResponse::NotModified)`: Resource hasn't changed since the conditional header date/ETag
     /// - `Err(Error)`: Request failed
     pub async fn request_cached<T: DeserializeOwned>(
         &self,
         request: &EsiRequest<T>,
-    ) -> Result<CachedResponse<T>, Error> {
+    ) -> Result<CachedResponse<EsiResponse<T>>, Error> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
 
@@ -237,20 +321,8 @@ impl<'a> EsiApi<'a> {
             return Err(err.into());
         }
 
-        // Extract ETag header if present
-        let etag = response
-            .headers()
-            .get("etag")
-            .and_then(|v| v.to_str().ok())
-            .map(String::from);
-
-        // Extract Last-Modified header if present and parse it
-        let last_modified = response
-            .headers()
-            .get("last-modified")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
-            .map(|dt| dt.with_timezone(&Utc));
+        // Extract headers before consuming the response
+        let headers = response.headers().clone();
 
         // Deserialize and return the response
         let body = response.text().await?;
@@ -271,10 +343,8 @@ impl<'a> EsiApi<'a> {
             endpoint
         );
 
-        Ok(CachedResponse::Fresh {
-            data,
-            etag,
-            last_modified,
-        })
+        Ok(CachedResponse::Fresh(
+            Self::populate_esi_response_from_headers(&headers, data),
+        ))
     }
 }

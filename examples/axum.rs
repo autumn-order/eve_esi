@@ -72,7 +72,7 @@ async fn get_esi_character(
         .await
     {
         // Return the character information
-        Ok(character) => (StatusCode::OK, Json(character)).into_response(),
+        Ok(character) => (StatusCode::OK, Json(character.data)).into_response(),
         // Return an error if fetching character information fails
         Err(error) => {
             let status_code: StatusCode = match &error {
@@ -102,7 +102,7 @@ async fn get_esi_corporation(
         .await
     {
         // Return the corporation information
-        Ok(corporation) => (StatusCode::OK, Json(corporation)).into_response(),
+        Ok(corporation) => (StatusCode::OK, Json(corporation.data)).into_response(),
         // Return an error if fetching corporation information fails
         Err(error) => {
             let status_code: StatusCode = match &error {

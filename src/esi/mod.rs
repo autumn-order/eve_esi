@@ -38,7 +38,7 @@
 //! Use [`CacheStrategy`] with [`EsiRequest::send_cached`] to handle 304 Not Modified responses:
 //!
 //! ```no_run
-//! use eve_esi::{Client, EsiRequest, CacheStrategy};
+//! use eve_esi::{Client, EsiRequest, CacheStrategy, CachedResponse};
 //! use chrono::{DateTime, Utc};
 //! use serde::Deserialize;
 //!
@@ -59,7 +59,7 @@
 //!
 //! if response.is_not_modified() {
 //!     println!("Data hasn't changed");
-//! } else if let Some(data) = response.data() {
+//! } else if let CachedResponse::Fresh(data) = response {
 //!     println!("Fresh data: {} players", data.players);
 //! }
 //! # Ok(())

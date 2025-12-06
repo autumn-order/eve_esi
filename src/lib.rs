@@ -110,7 +110,7 @@ pub use crate::builder::ClientBuilder;
 pub use crate::client::Client;
 pub use crate::config::{Config, ConfigBuilder};
 pub use crate::error::{ConfigError, Error};
-pub use crate::esi::{CacheStrategy, CachedResponse, EsiRequest, Language};
+pub use crate::esi::{CacheStrategy, CachedResponse, EsiRequest, EsiResponse, Language};
 pub use crate::oauth2::error::OAuthError;
 pub use crate::scope::ScopeBuilder;
 
