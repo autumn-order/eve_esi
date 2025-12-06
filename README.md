@@ -72,7 +72,7 @@ New endpoints are being implemented as needed. If you wish to see specific endpo
 
 ## Examples
 
-If you wish to see logs for the steps of how the crate works in the examples, prefix the `cargo run --example sso` command like so `RUST_LOG=eve_esi=debug cargo run --example sso`.
+If you wish to see logs for the steps of how the crate works in the examples, prefix the `cargo run --example axum` command like so `RUST_LOG=eve_esi=debug cargo run --example axum`.
 
 ### Axum
 
@@ -88,7 +88,7 @@ An example demonstrating how to use the `eve_esi` crate with the `axum` web fram
 1. Create a developer application on [EVE Online's Developer Portal](https://developers.eveonline.com/applications)
 2. Set the callback URL to `http://localhost:8080/callback`
 3. Copy .env.example to .env and set the CALLBACK_URL, EVE_ESI_CLIENT_ID, EVE_ESI_CLIENT_SECRET, & CONTACT_EMAIL variables
-4. Run `cargo run --example sso`
+4. Run `cargo run --example axum_sso`
 5. Go to `http://localhost:8080/login` in your browser
 6. Login with EVE Online, you'll then be redirected to `http://localhost:8080/callback`
 7. The callback route will fetch a JWT token using the authorization code from login and then return a response with your character ID & name after validating the token
