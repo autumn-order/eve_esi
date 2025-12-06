@@ -16,13 +16,30 @@ use axum::{
 };
 use serde::Deserialize;
 
+/// Shared error enum that implements an internal server error response that can be returned
+#[derive(thiserror::Error, Debug)]
+enum Error {
+    #[error(transparent)]
+    EsiError(#[from] eve_esi::Error),
+    #[error(transparent)]
+    AxumError(#[from] axum::Error),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+}
+
+impl IntoResponse for Error {
+    fn into_response(self) -> Response {
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(self.to_string())).into_response()
+    }
+}
+
 #[derive(Deserialize)]
 struct GetByIdParams {
     id: i64,
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     // Enable logging
     // Run with `RUST_LOG=eve_esi=debug cargo run --example axum` to see logs
     env_logger::init();
@@ -38,7 +55,7 @@ async fn main() {
     );
 
     // Create a basic ESI client with a user agent to identify your application
-    let esi_client = eve_esi::Client::new(&user_agent).expect("Failed to create new ESI client");
+    let esi_client = eve_esi::Client::new(&user_agent)?;
 
     // Share the ESI client across threads with .layer(Extension)
     // Not doing this will result in JWT key caching for token validation not working
@@ -49,13 +66,12 @@ async fn main() {
         .layer(Extension(esi_client));
 
     // Start the API server
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
-        .await
-        .unwrap();
-
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await?;
     println!("Test character API at http://localhost:8080/character?id=2114794365");
     println!("Test corporation API at http://localhost:8080/corporation?id=98785281");
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app).await?;
+
+    Ok(())
 }
 
 async fn get_esi_character(
@@ -72,18 +88,11 @@ async fn get_esi_character(
         .await
     {
         // Return the character information
+        //
+        // Use `data` method to access the character information itself
         Ok(character) => (StatusCode::OK, Json(character.data)).into_response(),
         // Return an error if fetching character information fails
-        Err(error) => {
-            let status_code: StatusCode = match &error {
-                eve_esi::Error::ReqwestError(ref err) => {
-                    StatusCode::from_u16(err.status().unwrap().into()).unwrap()
-                }
-                _ => StatusCode::INTERNAL_SERVER_ERROR,
-            };
-
-            (status_code, Json(error.to_string())).into_response()
-        }
+        Err(error) => Error::from(error).into_response(),
     }
 }
 
@@ -102,17 +111,10 @@ async fn get_esi_corporation(
         .await
     {
         // Return the corporation information
+        //
+        // Use `data` method to access the corporation information itself
         Ok(corporation) => (StatusCode::OK, Json(corporation.data)).into_response(),
         // Return an error if fetching corporation information fails
-        Err(error) => {
-            let status_code: StatusCode = match &error {
-                eve_esi::Error::ReqwestError(ref err) => {
-                    StatusCode::from_u16(err.status().unwrap().into()).unwrap()
-                }
-                _ => StatusCode::INTERNAL_SERVER_ERROR,
-            };
-
-            (status_code, Json(error.to_string())).into_response()
-        }
+        Err(error) => Error::from(error).into_response(),
     }
 }
