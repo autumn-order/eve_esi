@@ -37,8 +37,7 @@ async fn test_cache_strategy_if_none_match() {
         .expect("Request failed");
 
     assert!(response.is_not_modified());
-    assert!(response.data().is_none());
-    assert!(response.etag().is_none());
+    assert!(matches!(response, eve_esi::CachedResponse::NotModified));
 
     mock.assert_async().await;
 }
@@ -143,13 +142,16 @@ async fn test_cache_strategy_fresh_data_with_etag() {
         .expect("Request failed");
 
     assert!(response.is_fresh());
+    let eve_esi::CachedResponse::Fresh(esi_response) = response else {
+        panic!("Expected fresh response");
+    };
     assert_eq!(
-        response.data().unwrap(),
+        &esi_response.data,
         &TestResponse {
             value: "fresh data".to_string()
         }
     );
-    assert_eq!(response.etag(), Some("new-etag-789"));
+    assert_eq!(esi_response.cache.etag.as_deref(), Some("new-etag-789"));
 
     mock.assert_async().await;
 }
@@ -177,7 +179,7 @@ async fn test_send_without_cache_no_conditional_headers() {
     let response = request.send().await.expect("Request failed");
 
     assert_eq!(
-        response,
+        response.data,
         TestResponse {
             value: "normal data".to_string()
         }
@@ -212,8 +214,10 @@ async fn test_cached_response_into_data() {
         .await
         .expect("Request failed");
 
-    let data = response.into_data().expect("Should have data");
-    assert_eq!(data.value, "test");
+    let eve_esi::CachedResponse::Fresh(esi_response) = response else {
+        panic!("Expected fresh response with data");
+    };
+    assert_eq!(esi_response.data.value, "test");
 }
 
 #[tokio::test]
@@ -240,7 +244,7 @@ async fn test_cached_response_not_modified_into_data() {
         .await
         .expect("Request failed");
 
-    assert!(response.into_data().is_none());
+    assert!(matches!(response, eve_esi::CachedResponse::NotModified));
 }
 
 #[tokio::test]
@@ -275,14 +279,19 @@ async fn test_fresh_response_with_last_modified() {
         .expect("Request failed");
 
     assert!(response.is_fresh());
-    assert_eq!(response.etag(), Some("test-etag-789"));
-    assert_eq!(response.last_modified(), Some(test_date));
+    let eve_esi::CachedResponse::Fresh(ref esi_response) = response else {
+        panic!("Expected fresh response");
+    };
+    assert_eq!(esi_response.cache.etag.as_deref(), Some("test-etag-789"));
+    assert_eq!(esi_response.cache.last_modified, Some(test_date));
 
-    // Test into_parts method
-    let (data, etag, last_modified) = response.into_parts().expect("Should have data");
-    assert_eq!(data.value, "fresh data");
-    assert_eq!(etag, Some("test-etag-789".to_string()));
-    assert_eq!(last_modified, Some(test_date));
+    // Extract the EsiResponse by destructuring
+    let eve_esi::CachedResponse::Fresh(esi_response) = response else {
+        panic!("Expected fresh response");
+    };
+    assert_eq!(esi_response.data.value, "fresh data");
+    assert_eq!(esi_response.cache.etag.as_deref(), Some("test-etag-789"));
+    assert_eq!(esi_response.cache.last_modified, Some(test_date));
 }
 
 #[tokio::test]
