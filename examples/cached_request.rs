@@ -40,7 +40,6 @@ async fn main() -> Result<(), eve_esi::Error> {
         .send()
         .await
     {
-        // Use `data` method to access the character information itself
         Ok(character) => character,
         // Early return an error if fetching character information fails
         Err(error) => return Err(error.into()),
@@ -70,8 +69,9 @@ async fn main() -> Result<(), eve_esi::Error> {
     let character = match cache_result {
         // We return the updated character from ESI (updating our database entry in a real application)
         //
-        // Note: this case would rarely ever occur in this example, usually we wouldn't fetch immediately again,
-        // instead waiting until after the 30 day character info cache has expired.
+        // Note: this case wouldn't occur in this example as we just fetched information that has a 30
+        // day cache time, in a real application we'd wait until after the 30 day cache window expires to
+        // fetch again.
         CachedResponse::Fresh(updated_character) => updated_character,
         // We return the initially fetched character as no information has since changed
         CachedResponse::NotModified => initial_character,
