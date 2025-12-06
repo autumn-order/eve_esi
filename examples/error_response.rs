@@ -22,7 +22,7 @@ async fn main() -> Result<(), eve_esi::Error> {
     let non_existant_character_id: i64 = 1;
 
     // Use let else syntax to early return if we don't get the error we are expecting
-    let Err(eve_esi::Error::EsiResponseError(esi_error)) = esi_client
+    let Err(eve_esi::Error::EsiResponseError(error)) = esi_client
         .character()
         .get_character_public_information(non_existant_character_id)
         .send()
@@ -32,32 +32,32 @@ async fn main() -> Result<(), eve_esi::Error> {
     };
 
     // Check for 4xx client errors (e.g., 400, 404, 429)
-    if (400..500).contains(&esi_error.status) {
-        println!("Client error (4xx): Status {}", esi_error.status);
-        println!("Error message: {}", esi_error.data.error);
+    if (400..500).contains(&error.status) {
+        println!("Client error (4xx): Status {}", error.status);
+        println!("Error message: {}", error.message);
     }
 
     // Check for 5xx server errors (e.g., 500, 502, 503)
-    if (500..600).contains(&esi_error.status) {
-        println!("Server error (5xx): Status {}", esi_error.status);
-        println!("Error message: {}", esi_error.data.error);
+    if (500..600).contains(&error.status) {
+        println!("Server error (5xx): Status {}", error.status);
+        println!("Error message: {}", error.message);
         println!("ESI may be experiencing issues");
     }
 
     // Alternative: Using match with range patterns
-    match esi_error.status {
+    match error.status {
         // Handle rate limited error differently than other client errors, such as pushing
         // an update job back into queue until the retry after time has elapsed
         429 => {
             // Retry after header will only be present on status code 429 rate limited
-            if let Some(retry_after) = esi_error.retry_after {
+            if let Some(retry_after) = error.retry_after {
                 // Seconds to wait until tokens have replenished for another request
                 println!("Retry after {:?} seconds", retry_after)
             };
         }
-        400..=499 => println!("Client error range using match: {}", esi_error.status),
-        500..=599 => println!("Server error range using match: {}", esi_error.status),
-        _ => println!("Other status code: {}", esi_error.status),
+        400..=499 => println!("Client error range using match: {}", error.status),
+        500..=599 => println!("Server error range using match: {}", error.status),
+        _ => println!("Other status code: {}", error.status),
     }
 
     Ok(())

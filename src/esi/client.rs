@@ -26,7 +26,7 @@ use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use std::time::Duration;
 
-use crate::error::{EsiResponseError, EsiResponseErrorData};
+use crate::error::EsiResponseError;
 use crate::{Client, Error};
 
 use super::{CacheHeaders, CachedResponse, EsiRequest, EsiResponse, RateLimitHeaders};
@@ -204,22 +204,27 @@ impl<'a> EsiApi<'a> {
 
         // Extract error message from response body
         let body = response.text().await.unwrap_or_else(|_| String::from("{}"));
-        let data: EsiResponseErrorData =
-            serde_json::from_str(&body).unwrap_or_else(|_| EsiResponseErrorData {
-                error: format!("Failed to parse ESI error response. Body: {}", body),
-            });
+
+        #[derive(serde::Deserialize)]
+        struct ErrorBody {
+            error: String,
+        }
+
+        let error_msg = serde_json::from_str::<ErrorBody>(&body)
+            .map(|e| e.error)
+            .unwrap_or_else(|_| format!("Failed to parse ESI error response. Body: {}", body));
 
         log::error!(
             "ESI Request failed: {} {} - Status: {}, Error: {}",
             method,
             endpoint,
             status,
-            data.error
+            error_msg
         );
 
         EsiResponseError {
             status,
-            data,
+            message: error_msg,
             cache,
             rate_limit,
             retry_after,

@@ -13,13 +13,13 @@ use crate::esi::{CacheHeaders, RateLimitHeaders};
 /// This structure represents error responses (4xx or 5xx status codes) returned by ESI,
 /// including all relevant headers and error information.
 #[derive(Error, Debug, Clone)]
-#[error("ESI error (status {status}): {data}")]
+#[error("ESI error (status {status}): {message}")]
 pub struct EsiResponseError {
     /// HTTP status code of the error response
     pub status: u16,
 
-    /// Error data from the response body
-    pub data: EsiResponseErrorData,
+    /// The error message from ESI
+    pub message: String,
 
     /// Caching headers from the error response
     pub cache: CacheHeaders,
@@ -33,17 +33,4 @@ pub struct EsiResponseError {
     ///
     /// Only present on 429 (Too Many Requests) responses.
     pub retry_after: Option<Duration>,
-}
-
-/// Error data from an ESI error response body.
-#[derive(Debug, Clone, serde::Deserialize)]
-pub struct EsiResponseErrorData {
-    /// The error message from ESI
-    pub error: String,
-}
-
-impl std::fmt::Display for EsiResponseErrorData {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.error)
-    }
 }

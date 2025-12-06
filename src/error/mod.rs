@@ -50,7 +50,7 @@ mod response;
 
 pub use crate::oauth2::error::OAuthError;
 pub use config::ConfigError;
-pub use response::{EsiResponseError, EsiResponseErrorData};
+pub use response::EsiResponseError;
 
 /// Runtime errors that can occur when using the EVE ESI client.
 ///
