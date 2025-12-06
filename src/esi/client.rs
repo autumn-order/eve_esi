@@ -24,7 +24,9 @@
 
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
+use std::time::Duration;
 
+use crate::error::{EsiResponseError, EsiResponseErrorData};
 use crate::{Client, Error};
 
 use super::{CacheHeaders, CachedResponse, EsiRequest, EsiResponse, RateLimitHeaders};
@@ -69,22 +71,14 @@ impl<'a> EsiApi<'a> {
         EsiRequest::new(self.client, endpoint)
     }
 
-    /// Extracts headers from reqwest::HeaderMap and populates an EsiResponse with data.
-    ///
-    /// This helper function extracts caching and rate limiting headers from the HTTP response
-    /// and wraps the deserialized data in an EsiResponse struct.
+    /// Extracts cache headers from a reqwest::HeaderMap.
     ///
     /// # Arguments
     /// - `headers`: The HTTP headers from the response
-    /// - `data`: The deserialized response data
     ///
     /// # Returns
-    /// An EsiResponse containing the data and populated headers
-    fn populate_esi_response_from_headers<T>(
-        headers: &reqwest::header::HeaderMap,
-        data: T,
-    ) -> EsiResponse<T> {
-        // Extract cache headers - always present on successful responses
+    /// A CacheHeaders struct containing cache-control, etag, and last-modified headers
+    fn extract_cache_headers(headers: &reqwest::header::HeaderMap) -> CacheHeaders {
         let cache_control = headers
             .get("cache-control")
             .and_then(|v| v.to_str().ok())
@@ -104,8 +98,24 @@ impl<'a> EsiApi<'a> {
             .map(|dt| dt.with_timezone(&Utc))
             .unwrap_or_else(|| Utc::now());
 
-        // Extract rate limit headers - only present when x-esi-error-limit-group is included
-        let rate_limit = headers
+        CacheHeaders {
+            cache_control,
+            etag,
+            last_modified,
+        }
+    }
+
+    /// Extracts rate limit headers from a reqwest::HeaderMap.
+    ///
+    /// # Arguments
+    /// - `headers`: The HTTP headers from the response
+    ///
+    /// # Returns
+    /// An Option containing RateLimitHeaders if x-esi-error-limit-group is present, None otherwise
+    fn extract_rate_limit_headers(
+        headers: &reqwest::header::HeaderMap,
+    ) -> Option<RateLimitHeaders> {
+        headers
             .get("x-esi-error-limit-group")
             .and_then(|v| v.to_str().ok())
             .map(|group| {
@@ -133,16 +143,86 @@ impl<'a> EsiApi<'a> {
                     remaining,
                     used,
                 }
-            });
+            })
+    }
 
+    /// Extracts headers from reqwest::HeaderMap and populates an EsiResponse with data.
+    ///
+    /// This helper function extracts caching and rate limiting headers from the HTTP response
+    /// and wraps the deserialized data in an EsiResponse struct.
+    ///
+    /// # Arguments
+    /// - `headers`: The HTTP headers from the response
+    /// - `data`: The deserialized response data
+    ///
+    /// # Returns
+    /// An EsiResponse containing the data and populated headers
+    fn populate_esi_response_from_headers<T>(
+        headers: &reqwest::header::HeaderMap,
+        data: T,
+    ) -> EsiResponse<T> {
         EsiResponse {
             data,
-            cache: CacheHeaders {
-                cache_control,
-                etag,
-                last_modified,
-            },
+            cache: Self::extract_cache_headers(headers),
+            rate_limit: Self::extract_rate_limit_headers(headers),
+        }
+    }
+
+    /// Handles ESI error responses by extracting error data and all relevant headers.
+    ///
+    /// This method processes 4xx and 5xx responses from ESI, extracting:
+    /// - The error message from the response body
+    /// - Cache headers (always present)
+    /// - Rate limit headers (if x-esi-error-limit-group is present)
+    /// - Retry-After header (only on 429 responses)
+    ///
+    /// # Arguments
+    /// - `response`: The HTTP response with an error status code
+    /// - `method`: The HTTP method used for the request (for logging)
+    /// - `endpoint`: The endpoint that was called (for logging)
+    ///
+    /// # Returns
+    /// An EsiResponseError containing all error information and headers
+    async fn handle_esi_error_response(
+        response: reqwest::Response,
+        method: &str,
+        endpoint: &str,
+    ) -> EsiResponseError {
+        let status = response.status().as_u16();
+        let headers = response.headers().clone();
+
+        // Extract cache and rate limit headers
+        let cache = Self::extract_cache_headers(&headers);
+        let rate_limit = Self::extract_rate_limit_headers(&headers);
+
+        // Extract retry-after header (only on 429 responses)
+        let retry_after = headers
+            .get("retry-after")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u64>().ok())
+            .map(Duration::from_secs);
+
+        // Extract error message from response body
+        let body = response.text().await.unwrap_or_else(|_| String::from("{}"));
+        let data: EsiResponseErrorData =
+            serde_json::from_str(&body).unwrap_or_else(|_| EsiResponseErrorData {
+                error: format!("Failed to parse ESI error response. Body: {}", body),
+            });
+
+        log::error!(
+            "ESI Request failed: {} {} - Status: {}, Error: {}",
+            method,
+            endpoint,
+            status,
+            data.error
+        );
+
+        EsiResponseError {
+            status,
+            data,
+            cache,
             rate_limit,
+            retry_after,
         }
     }
 
@@ -248,9 +328,11 @@ impl<'a> EsiApi<'a> {
 
         let response = self.execute_request(&request).await?;
 
-        if let Err(err) = response.error_for_status_ref() {
-            log::error!("ESI Request failed: {} {} - {}", method, endpoint, err);
-            return Err(err.into());
+        // Check for error status codes and handle ESI error responses
+        if response.status().is_client_error() || response.status().is_server_error() {
+            let esi_error =
+                Self::handle_esi_error_response(response, method.as_str(), &endpoint).await;
+            return Err(esi_error.into());
         }
 
         // Extract headers before consuming the response
@@ -310,15 +392,11 @@ impl<'a> EsiApi<'a> {
             return Ok(CachedResponse::NotModified);
         }
 
-        // Check for other errors
-        if let Err(err) = response.error_for_status_ref() {
-            log::error!(
-                "ESI Cached Request failed: {} {} - {}",
-                method,
-                endpoint,
-                err
-            );
-            return Err(err.into());
+        // Check for error status codes and handle ESI error responses
+        if response.status().is_client_error() || response.status().is_server_error() {
+            let esi_error =
+                Self::handle_esi_error_response(response, method.as_str(), &endpoint).await;
+            return Err(esi_error.into());
         }
 
         // Extract headers before consuming the response

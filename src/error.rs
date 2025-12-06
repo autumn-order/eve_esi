@@ -43,8 +43,10 @@
 //! }
 //! ```
 
+use std::time::Duration;
 use thiserror::Error;
 
+use crate::esi::{CacheHeaders, RateLimitHeaders};
 pub use crate::oauth2::error::OAuthError;
 
 /// Runtime errors that can occur when using the EVE ESI client.
@@ -65,6 +67,11 @@ pub enum Error {
     /// For a more detailed description, see [`OAuthError`].
     #[error(transparent)]
     OAuthError(OAuthError),
+    /// ESI API returned an error response (4xx or 5xx status code).
+    ///
+    /// Contains the error message from ESI along with cache and rate limit headers.
+    #[error("ESI API error: {0}")]
+    EsiResponseError(#[from] EsiResponseError),
     /// Errors that occur during HTTP requests.
     ///
     /// For a more detailed description, see [`reqwest::Error`].
@@ -86,6 +93,46 @@ pub enum Error {
     /// For a more detailed description, see [`serde_json::Error`].
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
+}
+
+/// Error response from the ESI API.
+///
+/// This structure represents error responses (4xx or 5xx status codes) returned by ESI,
+/// including all relevant headers and error information.
+#[derive(Error, Debug, Clone)]
+#[error("ESI error (status {status}): {data}")]
+pub struct EsiResponseError {
+    /// HTTP status code of the error response
+    pub status: u16,
+
+    /// Error data from the response body
+    pub data: EsiResponseErrorData,
+
+    /// Caching headers from the error response
+    pub cache: CacheHeaders,
+
+    /// Rate limiting headers from the error response
+    ///
+    /// Only present when the `x-esi-error-limit-group` header is included in the response.
+    pub rate_limit: Option<RateLimitHeaders>,
+
+    /// Duration in seconds until tokens are replenished enough for another request
+    ///
+    /// Only present on 429 (Too Many Requests) responses.
+    pub retry_after: Option<Duration>,
+}
+
+/// Error data from an ESI error response body.
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct EsiResponseErrorData {
+    /// The error message from ESI
+    pub error: String,
+}
+
+impl std::fmt::Display for EsiResponseErrorData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.error)
+    }
 }
 
 /// Errors when building a new [`Client`](crate::Client) or [`Config`](crate::Config)
