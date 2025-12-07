@@ -1,9 +1,9 @@
 //! Integration tests for EsiResponse header extraction
 
-use eve_esi::Client;
-use mockito::Server;
 use reqwest::Method;
 use serde::Deserialize;
+
+use crate::util::integration_test_setup;
 
 #[derive(Deserialize, Debug, PartialEq)]
 struct TestResponse {
@@ -12,9 +12,7 @@ struct TestResponse {
 
 #[tokio::test]
 async fn test_esi_response_cache_headers() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns cache headers
     let mock = server
@@ -27,10 +25,9 @@ async fn test_esi_response_cache_headers() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request.send().await.expect("Request failed");
@@ -49,9 +46,7 @@ async fn test_esi_response_cache_headers() {
 
 #[tokio::test]
 async fn test_esi_response_rate_limit_headers() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns rate limit headers
     let mock = server
@@ -65,10 +60,9 @@ async fn test_esi_response_rate_limit_headers() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request.send().await.expect("Request failed");
@@ -89,9 +83,7 @@ async fn test_esi_response_rate_limit_headers() {
 
 #[tokio::test]
 async fn test_esi_response_no_rate_limit_headers() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns no rate limit headers
     let mock = server
@@ -101,10 +93,9 @@ async fn test_esi_response_no_rate_limit_headers() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request.send().await.expect("Request failed");
@@ -117,9 +108,7 @@ async fn test_esi_response_no_rate_limit_headers() {
 
 #[tokio::test]
 async fn test_esi_response_deref() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     server
         .mock("GET", "/test")
@@ -128,10 +117,9 @@ async fn test_esi_response_deref() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request.send().await.expect("Request failed");
@@ -142,9 +130,7 @@ async fn test_esi_response_deref() {
 
 #[tokio::test]
 async fn test_cached_response_with_esi_response() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock fresh response with headers
     let mock = server
@@ -158,10 +144,9 @@ async fn test_cached_response_with_esi_response() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request

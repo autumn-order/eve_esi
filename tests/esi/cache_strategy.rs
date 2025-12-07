@@ -1,10 +1,11 @@
 //! Integration tests for CacheStrategy and send_with_cache API
 
 use chrono::{DateTime, Utc};
-use eve_esi::{CacheStrategy, Client};
-use mockito::Server;
+use eve_esi::CacheStrategy;
 use reqwest::Method;
 use serde::Deserialize;
+
+use crate::util::integration_test_setup;
 
 #[derive(Deserialize, Debug, PartialEq)]
 struct TestResponse {
@@ -13,9 +14,7 @@ struct TestResponse {
 
 #[tokio::test]
 async fn test_cache_strategy_if_none_match() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns 304 Not Modified when If-None-Match matches
     let mock = server
@@ -25,10 +24,9 @@ async fn test_cache_strategy_if_none_match() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request
@@ -44,9 +42,7 @@ async fn test_cache_strategy_if_none_match() {
 
 #[tokio::test]
 async fn test_cache_strategy_if_modified_since() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Parse a specific date for testing
     let test_date: DateTime<Utc> = "2015-10-21T07:28:00Z".parse().unwrap();
@@ -60,10 +56,9 @@ async fn test_cache_strategy_if_modified_since() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request
@@ -78,9 +73,7 @@ async fn test_cache_strategy_if_modified_since() {
 
 #[tokio::test]
 async fn test_cache_strategy_both_headers() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Parse a specific date for testing
     let test_date: DateTime<Utc> = "2015-10-22T08:00:00Z".parse().unwrap();
@@ -95,10 +88,9 @@ async fn test_cache_strategy_both_headers() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request
@@ -116,9 +108,7 @@ async fn test_cache_strategy_both_headers() {
 
 #[tokio::test]
 async fn test_cache_strategy_fresh_data_with_etag() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns fresh data with ETag
     let mock = server
@@ -130,10 +120,9 @@ async fn test_cache_strategy_fresh_data_with_etag() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request
@@ -158,9 +147,7 @@ async fn test_cache_strategy_fresh_data_with_etag() {
 
 #[tokio::test]
 async fn test_send_without_cache_no_conditional_headers() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that should not receive cache headers
     let mock = server
@@ -170,10 +157,9 @@ async fn test_send_without_cache_no_conditional_headers() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request.send().await.expect("Request failed");
@@ -190,9 +176,7 @@ async fn test_send_without_cache_no_conditional_headers() {
 
 #[tokio::test]
 async fn test_cached_response_into_data() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock fresh response
     server
@@ -203,10 +187,9 @@ async fn test_cached_response_into_data() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request
@@ -222,9 +205,7 @@ async fn test_cached_response_into_data() {
 
 #[tokio::test]
 async fn test_cached_response_not_modified_into_data() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Mock 304 response
     server
@@ -233,10 +214,9 @@ async fn test_cached_response_not_modified_into_data() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request
@@ -249,9 +229,7 @@ async fn test_cached_response_not_modified_into_data() {
 
 #[tokio::test]
 async fn test_fresh_response_with_last_modified() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // Parse a specific date for the Last-Modified header
     let test_date: DateTime<Utc> = "2024-01-15T10:30:00Z".parse().unwrap();
@@ -267,10 +245,9 @@ async fn test_fresh_response_with_last_modified() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request
@@ -296,9 +273,7 @@ async fn test_fresh_response_with_last_modified() {
 
 #[tokio::test]
 async fn test_use_last_modified_for_next_request() {
-    let mut server = Server::new_async().await;
-    let user_agent = "TestAgent/1.0";
-    let client = Client::new(user_agent).expect("Failed to create client");
+    let (client, mut server) = integration_test_setup().await;
 
     // First request - get fresh data with Last-Modified header
     let test_date: DateTime<Utc> = "2024-01-15T10:30:00Z".parse().unwrap();
@@ -312,10 +287,9 @@ async fn test_use_last_modified_for_next_request() {
         .create_async()
         .await;
 
-    let url = format!("{}/test", server.url());
     let request = client
         .esi()
-        .new_request::<TestResponse>(&url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
     let response = request.send().await.expect("Request failed");
@@ -333,7 +307,7 @@ async fn test_use_last_modified_for_next_request() {
 
     let request2 = client
         .esi()
-        .new_request::<TestResponse>(&url)
+        .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
     let cached_response = request2
         .send_cached(CacheStrategy::IfModifiedSince(test_date))
