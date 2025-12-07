@@ -95,6 +95,9 @@ mod client;
 mod request;
 mod response;
 
+#[cfg(test)]
+mod tests;
+
 // Re-export public API
 pub use client::EsiApi;
 pub use request::{CacheStrategy, EsiRequest, Language};
