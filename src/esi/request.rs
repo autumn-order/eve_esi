@@ -18,12 +18,12 @@
 //! let client = Client::new("MyApp/1.0")?;
 //!
 //! // Simple request - recommended approach
-//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
+//! let request = client.esi().new_request::<ServerStatus>("/status/");
 //! let status = request.send().await?;
 //!
 //! // Cached request
 //! let last_check: DateTime<Utc> = Utc::now();
-//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
+//! let request = client.esi().new_request::<ServerStatus>("/status/");
 //! let response = request
 //!     .send_cached(CacheStrategy::IfModifiedSince(last_check))
 //!     .await?;
@@ -101,23 +101,43 @@ pub struct EsiRequest<T> {
 }
 
 impl<T: DeserializeOwned> EsiRequest<T> {
-    /// Creates a new [`EsiRequest`] with the specified client and endpoint.
+    /// Creates a new [`EsiRequest`] with the specified client and endpoint path.
+    ///
+    /// The endpoint path is automatically prepended with the base ESI URL from the client's configuration.
+    /// For example, if the base URL is `https://esi.evetech.net/latest` and you provide `/status`,
+    /// the full URL will be `https://esi.evetech.net/latest/status`.
     ///
     /// **Note:** It's recommended to use [`crate::esi::EsiApi::new_request`] instead:
     /// ```ignore
-    /// let request = client.esi().new_request::<ResponseType>("endpoint_url");
+    /// let request = client.esi().new_request::<ResponseType>("/status");
     /// ```
     ///
     /// # Arguments
     /// - `client`: The [`Client`] to use for sending the request
-    /// - `endpoint`: The ESI API endpoint URL to request
+    /// - `endpoint`: The ESI API endpoint path (e.g., "/status" or "status")
     ///
     /// # Returns
-    /// New instance with the client and endpoint set and all other fields at default values
+    /// New instance with the client and full endpoint URL set and all other fields at default values
     pub fn new(client: &Client, endpoint: impl Into<String>) -> Self {
+        let endpoint_path = endpoint.into();
+        let full_url =
+            if endpoint_path.starts_with("http://") || endpoint_path.starts_with("https://") {
+                // If a full URL is provided, use it as-is
+                endpoint_path
+            } else {
+                // Otherwise, prepend the base ESI URL
+                let base_url = &client.inner.esi_url;
+                let path = if endpoint_path.starts_with('/') {
+                    &endpoint_path[1..]
+                } else {
+                    &endpoint_path
+                };
+                format!("{}/{}", base_url.trim_end_matches('/'), path)
+            };
+
         Self {
             client: client.clone(),
-            endpoint: endpoint.into(),
+            endpoint: full_url,
             method: Method::GET,
             access_token: None,
             required_scopes: Vec::new(),
