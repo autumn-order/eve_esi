@@ -79,7 +79,7 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Returns
     /// A CacheHeaders struct containing cache-control, etag, and last-modified headers
-    fn extract_cache_headers(headers: &reqwest::header::HeaderMap) -> CacheHeaders {
+    pub(crate) fn extract_cache_headers(headers: &reqwest::header::HeaderMap) -> CacheHeaders {
         let cache_control = headers
             .get("cache-control")
             .and_then(|v| v.to_str().ok())
@@ -113,7 +113,7 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Returns
     /// An Option containing RateLimitHeaders if x-esi-error-limit-group is present, None otherwise
-    fn extract_rate_limit_headers(
+    pub(crate) fn extract_rate_limit_headers(
         headers: &reqwest::header::HeaderMap,
     ) -> Option<RateLimitHeaders> {
         headers
@@ -158,7 +158,7 @@ impl<'a> EsiApi<'a> {
     ///
     /// # Returns
     /// An EsiResponse containing the data and populated headers
-    fn populate_esi_response_from_headers<T>(
+    pub(crate) fn populate_esi_response_from_headers<T>(
         headers: &reqwest::header::HeaderMap,
         data: T,
     ) -> EsiResponse<T> {
