@@ -120,20 +120,25 @@ impl<T: DeserializeOwned> EsiRequest<T> {
     /// New instance with the client and full endpoint URL set and all other fields at default values
     pub fn new(client: &Client, endpoint: impl Into<String>) -> Self {
         let endpoint_path = endpoint.into();
-        let full_url =
-            if endpoint_path.starts_with("http://") || endpoint_path.starts_with("https://") {
-                // If a full URL is provided, use it as-is
-                endpoint_path
-            } else {
-                // Otherwise, prepend the base ESI URL
-                let base_url = &client.inner.esi_url;
-                let path = if endpoint_path.starts_with('/') {
-                    &endpoint_path[1..]
-                } else {
-                    &endpoint_path
-                };
-                format!("{}/{}", base_url.trim_end_matches('/'), path)
-            };
+
+        let base_url = &client.inner.esi_url;
+        let path = if endpoint_path.starts_with('/') {
+            &endpoint_path[1..]
+        } else {
+            &endpoint_path
+        };
+
+        let full_url = format!("{}/{}", base_url.trim_end_matches('/'), path);
+
+        // Validate URL during construction to catch issues early
+        // This provides early feedback but doesn't break the builder pattern
+        if let Err(e) = url::Url::parse(&full_url) {
+            log::warn!(
+                "Potentially invalid URL constructed for ESI request: {} - {}",
+                full_url,
+                e
+            );
+        }
 
         Self {
             client: client.clone(),

@@ -253,6 +253,12 @@ impl<'a> EsiApi<'a> {
 
         log::debug!("ESI Request: {} {}", method, endpoint);
 
+        // Validate URL before sending the request
+        url::Url::parse(&endpoint).map_err(|e| {
+            log::error!("Invalid URL for ESI request: {} - {}", endpoint, e);
+            e
+        })?;
+
         let start_time = std::time::Instant::now();
 
         // Validate token if this is an authenticated request
