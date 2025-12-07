@@ -83,7 +83,7 @@ impl<'a> MarketEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterMarketOrder>>
         method = Method::GET;
-        url = "{}/characters/{}/orders";
+        path = "/characters/{}/orders";
         required_scopes = ScopeBuilder::new()
             .markets(MarketsScopes::new().read_character_orders())
             .build();
@@ -114,7 +114,7 @@ impl<'a> MarketEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CharacterMarketOrder>>
         method = Method::GET;
-        url = "{}/characters/{}/orders/history";
+        path = "/characters/{}/orders/history";
         required_scopes = ScopeBuilder::new()
             .markets(MarketsScopes::new().read_character_orders())
             .build();
@@ -146,7 +146,7 @@ impl<'a> MarketEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationMarketOrder>>
         method = Method::GET;
-        url = "{}/corporations/{}/orders";
+        path = "/corporations/{}/orders";
         required_scopes = ScopeBuilder::new()
             .markets(MarketsScopes::new().read_corporation_orders())
             .build();
@@ -180,7 +180,7 @@ impl<'a> MarketEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationMarketOrder>>
         method = Method::GET;
-        url = "{}/corporations/{}/orders/history";
+        path = "/corporations/{}/orders/history";
         required_scopes = ScopeBuilder::new()
             .markets(MarketsScopes::new().read_corporation_orders())
             .build();
@@ -199,7 +199,7 @@ impl<'a> MarketEndpoints<'a> {
         pub fn get_item_groups(
         ) -> EsiRequest<Vec<i64>>
         method = Method::GET;
-        url = "{}/markets/groups";
+        path = "/markets/groups";
     }
 
     define_esi_endpoint! {
@@ -219,7 +219,7 @@ impl<'a> MarketEndpoints<'a> {
             market_group_id: i64
         ) -> EsiRequest<MarketItemGroupInformation>
         method = Method::GET;
-        url = "{}/markets/groups/{}";
+        path = "/markets/groups/{}";
     }
 
     define_esi_endpoint! {
@@ -235,7 +235,7 @@ impl<'a> MarketEndpoints<'a> {
         pub fn list_market_prices(
         ) -> EsiRequest<Vec<MarketItemPrices>>
         method = Method::GET;
-        url = "{}/markets/prices";
+        path = "/markets/prices";
     }
 
     define_esi_endpoint! {
@@ -263,7 +263,7 @@ impl<'a> MarketEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<StructureMarketOrder>>
         method = Method::GET;
-        url = "{}/markets/structures/{}";
+        path = "/markets/structures/{}";
         required_scopes = ScopeBuilder::new()
             .markets(MarketsScopes::new().structure_markets())
             .build();
@@ -288,7 +288,7 @@ impl<'a> MarketEndpoints<'a> {
             type_id: i64
         ) -> EsiRequest<Vec<MarketItemRegionStatistics>>
         method = Method::GET;
-        url = "{}/markets/{}/history";
+        path = "/markets/{}/history";
     }
 
     define_esi_endpoint! {
@@ -313,7 +313,7 @@ impl<'a> MarketEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<MarketRegionOrder>>
         method = Method::GET;
-        url = "{}/markets/{}/orders";
+        path = "/markets/{}/orders";
     }
 
     define_esi_endpoint! {
@@ -335,6 +335,6 @@ impl<'a> MarketEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<i64>>
         method = Method::GET;
-        url = "{}/markets/{}/types";
+        path = "/markets/{}/types";
     }
 }

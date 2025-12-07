@@ -71,7 +71,7 @@ impl<'a> ContactsEndpoints<'a> {
             alliance_id: i64
         ) -> EsiRequest<Vec<AllianceContact>>
         method = Method::GET;
-        url = "{}/alliances/{}/contacts";
+        path = "/alliances/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .alliances(AlliancesScopes::new().read_contacts())
             .build();
@@ -100,7 +100,7 @@ impl<'a> ContactsEndpoints<'a> {
             alliance_id: i64
         ) -> EsiRequest<Vec<ContactLabel>>
         method = Method::GET;
-        url = "{}/alliances/{}/contacts/labels";
+        path = "/alliances/{}/contacts/labels";
         required_scopes = ScopeBuilder::new()
             .alliances(AlliancesScopes::new().read_contacts())
             .build();
@@ -131,7 +131,7 @@ impl<'a> ContactsEndpoints<'a> {
             contact_ids: Vec<i64>
         ) -> EsiRequest<()>
         method = Method::DELETE;
-        url = "{}/characters/{}/contacts";
+        path = "/characters/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().write_contacts())
             .build();
@@ -160,7 +160,7 @@ impl<'a> ContactsEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterContact>>
         method = Method::GET;
-        url = "{}/characters/{}/contacts";
+        path = "/characters/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_contacts())
             .build();
@@ -197,7 +197,7 @@ impl<'a> ContactsEndpoints<'a> {
             watched: bool
         ) -> EsiRequest<Vec<i64>>
         method = Method::POST;
-        url = "{}/characters/{}/contacts";
+        path = "/characters/{}/contacts";
         required_scopes =  ScopeBuilder::new()
             .characters(CharactersScopes::new().write_contacts())
             .build();
@@ -235,7 +235,7 @@ impl<'a> ContactsEndpoints<'a> {
             watched: bool
         ) -> EsiRequest<Vec<i64>>
         method = Method::PUT;
-        url = "{}/characters/{}/contacts";
+        path = "/characters/{}/contacts";
         required_scopes =  ScopeBuilder::new()
             .characters(CharactersScopes::new().write_contacts())
             .build();
@@ -265,7 +265,7 @@ impl<'a> ContactsEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<ContactLabel>>
         method = Method::GET;
-        url = "{}/characters/{}/contacts/labels";
+        path = "/characters/{}/contacts/labels";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_contacts())
             .build();
@@ -294,7 +294,7 @@ impl<'a> ContactsEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationContact>>
         method = Method::GET;
-        url = "{}/corporations/{}/contacts";
+        path = "/corporations/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_contacts())
             .build();
@@ -323,7 +323,7 @@ impl<'a> ContactsEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<ContactLabel>>
         method = Method::GET;
-        url = "{}/corporations/{}/contacts/labels";
+        path = "/corporations/{}/contacts/labels";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_contacts())
             .build();

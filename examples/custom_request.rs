@@ -41,8 +41,8 @@ async fn main() -> Result<(), eve_esi::Error> {
     // to deserialize the response to.
     let response: EsiResponse<Status> = esi_client
         .esi()
-        // Create a new request, set the endpoint to `https://esi.evetech.net/status`
-        .new_request("https://esi.evetech.net/status")
+        // Create a new request, set the endpoint path (base URL is automatically prepended from config)
+        .new_request("/status")
         // Modify the request method using `with_method`, by default the method is GET
         .with_method(Method::GET)
         // Use `with_access_token` method if it is an authenticated endpoint

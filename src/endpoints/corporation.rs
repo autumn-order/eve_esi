@@ -84,7 +84,7 @@ impl<'a> CorporationEndpoints<'a> {
         pub fn get_npc_corporations(
         ) -> EsiRequest<Vec<i64>>
         method = Method::GET;
-        url = "{}/corporations/npccorps";
+        path = "/corporations/npccorps";
     }
 
     define_esi_endpoint! {
@@ -104,7 +104,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Corporation>
         method = Method::GET;
-        url = "{}/corporations/{}";
+        path = "/corporations/{}";
     }
 
     define_esi_endpoint! {
@@ -124,7 +124,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationAllianceHistory>>
         method = Method::GET;
-        url = "{}/corporations/{}/alliancehistory";
+        path = "/corporations/{}/alliancehistory";
     }
 
     define_esi_endpoint! {
@@ -152,7 +152,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<Blueprint>>
         method = Method::GET;
-        url = "{}/corporations/{}/blueprints";
+        path = "/corporations/{}/blueprints";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_blueprints()).build();
     }
 
@@ -186,7 +186,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationSecureContainerLog>>
         method = Method::GET;
-        url = "{}/corporations/{}/containers/logs";
+        path = "/corporations/{}/containers/logs";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_container_logs()).build();
     }
 
@@ -216,7 +216,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<CorporationDivisions>
         method = Method::GET;
-        url = "{}/corporations/{}/divisions";
+        path = "/corporations/{}/divisions";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_divisions()).build();
     }
 
@@ -246,7 +246,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationFacilities>>
         method = Method::GET;
-        url = "{}/corporations/{}/facilities";
+        path = "/corporations/{}/facilities";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_facilities()).build();
     }
 
@@ -267,7 +267,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<CorporationIcon>
         method = Method::GET;
-        url = "{}/corporations/{}/icons";
+        path = "/corporations/{}/icons";
     }
 
     define_esi_endpoint! {
@@ -298,7 +298,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationMedal>>
         method = Method::GET;
-        url = "{}/corporations/{}/medals";
+        path = "/corporations/{}/medals";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
 
@@ -333,7 +333,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationIssuedMedal>>
         method = Method::GET;
-        url = "{}/corporations/{}/medals/issued";
+        path = "/corporations/{}/medals/issued";
         required_scopes = ScopeBuilder::new().corporations(CorporationsScopes::new().read_medals()).build();
     }
 
@@ -363,7 +363,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<i64>>
         method = Method::GET;
-        url = "{}/corporations/{}/members";
+        path = "/corporations/{}/members";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_corporation_membership())
             .build();
@@ -397,7 +397,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<i32>
         method = Method::GET;
-        url = "{}/corporations/{}/members/limit";
+        path = "/corporations/{}/members/limit";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_corporation_membership())
             .build();
@@ -431,7 +431,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationMemberTitles>>
         method = Method::GET;
-        url = "{}/corporations/{}/members/titles";
+        path = "/corporations/{}/members/titles";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_titles())
             .build();
@@ -465,7 +465,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationMemberTracking>>
         method = Method::GET;
-        url = "{}/corporations/{}/membertracking";
+        path = "/corporations/{}/membertracking";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().track_members())
             .build();
@@ -499,7 +499,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationMemberRoles>>
         method = Method::GET;
-        url = "{}/corporations/{}/roles";
+        path = "/corporations/{}/roles";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_corporation_membership())
             .build();
@@ -535,7 +535,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationMemberRolesHistory>>
         method = Method::GET;
-        url = "{}/corporations/{}/roles/history";
+        path = "/corporations/{}/roles/history";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_corporation_membership())
             .build();
@@ -571,7 +571,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationShareholder>>
         method = Method::GET;
-        url = "{}/corporations/{}/shareholders";
+        path = "/corporations/{}/shareholders";
         required_scopes = ScopeBuilder::new()
             .wallet(WalletScopes::new().read_corporation_wallets())
             .build();
@@ -604,7 +604,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<Standing>>
         method = Method::GET;
-        url = "{}/corporations/{}/standings";
+        path = "/corporations/{}/standings";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_standings())
             .build();
@@ -640,7 +640,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationStarbase>>
         method = Method::GET;
-        url = "{}/corporations/{}/starbases";
+        path = "/corporations/{}/starbases";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_starbases())
             .build();
@@ -678,7 +678,7 @@ impl<'a> CorporationEndpoints<'a> {
             system_id: i64
         ) -> EsiRequest<CorporationStarbaseDetails>
         method = Method::GET;
-        url = "{}/corporations/{}/starbases/{}";
+        path = "/corporations/{}/starbases/{}";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_starbases())
             .build();
@@ -715,7 +715,7 @@ impl<'a> CorporationEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<CorporationStructure>>
         method = Method::GET;
-        url = "{}/corporations/{}/structures";
+        path = "/corporations/{}/structures";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_structures())
             .build();
@@ -749,7 +749,7 @@ impl<'a> CorporationEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<CorporationTitle>>
         method = Method::GET;
-        url = "{}/corporations/{}/titles";
+        path = "/corporations/{}/titles";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_titles())
             .build();

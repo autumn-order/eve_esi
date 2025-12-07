@@ -16,7 +16,7 @@
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let client = Client::new("MyApp/1.0")?;
-//! let request = client.esi().new_request::<ServerStatus>("https://esi.evetech.net/latest/status/");
+//! let request = client.esi().new_request::<ServerStatus>("/status/");
 //! let status = request.send().await?;
 //! # Ok(())
 //! # }
@@ -57,13 +57,14 @@ impl<'a> EsiApi<'a> {
         Self { client }
     }
 
-    /// Creates a new [`EsiRequest`] for the given endpoint.
+    /// Creates a new [`EsiRequest`] for the given endpoint path.
     ///
     /// This is the recommended way to create ESI requests as it automatically
-    /// ties the request's lifetime to the client.
+    /// ties the request's lifetime to the client and constructs the full URL
+    /// using the base ESI URL from the client's configuration.
     ///
     /// # Arguments
-    /// - `endpoint`: The ESI API endpoint URL to request
+    /// - `endpoint`: The ESI API endpoint path (e.g., "/status" or "status")
     ///
     /// # Returns
     /// A new [`EsiRequest`] instance ready to be configured with headers, authentication, etc.
@@ -251,6 +252,12 @@ impl<'a> EsiApi<'a> {
         let endpoint = request.endpoint().to_string();
 
         log::debug!("ESI Request: {} {}", method, endpoint);
+
+        // Validate URL before sending the request
+        url::Url::parse(&endpoint).map_err(|e| {
+            log::error!("Invalid URL for ESI request: {} - {}", endpoint, e);
+            e
+        })?;
 
         let start_time = std::time::Instant::now();
 

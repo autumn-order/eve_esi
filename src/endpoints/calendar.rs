@@ -76,7 +76,7 @@ impl<'a> CalendarEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CalendarEventSummary>>
         method = Method::GET;
-        url = "{}/characters/{}/calendar";
+        path = "/characters/{}/calendar";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().read_calendar_events())
             .build();
@@ -107,7 +107,7 @@ impl<'a> CalendarEndpoints<'a> {
             event_id: i64
         ) -> EsiRequest<CalendarEvent>
         method = Method::GET;
-        url = "{}/characters/{}/calendar/{}";
+        path = "/characters/{}/calendar/{}";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().read_calendar_events())
             .build();
@@ -139,7 +139,7 @@ impl<'a> CalendarEndpoints<'a> {
             event_id: i64
         ) -> EsiRequest<()>
         method = Method::PUT;
-        url = "{}/characters/{}/calendar/{}";
+        path = "/characters/{}/calendar/{}";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().respond_calendar_events())
             .build();
@@ -171,7 +171,7 @@ impl<'a> CalendarEndpoints<'a> {
             event_id: i64
         ) -> EsiRequest<Vec<CalendarEventAttendee>>
         method = Method::GET;
-        url = "{}/characters/{}/calendar/{}/attendees";
+        path = "/characters/{}/calendar/{}/attendees";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().read_calendar_events())
             .build();
