@@ -70,7 +70,7 @@ impl<'a> AssetsEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<Asset>>
         method = Method::GET;
-        url = "{}/characters/{}/assets";
+        path = "/characters/{}/assets";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
             .build();
@@ -102,7 +102,7 @@ impl<'a> AssetsEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<AssetLocation>>
         method = Method::POST;
-        url = "{}/characters/{}/assets/locations";
+        path = "/characters/{}/assets/locations";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
             .build();
@@ -138,7 +138,7 @@ impl<'a> AssetsEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<AssetName>>
         method = Method::POST;
-        url = "{}/characters/{}/assets/names";
+        path = "/characters/{}/assets/names";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_assets())
             .build();
@@ -170,7 +170,7 @@ impl<'a> AssetsEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<Asset>>
         method = Method::GET;
-        url = "{}/corporations/{}/assets";
+        path = "/corporations/{}/assets";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_corporation_assets())
             .build();
@@ -202,7 +202,7 @@ impl<'a> AssetsEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<AssetLocation>>
         method = Method::POST;
-        url = "{}/corporations/{}/assets/locations";
+        path = "/corporations/{}/assets/locations";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_corporation_assets())
             .build();
@@ -238,7 +238,7 @@ impl<'a> AssetsEndpoints<'a> {
             corporation_id: i64
         ) -> EsiRequest<Vec<AssetName>>
         method = Method::POST;
-        url = "{}/corporations/{}/assets/names";
+        path = "/corporations/{}/assets/names";
         required_scopes = ScopeBuilder::new()
             .assets(AssetsScopes::new().read_corporation_assets())
             .build();

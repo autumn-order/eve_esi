@@ -61,7 +61,7 @@ impl<'a> ClonesEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<CharacterClones>
         method = Method::GET;
-        url = "{}/characters/{}/clones";
+        path = "/characters/{}/clones";
         required_scopes = ScopeBuilder::new()
             .clones(ClonesScopes::new().read_clones())
             .build();
@@ -90,7 +90,7 @@ impl<'a> ClonesEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<i64>>
         method = Method::GET;
-        url = "{}/characters/{}/implants";
+        path = "/characters/{}/implants";
         required_scopes = ScopeBuilder::new()
             .clones(ClonesScopes::new().read_implants())
             .build();

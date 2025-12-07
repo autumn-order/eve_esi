@@ -78,7 +78,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Character>
         method = Method::GET;
-        url = "{}/characters/{}";
+        path = "/characters/{}";
     }
 
     define_esi_endpoint! {
@@ -97,7 +97,7 @@ impl<'a> CharacterEndpoints<'a> {
         pub fn character_affiliation(
         ) -> EsiRequest<Vec<CharacterAffiliation>>
         method = Method::POST;
-        url = "{}/characters/affiliation";
+        path = "/characters/affiliation";
         body = character_ids: Vec<i64>;
     }
 
@@ -124,7 +124,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterResearchAgent>>
         method = Method::GET;
-        url = "{}/characters/{}/agents_research";
+        path = "/characters/{}/agents_research";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_agents_research())
             .build();
@@ -155,7 +155,7 @@ impl<'a> CharacterEndpoints<'a> {
             page: i32
         ) -> EsiRequest<Vec<Blueprint>>
         method = Method::GET;
-        url = "{}/characters/{}/blueprints";
+        path = "/characters/{}/blueprints";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_blueprints()).build();
     }
 
@@ -176,7 +176,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterCorporationHistory>>
         method = Method::GET;
-        url = "{}/characters/{}/corporationhistory";
+        path = "/characters/{}/corporationhistory";
     }
 
     define_esi_endpoint! {
@@ -203,7 +203,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<f64>
         method = Method::POST;
-        url = "{}/characters/{}/cspa";
+        path = "/characters/{}/cspa";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_contacts()).build();
         body = character_ids: Vec<i64>;
     }
@@ -231,7 +231,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<CharacterJumpFatigue>
         method = Method::GET;
-        url = "{}/characters/{}/fatigue";
+        path = "/characters/{}/fatigue";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_fatigue()).build();
     }
 
@@ -258,7 +258,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterMedal>>
         method = Method::GET;
-        url = "{}/characters/{}/medals";
+        path = "/characters/{}/medals";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_medals()).build();
     }
 
@@ -285,7 +285,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterNotification>>
         method = Method::GET;
-        url = "{}/characters/{}/notifications";
+        path = "/characters/{}/notifications";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_notifications()).build();
     }
 
@@ -312,7 +312,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterNewContactNotification>>
         method = Method::GET;
-        url = "{}/characters/{}/notifications/contacts";
+        path = "/characters/{}/notifications/contacts";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_notifications()).build();
     }
 
@@ -333,7 +333,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<CharacterPortraits>
         method = Method::GET;
-        url = "{}/characters/{}/portrait";
+        path = "/characters/{}/portrait";
     }
 
     define_esi_endpoint! {
@@ -359,7 +359,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<CharacterCorporationRole>
         method = Method::GET;
-        url = "{}/characters/{}/roles";
+        path = "/characters/{}/roles";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_corporation_roles()).build();
     }
 
@@ -386,7 +386,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<Standing>>
         method = Method::GET;
-        url = "{}/characters/{}/standings";
+        path = "/characters/{}/standings";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_standings()).build();
     }
 
@@ -413,7 +413,7 @@ impl<'a> CharacterEndpoints<'a> {
             character_id: i64
         ) -> EsiRequest<Vec<CharacterCorporationTitle>>
         method = Method::GET;
-        url = "{}/characters/{}/titles";
+        path = "/characters/{}/titles";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_titles()).build();
     }
 }

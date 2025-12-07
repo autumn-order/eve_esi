@@ -47,6 +47,6 @@ impl<'a> UniverseEndpoints<'a> {
         /// An ESI request builder that returns a list of information for all NPC factions in EVE Online when sent.
         pub fn get_factions() -> EsiRequest<Vec<Faction>>
         method = Method::GET;
-        url = "{}/universe/factions";
+        path = "/universe/factions";
     }
 }

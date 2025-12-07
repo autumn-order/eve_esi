@@ -47,7 +47,7 @@ impl<'a> AllianceEndpoints<'a> {
         /// An ESI request builder that returns a vector of alliance IDs when sent.
         pub fn list_all_alliances() -> EsiRequest<Vec<i64>>
         method = Method::GET;
-        url = "{}/alliances";
+        path = "/alliances";
     }
 
     define_esi_endpoint! {
@@ -69,7 +69,7 @@ impl<'a> AllianceEndpoints<'a> {
             alliance_id: i64
         ) -> EsiRequest<Alliance>
         method = Method::GET;
-        url = "{}/alliances/{}";
+        path = "/alliances/{}";
     }
 
     define_esi_endpoint! {
@@ -91,7 +91,7 @@ impl<'a> AllianceEndpoints<'a> {
             alliance_id: i64
         ) -> EsiRequest<Vec<i64>>
         method = Method::GET;
-        url = "{}/alliances/{}/corporations";
+        path = "/alliances/{}/corporations";
     }
 
     define_esi_endpoint! {
@@ -113,6 +113,6 @@ impl<'a> AllianceEndpoints<'a> {
             alliance_id: i64
         ) -> EsiRequest<AllianceIcons>
         method = Method::GET;
-        url = "{}/alliances/{}/icons";
+        path = "/alliances/{}/icons";
     }
 }
