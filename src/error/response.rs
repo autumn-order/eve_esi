@@ -14,7 +14,7 @@ use crate::esi::{CacheHeaders, RateLimitHeaders};
 /// including all relevant headers and error information.
 #[derive(Error, Debug, Clone)]
 #[error("ESI error (status {status}): {message}")]
-pub struct EsiResponseError {
+pub struct EsiError {
     /// HTTP status code of the error response
     pub status: u16,
 

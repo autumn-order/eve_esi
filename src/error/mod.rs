@@ -51,7 +51,7 @@ pub mod response;
 
 pub use config::ConfigError;
 pub use oauth2::OAuthError;
-pub use response::EsiResponseError;
+pub use response::EsiError;
 
 /// Runtime errors that can occur when using the EVE ESI client.
 ///
@@ -75,7 +75,7 @@ pub enum Error {
     ///
     /// Contains the error message from ESI along with cache and rate limit headers.
     #[error("ESI API error: {0}")]
-    EsiResponseError(#[from] Box<EsiResponseError>),
+    EsiError(#[from] Box<EsiError>),
     /// Errors that occur during HTTP requests.
     ///
     /// For a more detailed description, see [`reqwest::Error`].
