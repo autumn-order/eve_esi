@@ -531,7 +531,7 @@ mod clear_cache_tests {
         let cache_cleared = esi_client.inner.jwt_key_cache.clear_cache().await;
 
         // Assert attempt was made to clear the cache
-        assert_eq!(cache_cleared, true);
+        assert!(cache_cleared);
 
         // Assert cache is now empty
         let cache = esi_client.inner.jwt_key_cache.get_keys().await;
@@ -564,13 +564,13 @@ mod clear_cache_tests {
         let lock_acquired = esi_client.inner.jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert refresh lock is in place
-        assert_eq!(lock_acquired, true);
+        assert!(lock_acquired);
 
         // Attempt to clear the JWT key cache
         let cache_cleared = esi_client.inner.jwt_key_cache.clear_cache().await;
 
         // Assert no attempt was made to clear the cache
-        assert_eq!(cache_cleared, false);
+        assert!(!cache_cleared);
 
         // Assert cache has not been cleared
         let cache = esi_client.inner.jwt_key_cache.get_keys().await;
@@ -609,7 +609,7 @@ mod jwk_refresh_lock_try_acquire_tests {
         let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert
-        assert_eq!(lock_acquired, true)
+        assert!(lock_acquired)
     }
 
     /// Checks that lock is not acquired when already in use
@@ -639,7 +639,7 @@ mod jwk_refresh_lock_try_acquire_tests {
 
         let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
 
-        assert_eq!(lock_acquired, true);
+        assert!(lock_acquired);
 
         // Acquire lock a second time
         // Should return false indicating lock is already in use
@@ -648,7 +648,7 @@ mod jwk_refresh_lock_try_acquire_tests {
         let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert
-        assert_eq!(lock_acquired, false)
+        assert!(!lock_acquired)
     }
 }
 
@@ -686,18 +686,17 @@ mod jwk_lock_release_and_notify_tests {
         // Acquire a lock
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
-        let lock = !jwt_key_cache
+        let lock = jwt_key_cache
             .refresh_lock
             .compare_exchange(
                 false,
                 true,
                 std::sync::atomic::Ordering::Acquire,
                 std::sync::atomic::Ordering::Relaxed,
-            )
-            .is_err();
+            ).is_ok();
 
         // Assert that lock is in place
-        assert_eq!(lock, true);
+        assert!(lock);
 
         // Create the notification future BEFORE triggering release
         let notification = jwt_key_cache.refresh_notifier.notified();
@@ -714,20 +713,19 @@ mod jwk_lock_release_and_notify_tests {
         };
 
         // Assert that notification was received
-        assert_eq!(notified, true);
+        assert!(notified);
 
         // Assert that lock has been released and can be acquired again
-        let lock = !jwt_key_cache
+        let lock = jwt_key_cache
             .refresh_lock
             .compare_exchange(
                 false,
                 true,
                 std::sync::atomic::Ordering::Acquire,
                 std::sync::atomic::Ordering::Relaxed,
-            )
-            .is_err();
+            ).is_ok();
 
-        assert_eq!(lock, true)
+        assert!(lock)
     }
 }
 

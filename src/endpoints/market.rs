@@ -29,6 +29,7 @@
 //! | [`MarketEndpoints::list_orders_in_a_structure`]                | Fetches list of market orders for the provided structure ID                                                 |
 
 use crate::{
+    esi::EsiRequest,
     model::{
         enums::market::OrderType,
         market::{
@@ -37,8 +38,9 @@ use crate::{
         },
     },
     scope::MarketsScopes,
-    Client, Error, ScopeBuilder,
+    Client, ScopeBuilder,
 };
+use reqwest::Method;
 
 /// Provides methods for accessing market-related endpoints of the EVE Online ESI API.
 ///
@@ -50,7 +52,7 @@ pub struct MarketEndpoints<'a> {
 impl<'a> MarketEndpoints<'a> {
     /// Creates a new instance of [`MarketEndpoints`].
     ///
-    /// For an overview & usage examples, see the [endpoints module documentation](super)e
+    /// For an overview & usage examples, see the [endpoints module documentation](super)
     ///
     /// # Arguments
     /// - `client` (&[`Client`]): ESI client used for making HTTP requests to the ESI endpoints.
@@ -58,7 +60,7 @@ impl<'a> MarketEndpoints<'a> {
         Self { client }
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches list of open market orders for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -75,19 +77,19 @@ impl<'a> MarketEndpoints<'a> {
         /// - `character_id`    (`i64`): The ID of the character to retrieve open market orders for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterMarketOrder`]`>`: List of open market orders for the provided character ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get list_open_orders_from_a_character(
+        /// An ESI request builder that returns a list of open market orders for the provided character ID when sent.
+        auth fn list_open_orders_from_a_character(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterMarketOrder>, Error>
-        url = "{}/characters/{}/orders";
-        label = "open market orders";
-        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_character_orders()).build();
+        ) -> EsiRequest<Vec<CharacterMarketOrder>>
+        method = Method::GET;
+        path = "/characters/{}/orders";
+        required_scopes = ScopeBuilder::new()
+            .markets(MarketsScopes::new().read_character_orders())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches list of cancelled & expired market orders for the provided character ID up to 90 days in the past
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -105,20 +107,20 @@ impl<'a> MarketEndpoints<'a> {
         /// - `page`            (`i32`): The page of market orders to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterMarketOrder`]`>`: List of historical market orders for the provided character ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get list_historical_orders_by_a_character(
+        /// An ESI request builder that returns a list of historical market orders for the provided character ID when sent.
+        auth fn list_historical_orders_by_a_character(
             access_token: &str,
             character_id: i64;
             page: i32
-        ) -> Result<Vec<CharacterMarketOrder>, Error>
-        url = "{}/characters/{}/orders/history";
-        label = "historical orders";
-        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_character_orders()).build();
+        ) -> EsiRequest<Vec<CharacterMarketOrder>>
+        method = Method::GET;
+        path = "/characters/{}/orders/history";
+        required_scopes = ScopeBuilder::new()
+            .markets(MarketsScopes::new().read_character_orders())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches list of open market orders for the provided corporation ID
         ///
         /// Additional permissions required: the owner of the access token must hold the `Accountant` or
@@ -138,19 +140,19 @@ impl<'a> MarketEndpoints<'a> {
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve open market orders for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationMarketOrder`]`>`: List of open market orders for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get list_open_orders_from_a_corporation(
+        /// An ESI request builder that returns a list of open market orders for the provided corporation ID when sent.
+        auth fn list_open_orders_from_a_corporation(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<CorporationMarketOrder>, Error>
-        url = "{}/corporations/{}/orders";
-        label = "open orders";
-        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_corporation_orders()).build();
+        ) -> EsiRequest<Vec<CorporationMarketOrder>>
+        method = Method::GET;
+        path = "/corporations/{}/orders";
+        required_scopes = ScopeBuilder::new()
+            .markets(MarketsScopes::new().read_corporation_orders())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches list of cancelled & expired market orders for the provided corporation ID up to 90 days in the past
         ///
         /// Additional permissions required: the owner of the access token must hold the `Accountant` or
@@ -171,20 +173,20 @@ impl<'a> MarketEndpoints<'a> {
         /// - `page`            (`i32`): The page of market orders to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationMarketOrder`]`>`: List of historical market orders for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get list_historical_orders_from_a_corporation(
+        /// An ESI request builder that returns a list of historical market orders for the provided corporation ID when sent.
+        auth fn list_historical_orders_from_a_corporation(
             access_token: &str,
-            corporation_d: i64;
+            corporation_id: i64;
             page: i32
-        ) -> Result<Vec<CorporationMarketOrder>, Error>
-        url = "{}/corporations/{}/orders/history";
-        label = "historical orders";
-        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().read_corporation_orders()).build();
+        ) -> EsiRequest<Vec<CorporationMarketOrder>>
+        method = Method::GET;
+        path = "/corporations/{}/orders/history";
+        required_scopes = ScopeBuilder::new()
+            .markets(MarketsScopes::new().read_corporation_orders())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of IDs of market item groups
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -193,16 +195,14 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsGroups>
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<i64>`: List of IDs of market item groups
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_item_groups(
-        ) -> Result<Vec<i64>, Error>
-        url = "{}/markets/groups";
-        label = "market groups";
+        /// An ESI request builder that returns a list of IDs of market item groups when sent.
+        pub fn get_item_groups(
+        ) -> EsiRequest<Vec<i64>>
+        method = Method::GET;
+        path = "/markets/groups";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves the information of the provided market item group ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -214,17 +214,15 @@ impl<'a> MarketEndpoints<'a> {
         /// - `market_group_id` (`i64`): The ID of the market group to retrieve information for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`MarketItemGroupInformation`]`>`: The information of the provided market item group ID
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_item_group_information(
+        /// An ESI request builder that returns the information of the provided market item group ID when sent.
+        pub fn get_item_group_information(
             market_group_id: i64
-        ) -> Result<MarketItemGroupInformation, Error>
-        url = "{}/markets/groups/{}";
-        label = "market item group information";
+        ) -> EsiRequest<MarketItemGroupInformation>
+        method = Method::GET;
+        path = "/markets/groups/{}";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves the average & adjusted market prices of all items
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -233,22 +231,20 @@ impl<'a> MarketEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsPrices>
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`MarketItemPrices`]`>`: The average & adjusted market prices of all items
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get list_market_prices(
-        ) -> Result<Vec<MarketItemPrices>, Error>
-        url = "{}/markets/prices";
-        label = "market item prices";
+        /// An ESI request builder that returns the average & adjusted market prices of all items when sent.
+        pub fn list_market_prices(
+        ) -> EsiRequest<Vec<MarketItemPrices>>
+        method = Method::GET;
+        path = "/markets/prices";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Fetches list of market orders for the provided structure ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
         /// # ESI Documentation
-        /// - <https://developers.eveonline.com/api-explorer#/operations/GetCorporationsCorporationIdOrdersHistory>
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsStructuresStructureId>
         ///
         /// # Required Scopes
         /// - [`MarketsScopes::structure_markets`](crate::scope::MarketsScopes::structure_markets):
@@ -256,24 +252,24 @@ impl<'a> MarketEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`   (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `corporation_id`  (`i64`): The ID of the structure to retrieve market orders for
+        /// - `structure_id`    (`i64`): The ID of the structure to retrieve market orders for
         /// - `page`            (`i32`): The page of market orders to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`StructureMarketOrder`]`>`: List of market orders for the provided structure ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get list_orders_in_a_structure(
+        /// An ESI request builder that returns a list of market orders for the provided structure ID when sent.
+        auth fn list_orders_in_a_structure(
             access_token: &str,
             structure_id: i64;
             page: i32
-        ) -> Result<Vec<StructureMarketOrder>, Error>
-        url = "{}/markets/structures/{}";
-        label = "market orders";
-        required_scopes = ScopeBuilder::new().markets(MarketsScopes::new().structure_markets()).build();
+        ) -> EsiRequest<Vec<StructureMarketOrder>>
+        method = Method::GET;
+        path = "/markets/structures/{}";
+        required_scopes = ScopeBuilder::new()
+            .markets(MarketsScopes::new().structure_markets())
+            .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves list of entries with historical market statistics for the provided item type ID in provided region ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -286,24 +282,22 @@ impl<'a> MarketEndpoints<'a> {
         /// - `type_id`   (`i64`): ID of the item type to retrieve market statistics for in the specified region ID
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`MarketItemRegionStatistics`]`>`: List of entries with historical market statistics for the provided item type ID in provided region ID
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get list_historical_market_statistics_in_a_region(
-            region_id: i64,
+        /// An ESI request builder that returns a list of entries with historical market statistics for the provided item type ID in provided region ID when sent.
+        pub fn list_historical_market_statistics_in_a_region(
+            region_id: i64;
             type_id: i64
-        ) -> Result<Vec<MarketItemRegionStatistics>, Error>
-        url = "{}/markets/{}/history?type_id={}";
-        label = "regional market statistics for item";
+        ) -> EsiRequest<Vec<MarketItemRegionStatistics>>
+        method = Method::GET;
+        path = "/markets/{}/history";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of market orders within the provided region ID and of the specified order type
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
         ///
         /// # ESI Documentation
-        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsRegionIdHistory>
+        /// - <https://developers.eveonline.com/api-explorer#/operations/GetMarketsRegionIdOrders>
         ///
         /// # Arguments
         /// - `region_id`   (`i64`): ID of the region to retrieve market orders for
@@ -312,18 +306,17 @@ impl<'a> MarketEndpoints<'a> {
         /// - `page`            (`i32`): The page of market orders to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`MarketRegionOrder`]`>`: list of market orders within the provided region ID and of the specified order type
-        pub_get list_orders_in_a_region(
+        /// An ESI request builder that returns a list of market orders within the provided region ID and of the specified order type when sent.
+        pub fn list_orders_in_a_region(
             region_id: i64;
             order_type: OrderType,
             page: i32
-        ) -> Result<Vec<MarketRegionOrder>, Error>
-        url = "{}/markets/{}/orders";
-        label = "market orders";
+        ) -> EsiRequest<Vec<MarketRegionOrder>>
+        method = Method::GET;
+        path = "/markets/{}/orders";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of type IDs that have active market orders for the given region ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -336,13 +329,12 @@ impl<'a> MarketEndpoints<'a> {
         /// - `page`        (`i32`): The page of market orders to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<i64>`: list of type IDs that have active market orders for the given region ID
-        pub_get list_type_ids_relevant_to_a_market(
+        /// An ESI request builder that returns a list of type IDs that have active market orders for the given region ID when sent.
+        pub fn list_type_ids_relevant_to_a_market(
             region_id: i64;
             page: i32
-        ) -> Result<Vec<i64>, Error>
-        url = "{}/markets/{}/types";
-        label = "item type IDs with active market orders";
+        ) -> EsiRequest<Vec<i64>>
+        method = Method::GET;
+        path = "/markets/{}/types";
     }
 }

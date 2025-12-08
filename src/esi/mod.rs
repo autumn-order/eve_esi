@@ -1,81 +1,107 @@
-//! # EVE ESI Request Methods
+//! # EVE ESI Request Module
 //!
-//! Provides utility methods for making requests to EVE Online's ESI. These
-//! methods are used internally by the [`crate::endpoints`] module to make requests.
+//! This module provides types and methods for making requests to EVE Online's ESI API.
 //!
-//! Despite the use case intended primarily to be internal, these functions are exported publicly
-//! to allow for using the ESI client to make requests to custom ESI routes. This is useful
-//! for when this crate hasn't implemented an ESI route yet but you still wish to use the client
-//! to make requests to the route.
+//! ## Core Components
 //!
-//! For usage regarding making ESI requests with the eve_esi crate, see the
-//! [endpoints module documentation](crate::endpoints)
+//! - **[`EsiRequest`]**: Builder for configuring ESI requests with headers, authentication, and body data
+//! - **[`CacheStrategy`]**: Type-safe caching strategy with `chrono::DateTime` for conditional requests
+//! - **[`CachedResponse`]**: Response type that handles 304 Not Modified responses
+//! - **[`Language`]**: Type-safe enum for ESI language headers
+//! - **[`EsiApi`]**: Request executor that handles authentication and HTTP communication
 //!
-//! ## Modules
-//! - [`public`]: Methods for making public requests to ESI endpoints
-//! - [`authenticated`]: Methods for making authenticated requests to ESI endpoints using an access token
-//!
-//! ## Usage
+//! ## Basic Usage
 //!
 //! ```no_run
-//! use serde::{Serialize, Deserialize};
+//! use eve_esi::{Client, EsiRequest};
+//! use serde::Deserialize;
 //!
-//! #[tokio::main]
-//! async fn main() {
-//!     // Setup a basic Client with a user agent to identify requests
-//!     let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
-//!     let esi_client = eve_esi::Client::new(user_agent).expect("Failed to build ESI Client");
-//!
-//!     // Define the struct to deserialize the ESI response to
-//!     #[derive(Serialize, Deserialize)]
-//!     pub struct CharacterAffiliations {
-//!         pub alliance_id: Option<i64>,
-//!         pub character_id: i64,
-//!         pub corporation_id: i64,
-//!         pub faction_id: Option<i64>,
-//!     };
-//!
-//!     // Define the URL to make the request to
-//!     let esi_endpoint_url = "https://esi.evetech.net/characters/affiliation/";
-//!
-//!     // Make the request with the earlier defined struct
-//!     // - The first type, `<Vec<CharacterAffiliations>`, represents the response body to deserialize
-//!     // - The second type, `Vec<i64>`, represents the request body to serialize (not applicable to GET requests)
-//!     let character_ids = vec![2114794365];
-//!
-//!     let character_affiliations = esi_client
-//!         .esi()
-//!         .post_to_public_esi::<Vec<CharacterAffiliations>, Vec<i64>>(&esi_endpoint_url, &character_ids)
-//!         .await;
+//! #[derive(Deserialize)]
+//! struct ServerStatus {
+//!     players: i32,
+//!     server_version: String,
 //! }
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let client = Client::new("MyApp/1.0 (contact@example.com)")?;
+//!
+//! // Simple request
+//! let request = client.esi().new_request::<ServerStatus>("/status/");
+//! let status = request.send().await?;
+//! println!("Players online: {}", status.players);
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ## Cached Requests
+//!
+//! Use [`CacheStrategy`] with [`EsiRequest::send_cached`] to handle 304 Not Modified responses:
+//!
+//! ```no_run
+//! use eve_esi::{Client, EsiRequest, CacheStrategy, CachedResponse};
+//! use chrono::{DateTime, Utc};
+//! use serde::Deserialize;
+//!
+//! #[derive(Deserialize)]
+//! struct ServerStatus {
+//!     players: i32,
+//! }
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let client = Client::new("MyApp/1.0")?;
+//!
+//! // Make request with caching
+//! let last_check: DateTime<Utc> = Utc::now();
+//! let request = client.esi().new_request::<ServerStatus>("/status/");
+//! let response = request
+//!     .send_cached(CacheStrategy::IfModifiedSince(last_check))
+//!     .await?;
+//!
+//! if response.is_not_modified() {
+//!     println!("Data hasn't changed");
+//! } else if let CachedResponse::Fresh(data) = response {
+//!     println!("Fresh data: {} players", data.players);
+//! }
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ## Authenticated Requests
+//!
+//! ```no_run
+//! use eve_esi::{Client, EsiRequest};
+//! use serde::Deserialize;
+//!
+//! #[derive(Deserialize)]
+//! struct Character {
+//!     name: String,
+//! }
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let client = Client::new("MyApp/1.0")?;
+//! let access_token = "your_oauth2_token";
+//!
+//! let request = client.esi().new_request::<Character>("/characters/12345/")
+//!     .with_access_token(access_token)
+//!     .with_required_scopes(vec!["publicData".to_string()]);
+//!
+//! let character = request.send().await?;
+//! # Ok(())
+//! # }
 //! ```
 
-pub mod authenticated;
-pub mod public;
+// Submodules
+mod client;
+mod request;
+mod response;
 
+#[cfg(test)]
+mod tests;
+
+// Re-export public API
+pub use client::EsiApi;
+pub use request::{CacheStrategy, EsiRequest, Language};
+pub use response::{CacheHeaders, CachedResponse, EsiResponse, RateLimitHeaders};
+
+// Internal utilities
 mod util;
-
-use crate::Client;
-
-/// Provides utility methods for making requests EVE Online's ESI endpoints
-///
-/// See the [module-level documentation](super) for an overview, methods, & usage example.
-pub struct EsiApi<'a> {
-    pub(crate) client: &'a Client,
-}
-
-impl Client {
-    /// Access to utility functions to make ESI requests
-    ///
-    /// See the [module-level documentation](super) for an overview, methods, & usage example.
-    pub fn esi(&self) -> self::EsiApi<'_> {
-        self::EsiApi::new(self)
-    }
-}
-
-impl<'a> EsiApi<'a> {
-    /// Creates a new instance of [`EsiApi`]
-    fn new(client: &'a Client) -> Self {
-        Self { client }
-    }
-}

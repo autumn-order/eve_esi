@@ -14,7 +14,6 @@
 //! - [`login`]: Methods to begin the OAuth2 login process
 //! - [`token`]: Methods to retrieve, validate, & refresh OAuth2 tokens
 //! - [`jwk`]: Methods to handle JSON web keys used to validate authentication tokens
-//! - [`error`]: Error enum for any OAuth2 related errors.
 //!
 //! ## Usage Examples
 //!
@@ -23,7 +22,6 @@
 //! - [Validating an access token](crate::oauth2::token)
 //! - [Refreshing an access token](crate::oauth2::token)
 
-pub mod error;
 pub mod jwk;
 pub mod login;
 pub mod token;

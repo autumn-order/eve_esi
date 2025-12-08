@@ -28,6 +28,29 @@ use tower_sessions::{cookie::SameSite, Expiry, MemoryStore, Session, SessionMana
 
 const STATE_KEY: &str = "state";
 
+/// Shared error enum that implements an internal server error response that can be returned
+#[derive(thiserror::Error, Debug)]
+enum Error {
+    #[error(transparent)]
+    Esi(#[from] eve_esi::Error),
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+    #[error(transparent)]
+    Axum(#[from] axum::Error),
+    #[error(transparent)]
+    Session(#[from] tower_sessions::session::Error),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+}
+
+// We'll log all errors as server errors for now, in a production application you would
+// want appropriate 400 responses for errors caused by users
+impl IntoResponse for Error {
+    fn into_response(self) -> Response {
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(self.to_string())).into_response()
+    }
+}
+
 #[derive(Deserialize)]
 struct CallbackParams {
     state: String,
@@ -44,7 +67,7 @@ struct Character {
 struct State(String);
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     // Enable logging
     // Run with `RUST_LOG=eve_esi=debug cargo run --example sso` to see logs
     env_logger::init();
@@ -73,10 +96,7 @@ async fn main() {
 
     // Optional: Build a reqwest client, share it with ESI client to share an HTTP request pool for performance
     // Only do this if your app uses reqwest client elsewhere beyond ESI requests
-    let reqwest_client = reqwest::Client::builder()
-        .user_agent(&user_agent)
-        .build()
-        .expect("Failed to build reqwest client");
+    let reqwest_client = reqwest::Client::builder().user_agent(&user_agent).build()?;
 
     // Build an ESI client with a user agent & optional reqwest client
     let esi_client: eve_esi::Client = eve_esi::Client::builder()
@@ -87,8 +107,7 @@ async fn main() {
         .client_id(&esi_client_id)
         .client_secret(&esi_secret_secret)
         .callback_url(&callback_url)
-        .build()
-        .expect("Failed to build Client");
+        .build()?;
 
     // Create a session layer, we use this to store the state code between the login & callback URLs
     // to validate in the callback to prevent CSRF.
@@ -112,12 +131,11 @@ async fn main() {
         .layer(session_layer);
 
     // Start the API server
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080")
-        .await
-        .unwrap();
-
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await?;
     println!("Login at http://localhost:8080/login");
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app).await?;
+
+    Ok(())
 }
 
 async fn login(session: Session, Extension(esi_client): Extension<eve_esi::Client>) -> Response {
@@ -128,15 +146,7 @@ async fn login(session: Session, Extension(esi_client): Extension<eve_esi::Clien
     let login_url = match esi_client.oauth2().login_url(scopes) {
         Ok(login_url) => login_url,
         // If OAuth2 is not properly configured such as .env not being set then an error will be returned
-        Err(err) => {
-            println!("Error initiating OAuth login: {}", err);
-
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": "Internal Server Error" })),
-            )
-                .into_response();
-        }
+        Err(err) => return Error::from(err).into_response(),
     };
 
     // Store the state we'll validate in callback to prevent CSRF
@@ -170,15 +180,7 @@ async fn callback(
             }
         },
         // State was not found in session store, return an error
-        Err(err) => {
-            println!("Error initiating OAuth login: {}", err);
-
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": "Internal Server Error" })),
-            )
-                .into_response();
-        }
+        Err(err) => return Error::from(err).into_response(),
     };
 
     // Validate the state to ensure it matches as expected
@@ -193,15 +195,7 @@ async fn callback(
     // Retrieve the access token
     let token = match esi_client.oauth2().get_token(&params.0.code).await {
         Ok(token) => token,
-        Err(err) => {
-            println!("Error retrieving token: {}", err);
-
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": "Internal Server Error" })),
-            )
-                .into_response();
-        }
+        Err(err) => return Error::from(err).into_response(),
     };
 
     // Validate the token
@@ -211,15 +205,8 @@ async fn callback(
         .await
     {
         Ok(claims) => claims,
-        Err(err) => {
-            println!("Error validating token: {}", err);
-
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": "Internal Server Error" })),
-            )
-                .into_response();
-        }
+        // Token validation failed
+        Err(err) => return Error::from(err).into_response(),
     };
 
     // Use utility function to parse `sub` field of claims to a character ID
@@ -235,19 +222,8 @@ async fn callback(
 
             (StatusCode::OK, Json(character)).into_response()
         }
-        Err(err) => {
-            // Error if the sub field can't be parsed to a character ID
-            // This shouldn't occur unless EVE changes their sub field format
-            println!(
-                "Error parsing JWT claims `sub` field to character id: {}",
-                err
-            );
-
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": "Internal Server Error" })),
-            )
-                .into_response();
-        }
+        // Error if the sub field can't be parsed to a character ID
+        // This shouldn't occur unless EVE changes their sub field format
+        Err(err) => Error::from(err).into_response(),
     }
 }

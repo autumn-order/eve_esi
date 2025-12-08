@@ -46,6 +46,7 @@
 //!     let corporation = esi_client
 //!         .corporation()
 //!         .get_corporation_information(corporation_id)
+//!         .send()
 //!         .await
 //!         .unwrap();
 //! }
@@ -74,6 +75,7 @@
 //!     let notifications = esi_client
 //!         .character()
 //!         .get_character_notifications(&access_token, character_id)
+//!         .send()
 //!         .await
 //!         .unwrap();
 //! }

@@ -27,7 +27,7 @@
 //!         .expect("Failed to build Client");
 //!
 //!     // Get information about the corporation The Order of Autumn (id: 98785281)
-//!     let corporation = esi_client.corporation().get_corporation_information(98785281).await.unwrap();
+//!     let corporation = esi_client.corporation().get_corporation_information(98785281).send().await.unwrap();
 //!     println!("Corporation name: {}", corporation.name);
 //! }
 //! ```
@@ -56,8 +56,8 @@
 //! ### Error Types
 //!
 //! - [Runtime errors](crate::error::Error)
-//! - [Configuration errors](crate::error::ConfigError)
-//! - [OAuth2 runtime errors](crate::oauth2::error::OAuthError)
+//! - [Configuration errors](crate::error::config::ConfigError)
+//! - [OAuth2 runtime errors](crate::error::oauth2::OAuthError)
 //!
 //! ### Custom Endpoints
 //!
@@ -109,8 +109,8 @@ pub mod scope;
 pub use crate::builder::ClientBuilder;
 pub use crate::client::Client;
 pub use crate::config::{Config, ConfigBuilder};
-pub use crate::error::{ConfigError, Error};
-pub use crate::oauth2::error::OAuthError;
+pub use crate::error::{ConfigError, Error, EsiError, OAuthError};
+pub use crate::esi::{CacheStrategy, CachedResponse, EsiRequest, EsiResponse, Language};
 pub use crate::scope::ScopeBuilder;
 
 mod constant;

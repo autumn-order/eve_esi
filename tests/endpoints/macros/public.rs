@@ -1,9 +1,10 @@
 // Macro which creates the success and error response for tests
 
-macro_rules! public_success_test {
+macro_rules! public_esi_request_success_test {
     (
         $test_name:ident,
-        $call:expr,
+        $endpoint:ident,
+        $method:ident [$($args:expr),* $(,)?],
         $request_type:expr,
         $url:expr,
         $mock_response:expr
@@ -20,7 +21,9 @@ macro_rules! public_success_test {
                     .with_body($mock_response.to_string())
                     .create();
 
-                let result = ($call)(esi_client).await;
+                let endpoints = esi_client.$endpoint();
+                let request = endpoints.$method($($args),*);
+                let result = request.send().await;
 
                 // Assert 1 request was received for mock endpoint
                 mock_endpoint.assert();
@@ -31,10 +34,11 @@ macro_rules! public_success_test {
     };
 }
 
-macro_rules! public_error_test {
+macro_rules! public_esi_request_error_test {
     (
         $test_name:ident,
-        $call:expr,
+        $endpoint:ident,
+        $method:ident [$($args:expr),* $(,)?],
         $request_type:expr,
         $url:expr
     ) => {
@@ -50,7 +54,9 @@ macro_rules! public_error_test {
                     .with_body(r#"{"error": "Internal server error"}"#)
                     .create();
 
-                let result = ($call)(esi_client).await;
+                let endpoints = esi_client.$endpoint();
+                let request = endpoints.$method($($args),*);
+                let result = request.send().await;
 
                 // Assert 1 request was received for mock endpoint
                 mock_endpoint.assert();
@@ -58,22 +64,23 @@ macro_rules! public_error_test {
                 assert!(result.is_err());
 
                 assert!(
-                    matches!(result, Err(eve_esi::Error::ReqwestError(ref e)) if e.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR))
+                    matches!(result, Err(eve_esi::Error::EsiError(ref e)) if e.status == 500)
                 );
             }
         }
     };
 }
 
-macro_rules! public_endpoint_test {
+macro_rules! public_esi_request_test {
     (
         $test_name:ident,
-        $call:expr,
+        $endpoint:ident,
+        $method:ident [$($args:expr),* $(,)?],
         request_type = $request_type:expr,
         url = $url:expr,
         mock_response = $mock_response:expr
     ) => {
-        public_success_test! {$test_name, $call, $request_type, $url, $mock_response}
-        public_error_test! {$test_name, $call, $request_type, $url}
+        public_esi_request_success_test! {$test_name, $endpoint, $method[$($args),*], $request_type, $url, $mock_response}
+        public_esi_request_error_test! {$test_name, $endpoint, $method[$($args),*], $request_type, $url}
     };
 }

@@ -68,10 +68,10 @@ pub fn create_mock_token_keys(use_alternate_key: bool) -> EveJwtKeys {
         skip_unresolved_json_web_keys: false,
         keys: vec![
             EveJwtKey::RS256 {
-                e: e,
+                e,
                 kid: RSA_KEY_ID.to_string(),
                 kty: "RSA".to_string(),
-                n: n,
+                n,
                 r#use: "sig".to_string(),
             },
             // Not actually used but EVE's API does return an ES256 key alongside the RS256 so it is included

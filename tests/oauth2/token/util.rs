@@ -17,15 +17,15 @@ use mockito::{Mock, ServerGuard};
 pub(crate) fn get_token_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
     let mock_token = create_mock_token(false);
 
-    let mock = server
+    
+
+    server
         .mock("POST", "/v2/oauth/token")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(serde_json::to_string(&mock_token).unwrap())
         .expect(expect)
-        .create();
-
-    mock
+        .create()
 }
 
 /// Returns status code 500 internal server error
@@ -42,13 +42,13 @@ pub(crate) fn get_token_success_response(server: &mut ServerGuard, expect: usize
 /// - [`mockito::Mock`]: A mock used with the `.assert()` method ensure expected requests
 ///   were received.
 pub(crate) fn get_token_bad_request_response(server: &mut ServerGuard, expect: usize) -> Mock {
-    let mock = server
+    
+
+    server
         .mock("POST", "/v2/oauth/token")
         .with_status(400)
         .with_header("content-type", "application/json")
         .with_body(r#"{"error": "Bad request"}"#)
         .expect(expect)
-        .create();
-
-    mock
+        .create()
 }

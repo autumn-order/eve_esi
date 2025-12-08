@@ -25,10 +25,12 @@
 //! | [`ContactsEndpoints::get_corporation_contact_labels`] | Get list of contact labels for the provided corporation ID |
 
 use crate::{
+    esi::EsiRequest,
     model::contacts::{AllianceContact, CharacterContact, ContactLabel, CorporationContact},
     scope::{AlliancesScopes, CharactersScopes, CorporationsScopes},
-    Client, Error, ScopeBuilder,
+    Client, ScopeBuilder,
 };
+use reqwest::Method;
 
 /// Provides methods for accessing contact-related endpoints of the EVE Online ESI API.
 ///
@@ -46,7 +48,7 @@ impl<'a> ContactsEndpoints<'a> {
         Self { client }
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of contacts for the provided alliance ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -63,21 +65,19 @@ impl<'a> ContactsEndpoints<'a> {
         /// - `alliance_id`  (`i64`): The ID of the alliance to retrieve contacts for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`AllianceContact`]`>`: list of contacts for the provided alliance ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_alliance_contacts(
+        /// An ESI request builder that returns a list of alliance contacts when sent.
+        auth fn get_alliance_contacts(
             access_token: &str,
             alliance_id: i64
-        ) -> Result<Vec<AllianceContact>, Error>
-        url = "{}/alliances/{}/contacts";
-        label = "contacts";
+        ) -> EsiRequest<Vec<AllianceContact>>
+        method = Method::GET;
+        path = "/alliances/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .alliances(AlliancesScopes::new().read_contacts())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of contact labels for the provided alliance ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -94,21 +94,19 @@ impl<'a> ContactsEndpoints<'a> {
         /// - `alliance_id`  (`i64`): The ID of the alliance to retrieve contacts labels for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`ContactLabel`]`>`: list of contact labels for the provided alliance ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_alliance_contact_labels(
+        /// An ESI request builder that returns a list of contact labels for the alliance when sent.
+        auth fn get_alliance_contact_labels(
             access_token: &str,
             alliance_id: i64
-        ) -> Result<Vec<ContactLabel>, Error>
-        url = "{}/alliances/{}/contacts/labels";
-        label = "contact labels";
+        ) -> EsiRequest<Vec<ContactLabel>>
+        method = Method::GET;
+        path = "/alliances/{}/contacts/labels";
         required_scopes = ScopeBuilder::new()
             .alliances(AlliancesScopes::new().read_contacts())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Delete list of contacts by ID for provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -122,26 +120,24 @@ impl<'a> ContactsEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `character_id`  (`i64`): The ID of the alliance to retrieve contacts labels for
+        /// - `character_id`  (`i64`): The ID of the character to delete contacts for
         /// - `contact_ids`   (`Vec<i64>`): List of contact IDs to delete (up to 20 per request)
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `()`: No error if request was successful
-        /// - [`Error`]: An error if the fetch request fails
-        auth_delete delete_contacts(
+        /// An ESI request builder that deletes the specified contacts when sent.
+        auth fn delete_contacts(
             access_token: &str,
             character_id: i64;
             contact_ids: Vec<i64>
-        ) -> Result<(), Error>
-        url = "{}/characters/{}/contacts";
-        label = "delete contacts";
+        ) -> EsiRequest<()>
+        method = Method::DELETE;
+        path = "/characters/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().write_contacts())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of contacts for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -158,21 +154,19 @@ impl<'a> ContactsEndpoints<'a> {
         /// - `character_id`  (`i64`): The ID of the character to retrieve contacts for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterContact`]`>`: list of contacts for the provided character ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_contacts(
+        /// An ESI request builder that returns a list of character contacts when sent.
+        auth fn get_contacts(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterContact>, Error>
-        url = "{}/characters/{}/contacts";
-        label = "contacts";
+        ) -> EsiRequest<Vec<CharacterContact>>
+        method = Method::GET;
+        path = "/characters/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_contacts())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Add list of contact IDs for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -194,26 +188,23 @@ impl<'a> ContactsEndpoints<'a> {
         ///   be applied to characters)
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<i64>`: List of IDs of the created contacts
-        /// - [`Error`]: An error if the fetch request fails
-        auth_post add_contacts(
+        /// An ESI request builder that adds contacts and returns a list of the created contact IDs when sent.
+        auth fn add_contacts(
             access_token: &str,
-            contact_ids: Vec<i64>,
             character_id: i64;
             standing: f64,
             label_ids: Vec<i64>,
-            watched: bool,
-        ) -> Result<Vec<i64>, Error>
-        url = "{}/characters/{}/contacts";
-        label = "add contacts";
+            watched: bool
+        ) -> EsiRequest<Vec<i64>>
+        method = Method::POST;
+        path = "/characters/{}/contacts";
         required_scopes =  ScopeBuilder::new()
             .characters(CharactersScopes::new().write_contacts())
             .build();
+        body = contact_ids: Vec<i64>;
     }
 
-    define_endpoint! {
-
+    define_esi_endpoint! {
         /// Edit list of contact IDs for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -235,25 +226,23 @@ impl<'a> ContactsEndpoints<'a> {
         ///   be applied to characters)
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<i64>`: List of IDs of the edited contacts
-        /// - [`Error`]: An error if the fetch request fails
-        auth_put edit_contacts(
+        /// An ESI request builder that updates contacts and returns a list of the edited contact IDs when sent.
+        auth fn edit_contacts(
             access_token: &str,
-            contact_ids: Vec<i64>,
             character_id: i64;
             standing: f64,
             label_ids: Vec<i64>,
-            watched: bool,
-        ) -> Result<Vec<i64>, Error>
-        url = "{}/characters/{}/contacts";
-        label = "edit contacts";
+            watched: bool
+        ) -> EsiRequest<Vec<i64>>
+        method = Method::PUT;
+        path = "/characters/{}/contacts";
         required_scopes =  ScopeBuilder::new()
             .characters(CharactersScopes::new().write_contacts())
             .build();
+        body = contact_ids: Vec<i64>;
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of contact labels for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -270,21 +259,19 @@ impl<'a> ContactsEndpoints<'a> {
         /// - `character_id`  (`i64`): The ID of the character to retrieve contacts labels for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`ContactLabel`]`>`: list of contact labels for the provided character ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_contact_labels(
+        /// An ESI request builder that returns a list of contact labels for the character when sent.
+        auth fn get_contact_labels(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<ContactLabel>, Error>
-        url = "{}/characters/{}/contacts/labels";
-        label = "contact labels";
+        ) -> EsiRequest<Vec<ContactLabel>>
+        method = Method::GET;
+        path = "/characters/{}/contacts/labels";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_contacts())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of contacts for the provided corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -294,28 +281,26 @@ impl<'a> ContactsEndpoints<'a> {
         ///
         /// # Required Scopes
         /// - [`CorporationsScopes::read_contacts`](crate::scope::CorporationsScopes::read_contacts):
-        ///   `esi-alliances.read_contacts.v1`
+        ///   `esi-corporations.read_contacts.v1`
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `corporation_id`  (`i64`): The ID of the corporation to retrieve contacts for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CorporationContact`]`>`: list of contacts for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_contacts(
+        /// An ESI request builder that returns a list of corporation contacts when sent.
+        auth fn get_corporation_contacts(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<CorporationContact>, Error>
-        url = "{}/corporations/{}/contacts";
-        label = "contacts";
+        ) -> EsiRequest<Vec<CorporationContact>>
+        method = Method::GET;
+        path = "/corporations/{}/contacts";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_contacts())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of contact labels for the provided corporation ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -332,15 +317,13 @@ impl<'a> ContactsEndpoints<'a> {
         /// - `corporation_id` (`i64`): The ID of the corporation to retrieve contacts labels for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`ContactLabel`]`>`: list of contact labels for the provided corporation ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_corporation_contact_labels(
+        /// An ESI request builder that returns a list of contact labels for the corporation when sent.
+        auth fn get_corporation_contact_labels(
             access_token: &str,
             corporation_id: i64
-        ) -> Result<Vec<ContactLabel>, Error>
-        url = "{}/corporations/{}/contacts/labels";
-        label = "contact labels";
+        ) -> EsiRequest<Vec<ContactLabel>>
+        method = Method::GET;
+        path = "/corporations/{}/contacts/labels";
         required_scopes = ScopeBuilder::new()
             .corporations(CorporationsScopes::new().read_contacts())
             .build();

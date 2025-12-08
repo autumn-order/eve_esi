@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "eve_esi"
-version = "0.4.9"
+version = "0.5.0-rc.1"
 dependencies = [
  "axum",
  "base64",

@@ -555,9 +555,8 @@ mod tests {
         assert_eq!(config.jwt_key_cache_config.refresh_max_retries, 0);
 
         // Assert JWT key background refresh settings were set
-        assert_eq!(
-            config.jwt_key_cache_config.background_refresh_enabled,
-            false
+        assert!(
+            !config.jwt_key_cache_config.background_refresh_enabled
         );
         assert_eq!(config.jwt_key_cache_config.background_refresh_threshold, 1);
 
@@ -566,7 +565,7 @@ mod tests {
         assert_eq!(config.jwt_audience, "example");
 
         // Assert ESI request settings was set
-        assert_eq!(config.esi_validate_token_before_request, false)
+        assert!(!config.esi_validate_token_before_request)
     }
 
     /// Expect an error setting the JWK background refresh threshold to 0

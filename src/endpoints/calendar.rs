@@ -20,13 +20,15 @@
 //! | [`CalendarEndpoints::get_attendees`]                 | Get list of calendar event attendee character IDs & responses for the event ID                    |
 
 use crate::{
+    esi::EsiRequest,
     model::{
         calendar::{CalendarEvent, CalendarEventAttendee, CalendarEventSummary},
         enums::calendar::PutCalendarEventResponse,
     },
     scope::CalendarScopes,
-    Client, Error, ScopeBuilder,
+    Client, ScopeBuilder,
 };
+use reqwest::Method;
 
 /// Provides methods for accessing calendar-related endpoints of the EVE Online ESI API.
 ///
@@ -44,7 +46,7 @@ impl<'a> CalendarEndpoints<'a> {
         Self { client }
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of summaries for the last 50 calendar events for provided character ID
         ///
         /// Note: does not currently support the optional parameter `from_event` specified
@@ -68,21 +70,19 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `character_id`  (`i64`): The ID of the character to retrieve calendar event summaries for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CalendarEventSummary`]`>`: list of summaries for the last 50 calendar events for provided character ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get list_calendar_event_summaries(
+        /// An ESI request builder that returns a list of calendar event summaries for the character when sent.
+        auth fn list_calendar_event_summaries(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CalendarEventSummary>, Error>
-        url = "{}/characters/{}/calendar";
-        label = "calendar events";
+        ) -> EsiRequest<Vec<CalendarEventSummary>>
+        method = Method::GET;
+        path = "/characters/{}/calendar";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().read_calendar_events())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get all information for the provided calendar event ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -100,22 +100,20 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_id`      (`i64`): The ID of the calendar event to retrieve information for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CalendarEvent`]: Information for the provided calendar event ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_an_event(
+        /// An ESI request builder that returns detailed information about a specific calendar event when sent.
+        auth fn get_an_event(
             access_token: &str,
             character_id: i64,
             event_id: i64
-        ) -> Result<CalendarEvent, Error>
-        url = "{}/characters/{}/calendar/{}";
-        label = "calendar events";
+        ) -> EsiRequest<CalendarEvent>
+        method = Method::GET;
+        path = "/characters/{}/calendar/{}";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().read_calendar_events())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Respond to a calendar event on behalf of the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -129,28 +127,26 @@ impl<'a> CalendarEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token`  (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `event_response` ([`PutCalendarEventResponse`]): The response to send for the character
         /// - `character_id`  (`i64`): The ID of the character to respond to the event on behalf of.
         /// - `event_id`      (`i64`): The ID of the calendar event to respond to
+        /// - `event_response` ([`PutCalendarEventResponse`]): The response to send for the character
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - (): If no error, response was successful
-        /// - [`Error`]: An error if the fetch request fails
-        auth_put respond_to_an_event(
+        /// An ESI request builder that submits a response to a calendar event when sent.
+        auth fn respond_to_an_event(
             access_token: &str,
-            event_response: PutCalendarEventResponse,
             character_id: i64,
             event_id: i64
-        ) -> Result<(), Error>
-        url = "{}/characters/{}/calendar/{}";
-        label = "respond to calendar event";
+        ) -> EsiRequest<()>
+        method = Method::PUT;
+        path = "/characters/{}/calendar/{}";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().respond_calendar_events())
             .build();
+        body = event_response: PutCalendarEventResponse;
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Get list of calendar event attendee character IDs & responses for the event ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -168,16 +164,14 @@ impl<'a> CalendarEndpoints<'a> {
         /// - `event_id`      (`i64`): The ID of the calendar event to retrieve attendees for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CalendarEventAttendee`]`>`: list of attendee character IDs & responses for the event ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_attendees(
+        /// An ESI request builder that returns a list of attendees and their responses for a calendar event when sent.
+        auth fn get_attendees(
             access_token: &str,
             character_id: i64,
             event_id: i64
-        ) -> Result<Vec<CalendarEventAttendee>, Error>
-        url = "{}/characters/{}/calendar/{}/attendees";
-        label = "calendar event attendees";
+        ) -> EsiRequest<Vec<CalendarEventAttendee>>
+        method = Method::GET;
+        path = "/characters/{}/calendar/{}/attendees";
         required_scopes = ScopeBuilder::new()
             .calendar(CalendarScopes::new().read_calendar_events())
             .build();

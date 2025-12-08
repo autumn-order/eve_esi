@@ -324,7 +324,7 @@ mod is_expired_tests {
 
         let result = mock_claims.is_expired();
 
-        assert_eq!(result, false);
+        assert!(!result);
     }
 
     /// Ensures that when token is expired, function returns true
@@ -336,7 +336,7 @@ mod is_expired_tests {
 
         let result = mock_claims.is_expired();
 
-        assert_eq!(result, true);
+        assert!(result);
     }
 }
 
@@ -353,7 +353,7 @@ mod has_scopes_tests {
         let expected_scopes = vec!["publicData".to_string()];
         let result = mock_claims.has_scopes(&expected_scopes);
 
-        assert_eq!(result, true);
+        assert!(result);
     }
 
     /// Test that function returns false due to missing scopes
@@ -365,7 +365,7 @@ mod has_scopes_tests {
         let expected_scopes = vec!["publicData".to_string()];
         let result = mock_claims.has_scopes(&expected_scopes);
 
-        assert_eq!(result, false);
+        assert!(!result);
     }
 }
 

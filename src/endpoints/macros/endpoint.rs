@@ -1,210 +1,253 @@
-/// Common macro for handling the ESI endpoint parts
-macro_rules! esi_common_impl {
-    (
-        $label:expr,
-        $url:expr,
-        $api_call:expr,
-        ($($param_name:ident),*)
-    ) => {
-        {
-            endpoint_debug_log!($label, $url $(, ($param_name))*);
-
-            let start_time = std::time::Instant::now();
-
-            let result = $api_call.await;
-
-            let elapsed = start_time.elapsed();
-            match result {
-                Ok(response) => {
-                    endpoint_info_log!($label, elapsed.as_millis() $(, ($param_name))*);
-
-                    Ok(response)
-                }
-                Err(err) => {
-                    endpoint_error_log!($label, elapsed.as_millis(), err $(, ($param_name))*);
-
-                    Err(err.into())
-                }
-            }
-        }
-    };
-}
-
-/// Macro for constructing an ESI endpoint request URL
-macro_rules! build_endpoint_url {
+/// Internal macro for constructing an ESI endpoint request with path and query parameters.
+///
+/// This macro handles path construction for endpoints with various parameter combinations:
+/// - Path parameters only
+/// - Path and query parameters
+///
+/// Query parameters are automatically serialized to JSON and URL-encoded.
+macro_rules! build_endpoint_path {
     // No query params
-    ($self_ident:ident, $fmt:expr, ($($path:ident),* $(,)?)) => {{
-        url::Url::parse(&format!($fmt, $self_ident.client.inner.esi_url, $($path),* ))?
+    ($fmt:expr, ($($path:ident),* $(,)?)) => {{
+        format!($fmt, $($path),* )
     }};
 
     // One or more query params
-    ($self_ident:ident, $fmt:expr, ($($path:ident),* $(,)?), ($($query:ident),+ $(,)?)) => {{
-        let mut url = url::Url::parse(&format!($fmt, $self_ident.client.inner.esi_url, $($path),* ))?;
+    ($fmt:expr, ($($path:ident),* $(,)?), ($($query:ident),+ $(,)?)) => {{
+        let mut path = format!($fmt, $($path),* );
 
         let mut ser = url::form_urlencoded::Serializer::new(String::new());
 
         $(
-            let val = serde_json::to_string(&$query).map_err(|e| Error::from(e))?;
+            // Serialize to JSON and add to query string
+            // If serialization fails, we use a placeholder value
+            // Real errors will be caught when the request is sent
+            let val = serde_json::to_string(&$query).unwrap_or_else(|_| String::from("null"));
             ser.append_pair(stringify!($query), &val);
         )*
 
-        url.set_query(Some(&ser.finish()));
+        let query_string = ser.finish();
+        if !query_string.is_empty() {
+            path.push('?');
+            path.push_str(&query_string);
+        }
 
-        url
+        path
     }};
 }
 
-/// Macro for defining public & authenticated ESI endpoints
+/// Internal macro for building the `EsiRequest<T>` with common configuration.
 ///
-/// For an overview of methods and a usage example, please see the [module-level documentation](super)
-macro_rules! define_endpoint {
-    // GET endpoint macro
+/// This macro handles the construction of `EsiRequest` instances with the appropriate settings:
+/// - Public endpoints: path and HTTP method
+/// - Authenticated endpoints: path, HTTP method, access token, and required scopes
+/// - Endpoints with body: Serializes the body to JSON and includes it in the request
+///
+/// The macro automatically handles body serialization, using a null value as a fallback
+/// if serialization fails (actual errors are handled when `.send()` is called).
+macro_rules! build_esi_request_internal {
+    // Public endpoint with body
+    (
+        client = $client:expr,
+        path = $path:expr,
+        method = $method:expr,
+        return_type = $return_type:ty,
+        body = $body_name:ident
+    ) => {{
+        // Serialize body - if it fails, store null and let send() handle the error
+        let body_value = serde_json::to_value(&$body_name).unwrap_or(serde_json::Value::Null);
+        $client
+            .esi()
+            .new_request::<$return_type>($path)
+            .with_method($method)
+            .with_body_json(body_value)
+    }};
+
+    // Public endpoint without body
+    (
+        client = $client:expr,
+        path = $path:expr,
+        method = $method:expr,
+        return_type = $return_type:ty
+    ) => {{
+        $client
+            .esi()
+            .new_request::<$return_type>($path)
+            .with_method($method)
+    }};
+
+    // Authenticated endpoint with body
+    (
+        client = $client:expr,
+        path = $path:expr,
+        method = $method:expr,
+        return_type = $return_type:ty,
+        body = $body_name:ident,
+        access_token = $access_token:ident,
+        required_scopes = $required_scopes:expr
+    ) => {{
+        // Serialize body - if it fails, store null and let send() handle the error
+        let body_value = serde_json::to_value(&$body_name).unwrap_or(serde_json::Value::Null);
+        $client
+            .esi()
+            .new_request::<$return_type>($path)
+            .with_method($method)
+            .with_access_token($access_token)
+            .with_required_scopes($required_scopes)
+            .with_body_json(body_value)
+    }};
+
+    // Authenticated endpoint without body
+    (
+        client = $client:expr,
+        path = $path:expr,
+        method = $method:expr,
+        return_type = $return_type:ty,
+        access_token = $access_token:ident,
+        required_scopes = $required_scopes:expr
+    ) => {{
+        $client
+            .esi()
+            .new_request::<$return_type>($path)
+            .with_method($method)
+            .with_access_token($access_token)
+            .with_required_scopes($required_scopes)
+    }};
+}
+
+/// Macro for defining ESI endpoints that return `EsiRequest<T>` builders.
+///
+/// This macro generates endpoint methods that return `EsiRequest<T>` structs, allowing users
+/// to customize requests with additional headers, caching strategies, and other options before
+/// calling `.send()` or `.send_cached()` to execute the request.
+///
+/// # Features
+///
+/// - **Path parameters**: Embedded directly in the path template with `{}`
+/// - **Query parameters**: Automatically serialized and appended to the path
+/// - **Body parameters**: Serialized to JSON for POST/PUT/DELETE requests
+/// - **Authentication**: Automatic access token and scope validation for authenticated endpoints
+/// - **Flexible HTTP methods**: Supports GET, POST, PUT, DELETE via `reqwest::Method`
+///
+/// # Syntax Variants
+///
+/// ## Public Endpoint (No Authentication)
+/// ```ignore
+/// define_esi_endpoint! {
+///     pub fn function_name(
+///         path_param: Type;
+///         query_param: Type
+///     ) -> EsiRequest<ReturnType>
+///     method = Method::GET;
+///     path = "/path/{}";
+/// }
+/// ```
+///
+/// ## Authenticated Endpoint
+/// ```ignore
+/// define_esi_endpoint! {
+///     auth fn function_name(
+///         access_token: &str,
+///         path_param: Type;
+///         query_param: Type
+///     ) -> EsiRequest<ReturnType>
+///     method = Method::GET;
+///     path = "/path/{}";
+///     required_scopes = ScopeBuilder::new().scope(...).build();
+/// }
+/// ```
+///
+/// ## Endpoint with Body
+/// ```ignore
+/// define_esi_endpoint! {
+///     auth fn function_name(
+///         access_token: &str,
+///         path_param: Type;
+///         query_param: Type
+///     ) -> EsiRequest<ReturnType>
+///     method = Method::POST;
+///     path = "/path/{}";
+///     required_scopes = ScopeBuilder::new().scope(...).build();
+///     body = body_param: BodyType;
+/// }
+/// ```
+///
+/// For detailed examples and usage patterns, see the [module-level documentation](super)
+macro_rules! define_esi_endpoint {
+    // Public endpoint with body but no path parameters (e.g., character_affiliation)
     (
         $(#[$attr:meta])*
-        pub_get $fn_name:ident(
+        pub fn $fn_name:ident(
             $(&self,)?
-            $($path_name:ident: $path_ty:ty),* $(,)?
-            $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<$return_type:ty, Error>
-        url = $url:expr;
-        label = $label:expr;
+        ) -> EsiRequest<$return_type:ty>
+        method = $method:expr;
+        path = $path:expr;
+        body = $body_name:ident: $body_type:ty;
     ) => {
         $(#[$attr])*
-        pub async fn $fn_name(&self, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
-
-            let esi = self.client.esi();
-            let api_call = esi
-                .get_from_public_esi::<$return_type>(url.as_str());
-
-            esi_common_impl!($label, url, api_call, ($($path_name),*))
+        pub fn $fn_name(&self, $body_name: $body_type) -> EsiRequest<$return_type> {
+            build_esi_request_internal!(
+                client = self.client,
+                path = $path,
+                method = $method,
+                return_type = $return_type,
+                body = $body_name
+            )
         }
     };
 
-    // POST endpoint macro
+    // Public endpoint (no authentication)
     (
         $(#[$attr:meta])*
-        pub_post $fn_name:ident(
+        pub fn $fn_name:ident(
             $(&self,)?
-            $body_name:ident: $body_type:ty,
             $($path_name:ident: $path_ty:ty),* $(,)?
             $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<$return_type:ty, Error>
-        url = $url:expr;
-        label = $label:expr;
+        ) -> EsiRequest<$return_type:ty>
+        method = $method:expr;
+        path = $path:expr;
+        $(body = $body_name:ident: $body_type:ty;)?
     ) => {
         $(#[$attr])*
-        pub async fn $fn_name(&self, $body_name: $body_type, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
+        pub fn $fn_name(&self, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<$return_type> {
+            let path = build_endpoint_path!($path, ($($path_name),*) $(, ($($query_name),*) )? );
 
-            let esi = self.client.esi();
-            let api_call = esi
-                .post_to_public_esi::<$return_type, $body_type>(url.as_str(), &$body_name);
-
-            esi_common_impl!($label, url, api_call, ($($path_name),*))
+            build_esi_request_internal!(
+                client = self.client,
+                path = path,
+                method = $method,
+                return_type = $return_type
+                $(, body = $body_name)?
+            )
         }
     };
 
-    // Authenticated GET endpoint macro
+    // Authenticated endpoint
     (
         $(#[$attr:meta])*
-        auth_get $fn_name:ident(
+        auth fn $fn_name:ident(
             $(&self,)?
             access_token: &str,
             $($path_name:ident: $path_ty:ty),* $(,)?
             $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<$return_type:ty, Error>
-        url = $url:expr;
-        label = $label:expr;
+        ) -> EsiRequest<$return_type:ty>
+        method = $method:expr;
+        path = $path:expr;
         required_scopes = $required_scopes:expr;
+        $(body = $body_name:ident: $body_type:ty;)?
     ) => {
         $(#[$attr])*
-        pub async fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
+        pub fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),* $(, $($query_name: $query_ty),* )? $( , $body_name: $body_type )? ) -> EsiRequest<$return_type> {
+            let path = build_endpoint_path!($path, ($($path_name),*) $(, ($($query_name),*) )? );
 
-            let esi = self.client.esi();
-            let api_call = esi
-                .get_from_authenticated_esi::<$return_type>(url.as_str(), access_token, $required_scopes);
-
-            esi_common_impl!($label, url, api_call, ($($path_name),*))
-        }
-    };
-
-    // Authenticated POST endpoint macro
-    (
-        $(#[$attr:meta])*
-        auth_post $fn_name:ident(
-            $(&self,)?
-            access_token: &str,
-            $body_name:ident: $body_type:ty,
-            $($path_name:ident: $path_ty:ty),* $(,)?
-            $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<$return_type:ty, Error>
-        url = $url:expr;
-        label = $label:expr;
-        required_scopes = $required_scopes:expr;
-    ) => {
-        $(#[$attr])*
-        pub async fn $fn_name(&self, access_token: &str, $body_name: $body_type, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
-
-            let esi = self.client.esi();
-            let api_call = esi
-                .post_to_authenticated_esi::<$return_type, $body_type>(url.as_str(), &$body_name, access_token, $required_scopes);
-
-            esi_common_impl!($label, url, api_call, ($($path_name),*))
-        }
-    };
-
-    // Authenticated PUT endpoint macro
-    (
-        $(#[$attr:meta])*
-        auth_put $fn_name:ident(
-            $(&self,)?
-            access_token: &str,
-            $body_name:ident: $body_type:ty,
-            $($path_name:ident: $path_ty:ty),* $(,)?
-            $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<$return_type:ty, Error>
-        url = $url:expr;
-        label = $label:expr;
-        required_scopes = $required_scopes:expr;
-    ) => {
-        $(#[$attr])*
-        pub async fn $fn_name(&self, access_token: &str, $body_name: $body_type, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
-
-            let esi = self.client.esi();
-            let api_call = esi
-                .put_to_authenticated_esi::<$return_type, $body_type>(url.as_str(), &$body_name, access_token, $required_scopes);
-
-            esi_common_impl!($label, url, api_call, ($($path_name),*))
-        }
-    };
-
-
-    // Authenticated DELETE endpoint macro
-    (
-        $(#[$attr:meta])*
-        auth_delete $fn_name:ident(
-            $(&self,)?
-            access_token: &str,
-            $($path_name:ident: $path_ty:ty),* $(,)?
-            $(; $($query_name:ident: $query_ty:ty),* $(,)?)?
-        ) -> Result<$return_type:ty, Error>
-        url = $url:expr;
-        label = $label:expr;
-        required_scopes = $required_scopes:expr;
-    ) => {
-        $(#[$attr])*
-        pub async fn $fn_name(&self, access_token: &str, $($path_name: $path_ty),*  $(, $($query_name: $query_ty),* )? ) -> Result<$return_type, Error> {
-            let url = build_endpoint_url!(self, $url, ($($path_name),*) $(, ($($query_name),*) )? );
-
-            let esi = self.client.esi();
-            let api_call = esi
-                .delete_from_authenticated_esi::<$return_type>(url.as_str(), &access_token, $required_scopes);
-
-            esi_common_impl!($label, url, api_call, ($($path_name),*))
+            build_esi_request_internal!(
+                client = self.client,
+                path = path,
+                method = $method,
+                return_type = $return_type
+                $(, body = $body_name)?
+                , access_token = access_token
+                , required_scopes = $required_scopes
+            )
         }
     };
 }

@@ -16,7 +16,8 @@
 //! | ---------------------------------------- | ----------------------------------------------------------------------------- |
 //! | [`UniverseEndpoints::get_factions`]      | Retrieves a list of information for all NPC factions in EVE Online            |
 
-use crate::{model::universe::Faction, Client, Error};
+use crate::{esi::EsiRequest, model::universe::Faction, Client};
+use reqwest::Method;
 
 /// Provides methods for accessing universe-related endpoints of the EVE Online ESI API.
 ///
@@ -34,7 +35,7 @@ impl<'a> UniverseEndpoints<'a> {
         Self { client }
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of information for all NPC factions in EVE Online
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -43,11 +44,9 @@ impl<'a> UniverseEndpoints<'a> {
         /// - <https://developers.eveonline.com/api-explorer#/operations/GetUniverseFactions>
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - Vec<[`Faction`]>: List of information for all NPC factions in EVE Online
-        /// - [`Error`]: An error if the fetch request failed
-        pub_get get_factions() -> Result<Vec<Faction>, Error>
-        url = "{}/universe/factions";
-        label = "list of all NPC faction information";
+        /// An ESI request builder that returns a list of information for all NPC factions in EVE Online when sent.
+        pub fn get_factions() -> EsiRequest<Vec<Faction>>
+        method = Method::GET;
+        path = "/universe/factions";
     }
 }

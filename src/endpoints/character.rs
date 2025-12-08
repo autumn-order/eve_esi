@@ -29,7 +29,7 @@
 //! | [`CharacterEndpoints::get_standings`]                    | Retrieves a paginated list of NPC standing entries for the provided character ID                |
 //! | [`CharacterEndpoints::get_character_corporation_titles`] | Retrieves a list of the provided character ID's corporation titles                              |
 
-use crate::error::Error;
+use crate::esi::EsiRequest;
 use crate::model::standing::Standing;
 use crate::scope::CharactersScopes;
 use crate::{Client, ScopeBuilder};
@@ -41,6 +41,7 @@ use crate::model::character::{
     CharacterNewContactNotification, CharacterNotification, CharacterPortraits,
     CharacterResearchAgent,
 };
+use reqwest::Method;
 
 /// Provides methods for accessing character-related endpoints of the EVE Online ESI API.
 ///
@@ -60,7 +61,7 @@ impl<'a> CharacterEndpoints<'a> {
         Self { client }
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves the public information of the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -72,17 +73,15 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve information for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`Character`]: The character's information if successfully retrieved
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_character_public_information(
+        /// An ESI request builder that returns the character's public information when sent.
+        pub fn get_character_public_information(
             character_id: i64
-        ) -> Result<Character, Error>
-        url = "{}/characters/{}";
-        label = "public information";
+        ) -> EsiRequest<Character>
+        method = Method::GET;
+        path = "/characters/{}";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieve affiliations for a list of characters
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -94,17 +93,15 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_ids` (Vec<[`i64`]>): A vec of character IDs to retrieve affiliations for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - Vec<[`CharacterAffiliation`]>: The affiliations of the characters if successfully retrieved
-        /// - [`Error`]: An error if the fetch request fails
-        pub_post character_affiliation(
-            character_ids: Vec<i64>,
-        ) -> Result<Vec<CharacterAffiliation>, Error>
-        url = "{}/characters/affiliation";
-        label = "character affiliation";
+        /// An ESI request builder that returns a list of character affiliations including corporation and alliance IDs when sent.
+        pub fn character_affiliation(
+        ) -> EsiRequest<Vec<CharacterAffiliation>>
+        method = Method::POST;
+        path = "/characters/affiliation";
+        body = character_ids: Vec<i64>;
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves character's research agents using the character's ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -121,21 +118,19 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve research agent information for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - Vec<[`CharacterResearchAgent`]>: A Vec of the character's research agents
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_agents_research(
+        /// An ESI request builder that returns a list of the character's research agents when sent.
+        auth fn get_agents_research(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterResearchAgent>, Error>
-        url = "{}/characters/{}/agents_research";
-        label = "research agents";
+        ) -> EsiRequest<Vec<CharacterResearchAgent>>
+        method = Method::GET;
+        path = "/characters/{}/agents_research";
         required_scopes = ScopeBuilder::new()
             .characters(CharactersScopes::new().read_agents_research())
             .build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves character's blueprints using the character's ID & page to fetch of the blueprint list
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -153,20 +148,18 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `page`         (`i32`): The page of blueprints to retrieve, page numbers start at `1`
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - Vec<[`Blueprint`]>: A Vec of the character's blueprints
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_blueprints(
+        /// An ESI request builder that returns a paginated list of the character's blueprints when sent.
+        auth fn get_blueprints(
             access_token: &str,
             character_id: i64;
             page: i32
-        ) -> Result<Vec<Blueprint>, Error>
-        url = "{}/characters/{}/blueprints";
-        label = "blueprints";
+        ) -> EsiRequest<Vec<Blueprint>>
+        method = Method::GET;
+        path = "/characters/{}/blueprints";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_blueprints()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves the public corporation history of the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -178,17 +171,15 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve corporation history for.
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [Vec<`CharacterCorporationHistory`>]: The character's corporation history if request is successful
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_corporation_history(
+        /// An ESI request builder that returns the character's corporation history when sent.
+        pub fn get_corporation_history(
             character_id: i64
-        ) -> Result<Vec<CharacterCorporationHistory>, Error>
-        url = "{}/characters/{}/corporationhistory";
-        label = "corporation history";
+        ) -> EsiRequest<Vec<CharacterCorporationHistory>>
+        method = Method::GET;
+        path = "/characters/{}/corporationhistory";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Calculates CSPA cost for evemailing a list of characters with the provided character ID
         ///
         /// This ESI route is used to calculate the CSPA cost for a list of characters based upon the
@@ -201,25 +192,23 @@ impl<'a> CharacterEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format
+        /// - `character_id` (`i64`): ID of the character who would be sending the evemails
         /// - `character_ids` (`Vec<i64>`): List of character IDs to calculate the CSPA cost to
         ///   evemail.
-        /// - `character_id` (`i64`): ID of the character who would be sending the evemails
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `f64`: An f64 representing the total cost to evemail the list of characters
-        /// - [`Error`]: An error if the fetch request fails
-        auth_post calculate_a_cspa_charge_cost(
+        /// An ESI request builder that returns the calculated CSPA charge cost for evemailing the provided characters when sent.
+        auth fn calculate_a_cspa_charge_cost(
             access_token: &str,
-            character_ids: Vec<i64>,
             character_id: i64
-        ) -> Result<f64, Error>
-        url = "{}/characters/{}/cspa";
-        label = "CSPA charge cost";
+        ) -> EsiRequest<f64>
+        method = Method::POST;
+        path = "/characters/{}/cspa";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_contacts()).build();
+        body = character_ids: Vec<i64>;
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves jump fatigue for the provided character's ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -236,19 +225,17 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CharacterJumpFatigue`]: The character's jump fatigue status
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_jump_fatigue(
+        /// An ESI request builder that returns the character's jump fatigue information when sent.
+        auth fn get_jump_fatigue(
             access_token: &str,
             character_id: i64
-        ) -> Result<CharacterJumpFatigue, Error>
-        url = "{}/characters/{}/fatigue";
-        label = "jump fatigue";
+        ) -> EsiRequest<CharacterJumpFatigue>
+        method = Method::GET;
+        path = "/characters/{}/fatigue";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_fatigue()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of medals for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -262,22 +249,20 @@ impl<'a> CharacterEndpoints<'a> {
         ///
         /// # Arguments
         /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
-        /// - `character_id` (`i64`): The ID of the character to retrieve jump fatigue for
+        /// - `character_id` (`i64`): The ID of the character to retrieve medals for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterMedal`]`>`: A list of the character's medals
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_medals(
+        /// An ESI request builder that returns a list of medals awarded to the character when sent.
+        auth fn get_medals(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterMedal>, Error>
-        url = "{}/characters/{}/medals";
-        label = "medals";
+        ) -> EsiRequest<Vec<CharacterMedal>>
+        method = Method::GET;
+        path = "/characters/{}/medals";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_medals()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of character's notifications
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -294,19 +279,17 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve notifications for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterNotification`]`>`: A list of the character's notifications
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_character_notifications(
+        /// An ESI request builder that returns a list of the character's notifications when sent.
+        auth fn get_character_notifications(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterNotification>, Error>
-        url = "{}/characters/{}/notifications";
-        label = "notifications";
+        ) -> EsiRequest<Vec<CharacterNotification>>
+        method = Method::GET;
+        path = "/characters/{}/notifications";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_notifications()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of character's notifications about being added to someone's contact list
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -323,20 +306,17 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve added as contact notifications
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterNewContactNotification`]`>`: A list of character's notifications about being added to
-        ///   someone's contact list
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_new_contact_notifications(
+        /// An ESI request builder that returns a list of notifications about being added to someone's contact list when sent.
+        auth fn get_new_contact_notifications(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterNewContactNotification>, Error>
-        url = "{}/characters/{}/notifications/contacts";
-        label = "new contact notifications";
+        ) -> EsiRequest<Vec<CharacterNewContactNotification>>
+        method = Method::GET;
+        path = "/characters/{}/notifications/contacts";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_notifications()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves the image URLs of a chacter's portraits with various dimensions
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -348,17 +328,15 @@ impl<'a> CharacterEndpoints<'a> {
         /// - `character_id` (`i64`): The ID of the character to retrieve portrait image URLs for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CharacterPortraits`]: Struct of character's portrait URLs with various dimensions
-        /// - [`Error`]: An error if the fetch request fails
-        pub_get get_character_portraits(
+        /// An ESI request builder that returns the character's portrait image URLs in various sizes when sent.
+        pub fn get_character_portraits(
             character_id: i64
-        ) -> Result<CharacterPortraits, Error>
-        url = "{}/characters/{}/portrait";
-        label = "portraits";
+        ) -> EsiRequest<CharacterPortraits>
+        method = Method::GET;
+        path = "/characters/{}/portrait";
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of the provided character ID's corporation roles
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -371,22 +349,21 @@ impl<'a> CharacterEndpoints<'a> {
         ///   `esi-characters.read_corporation_roles.v1`
         ///
         /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `character_id` (`i64`): The ID of the character to retrieve corporation roles for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - [`CharacterCorporationRole`]: Struct containing entries for the provided character ID's corporation roles.
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_character_corporation_roles(
+        /// An ESI request builder that returns the character's corporation roles when sent.
+        auth fn get_character_corporation_roles(
             access_token: &str,
             character_id: i64
-        ) -> Result<CharacterCorporationRole, Error>
-        url = "{}/characters/{}/roles";
-        label = "corporation roles";
+        ) -> EsiRequest<CharacterCorporationRole>
+        method = Method::GET;
+        path = "/characters/{}/roles";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_corporation_roles()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a paginated list of NPC standing entries for the provided character ID
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -399,22 +376,21 @@ impl<'a> CharacterEndpoints<'a> {
         ///   `esi-characters.read_standings.v1`
         ///
         /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `character_id` (`i64`): The ID of the character to retrieve standings for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`Standing`]`>`: Paginated list of NPC standing entries for the provided character ID
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_standings(
+        /// An ESI request builder that returns a list of the character's NPC standings when sent.
+        auth fn get_standings(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<Standing>, Error>
-        url = "{}/characters/{}/standings";
-        label = "NPC standings";
+        ) -> EsiRequest<Vec<Standing>>
+        method = Method::GET;
+        path = "/characters/{}/standings";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_standings()).build();
     }
 
-    define_endpoint! {
+    define_esi_endpoint! {
         /// Retrieves a list of the provided character ID's corporation titles
         ///
         /// For an overview & usage examples, see the [endpoints module documentation](super)
@@ -427,19 +403,17 @@ impl<'a> CharacterEndpoints<'a> {
         ///   `esi-characters.read_titles.v1`
         ///
         /// # Arguments
+        /// - `access_token` (`&str`): Access token used for authenticated ESI routes in string format.
         /// - `character_id` (`i64`): The ID of the character to retrieve corporation titles for
         ///
         /// # Returns
-        /// Returns a [`Result`] containing either:
-        /// - `Vec<`[`CharacterCorporationTitle`]`>`: List of entries for the provided character ID's
-        ///   corporation titles
-        /// - [`Error`]: An error if the fetch request fails
-        auth_get get_character_corporation_titles(
+        /// An ESI request builder that returns a list of the character's corporation titles when sent.
+        auth fn get_character_corporation_titles(
             access_token: &str,
             character_id: i64
-        ) -> Result<Vec<CharacterCorporationTitle>, Error>
-        url = "{}/characters/{}/titles";
-        label = "standings";
+        ) -> EsiRequest<Vec<CharacterCorporationTitle>>
+        method = Method::GET;
+        path = "/characters/{}/titles";
         required_scopes = ScopeBuilder::new().characters(CharactersScopes::new().read_titles()).build();
     }
 }

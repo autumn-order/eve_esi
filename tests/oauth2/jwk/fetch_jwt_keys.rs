@@ -36,7 +36,7 @@ async fn fetch_jwt_keys_success() {
     // Assert response returned expected mock keys
     let jwt_keys = result.unwrap();
 
-    assert_eq!(jwt_keys.skip_unresolved_json_web_keys, false);
+    assert!(!jwt_keys.skip_unresolved_json_web_keys);
     assert_eq!(jwt_keys.keys.len(), 2);
 
     // Check if we have at least one key of each type
