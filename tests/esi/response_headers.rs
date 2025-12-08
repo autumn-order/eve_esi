@@ -11,7 +11,7 @@ struct TestResponse {
 }
 
 #[tokio::test]
-async fn test_esi_response_cache_headers() {
+async fn test_esi_response_cache_headers() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns cache headers
@@ -30,7 +30,7 @@ async fn test_esi_response_cache_headers() {
         .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
-    let response = request.send().await.expect("Request failed");
+    let response = request.send().await?;
 
     // Verify data
     assert_eq!(response.data.value, "test data");
@@ -42,10 +42,12 @@ async fn test_esi_response_cache_headers() {
     assert_ne!(response.cache.last_modified, chrono::Utc::now());
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_esi_response_rate_limit_headers() {
+async fn test_esi_response_rate_limit_headers() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns rate limit headers
@@ -65,7 +67,7 @@ async fn test_esi_response_rate_limit_headers() {
         .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
-    let response = request.send().await.expect("Request failed");
+    let response = request.send().await?;
 
     // Verify data
     assert_eq!(response.data.value, "test data");
@@ -79,10 +81,12 @@ async fn test_esi_response_rate_limit_headers() {
     assert_eq!(rate_limit.used, 5);
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_esi_response_no_rate_limit_headers() {
+async fn test_esi_response_no_rate_limit_headers() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     // Mock endpoint that returns no rate limit headers
@@ -98,16 +102,18 @@ async fn test_esi_response_no_rate_limit_headers() {
         .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
-    let response = request.send().await.expect("Request failed");
+    let response = request.send().await?;
 
     // Verify that rate_limit is None when x-esi-error-limit-group is not present
     assert!(response.rate_limit.is_none());
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_esi_response_deref() {
+async fn test_esi_response_deref() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     server
@@ -122,14 +128,16 @@ async fn test_esi_response_deref() {
         .new_request::<TestResponse>("/test")
         .with_method(Method::GET);
 
-    let response = request.send().await.expect("Request failed");
+    let response = request.send().await?;
 
     // Test Deref trait - we can access data fields directly
     assert_eq!(response.value, "test data");
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_cached_response_with_esi_response() {
+async fn test_cached_response_with_esi_response() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     // Mock fresh response with headers
@@ -151,8 +159,7 @@ async fn test_cached_response_with_esi_response() {
 
     let response = request
         .send_cached(eve_esi::CacheStrategy::IfNoneMatch("old-etag".to_string()))
-        .await
-        .expect("Request failed");
+        .await?;
 
     assert!(response.is_fresh());
 
@@ -174,4 +181,6 @@ async fn test_cached_response_with_esi_response() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }

@@ -6,7 +6,7 @@ use crate::util::integration_test_setup;
 
 /// No validation will be made due to ESI client config diabling it
 #[tokio::test]
-async fn test_validate_token_before_request_disabled() {
+async fn test_validate_token_before_request_disabled() -> Result<(), eve_esi::Error> {
     let (_, mut mock_server) = integration_test_setup().await;
 
     let config = eve_esi::Config::builder()
@@ -19,8 +19,7 @@ async fn test_validate_token_before_request_disabled() {
         .client_secret("client_secret")
         .callback_url("http://localhost:8080/callback")
         .config(config)
-        .build()
-        .expect("Failed to build ESI Client ");
+        .build()?;
 
     let expected_requests = 0;
     let mock_jwt_key_endpoint = get_jwk_success_response(&mut mock_server, expected_requests);
@@ -35,4 +34,6 @@ async fn test_validate_token_before_request_disabled() {
 
     // Assert no requests were made due to validation being disabled
     mock_jwt_key_endpoint.assert();
+
+    Ok(())
 }
