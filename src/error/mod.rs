@@ -45,9 +45,9 @@
 
 use thiserror::Error;
 
-mod config;
-mod oauth2;
-mod response;
+pub mod config;
+pub mod oauth2;
+pub mod response;
 
 pub use config::ConfigError;
 pub use oauth2::OAuthError;
@@ -75,7 +75,7 @@ pub enum Error {
     ///
     /// Contains the error message from ESI along with cache and rate limit headers.
     #[error("ESI API error: {0}")]
-    EsiResponseError(#[from] EsiResponseError),
+    EsiResponseError(#[from] Box<EsiResponseError>),
     /// Errors that occur during HTTP requests.
     ///
     /// For a more detailed description, see [`reqwest::Error`].

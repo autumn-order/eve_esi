@@ -32,15 +32,15 @@ const STATE_KEY: &str = "state";
 #[derive(thiserror::Error, Debug)]
 enum Error {
     #[error(transparent)]
-    EsiError(#[from] eve_esi::Error),
+    Esi(#[from] eve_esi::Error),
     #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
+    Reqwest(#[from] reqwest::Error),
     #[error(transparent)]
-    AxumError(#[from] axum::Error),
+    Axum(#[from] axum::Error),
     #[error(transparent)]
-    SessionError(#[from] tower_sessions::session::Error),
+    Session(#[from] tower_sessions::session::Error),
     #[error(transparent)]
-    IoError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
 }
 
 // We'll log all errors as server errors for now, in a production application you would
@@ -224,6 +224,6 @@ async fn callback(
         }
         // Error if the sub field can't be parsed to a character ID
         // This shouldn't occur unless EVE changes their sub field format
-        Err(err) => return Error::from(err).into_response(),
+        Err(err) => Error::from(err).into_response(),
     }
 }

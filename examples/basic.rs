@@ -30,7 +30,7 @@ async fn main() -> Result<(), eve_esi::Error> {
     {
         Ok(character) => character,
         // Early return an error if fetching character information fails
-        Err(error) => return Err(error.into()),
+        Err(error) => return Err(error),
     };
 
     // Full response

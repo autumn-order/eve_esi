@@ -97,7 +97,7 @@ impl<'a> EsiApi<'a> {
             .and_then(|v| v.to_str().ok())
             .and_then(|s| DateTime::parse_from_rfc2822(s).ok())
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|| Utc::now());
+            .unwrap_or_else(Utc::now);
 
         CacheHeaders {
             cache_control,
@@ -254,9 +254,8 @@ impl<'a> EsiApi<'a> {
         log::debug!("ESI Request: {} {}", method, endpoint);
 
         // Validate URL before sending the request
-        url::Url::parse(&endpoint).map_err(|e| {
+        url::Url::parse(&endpoint).inspect_err(|e| {
             log::error!("Invalid URL for ESI request: {} - {}", endpoint, e);
-            e
         })?;
 
         let start_time = std::time::Instant::now();
@@ -338,13 +337,13 @@ impl<'a> EsiApi<'a> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
 
-        let response = self.execute_request(&request).await?;
+        let response = self.execute_request(request).await?;
 
         // Check for error status codes and handle ESI error responses
         if response.status().is_client_error() || response.status().is_server_error() {
             let esi_error =
                 Self::handle_esi_error_response(response, method.as_str(), &endpoint).await;
-            return Err(esi_error.into());
+            return Err(Box::new(esi_error).into());
         }
 
         // Extract headers before consuming the response
@@ -392,7 +391,7 @@ impl<'a> EsiApi<'a> {
         let method = request.method().clone();
         let endpoint = request.endpoint().to_string();
 
-        let response = self.execute_request(&request).await?;
+        let response = self.execute_request(request).await?;
 
         // Check for 304 Not Modified
         if response.status() == reqwest::StatusCode::NOT_MODIFIED {
@@ -408,7 +407,7 @@ impl<'a> EsiApi<'a> {
         if response.status().is_client_error() || response.status().is_server_error() {
             let esi_error =
                 Self::handle_esi_error_response(response, method.as_str(), &endpoint).await;
-            return Err(esi_error.into());
+            return Err(Box::new(esi_error).into());
         }
 
         // Extract headers before consuming the response

@@ -115,7 +115,7 @@ fn test_spanish() -> Result<(), crate::Error> {
 #[test]
 fn test_clone() -> Result<(), crate::Error> {
     let lang = Language::English;
-    let cloned = lang.clone();
+    let cloned = lang;
     assert_eq!(lang, cloned);
 
     Ok(())

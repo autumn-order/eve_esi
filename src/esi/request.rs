@@ -122,11 +122,7 @@ impl<T: DeserializeOwned> EsiRequest<T> {
         let endpoint_path = endpoint.into();
 
         let base_url = &client.inner.esi_url;
-        let path = if endpoint_path.starts_with('/') {
-            &endpoint_path[1..]
-        } else {
-            &endpoint_path
-        };
+        let path = endpoint_path.strip_prefix('/').unwrap_or(&endpoint_path);
 
         let full_url = format!("{}/{}", base_url.trim_end_matches('/'), path);
 

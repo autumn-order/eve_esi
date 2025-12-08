@@ -37,7 +37,7 @@ async fn main() -> Result<(), eve_esi::Error> {
     let response = match request.send().await {
         Ok(response) => response,
         // Return an error if fetching character information fails
-        Err(error) => return Err(error.into()),
+        Err(error) => return Err(error),
     };
 
     println!("{:#?}", response);

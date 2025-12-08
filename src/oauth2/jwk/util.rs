@@ -205,7 +205,7 @@ mod is_refresh_cooldown_tests {
         }
 
         // Run function
-        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
+        let cooldown = check_refresh_cooldown(jwt_key_cache).await;
 
         // Assert cooldown is some
         assert!(cooldown.is_some());
@@ -243,7 +243,7 @@ mod is_refresh_cooldown_tests {
         }
 
         // Run function
-        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
+        let cooldown = check_refresh_cooldown(jwt_key_cache).await;
 
         // Assert cooldown is None
         assert!(cooldown.is_none());
@@ -272,7 +272,7 @@ mod is_refresh_cooldown_tests {
         let jwt_key_cache = &esi_client.inner.jwt_key_cache;
 
         // Run function
-        let cooldown = check_refresh_cooldown(&jwt_key_cache).await;
+        let cooldown = check_refresh_cooldown(jwt_key_cache).await;
 
         // Assert cooldown is None
         assert!(cooldown.is_none());
@@ -313,7 +313,7 @@ mod is_cache_approaching_expiry_tests {
         let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert true
-        assert_eq!(result, true)
+        assert!(result)
     }
 
     /// Validates function returns false if cache is not approaching expiration
@@ -342,7 +342,7 @@ mod is_cache_approaching_expiry_tests {
         let result = is_cache_approaching_expiry(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert false
-        assert_eq!(result, false)
+        assert!(!result)
     }
 }
 
@@ -377,7 +377,7 @@ mod is_cache_expired_tests {
         let result = is_cache_expired(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert true
-        assert_eq!(result, true)
+        assert!(result)
     }
 
     /// Validates function returns false if cache is not expired
@@ -406,6 +406,6 @@ mod is_cache_expired_tests {
         let result = is_cache_expired(&esi_client.inner.jwt_key_cache, timestamp);
 
         // Assert true
-        assert_eq!(result, false)
+        assert!(!result)
     }
 }

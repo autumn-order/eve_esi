@@ -18,15 +18,15 @@ use mockito::{Mock, ServerGuard};
 pub(crate) fn get_jwk_success_response(server: &mut ServerGuard, expect: usize) -> Mock {
     let mock_keys = create_mock_token_keys(false);
 
-    let mock = server
+    
+
+    server
         .mock("GET", "/oauth/jwks")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(serde_json::to_string(&mock_keys).unwrap())
         .expect(expect)
-        .create();
-
-    mock
+        .create()
 }
 
 /// Returns status code 500 internal server error
@@ -46,13 +46,13 @@ pub(crate) fn get_jwk_internal_server_error_response(
     server: &mut ServerGuard,
     expect: usize,
 ) -> Mock {
-    let mock = server
+    
+
+    server
         .mock("GET", "/oauth/jwks")
         .with_status(500)
         .with_header("content-type", "application/json")
         .with_body(r#"{"error": "Internal Server Error"}"#)
         .expect(expect)
-        .create();
-
-    mock
+        .create()
 }

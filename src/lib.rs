@@ -56,8 +56,8 @@
 //! ### Error Types
 //!
 //! - [Runtime errors](crate::error::Error)
-//! - [Configuration errors](crate::error::ConfigError)
-//! - [OAuth2 runtime errors](crate::oauth2::error::OAuthError)
+//! - [Configuration errors](crate::error::config::ConfigError)
+//! - [OAuth2 runtime errors](crate::error::oauth2::OAuthError)
 //!
 //! ### Custom Endpoints
 //!

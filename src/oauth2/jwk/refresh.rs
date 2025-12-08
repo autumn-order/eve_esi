@@ -332,7 +332,7 @@ mod wait_for_ongoing_refresh_tests {
         let lock = jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert that lock is in place
-        assert_eq!(lock, true);
+        assert!(lock);
 
         // Create a channel to listen for when the coroutine starts
         let (tx, rx) = tokio::sync::oneshot::channel();
@@ -403,7 +403,7 @@ mod wait_for_ongoing_refresh_tests {
         let lock = jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert that lock is in place
-        assert_eq!(lock, true);
+        assert!(lock);
 
         // Create a channel to listen for when the coroutine starts
         let (tx, rx) = tokio::sync::oneshot::channel();
@@ -486,7 +486,7 @@ mod wait_for_ongoing_refresh_tests {
         let lock = jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert that lock is in place
-        assert_eq!(lock, true);
+        assert!(lock);
 
         // Create a channel to listen for when the coroutine starts
         let (tx, rx) = tokio::sync::oneshot::channel();
@@ -556,7 +556,7 @@ mod wait_for_ongoing_refresh_tests {
         let lock = jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert that lock is in place
-        assert_eq!(lock, true);
+        assert!(lock);
 
         // Don't attempt any cache updates and don't release the lock which
         // should cause a timeout error.
@@ -609,7 +609,7 @@ mod trigger_background_jwt_refresh_test {
         tokio::time::sleep(Duration::from_millis(100)).await;
 
         // Assert background refresh has been triggered
-        assert_eq!(result, true);
+        assert!(result);
     }
 
     /// Tests the background refresh if still within cooldown period
@@ -645,7 +645,7 @@ mod trigger_background_jwt_refresh_test {
             .await;
 
         // Assert background refresh was not triggered
-        assert_eq!(refresh_triggered, false)
+        assert!(!refresh_triggered)
     }
 
     /// Tests the background refresh if refresh is already in progress by another thread
@@ -670,7 +670,7 @@ mod trigger_background_jwt_refresh_test {
         let lock_acquired = jwt_key_cache.refresh_lock_try_acquire();
 
         // Assert refresh lock is in place
-        assert_eq!(lock_acquired, true);
+        assert!(lock_acquired);
 
         // Trigger background refresh
         let refresh_triggered = esi_client
@@ -680,7 +680,7 @@ mod trigger_background_jwt_refresh_test {
             .await;
 
         // Assert background refresh was not triggered
-        assert_eq!(refresh_triggered, false);
+        assert!(!refresh_triggered);
     }
 }
 
@@ -731,7 +731,7 @@ mod refresh_jwt_keys_tests {
         // Assert cache has been properly updated
         let cache = jwt_key_cache.cache.read().await;
 
-        assert!(*&cache.is_some())
+        assert!(cache.is_some())
     }
 
     /// Validates error handling should all attempts fail
@@ -827,6 +827,6 @@ mod refresh_jwt_keys_tests {
         // Assert cache has been properly updated
         let cache = jwt_key_cache.cache.read().await;
 
-        assert!(*&cache.is_some())
+        assert!(cache.is_some())
     }
 }

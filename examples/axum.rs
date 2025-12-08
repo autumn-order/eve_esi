@@ -20,11 +20,11 @@ use serde::Deserialize;
 #[derive(thiserror::Error, Debug)]
 enum Error {
     #[error(transparent)]
-    EsiError(#[from] eve_esi::Error),
+    Esi(#[from] eve_esi::Error),
     #[error(transparent)]
-    AxumError(#[from] axum::Error),
+    Axum(#[from] axum::Error),
     #[error(transparent)]
-    IoError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
 }
 
 impl IntoResponse for Error {

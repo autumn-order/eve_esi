@@ -42,7 +42,7 @@ async fn main() -> Result<(), eve_esi::Error> {
     {
         Ok(character) => character,
         // Early return an error if fetching character information fails
-        Err(error) => return Err(error.into()),
+        Err(error) => return Err(error),
     };
 
     // Now, we would store our character in a database with a timestamp of when we last
@@ -62,7 +62,7 @@ async fn main() -> Result<(), eve_esi::Error> {
     {
         Ok(result) => result,
         // Early return an error if fetching character information fails
-        Err(error) => return Err(error.into()),
+        Err(error) => return Err(error),
     };
 
     // Determine if we have updated information since last cache request
