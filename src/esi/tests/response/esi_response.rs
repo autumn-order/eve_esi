@@ -14,7 +14,7 @@ use chrono::{DateTime, Utc};
 ///
 /// Expected: EsiResponse with placeholder cache headers and no rate limit
 #[test]
-fn test_new() {
+fn test_new() -> Result<(), crate::Error> {
     let data = vec![1, 2, 3];
     let response = EsiResponse::new(data.clone());
 
@@ -22,6 +22,8 @@ fn test_new() {
     assert_eq!(response.cache.cache_control, String::new());
     assert_eq!(response.cache.etag, String::new());
     assert!(response.rate_limit.is_none());
+
+    Ok(())
 }
 
 /// Tests Deref trait implementation on EsiResponse.
@@ -31,7 +33,7 @@ fn test_new() {
 ///
 /// Expected: Direct access to Vec methods through deref
 #[test]
-fn test_deref() {
+fn test_deref() -> Result<(), crate::Error> {
     let data = vec![1, 2, 3];
     let response = EsiResponse::new(data.clone());
 
@@ -39,6 +41,8 @@ fn test_deref() {
     assert_eq!(*response, data);
     assert_eq!(response.len(), 3);
     assert_eq!(response[0], 1);
+
+    Ok(())
 }
 
 /// Tests DerefMut trait implementation on EsiResponse.
@@ -48,7 +52,7 @@ fn test_deref() {
 ///
 /// Expected: Ability to mutate inner data through deref_mut
 #[test]
-fn test_deref_mut() {
+fn test_deref_mut() -> Result<(), crate::Error> {
     let data = vec![1, 2, 3];
     let mut response = EsiResponse::new(data);
 
@@ -56,6 +60,8 @@ fn test_deref_mut() {
     response.push(4);
     assert_eq!(response.data, vec![1, 2, 3, 4]);
     assert_eq!(response.len(), 4);
+
+    Ok(())
 }
 
 /// Tests EsiResponse with complete cache headers.
@@ -66,7 +72,7 @@ fn test_deref_mut() {
 ///
 /// Expected: All cache headers are correctly stored and accessible
 #[test]
-fn test_with_cache_headers() {
+fn test_with_cache_headers() -> Result<(), crate::Error> {
     let data = "test data";
     let response = EsiResponse {
         data,
@@ -83,6 +89,8 @@ fn test_with_cache_headers() {
     assert_eq!(response.data, "test data");
     assert_eq!(response.cache.cache_control, "public, max-age=300");
     assert_eq!(response.cache.etag, "\"abc123\"");
+
+    Ok(())
 }
 
 /// Tests EsiResponse with rate limiting headers.
@@ -93,7 +101,7 @@ fn test_with_cache_headers() {
 ///
 /// Expected: All rate limit headers are correctly stored and accessible
 #[test]
-fn test_with_rate_limit_headers() {
+fn test_with_rate_limit_headers() -> Result<(), crate::Error> {
     let data = 42;
     let response = EsiResponse {
         data,
@@ -118,6 +126,8 @@ fn test_with_rate_limit_headers() {
     assert_eq!(rate_limit.limit, "150/15m");
     assert_eq!(rate_limit.remaining, 100);
     assert_eq!(rate_limit.used, 50);
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on EsiResponse.
@@ -128,7 +138,7 @@ fn test_with_rate_limit_headers() {
 ///
 /// Expected: Cloned instance has identical field values
 #[test]
-fn test_clone() {
+fn test_clone() -> Result<(), crate::Error> {
     let response = EsiResponse {
         data: vec![1, 2, 3],
         cache: CacheHeaders {
@@ -152,6 +162,8 @@ fn test_clone() {
         response.rate_limit.as_ref().unwrap().group,
         cloned.rate_limit.as_ref().unwrap().group
     );
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on CacheHeaders.
@@ -162,7 +174,7 @@ fn test_clone() {
 ///
 /// Expected: Cloned headers have identical field values
 #[test]
-fn test_cache_headers_clone() {
+fn test_cache_headers_clone() -> Result<(), crate::Error> {
     let headers = CacheHeaders {
         cache_control: "max-age=300".to_string(),
         etag: "\"tag123\"".to_string(),
@@ -173,6 +185,8 @@ fn test_cache_headers_clone() {
     assert_eq!(headers.cache_control, cloned.cache_control);
     assert_eq!(headers.etag, cloned.etag);
     assert_eq!(headers.last_modified, cloned.last_modified);
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on RateLimitHeaders.
@@ -183,7 +197,7 @@ fn test_cache_headers_clone() {
 ///
 /// Expected: Cloned headers have identical field values
 #[test]
-fn test_rate_limit_headers_clone() {
+fn test_rate_limit_headers_clone() -> Result<(), crate::Error> {
     let headers = RateLimitHeaders {
         group: "test_group".to_string(),
         limit: "100/1h".to_string(),
@@ -196,4 +210,6 @@ fn test_rate_limit_headers_clone() {
     assert_eq!(headers.limit, cloned.limit);
     assert_eq!(headers.remaining, cloned.remaining);
     assert_eq!(headers.used, cloned.used);
+
+    Ok(())
 }

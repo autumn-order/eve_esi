@@ -9,8 +9,10 @@ use crate::esi::request::Language;
 ///
 /// Expected: as_str() returns "en"
 #[test]
-fn test_english() {
+fn test_english() -> Result<(), crate::Error> {
     assert_eq!(Language::English.as_str(), "en");
+
+    Ok(())
 }
 
 /// Tests German language code conversion.
@@ -20,8 +22,10 @@ fn test_english() {
 ///
 /// Expected: as_str() returns "de"
 #[test]
-fn test_german() {
+fn test_german() -> Result<(), crate::Error> {
     assert_eq!(Language::German.as_str(), "de");
+
+    Ok(())
 }
 
 /// Tests French language code conversion.
@@ -31,8 +35,10 @@ fn test_german() {
 ///
 /// Expected: as_str() returns "fr"
 #[test]
-fn test_french() {
+fn test_french() -> Result<(), crate::Error> {
     assert_eq!(Language::French.as_str(), "fr");
+
+    Ok(())
 }
 
 /// Tests Japanese language code conversion.
@@ -42,8 +48,10 @@ fn test_french() {
 ///
 /// Expected: as_str() returns "ja"
 #[test]
-fn test_japanese() {
+fn test_japanese() -> Result<(), crate::Error> {
     assert_eq!(Language::Japanese.as_str(), "ja");
+
+    Ok(())
 }
 
 /// Tests Russian language code conversion.
@@ -53,8 +61,10 @@ fn test_japanese() {
 ///
 /// Expected: as_str() returns "ru"
 #[test]
-fn test_russian() {
+fn test_russian() -> Result<(), crate::Error> {
     assert_eq!(Language::Russian.as_str(), "ru");
+
+    Ok(())
 }
 
 /// Tests Chinese language code conversion.
@@ -64,8 +74,10 @@ fn test_russian() {
 ///
 /// Expected: as_str() returns "zh"
 #[test]
-fn test_chinese() {
+fn test_chinese() -> Result<(), crate::Error> {
     assert_eq!(Language::Chinese.as_str(), "zh");
+
+    Ok(())
 }
 
 /// Tests Korean language code conversion.
@@ -75,8 +87,10 @@ fn test_chinese() {
 ///
 /// Expected: as_str() returns "ko"
 #[test]
-fn test_korean() {
+fn test_korean() -> Result<(), crate::Error> {
     assert_eq!(Language::Korean.as_str(), "ko");
+
+    Ok(())
 }
 
 /// Tests Spanish language code conversion.
@@ -86,8 +100,10 @@ fn test_korean() {
 ///
 /// Expected: as_str() returns "es"
 #[test]
-fn test_spanish() {
+fn test_spanish() -> Result<(), crate::Error> {
     assert_eq!(Language::Spanish.as_str(), "es");
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on Language.
@@ -97,10 +113,12 @@ fn test_spanish() {
 ///
 /// Expected: Cloned language equals original
 #[test]
-fn test_clone() {
+fn test_clone() -> Result<(), crate::Error> {
     let lang = Language::English;
     let cloned = lang.clone();
     assert_eq!(lang, cloned);
+
+    Ok(())
 }
 
 /// Tests Copy trait implementation on Language.
@@ -110,11 +128,13 @@ fn test_clone() {
 ///
 /// Expected: Both original and copied values are usable
 #[test]
-fn test_copy() {
+fn test_copy() -> Result<(), crate::Error> {
     let lang = Language::German;
     let copied = lang;
     assert_eq!(lang, copied);
     assert_eq!(lang.as_str(), "de");
+
+    Ok(())
 }
 
 /// Tests PartialEq trait implementation on Language.
@@ -125,9 +145,11 @@ fn test_copy() {
 ///
 /// Expected: Same variants equal, different variants not equal
 #[test]
-fn test_equality() {
+fn test_equality() -> Result<(), crate::Error> {
     assert_eq!(Language::English, Language::English);
     assert_ne!(Language::English, Language::German);
+
+    Ok(())
 }
 
 /// Tests Debug trait implementation on Language.
@@ -137,8 +159,10 @@ fn test_equality() {
 ///
 /// Expected: Debug output contains the variant name
 #[test]
-fn test_debug() {
+fn test_debug() -> Result<(), crate::Error> {
     let lang = Language::French;
     let debug_str = format!("{:?}", lang);
     assert!(debug_str.contains("French"));
+
+    Ok(())
 }

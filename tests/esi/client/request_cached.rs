@@ -20,7 +20,7 @@ struct TestData {
 ///
 /// Expected: CachedResponse::Fresh with data
 #[tokio::test]
-async fn test_cached_request_returns_fresh_data() {
+async fn test_cached_request_returns_fresh_data() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -36,8 +36,7 @@ async fn test_cached_request_returns_fresh_data() {
 
     let response = request
         .send_cached(CacheStrategy::IfNoneMatch("\"old-etag\"".to_string()))
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(response.is_fresh());
     assert!(!response.is_not_modified());
@@ -50,6 +49,8 @@ async fn test_cached_request_returns_fresh_data() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request returning 304 Not Modified.
@@ -60,7 +61,7 @@ async fn test_cached_request_returns_fresh_data() {
 ///
 /// Expected: CachedResponse::NotModified
 #[tokio::test]
-async fn test_cached_request_returns_not_modified() {
+async fn test_cached_request_returns_not_modified() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -74,8 +75,7 @@ async fn test_cached_request_returns_not_modified() {
 
     let response = request
         .send_cached(CacheStrategy::IfNoneMatch("\"current-etag\"".to_string()))
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(!response.is_fresh());
     assert!(response.is_not_modified());
@@ -90,6 +90,8 @@ async fn test_cached_request_returns_not_modified() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request with If-Modified-Since header.
@@ -99,7 +101,7 @@ async fn test_cached_request_returns_not_modified() {
 ///
 /// Expected: Request includes properly formatted If-Modified-Since header
 #[tokio::test]
-async fn test_cached_request_with_if_modified_since() {
+async fn test_cached_request_with_if_modified_since() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -114,12 +116,13 @@ async fn test_cached_request_with_if_modified_since() {
 
     let response = request
         .send_cached(CacheStrategy::IfModifiedSince(date))
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(response.is_not_modified());
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request with both ETag and If-Modified-Since.
@@ -129,7 +132,7 @@ async fn test_cached_request_with_if_modified_since() {
 ///
 /// Expected: Both headers are included in the request
 #[tokio::test]
-async fn test_cached_request_with_both_headers() {
+async fn test_cached_request_with_both_headers() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -148,12 +151,13 @@ async fn test_cached_request_with_both_headers() {
             etag: "\"etag-value\"".to_string(),
             modified_since: date,
         })
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(response.is_not_modified());
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request with IfNoneMatch returns fresh data on different ETag.
@@ -163,7 +167,7 @@ async fn test_cached_request_with_both_headers() {
 ///
 /// Expected: CachedResponse::Fresh with new ETag
 #[tokio::test]
-async fn test_cached_request_if_none_match_different_etag() {
+async fn test_cached_request_if_none_match_different_etag() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -179,8 +183,7 @@ async fn test_cached_request_if_none_match_different_etag() {
 
     let response = request
         .send_cached(CacheStrategy::IfNoneMatch("\"old-etag\"".to_string()))
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(response.is_fresh());
 
@@ -192,6 +195,8 @@ async fn test_cached_request_if_none_match_different_etag() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request with IfModifiedSince returns fresh data when modified.
@@ -201,7 +206,7 @@ async fn test_cached_request_if_none_match_different_etag() {
 ///
 /// Expected: CachedResponse::Fresh with updated data
 #[tokio::test]
-async fn test_cached_request_if_modified_since_content_modified() {
+async fn test_cached_request_if_modified_since_content_modified() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -221,8 +226,7 @@ async fn test_cached_request_if_modified_since_content_modified() {
 
     let response = request
         .send_cached(CacheStrategy::IfModifiedSince(old_date))
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(response.is_fresh());
 
@@ -233,6 +237,8 @@ async fn test_cached_request_if_modified_since_content_modified() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request error handling.
@@ -242,7 +248,7 @@ async fn test_cached_request_if_modified_since_content_modified() {
 ///
 /// Expected: Error is returned for 404 response
 #[tokio::test]
-async fn test_cached_request_handles_errors() {
+async fn test_cached_request_handles_errors() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -269,6 +275,8 @@ async fn test_cached_request_handles_errors() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request preserves cache headers in fresh responses.
@@ -278,7 +286,7 @@ async fn test_cached_request_handles_errors() {
 ///
 /// Expected: Fresh response includes all cache headers
 #[tokio::test]
-async fn test_cached_request_fresh_includes_cache_headers() {
+async fn test_cached_request_fresh_includes_cache_headers() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -296,8 +304,7 @@ async fn test_cached_request_fresh_includes_cache_headers() {
 
     let response = request
         .send_cached(CacheStrategy::IfNoneMatch("\"old-etag\"".to_string()))
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     if let CachedResponse::Fresh(esi_response) = response {
         assert_eq!(esi_response.cache.etag, "\"new-etag\"");
@@ -308,6 +315,8 @@ async fn test_cached_request_fresh_includes_cache_headers() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request with Both strategy returning 304.
@@ -317,7 +326,7 @@ async fn test_cached_request_fresh_includes_cache_headers() {
 ///
 /// Expected: CachedResponse::NotModified
 #[tokio::test]
-async fn test_cached_request_both_strategy_not_modified() {
+async fn test_cached_request_both_strategy_not_modified() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -336,12 +345,13 @@ async fn test_cached_request_both_strategy_not_modified() {
             etag: "\"current-etag\"".to_string(),
             modified_since: date,
         })
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(response.is_not_modified());
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests cached request with Both strategy returning fresh data.
@@ -351,7 +361,7 @@ async fn test_cached_request_both_strategy_not_modified() {
 ///
 /// Expected: CachedResponse::Fresh with updated data and new headers
 #[tokio::test]
-async fn test_cached_request_both_strategy_fresh_data() {
+async fn test_cached_request_both_strategy_fresh_data() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -376,8 +386,7 @@ async fn test_cached_request_both_strategy_fresh_data() {
             etag: "\"old-etag\"".to_string(),
             modified_since: old_date,
         })
-        .await
-        .expect("Request should succeed");
+        .await?;
 
     assert!(response.is_fresh());
 
@@ -389,6 +398,8 @@ async fn test_cached_request_both_strategy_fresh_data() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests deserialization failure handling in cached requests.
@@ -399,7 +410,7 @@ async fn test_cached_request_both_strategy_fresh_data() {
 ///
 /// Expected: Error due to deserialization failure
 #[tokio::test]
-async fn test_cached_request_deserialization_failure() {
+async fn test_cached_request_deserialization_failure() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     // Return a 200 response with body that doesn't match TestData structure
@@ -427,4 +438,6 @@ async fn test_cached_request_deserialization_failure() {
     }
 
     mock.assert_async().await;
+
+    Ok(())
 }

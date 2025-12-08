@@ -16,7 +16,7 @@ fn create_test_client() -> Client {
 ///
 /// Expected: CacheHeaders struct contains all provided header values
 #[test]
-fn test_extract_cache_headers_complete() {
+fn test_extract_cache_headers_complete() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("cache-control", "public, max-age=300".parse().unwrap());
     headers.insert("etag", "\"abc123\"".parse().unwrap());
@@ -32,6 +32,8 @@ fn test_extract_cache_headers_complete() {
 
     let expected_date = Utc.with_ymd_and_hms(2015, 10, 21, 7, 28, 0).unwrap();
     assert_eq!(cache_headers.last_modified, expected_date);
+
+    Ok(())
 }
 
 /// Tests extracting cache headers when all are missing.
@@ -42,7 +44,7 @@ fn test_extract_cache_headers_complete() {
 ///
 /// Expected: Empty strings and a recent timestamp
 #[test]
-fn test_extract_cache_headers_missing() {
+fn test_extract_cache_headers_missing() -> Result<(), crate::Error> {
     let headers = HeaderMap::new();
 
     let cache_headers = EsiApi::extract_cache_headers(&headers);
@@ -53,6 +55,8 @@ fn test_extract_cache_headers_missing() {
     let now = Utc::now();
     let diff = (now - cache_headers.last_modified).num_seconds().abs();
     assert!(diff < 5, "Timestamp should be recent");
+
+    Ok(())
 }
 
 /// Tests extracting cache headers with partial data.
@@ -62,7 +66,7 @@ fn test_extract_cache_headers_missing() {
 ///
 /// Expected: Present headers extracted, missing ones use defaults
 #[test]
-fn test_extract_cache_headers_partial() {
+fn test_extract_cache_headers_partial() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("etag", "\"xyz789\"".parse().unwrap());
 
@@ -74,6 +78,8 @@ fn test_extract_cache_headers_partial() {
     let now = Utc::now();
     let diff = (now - cache_headers.last_modified).num_seconds().abs();
     assert!(diff < 5);
+
+    Ok(())
 }
 
 /// Tests extracting cache headers with invalid last-modified format.
@@ -83,7 +89,7 @@ fn test_extract_cache_headers_partial() {
 ///
 /// Expected: Invalid date falls back to current time
 #[test]
-fn test_extract_cache_headers_invalid_date() {
+fn test_extract_cache_headers_invalid_date() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("cache-control", "public".parse().unwrap());
     headers.insert("etag", "\"tag\"".parse().unwrap());
@@ -97,6 +103,8 @@ fn test_extract_cache_headers_invalid_date() {
     let now = Utc::now();
     let diff = (now - cache_headers.last_modified).num_seconds().abs();
     assert!(diff < 5);
+
+    Ok(())
 }
 
 /// Tests extracting complete rate limit headers from response.
@@ -106,7 +114,7 @@ fn test_extract_cache_headers_invalid_date() {
 ///
 /// Expected: RateLimitHeaders struct with all values populated
 #[test]
-fn test_extract_rate_limit_headers_complete() {
+fn test_extract_rate_limit_headers_complete() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("x-esi-error-limit-group", "global".parse().unwrap());
     headers.insert("x-esi-error-limit-limit", "150/15m".parse().unwrap());
@@ -121,6 +129,8 @@ fn test_extract_rate_limit_headers_complete() {
     assert_eq!(rate_limit.limit, "150/15m");
     assert_eq!(rate_limit.remaining, 100);
     assert_eq!(rate_limit.used, 50);
+
+    Ok(())
 }
 
 /// Tests extracting rate limit headers when group header is missing.
@@ -130,7 +140,7 @@ fn test_extract_rate_limit_headers_complete() {
 ///
 /// Expected: None
 #[test]
-fn test_extract_rate_limit_headers_missing_group() {
+fn test_extract_rate_limit_headers_missing_group() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("x-esi-error-limit-limit", "150/15m".parse().unwrap());
     headers.insert("x-esi-error-limit-remain", "100".parse().unwrap());
@@ -138,6 +148,8 @@ fn test_extract_rate_limit_headers_missing_group() {
     let rate_limit = EsiApi::extract_rate_limit_headers(&headers);
 
     assert!(rate_limit.is_none());
+
+    Ok(())
 }
 
 /// Tests extracting rate limit headers with partial data.
@@ -148,7 +160,7 @@ fn test_extract_rate_limit_headers_missing_group() {
 ///
 /// Expected: RateLimitHeaders with defaults for missing values
 #[test]
-fn test_extract_rate_limit_headers_partial() {
+fn test_extract_rate_limit_headers_partial() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("x-esi-error-limit-group", "character".parse().unwrap());
     headers.insert("x-esi-error-limit-remain", "75".parse().unwrap());
@@ -161,6 +173,8 @@ fn test_extract_rate_limit_headers_partial() {
     assert_eq!(rate_limit.limit, "");
     assert_eq!(rate_limit.remaining, 75);
     assert_eq!(rate_limit.used, 0);
+
+    Ok(())
 }
 
 /// Tests extracting rate limit headers with invalid numeric values.
@@ -170,7 +184,7 @@ fn test_extract_rate_limit_headers_partial() {
 ///
 /// Expected: Invalid numbers default to 0
 #[test]
-fn test_extract_rate_limit_headers_invalid_numbers() {
+fn test_extract_rate_limit_headers_invalid_numbers() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("x-esi-error-limit-group", "alliance".parse().unwrap());
     headers.insert("x-esi-error-limit-limit", "100/1h".parse().unwrap());
@@ -185,6 +199,8 @@ fn test_extract_rate_limit_headers_invalid_numbers() {
     assert_eq!(rate_limit.limit, "100/1h");
     assert_eq!(rate_limit.remaining, 0);
     assert_eq!(rate_limit.used, 0);
+
+    Ok(())
 }
 
 /// Tests populating EsiResponse with extracted headers.
@@ -194,7 +210,7 @@ fn test_extract_rate_limit_headers_invalid_numbers() {
 ///
 /// Expected: EsiResponse contains data and all header information
 #[test]
-fn test_populate_esi_response_from_headers() {
+fn test_populate_esi_response_from_headers() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("cache-control", "public".parse().unwrap());
     headers.insert("etag", "\"response123\"".parse().unwrap());
@@ -214,6 +230,8 @@ fn test_populate_esi_response_from_headers() {
     assert!(response.rate_limit.is_some());
     assert_eq!(response.rate_limit.as_ref().unwrap().group, "test");
     assert_eq!(response.rate_limit.as_ref().unwrap().remaining, 50);
+
+    Ok(())
 }
 
 /// Tests populating EsiResponse without rate limit headers.
@@ -223,7 +241,7 @@ fn test_populate_esi_response_from_headers() {
 ///
 /// Expected: EsiResponse with cache headers and rate_limit = None
 #[test]
-fn test_populate_esi_response_without_rate_limit() {
+fn test_populate_esi_response_without_rate_limit() -> Result<(), crate::Error> {
     let mut headers = HeaderMap::new();
     headers.insert("cache-control", "no-cache".parse().unwrap());
     headers.insert("etag", "\"abc\"".parse().unwrap());
@@ -235,6 +253,8 @@ fn test_populate_esi_response_without_rate_limit() {
     assert_eq!(response.cache.cache_control, "no-cache");
     assert_eq!(response.cache.etag, "\"abc\"");
     assert!(response.rate_limit.is_none());
+
+    Ok(())
 }
 
 /// Tests EsiApi constructor.
@@ -244,7 +264,7 @@ fn test_populate_esi_response_without_rate_limit() {
 ///
 /// Expected: EsiApi instance is created successfully
 #[test]
-fn test_esi_api_new() {
+fn test_esi_api_new() -> Result<(), crate::Error> {
     let client = create_test_client();
     let _esi_api = EsiApi::new(&client);
 
@@ -253,6 +273,8 @@ fn test_esi_api_new() {
     let headers = HeaderMap::new();
     let cache = EsiApi::extract_cache_headers(&headers);
     assert_eq!(cache.cache_control, "");
+
+    Ok(())
 }
 
 /// Tests Client::esi() convenience method.
@@ -262,7 +284,7 @@ fn test_esi_api_new() {
 ///
 /// Expected: EsiApi instance is created and functional
 #[test]
-fn test_client_esi_method() {
+fn test_client_esi_method() -> Result<(), crate::Error> {
     let client = create_test_client();
     let _esi_api = client.esi();
 
@@ -270,4 +292,6 @@ fn test_client_esi_method() {
     let headers = HeaderMap::new();
     let cache = EsiApi::extract_cache_headers(&headers);
     assert_eq!(cache.etag, "");
+
+    Ok(())
 }

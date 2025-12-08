@@ -10,7 +10,7 @@ use chrono::Utc;
 ///
 /// Expected: IfNoneMatch variant contains the provided ETag
 #[test]
-fn test_if_none_match() {
+fn test_if_none_match() -> Result<(), crate::Error> {
     let strategy = CacheStrategy::IfNoneMatch("\"abc123\"".to_string());
     match strategy {
         CacheStrategy::IfNoneMatch(etag) => {
@@ -18,6 +18,8 @@ fn test_if_none_match() {
         }
         _ => panic!("Expected IfNoneMatch variant"),
     }
+
+    Ok(())
 }
 
 /// Tests IfModifiedSince variant with DateTime.
@@ -27,7 +29,7 @@ fn test_if_none_match() {
 ///
 /// Expected: IfModifiedSince variant contains the provided timestamp
 #[test]
-fn test_if_modified_since() {
+fn test_if_modified_since() -> Result<(), crate::Error> {
     let date = Utc::now();
     let strategy = CacheStrategy::IfModifiedSince(date);
     match strategy {
@@ -36,6 +38,8 @@ fn test_if_modified_since() {
         }
         _ => panic!("Expected IfModifiedSince variant"),
     }
+
+    Ok(())
 }
 
 /// Tests Both variant with ETag and DateTime.
@@ -46,7 +50,7 @@ fn test_if_modified_since() {
 ///
 /// Expected: Both variant contains both the ETag and timestamp
 #[test]
-fn test_both() {
+fn test_both() -> Result<(), crate::Error> {
     let date = Utc::now();
     let strategy = CacheStrategy::Both {
         etag: "\"xyz789\"".to_string(),
@@ -62,6 +66,8 @@ fn test_both() {
         }
         _ => panic!("Expected Both variant"),
     }
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on CacheStrategy.
@@ -71,7 +77,7 @@ fn test_both() {
 ///
 /// Expected: Cloned strategy has identical field values
 #[test]
-fn test_clone() {
+fn test_clone() -> Result<(), crate::Error> {
     let strategy = CacheStrategy::IfNoneMatch("\"tag\"".to_string());
     let cloned = strategy.clone();
     match cloned {
@@ -80,4 +86,6 @@ fn test_clone() {
         }
         _ => panic!("Expected IfNoneMatch variant"),
     }
+
+    Ok(())
 }

@@ -23,12 +23,14 @@ fn create_test_client() -> Client {
 ///
 /// Expected: Endpoint URL contains "/status" and starts with "https://"
 #[test]
-fn test_new_with_leading_slash() {
+fn test_new_with_leading_slash() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/");
 
     assert!(request.endpoint().contains("/status"));
     assert!(request.endpoint().starts_with("https://"));
+
+    Ok(())
 }
 
 /// Tests creating a new request without a leading slash in the endpoint path.
@@ -39,12 +41,14 @@ fn test_new_with_leading_slash() {
 ///
 /// Expected: Endpoint URL contains "/status" and starts with "https://"
 #[test]
-fn test_new_without_leading_slash() {
+fn test_new_without_leading_slash() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "status/");
 
     assert!(request.endpoint().contains("/status"));
     assert!(request.endpoint().starts_with("https://"));
+
+    Ok(())
 }
 
 /// Tests default HTTP method is GET.
@@ -54,11 +58,13 @@ fn test_new_without_leading_slash() {
 ///
 /// Expected: method() returns Method::GET
 #[test]
-fn test_default_method_is_get() {
+fn test_default_method_is_get() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/");
 
     assert_eq!(request.method(), &Method::GET);
+
+    Ok(())
 }
 
 /// Tests setting a custom HTTP method.
@@ -68,11 +74,13 @@ fn test_default_method_is_get() {
 ///
 /// Expected: method() returns the configured Method::POST
 #[test]
-fn test_with_method() {
+fn test_with_method() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/").with_method(Method::POST);
 
     assert_eq!(request.method(), &Method::POST);
+
+    Ok(())
 }
 
 /// Tests setting an access token for authentication.
@@ -82,12 +90,14 @@ fn test_with_method() {
 ///
 /// Expected: access_token() returns Some with the provided token
 #[test]
-fn test_with_access_token() {
+fn test_with_access_token() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request =
         EsiRequest::<TestResponse>::new(&client, "/status/").with_access_token("test_token_123");
 
     assert_eq!(request.access_token(), Some("test_token_123"));
+
+    Ok(())
 }
 
 /// Tests default access token is None.
@@ -97,11 +107,13 @@ fn test_with_access_token() {
 ///
 /// Expected: access_token() returns None
 #[test]
-fn test_access_token_none_by_default() {
+fn test_access_token_none_by_default() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/");
 
     assert_eq!(request.access_token(), None);
+
+    Ok(())
 }
 
 /// Tests setting the X-Compatibility-Date header.
@@ -111,7 +123,7 @@ fn test_access_token_none_by_default() {
 ///
 /// Expected: Headers contain X-Compatibility-Date with the provided date
 #[test]
-fn test_with_compatibility_date() {
+fn test_with_compatibility_date() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request =
         EsiRequest::<TestResponse>::new(&client, "/status/").with_compatibility_date("2025-11-06");
@@ -120,6 +132,8 @@ fn test_with_compatibility_date() {
         request.headers().get("X-Compatibility-Date"),
         Some(&"2025-11-06".to_string())
     );
+
+    Ok(())
 }
 
 /// Tests setting the X-Tenant header.
@@ -129,7 +143,7 @@ fn test_with_compatibility_date() {
 ///
 /// Expected: Headers contain X-Tenant with the provided value
 #[test]
-fn test_with_tenant() {
+fn test_with_tenant() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/").with_tenant("tranquility");
 
@@ -137,6 +151,8 @@ fn test_with_tenant() {
         request.headers().get("X-Tenant"),
         Some(&"tranquility".to_string())
     );
+
+    Ok(())
 }
 
 /// Tests setting the Accept-Language header.
@@ -146,7 +162,7 @@ fn test_with_tenant() {
 ///
 /// Expected: Headers contain Accept-Language with the language code
 #[test]
-fn test_with_language() {
+fn test_with_language() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request =
         EsiRequest::<TestResponse>::new(&client, "/status/").with_language(Language::German);
@@ -155,6 +171,8 @@ fn test_with_language() {
         request.headers().get("Accept-Language"),
         Some(&"de".to_string())
     );
+
+    Ok(())
 }
 
 /// Tests setting the If-Match header for conditional requests.
@@ -164,7 +182,7 @@ fn test_with_language() {
 ///
 /// Expected: Headers contain If-Match with the provided ETag
 #[test]
-fn test_with_if_match() {
+fn test_with_if_match() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/").with_if_match("\"etag123\"");
 
@@ -172,6 +190,8 @@ fn test_with_if_match() {
         request.headers().get("If-Match"),
         Some(&"\"etag123\"".to_string())
     );
+
+    Ok(())
 }
 
 /// Tests setting a custom header.
@@ -181,7 +201,7 @@ fn test_with_if_match() {
 ///
 /// Expected: Headers contain the custom header with the provided value
 #[test]
-fn test_with_header() {
+fn test_with_header() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/")
         .with_header("X-Custom-Header", "custom_value");
@@ -190,6 +210,8 @@ fn test_with_header() {
         request.headers().get("X-Custom-Header"),
         Some(&"custom_value".to_string())
     );
+
+    Ok(())
 }
 
 /// Tests setting required OAuth2 scopes.
@@ -199,13 +221,15 @@ fn test_with_header() {
 ///
 /// Expected: required_scopes() returns the provided scope vector
 #[test]
-fn test_with_required_scopes() {
+fn test_with_required_scopes() -> Result<(), crate::Error> {
     let client = create_test_client();
     let scopes = vec!["scope1".to_string(), "scope2".to_string()];
     let request =
         EsiRequest::<TestResponse>::new(&client, "/status/").with_required_scopes(scopes.clone());
 
     assert_eq!(request.required_scopes(), &scopes);
+
+    Ok(())
 }
 
 /// Tests default required scopes is empty.
@@ -215,11 +239,13 @@ fn test_with_required_scopes() {
 ///
 /// Expected: required_scopes() returns an empty vector
 #[test]
-fn test_required_scopes_empty_by_default() {
+fn test_required_scopes_empty_by_default() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/");
 
     assert!(request.required_scopes().is_empty());
+
+    Ok(())
 }
 
 /// Tests setting JSON request body.
@@ -229,7 +255,7 @@ fn test_required_scopes_empty_by_default() {
 ///
 /// Expected: body_json() returns Some with the provided JSON value
 #[test]
-fn test_with_body_json() {
+fn test_with_body_json() -> Result<(), crate::Error> {
     let client = create_test_client();
     let body = serde_json::json!({
         "key": "value",
@@ -238,6 +264,8 @@ fn test_with_body_json() {
     let request = EsiRequest::<TestResponse>::new(&client, "/status/").with_body_json(body.clone());
 
     assert_eq!(request.body_json(), Some(&body));
+
+    Ok(())
 }
 
 /// Tests default JSON body is None.
@@ -247,11 +275,13 @@ fn test_with_body_json() {
 ///
 /// Expected: body_json() returns None
 #[test]
-fn test_body_json_none_by_default() {
+fn test_body_json_none_by_default() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/");
 
     assert_eq!(request.body_json(), None);
+
+    Ok(())
 }
 
 /// Tests chaining multiple builder methods.
@@ -262,7 +292,7 @@ fn test_body_json_none_by_default() {
 ///
 /// Expected: All configured values are present in the final request
 #[test]
-fn test_chaining_multiple_methods() {
+fn test_chaining_multiple_methods() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/characters/12345/")
         .with_method(Method::POST)
@@ -292,6 +322,8 @@ fn test_chaining_multiple_methods() {
         Some(&"value".to_string())
     );
     assert_eq!(request.required_scopes().len(), 1);
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on EsiRequest.
@@ -301,7 +333,7 @@ fn test_chaining_multiple_methods() {
 ///
 /// Expected: Cloned request has identical configuration
 #[test]
-fn test_clone() {
+fn test_clone() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/")
         .with_access_token("token")
@@ -310,6 +342,8 @@ fn test_clone() {
     let cloned = request.clone();
     assert_eq!(cloned.access_token(), Some("token"));
     assert_eq!(cloned.method(), &Method::POST);
+
+    Ok(())
 }
 
 /// Tests multiple headers can be set.
@@ -319,7 +353,7 @@ fn test_clone() {
 ///
 /// Expected: Headers map contains all added headers
 #[test]
-fn test_headers_are_mutable() {
+fn test_headers_are_mutable() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/status/")
         .with_header("Key1", "Value1")
@@ -328,6 +362,8 @@ fn test_headers_are_mutable() {
     assert_eq!(request.headers().len(), 2);
     assert!(request.headers().contains_key("Key1"));
     assert!(request.headers().contains_key("Key2"));
+
+    Ok(())
 }
 
 /// Tests endpoint URL construction with complex paths.
@@ -338,11 +374,13 @@ fn test_headers_are_mutable() {
 ///
 /// Expected: URL contains the path correctly without double slashes
 #[test]
-fn test_endpoint_url_construction() {
+fn test_endpoint_url_construction() -> Result<(), crate::Error> {
     let client = create_test_client();
     let request = EsiRequest::<TestResponse>::new(&client, "/universe/types/34/");
 
     let endpoint = request.endpoint();
     assert!(endpoint.contains("universe/types/34"));
     assert!(!endpoint.contains("//universe")); // No double slashes
+
+    Ok(())
 }

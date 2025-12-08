@@ -19,7 +19,7 @@ struct TestData {
 ///
 /// Expected: EsiRequest is created with proper endpoint and executes successfully
 #[tokio::test]
-async fn test_new_request_creates_valid_request() {
+async fn test_new_request_creates_valid_request() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -32,11 +32,13 @@ async fn test_new_request_creates_valid_request() {
     // Use the convenience method
     let request = client.esi().new_request::<TestData>("/test/convenience");
 
-    let response = request.send().await.expect("Request should succeed");
+    let response = request.send().await?;
 
     assert_eq!(response.data.message, "success");
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests that new_request works with leading slash.
@@ -45,7 +47,7 @@ async fn test_new_request_creates_valid_request() {
 ///
 /// Expected: Request succeeds with leading slash in endpoint
 #[tokio::test]
-async fn test_new_request_with_leading_slash() {
+async fn test_new_request_with_leading_slash() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -56,11 +58,13 @@ async fn test_new_request_with_leading_slash() {
         .await;
 
     let request = client.esi().new_request::<TestData>("/test/leading");
-    let response = request.send().await.expect("Request should succeed");
+    let response = request.send().await?;
 
     assert_eq!(response.data.message, "with slash");
 
     mock.assert_async().await;
+
+    Ok(())
 }
 
 /// Tests that new_request works without leading slash.
@@ -69,7 +73,7 @@ async fn test_new_request_with_leading_slash() {
 ///
 /// Expected: Request succeeds without leading slash in endpoint
 #[tokio::test]
-async fn test_new_request_without_leading_slash() {
+async fn test_new_request_without_leading_slash() -> Result<(), eve_esi::Error> {
     let (client, mut server) = integration_test_setup().await;
 
     let mock = server
@@ -80,9 +84,11 @@ async fn test_new_request_without_leading_slash() {
         .await;
 
     let request = client.esi().new_request::<TestData>("test/noslash");
-    let response = request.send().await.expect("Request should succeed");
+    let response = request.send().await?;
 
     assert_eq!(response.data.message, "no slash");
 
     mock.assert_async().await;
+
+    Ok(())
 }

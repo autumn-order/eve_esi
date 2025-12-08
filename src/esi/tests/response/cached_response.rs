@@ -9,12 +9,14 @@ use crate::esi::response::{CachedResponse, EsiResponse};
 ///
 /// Expected: is_fresh() = true, is_not_modified() = false
 #[test]
-fn test_is_fresh() {
+fn test_is_fresh() -> Result<(), crate::Error> {
     let response = EsiResponse::new(vec![1, 2, 3]);
     let cached = CachedResponse::Fresh(response);
 
     assert!(cached.is_fresh());
     assert!(!cached.is_not_modified());
+
+    Ok(())
 }
 
 /// Tests is_not_modified method on NotModified variant.
@@ -24,11 +26,13 @@ fn test_is_fresh() {
 ///
 /// Expected: is_fresh() = false, is_not_modified() = true
 #[test]
-fn test_is_not_modified() {
+fn test_is_not_modified() -> Result<(), crate::Error> {
     let cached: CachedResponse<EsiResponse<Vec<i32>>> = CachedResponse::NotModified;
 
     assert!(!cached.is_fresh());
     assert!(cached.is_not_modified());
+
+    Ok(())
 }
 
 /// Tests pattern matching on Fresh variant.
@@ -38,7 +42,7 @@ fn test_is_not_modified() {
 ///
 /// Expected: Pattern match succeeds and extracts correct data
 #[test]
-fn test_fresh_pattern_matching() {
+fn test_fresh_pattern_matching() -> Result<(), crate::Error> {
     let response = EsiResponse::new("test");
     let cached = CachedResponse::Fresh(response);
 
@@ -50,6 +54,8 @@ fn test_fresh_pattern_matching() {
             panic!("Expected Fresh variant");
         }
     }
+
+    Ok(())
 }
 
 /// Tests pattern matching on NotModified variant.
@@ -59,7 +65,7 @@ fn test_fresh_pattern_matching() {
 ///
 /// Expected: Pattern match succeeds on NotModified arm
 #[test]
-fn test_not_modified_pattern_matching() {
+fn test_not_modified_pattern_matching() -> Result<(), crate::Error> {
     let cached: CachedResponse<EsiResponse<String>> = CachedResponse::NotModified;
 
     match cached {
@@ -70,6 +76,8 @@ fn test_not_modified_pattern_matching() {
             // Success
         }
     }
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on Fresh variant.
@@ -79,12 +87,14 @@ fn test_not_modified_pattern_matching() {
 ///
 /// Expected: Cloned instance is_fresh() returns true
 #[test]
-fn test_fresh_clone() {
+fn test_fresh_clone() -> Result<(), crate::Error> {
     let response = EsiResponse::new(42);
     let cached = CachedResponse::Fresh(response);
     let cloned = cached.clone();
 
     assert!(cloned.is_fresh());
+
+    Ok(())
 }
 
 /// Tests Clone trait implementation on NotModified variant.
@@ -94,9 +104,11 @@ fn test_fresh_clone() {
 ///
 /// Expected: Cloned instance is_not_modified() returns true
 #[test]
-fn test_not_modified_clone() {
+fn test_not_modified_clone() -> Result<(), crate::Error> {
     let cached: CachedResponse<EsiResponse<i32>> = CachedResponse::NotModified;
     let cloned = cached.clone();
 
     assert!(cloned.is_not_modified());
+
+    Ok(())
 }
