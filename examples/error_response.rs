@@ -22,7 +22,7 @@ async fn main() -> Result<(), eve_esi::Error> {
     let non_existant_character_id: i64 = 1;
 
     // Use let else syntax to early return if we don't get the error we are expecting
-    let Err(eve_esi::Error::EsiResponseError(error)) = esi_client
+    let Err(eve_esi::Error::EsiError(error)) = esi_client
         .character()
         .get_character_public_information(non_existant_character_id)
         .send()

@@ -80,7 +80,7 @@ macro_rules! authenticated_esi_request_error_test {
                 assert!(result.is_err());
 
                 assert!(
-                    matches!(result, Err(eve_esi::Error::EsiResponseError(ref e)) if e.status == 500)
+                    matches!(result, Err(eve_esi::Error::EsiError(ref e)) if e.status == 500)
                 );
             }
         }

@@ -267,7 +267,7 @@ async fn test_cached_request_handles_errors() -> Result<(), eve_esi::Error> {
 
     assert!(result.is_err());
 
-    if let Err(eve_esi::Error::EsiResponseError(esi_err)) = result {
+    if let Err(eve_esi::Error::EsiError(esi_err)) = result {
         assert_eq!(esi_err.status, 404);
         assert!(esi_err.message.contains("Not found"));
     } else {

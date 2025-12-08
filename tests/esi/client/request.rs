@@ -252,7 +252,7 @@ async fn test_404_error_response() -> Result<(), eve_esi::Error> {
     let err = result.unwrap_err();
 
     // Check if it's an ESI response error
-    if let eve_esi::Error::EsiResponseError(esi_err) = err {
+    if let eve_esi::Error::EsiError(esi_err) = err {
         assert_eq!(esi_err.status, 404);
         assert!(esi_err.message.contains("Resource not found"));
     } else {
@@ -288,7 +288,7 @@ async fn test_500_server_error_response() -> Result<(), eve_esi::Error> {
     assert!(result.is_err());
     let err = result.unwrap_err();
 
-    if let eve_esi::Error::EsiResponseError(esi_err) = err {
+    if let eve_esi::Error::EsiError(esi_err) = err {
         assert_eq!(esi_err.status, 500);
         assert!(esi_err.message.contains("Internal server error"));
     } else {
@@ -324,7 +324,7 @@ async fn test_error_response_includes_cache_headers() -> Result<(), eve_esi::Err
     let result = request.send().await;
 
     assert!(result.is_err());
-    if let eve_esi::Error::EsiResponseError(esi_err) = result.unwrap_err() {
+    if let eve_esi::Error::EsiError(esi_err) = result.unwrap_err() {
         assert_eq!(esi_err.cache.cache_control, "no-cache");
         assert_eq!(esi_err.cache.etag, "\"error-etag\"");
     } else {

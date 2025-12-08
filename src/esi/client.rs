@@ -26,7 +26,7 @@ use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use std::time::Duration;
 
-use crate::error::EsiResponseError;
+use crate::error::EsiError;
 use crate::{Client, Error};
 
 use super::{CacheHeaders, CachedResponse, EsiRequest, EsiResponse, RateLimitHeaders};
@@ -188,7 +188,7 @@ impl<'a> EsiApi<'a> {
         response: reqwest::Response,
         method: &str,
         endpoint: &str,
-    ) -> EsiResponseError {
+    ) -> EsiError {
         let status = response.status().as_u16();
         let headers = response.headers().clone();
 
@@ -223,7 +223,7 @@ impl<'a> EsiApi<'a> {
             error_msg
         );
 
-        EsiResponseError {
+        EsiError {
             status,
             message: error_msg,
             cache,
