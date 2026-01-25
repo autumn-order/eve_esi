@@ -7,6 +7,7 @@ mod calendar;
 mod character;
 mod clones;
 mod contacts;
+mod contract;
 mod corporation;
 mod market;
 mod universe;
