@@ -29,3 +29,26 @@ public_esi_request_test! {
         ]
     )
 }
+
+public_esi_request_test! {
+    get_public_contract_items,
+    contracts,
+    get_public_contract_items[1, 1],
+    request_type = "GET",
+    url = "/contracts/public/items/1?page=1",
+    mock_response = serde_json::json!(
+        [
+          {
+            "is_blueprint_copy": true,
+            "is_included": true,
+            "item_id": 0,
+            "material_efficiency": 0,
+            "quantity": 0,
+            "record_id": 0,
+            "runs": 0,
+            "time_efficiency": 0,
+            "type_id": 0
+          }
+        ]
+    )
+}
