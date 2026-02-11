@@ -69,7 +69,7 @@ impl<'a> OAuth2Endpoints<'a> {
             // Returns an error if the OAuth2 client is not found due to it not having been configured when
             // building the Client.
             None => {
-                error!(
+                log::error!(
                     "Error building a login URL: {:#?}",
                     OAuthError::OAuth2NotConfigured
                 );

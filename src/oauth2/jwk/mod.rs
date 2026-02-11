@@ -150,7 +150,7 @@ impl<'a> JwkApi<'a> {
 
         // Check if we have valid keys in the cache
 
-        trace!("Checking JWT key cache state");
+        log::trace!("Checking JWT key cache state");
 
         if let Some((keys, timestamp)) = jwt_key_cache.get_keys().await {
             let elapsed_seconds = timestamp.elapsed().as_secs();
@@ -161,7 +161,7 @@ impl<'a> JwkApi<'a> {
                 if jwt_key_cache.config.background_refresh_enabled
                     && is_cache_approaching_expiry(jwt_key_cache, timestamp)
                 {
-                    debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
+                    log::debug!("JWT keys approaching expiry (age: {}s)", elapsed_seconds);
 
                     // If the cache is 80% to expiration out of 1 hour, start a refresh
                     // This function will also check:
@@ -170,14 +170,14 @@ impl<'a> JwkApi<'a> {
                     let _ = self.trigger_background_jwt_refresh().await;
                 }
 
-                trace!(
+                log::trace!(
                     "JWT keys still valid, using keys from cache (age: {}s)",
                     elapsed_seconds
                 );
 
                 return Ok(keys);
             } else {
-                debug!(
+                log::debug!(
                     "JWT key cache expired (age: {}s)",
                     timestamp.elapsed().as_secs()
                 );
@@ -195,7 +195,7 @@ impl<'a> JwkApi<'a> {
                 &config.refresh_cooldown.as_secs(), cooldown_remaining
             );
 
-            error!(message);
+            log::error!("{}", message);
 
             return Err(Error::OAuthError(OAuthError::JwtKeyRefreshCooldown(
                 message,
@@ -287,7 +287,7 @@ pub(super) async fn fetch_jwt_keys(
     reqwest_client: &reqwest::Client,
     jwk_url: &str,
 ) -> Result<EveJwtKeys, Error> {
-    debug!("Fetching JWT keys from EVE OAuth2 API: {}", jwk_url);
+    log::debug!("Fetching JWT keys from EVE OAuth2 API: {}", jwk_url);
 
     let start_time = Instant::now();
 
@@ -297,7 +297,7 @@ pub(super) async fn fetch_jwt_keys(
     let elapsed = start_time.elapsed();
     let response = match result {
         Ok(resp) => {
-            debug!(
+            log::debug!(
                 "Received response from JWT keys endpoint, status: {} (took {}ms)",
                 resp.status(),
                 elapsed.as_millis()
@@ -318,7 +318,7 @@ pub(super) async fn fetch_jwt_keys(
                 e
             );
 
-            error!(message);
+            log::error!("{}", message);
 
             return Err(e.into());
         }
@@ -330,7 +330,7 @@ pub(super) async fn fetch_jwt_keys(
     let elapsed = start_time.elapsed();
     let jwt_keys = match result {
         Ok(keys) => {
-            trace!(
+            log::trace!(
                 "Successfully parsed JWT keys response with {} keys (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
@@ -340,7 +340,7 @@ pub(super) async fn fetch_jwt_keys(
         }
         // Error related to parsing the body to the EveJwtKeys struct
         Err(e) => {
-            error!(
+            log::error!(
                 "Failed to parse JWT keys response after {}ms: {:?}",
                 elapsed.as_millis(),
                 e
@@ -376,7 +376,7 @@ pub(super) async fn fetch_and_update_cache(
     reqwest_client: &reqwest::Client,
     jwt_key_cache: &JwtKeyCache,
 ) -> Result<EveJwtKeys, Error> {
-    trace!("Fetching fresh JWT keys and updating cache");
+    log::trace!("Fetching fresh JWT keys and updating cache");
 
     let start_time = Instant::now();
 
@@ -385,7 +385,7 @@ pub(super) async fn fetch_and_update_cache(
 
     match fetch_result {
         Ok(fresh_keys) => {
-            trace!(
+            log::trace!(
                 "Successfully fetched {} JWT keys, updating cache",
                 fresh_keys.keys.len()
             );
@@ -395,7 +395,7 @@ pub(super) async fn fetch_and_update_cache(
 
             let elapsed = start_time.elapsed();
 
-            debug!(
+            log::debug!(
                 "JWT keys cache updated successfully with {} keys (took {}ms)",
                 fresh_keys.keys.len(),
                 elapsed.as_millis()
@@ -406,7 +406,7 @@ pub(super) async fn fetch_and_update_cache(
         Err(e) => {
             let elapsed = start_time.elapsed();
 
-            error!(
+            log::error!(
                 "Failed to fetch JWT keys after {}ms: {:?}",
                 elapsed.as_millis(),
                 e

@@ -54,12 +54,12 @@ impl<'a> JwkApi<'a> {
 
         let start_time = Instant::now();
 
-        debug!("Waiting for another thread to refresh JWT keys");
+        log::debug!("Waiting for another thread to refresh JWT keys");
 
         // Create a future that waits for the notification
         let notify_future = jwt_key_cache.refresh_notifier.notified();
 
-        trace!("Created notification future for JWT key refresh wait");
+        log::trace!("Created notification future for JWT key refresh wait");
 
         let refresh_timeout = config.refresh_timeout;
         let refresh_success = tokio::select! {
@@ -75,7 +75,7 @@ impl<'a> JwkApi<'a> {
                 elapsed.as_millis()
             );
 
-            debug!(error_message);
+            log::debug!("{}", error_message);
 
             // Return error indicating function timed out waiting JWT key refresh
             return Err(Error::OAuthError(OAuthError::JwtKeyRefreshTimeout(
@@ -88,7 +88,7 @@ impl<'a> JwkApi<'a> {
             // Ensure JWT keys are not expired
             let elapsed_seconds = timestamp.elapsed().as_millis();
             if elapsed_seconds < config.cache_ttl.as_millis() {
-                debug!(
+                log::debug!(
                     "Successfully retrieved JWT keys from cache after waiting {}ms for refresh",
                     elapsed.as_millis()
                 );
@@ -104,7 +104,7 @@ impl<'a> JwkApi<'a> {
             elapsed.as_millis()
         );
 
-        debug!("{}", error_message);
+        log::debug!("{}", error_message);
 
         // Return an error indicating no keys were found in cache
         Err(Error::OAuthError(OAuthError::JwtKeyRefreshFailure(
@@ -146,19 +146,19 @@ impl<'a> JwkApi<'a> {
 
         // Check if we are still in cooldown due to fetch failure within 60 second cooldown period
         if check_refresh_cooldown(jwt_key_cache).await.is_some() {
-            debug!("Respecting refresh cooldown, delaying JWT key refresh");
+            log::debug!("Respecting refresh cooldown, delaying JWT key refresh");
 
             return false;
         }
 
         // Attempt to acquire a lock to perform the refresh
         if !jwt_key_cache.refresh_lock_try_acquire() {
-            debug!("JWT key refresh already in progress");
+            log::debug!("JWT key refresh already in progress");
 
             return false;
         }
 
-        debug!("Triggering background JWT refresh task");
+        log::debug!("Triggering background JWT refresh task");
 
         // Clone the required components
         let client_ref = esi_client.inner.clone();
@@ -168,7 +168,7 @@ impl<'a> JwkApi<'a> {
             refresh_jwt_keys(&client_ref.reqwest_client, &client_ref.jwt_key_cache, 0).await
         });
 
-        debug!("Background JWT key refresh task started");
+        log::debug!("Background JWT key refresh task started");
 
         true
     }
@@ -217,7 +217,7 @@ pub(super) async fn refresh_jwt_keys(
 
     // Attempt inital JWT key refresh
 
-    trace!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
+    log::trace!("Fetching JWT keys from JWK URL: {}", &config.jwk_url);
 
     let mut result = fetch_and_update_cache(reqwest_client, jwt_key_cache).await;
 
@@ -231,7 +231,7 @@ pub(super) async fn refresh_jwt_keys(
             config.refresh_backoff.as_millis() as u64 * 2u64.pow(retry_attempts),
         );
 
-        debug!(
+        log::debug!(
             "JWT key fetch failed. Retrying ({}/{}) after {}ms",
             retry_attempts + 1,
             config.refresh_max_retries,
@@ -242,7 +242,7 @@ pub(super) async fn refresh_jwt_keys(
         tokio::time::sleep(backoff_duration).await;
 
         // Try to fetch again
-        debug!(
+        log::debug!(
             "Retry attempt # {}: fetching JWT keys after backoff",
             retry_attempts + 1
         );
@@ -258,7 +258,7 @@ pub(super) async fn refresh_jwt_keys(
     let elapsed = start_time.elapsed();
     match result {
         Ok(keys) => {
-            info!(
+            log::info!(
                 "Successfully fetched and cached {} JWT keys for token validation (took {}ms)",
                 keys.keys.len(),
                 elapsed.as_millis()
@@ -267,13 +267,13 @@ pub(super) async fn refresh_jwt_keys(
             // Clear any previous refresh failure on success
             jwt_key_cache.set_refresh_failure(None).await;
 
-            debug!("Cleared previous JWT key refresh failure timestamp");
+            log::debug!("Cleared previous JWT key refresh failure timestamp");
 
             // Return JWT keys
             Ok(keys)
         }
         Err(err) => {
-            error!(
+            log::error!(
                 "JWT key refresh failed after {}ms: attempts={}, backoff_period={}ms, error={:?}",
                 elapsed.as_millis(),
                 retry_attempts,
@@ -287,7 +287,7 @@ pub(super) async fn refresh_jwt_keys(
                 .set_refresh_failure(Some(std::time::Instant::now()))
                 .await;
 
-            debug!("Recorded JWT key refresh failure timestamp");
+            log::debug!("Recorded JWT key refresh failure timestamp");
 
             // Return Error of type EsiError::ReqwestError
             Err(err)

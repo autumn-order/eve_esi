@@ -90,7 +90,7 @@ impl EveJwtClaims {
                 segments_len,
             );
 
-            error!(message);
+            log::error!("{}", message);
 
             return Err(Error::OAuthError(OAuthError::CharacterIdParseError(
                 message,
@@ -102,7 +102,7 @@ impl EveJwtClaims {
             Err(err) => {
                 let message = format!("Failed to parse `sub` field to i64 due to error: {}", err);
 
-                error!(message);
+                log::error!("{}", message);
 
                 Err(Error::OAuthError(OAuthError::CharacterIdParseError(
                     message,
@@ -127,7 +127,7 @@ impl EveJwtClaims {
         if now < token_expiration {
             let time_remaining = self.exp - now;
 
-            debug!(
+            log::debug!(
                 "Checked token for expiration, token for character ID {} is not yet expired, expiration in {}s",
                 character_id,
                 time_remaining.num_seconds()
@@ -137,7 +137,7 @@ impl EveJwtClaims {
         }
 
         let time_remaining = now - self.exp;
-        debug!(
+        log::debug!(
             "Checked token for expiration, token for character ID {} is expired, expired {}s ago",
             character_id,
             time_remaining.num_seconds()
@@ -168,9 +168,10 @@ impl EveJwtClaims {
         for expected_scope in scopes {
             if !self.scp.iter().any(|scope| scope == expected_scope) {
                 // One of the expected scopes is missing
-                debug!(
+                log::debug!(
                     "Token for character ID {} is missing scope: {}",
-                    character_id, expected_scope
+                    character_id,
+                    expected_scope
                 );
 
                 return false;
@@ -178,7 +179,7 @@ impl EveJwtClaims {
         }
 
         // All expected scopes were found
-        debug!(
+        log::debug!(
             "Token for character ID {} has all expected scopes",
             character_id
         );

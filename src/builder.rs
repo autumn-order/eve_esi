@@ -333,7 +333,7 @@ fn get_or_default_reqwest_client(
     user_agent: &Option<String>,
 ) -> Result<reqwest::Client, Error> {
     if user_agent.is_some() && client.is_some() {
-        warn!(
+        log::warn!(
             "user_agent is set on `ClientBuilder` but so is reqwest_client. The user_agent will not be applied and should be instead applied to the provided reqwest client if not done so already."
         );
     }
