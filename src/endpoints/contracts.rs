@@ -2,8 +2,7 @@
 //!
 //! This module provides the [`ContractsEndpoints`] struct and associated methods for accessing
 //! contract-related ESI endpoints.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
+
 use crate::{
     esi::EsiRequest,
     model::contract::{PublicContract, PublicContractItem},

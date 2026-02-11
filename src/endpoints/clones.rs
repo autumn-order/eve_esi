@@ -2,20 +2,6 @@
 //!
 //! This module provides the [`ClonesEndpoints`] struct and associated methods for accessing
 //! clone-related ESI endpoints.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Endpoints (2)
-//!
-//! ### Authenticated (2)
-//!
-//! | Endpoint                                 | Description                                                                   |
-//! | ---------------------------------------- | ----------------------------------------------------------------------------- |
-//! | [`ClonesEndpoints::get_clones`]          | Get list of clones for the provided character ID                              |
-//! | [`ClonesEndpoints::get_active_implants`] | Get list of type IDs of implants for the provided character ID's active clone |
 
 use crate::{
     esi::EsiRequest, model::clones::CharacterClones, scope::ClonesScopes, Client, ScopeBuilder,

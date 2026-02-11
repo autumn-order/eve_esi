@@ -3,11 +3,6 @@
 //! This module provides the [`AllianceEndpoints`] struct and associated methods for accessing
 //! alliance-related ESI endpoints. All endpoints in this module are public and do not require
 //! authentication.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
 
 use crate::{
     esi::EsiRequest,

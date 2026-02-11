@@ -2,22 +2,6 @@
 //!
 //! This module provides the [`CalendarEndpoints`] struct and associated methods for accessing
 //! calendar-related ESI endpoints.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Endpoints (4)
-//!
-//! ### Authenticated (4)
-//!
-//! | Endpoint                                             | Description                                                                                       |
-//! | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-//! | [`CalendarEndpoints::list_calendar_event_summaries`] | Get list of summaries for the last 50 calendar events for provided character ID                   |
-//! | [`CalendarEndpoints::get_an_event`]                  | Get all information for the provided calendar event ID                                            |
-//! | [`CalendarEndpoints::respond_to_an_event`]           | Respond to a calendar event on behalf of the provided character ID                                |
-//! | [`CalendarEndpoints::get_attendees`]                 | Get list of calendar event attendee character IDs & responses for the event ID                    |
 
 use crate::{
     esi::EsiRequest,

@@ -2,27 +2,6 @@
 //!
 //! This module provides the [`ContactsEndpoints`] struct and associated methods for accessing
 //! contact-related ESI endpoints.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Endpoints (9)
-//!
-//! ### Authenticated (9)
-//!
-//! | Endpoint                                              | Description                                                |
-//! | ----------------------------------------------------- | ---------------------------------------------------------- |
-//! | [`ContactsEndpoints::get_alliance_contacts`]          | Get list of contacts for the provided alliance ID          |
-//! | [`ContactsEndpoints::get_alliance_contact_labels`]    | Get list of contact labels for the provided alliance ID    |
-//! | [`ContactsEndpoints::delete_contacts`]                | Delete list of contacts by ID for provided character ID    |
-//! | [`ContactsEndpoints::get_contacts`]                   | Get list of contacts for the provided character ID         |
-//! | [`ContactsEndpoints::add_contacts`]                   | Add list of contact IDs for the provided character ID      |
-//! | [`ContactsEndpoints::edit_contacts`]                  | Edit list of contact IDs for the provided character ID     |
-//! | [`ContactsEndpoints::get_contact_labels`]             | Get list of contact labels for the provided character ID   |
-//! | [`ContactsEndpoints::get_corporation_contacts`]       | Get list of contacts for the provided corporation ID       |
-//! | [`ContactsEndpoints::get_corporation_contact_labels`] | Get list of contact labels for the provided corporation ID |
 
 use crate::{
     esi::EsiRequest,

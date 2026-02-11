@@ -2,32 +2,6 @@
 //!
 //! This module provides the [`CharacterEndpoints`] struct and associated methods for accessing
 //! character-related ESI endpoints.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Endpoints (11)
-//! ### Public (3)
-//! |                       Endpoint                           |                               Description                                 |
-//! | -------------------------------------------------------- | ------------------------------------------------------------------------- |
-//! | [`CharacterEndpoints::get_character_public_information`] | Retrieves the public information of a specific character                  |
-//! | [`CharacterEndpoints::get_corporation_history`]          | Retrieves the public corporation history of the provided character ID     |
-//! | [`CharacterEndpoints::get_character_portraits`]          | Retrieves the image URLs of a chacter's portraits with various dimensions |
-//!
-//! ### Authenticated (9)
-//! |                         Endpoint                         |                                          Description                                            |
-//! | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-//! | [`CharacterEndpoints::get_agents_research`]              | Retrieves character's research agents using the character's ID                                  |
-//! | [`CharacterEndpoints::get_blueprints`]                   | Retrieves character's blueprints using the character's ID & page to fetch of the blueprint list |
-//! | [`CharacterEndpoints::calculate_a_cspa_charge_cost`]     | Calculates CSPA cost for evemailing a list of characters with the provided character ID         |
-//! | [`CharacterEndpoints::get_jump_fatigue`]                 | Retrieves jump fatigue for the provided character's ID                                          |
-//! | [`CharacterEndpoints::get_medals`]                       | Retrieves a list of medals for the provided character ID                                        |
-//! | [`CharacterEndpoints::get_character_notifications`]      | Retrieves a list of character's notifications                                                   |
-//! | [`CharacterEndpoints::get_character_corporation_roles`]  | Retrieves a list of the provided character ID's corporation roles                               |
-//! | [`CharacterEndpoints::get_standings`]                    | Retrieves a paginated list of NPC standing entries for the provided character ID                |
-//! | [`CharacterEndpoints::get_character_corporation_titles`] | Retrieves a list of the provided character ID's corporation titles                              |
 
 use crate::esi::EsiRequest;
 use crate::model::standing::Standing;
