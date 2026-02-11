@@ -116,7 +116,7 @@ pub mod universe;
 pub mod user_interface;
 pub mod wallet;
 
-use crate::Client;
+use crate::{endpoints::contracts::ContractsEndpoints, Client};
 
 use alliance::AllianceEndpoints;
 use assets::AssetsEndpoints;
@@ -199,8 +199,8 @@ impl Client {
     /// Access to contracts ESI endpoints
     ///
     /// For an overview & usage example, see the [endpoints module documentation](super)
-    fn contracts(&self) -> ClonesEndpoints<'_> {
-        ClonesEndpoints::new(self)
+    pub fn contracts(&self) -> ContractsEndpoints<'_> {
+        ContractsEndpoints::new(self)
     }
 
     /// Access to Corporation ESI endpoints
