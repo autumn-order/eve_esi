@@ -4,7 +4,9 @@
 //! SSO (single sign-on) using OAuth2, & caching & refreshing JWT keys to validate tokens.
 //!
 //! ## Usage
+//!
 //! ### Creating a basic ESI client
+//!
 //! ```rust
 //! // Always set a user_agent to identify your application when making requests
 //! let user_agent = "MyApp/1.0 (contact@example.com; +https://github.com/your/repository)";
@@ -18,6 +20,7 @@
 //! To build an ESI client for OAuth2 & authenticated ESI routes, please see the [`crate::builder`] module docs.
 //!
 //! ## Warning
+//!
 //! EVE Online requires setting a proper user agent. Failure to do so may result in rate limiting or API errors.
 //! Include application name, version, and contact information in your user agent string as well as the repository
 //! of your application if it is open source.

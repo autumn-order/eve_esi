@@ -5,6 +5,7 @@
 //! key caching and refreshing is handled.
 //!
 //! ## Features
+//!
 //! - Override the base ESI URL
 //! - Override EVE Online OAuth2 authorization, JWT key, and token endpoint URLs
 //! - Adjust expiration time & threshold for a proactive refresh for the JWT key cache used to validate tokens

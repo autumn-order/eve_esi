@@ -10,7 +10,6 @@
 //! - <https://developers.eveonline.com/api-explorer>
 //! - <https://developers.eveonline.com/docs/services/sso/>
 //!
-//!
 //! ## Usage Example
 //!
 //! Create a new ESI Client instance and request public information about a corporation from ESI.
