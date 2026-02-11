@@ -1,15 +1,6 @@
 //! # EVE ESI Universe Scopes
 //!
 //! This module provides a type-safe way to add universe-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                      | Description                                                          |
-//! | ------------------------------------------- | -------------------------------------------------------------------- |
-//! | [`UniverseScopes::new`]                     | Creates a new instance of [`UniverseScopes`]                         |
-//! | [`UniverseScopes::all`]                     | Creates a new instance of [`UniverseScopes`] with all scopes applied |
-//! | [`UniverseScopes::read_structures`]         | Read access to information on structures character has access to     |
 
 /// Read access to information on structures character has access to
 pub const READ_STRUCTURES: &str = "esi-universe.read_structures.v1";

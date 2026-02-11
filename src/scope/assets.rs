@@ -1,16 +1,6 @@
 //! # EVE ESI Assets Scopes
 //!
 //! This module provides a type-safe way to add asset-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                    | Description                                                        |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`AssetsScopes::new`]                     | Creates a new instance of [`AssetsScopes`]                         |
-//! | [`AssetsScopes::all`]                     | Creates a new instance of [`AssetsScopes`] with all scopes applied |
-//! | [`AssetsScopes::read_assets`]             | Read access to character's assets                                  |
-//! | [`AssetsScopes::read_corporation_assets`] | Read access to corporation's assets                                |
 
 /// Read access to character's assets
 pub const READ_ASSETS: &str = "esi-assets.read_assets.v1";

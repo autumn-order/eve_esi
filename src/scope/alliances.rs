@@ -1,15 +1,6 @@
 //! # EVE ESI Alliance Scopes
 //!
 //! This module provides a type-safe way to add alliance-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                       | Description                                                           |
-//! | -------------------------------------------- | --------------------------------------------------------------------- |
-//! | [`AlliancesScopes::new`]                     | Creates a new instance of [`AlliancesScopes`]                         |
-//! | [`AlliancesScopes::all`]                     | Creates a new instance of [`AlliancesScopes`] with all scopes applied |
-//! | [`AlliancesScopes::read_contacts`]           | Read access to alliance contact information                           |
 
 /// Read access to alliance contact information
 pub const READ_CONTACTS: &str = "esi-alliances.read_contacts.v1";

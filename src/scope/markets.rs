@@ -1,17 +1,6 @@
 //! # EVE ESI Markets Scopes
 //!
 //! This module provides a type-safe way to add market-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                     | Description                                                         |
-//! | ------------------------------------------ | ------------------------------------------------------------------- |
-//! | [`MarketsScopes::new`]                     | Creates a new instance of [`MarketsScopes`]                         |
-//! | [`MarketsScopes::all`]                     | Creates a new instance of [`MarketsScopes`] with all scopes applied |
-//! | [`MarketsScopes::read_character_orders`]   | Access to retrieve information on character's market orders         |
-//! | [`MarketsScopes::read_corporation_orders`] | Access to retrieve information on corporation's market orders       |
-//! | [`MarketsScopes::structure_markets`]       | Access to retrieve information on a structure's market orders       |
 
 /// Access to retrieve information on character's market orders
 pub const READ_CHARACTER_ORDERS: &str = "esi-markets.read_character_orders.v1";

@@ -1,27 +1,6 @@
 //! # EVE ESI Characters Scopes
 //!
 //! This module provides a type-safe way to add character-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                       | Description                                                            |
-//! | -------------------------------------------- | ---------------------------------------------------------------------- |
-//! | [`CharactersScopes::new`]                    | Create a new instance of [`CharactersScopes`]                          |
-//! | [`CharactersScopes::all`]                    | Creates a new instance of [`CharactersScopes`] with all scopes applied |
-//! | [`CharactersScopes::read_agents_research`]   | Access to retrieve information on character's research agents          |
-//! | [`CharactersScopes::read_blueprints`]        | Access to retrieve information on character's blueprints               |
-//! | [`CharactersScopes::read_contacts`]          | Access to read a character's contacts                                  |
-//! | [`CharactersScopes::read_fatigue`]           | Access to retrieve information on character's jump fatigue status      |
-//! | [`CharactersScopes::read_medals`]            | Access to retrieve information on character's medals                   |
-//! | [`CharactersScopes::read_notifications`]     | Access to retrieve the character's notifications                       |
-//! | [`CharactersScopes::read_corporation_roles`] | Access to read the character's corporation roles                       |
-//! | [`CharactersScopes::read_standings`]         | Access to read the character's standings                               |
-//! | [`CharactersScopes::read_titles`]            | Access to read the character's corporation titles                      |
-//! | [`CharactersScopes::read_chat_channels`]     | Access to read chat channels character is in                           |
-//! | [`CharactersScopes::read_fw_stats`]          | Access to retrieve character's faction warfare stats                   |
-//! | [`CharactersScopes::read_loyalty`]           | Access to retrieve character's loyalty point information               |
-//! | [`CharactersScopes::write_contacts`]         | Access to add/modify character contacts                                |
 
 /// Access to retrieve information on character's research agents
 pub const READ_AGENTS_RESEARCH: &str = "esi-characters.read_agents_research.v1";

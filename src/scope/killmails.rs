@@ -1,16 +1,6 @@
 //! # EVE ESI Killmails Scopes
 //!
 //! This module provides a type-safe way to add killmail-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                          | Description                                                           |
-//! | ----------------------------------------------- | --------------------------------------------------------------------- |
-//! | [`KillmailsScopes::new`]                        | Creates a new instance of [`KillmailsScopes`]                         |
-//! | [`KillmailsScopes::all`]                        | Creates a new instance of [`KillmailsScopes`] with all scopes applied |
-//! | [`KillmailsScopes::read_corporation_killmails`] | Read access to corporation killmails                                  |
-//! | [`KillmailsScopes::read_killmails`]             | Read access to character killmails                                    |
 
 /// Read access to corporation killmails
 pub const READ_CORPORATION_KILLMAILS: &str = "esi-killmails.read_corporation_killmails.v1";

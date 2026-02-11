@@ -1,17 +1,6 @@
 //! # EVE ESI Location Scopes
 //!
 //! This module provides a type-safe way to add location-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                    | Description                                                          |
-//! | ----------------------------------------- | -------------------------------------------------------------------- |
-//! | [`LocationScopes::new`]                   | Creates a new instance of [`LocationScopes`]                         |
-//! | [`LocationScopes::all`]                   | Creates a new instance of [`LocationScopes`] with all scopes applied |
-//! | [`LocationScopes::read_location`]         | Read access to character's current location                          |
-//! | [`LocationScopes::read_online`]           | Read access to characer's online status                              |
-//! | [`LocationScopes::read_ship_type`]        | Read access to character's ship type                                 |
 
 /// Read access to character's current location
 pub const READ_LOCATION: &str = "esi-location.read_location.v1";

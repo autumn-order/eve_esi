@@ -1,16 +1,6 @@
 //! # EVE ESI Fittings Scopes
 //!
 //! This module provides a type-safe way to add fitting-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                      | Description                                                          |
-//! | ------------------------------------------- | -------------------------------------------------------------------- |
-//! | [`FittingsScopes::new`]                     | Creates a new instance of [`FittingsScopes`]                         |
-//! | [`FittingsScopes::all`]                     | Creates a new instance of [`FittingsScopes`] with all scopes applied |
-//! | [`FittingsScopes::read_fittings`]           | Read access to character fittings                                    |
-//! | [`FittingsScopes::write_fittings`]          | Write access to character fittings                                   |
 
 /// Read access to character fittings
 pub const READ_FITTINGS: &str = "esi-fittings.read_fittings.v1";

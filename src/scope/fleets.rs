@@ -1,16 +1,6 @@
 //! # EVE ESI Fleets Scopes
 //!
 //! This module provides a type-safe way to add fleet-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                    | Description                                                        |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`FleetsScopes::new`]                     | Creates a new instance of [`FleetsScopes`]                         |
-//! | [`FleetsScopes::all`]                     | Creates a new instance of [`FleetsScopes`] with all scopes applied |
-//! | [`FleetsScopes::read_fleet`]              | Read access to character fleet information                         |
-//! | [`FleetsScopes::write_fleet`]             | Write access to fleet if character holds sufficient fleet roles    |
 
 /// Read access to character fleet information
 pub const READ_FLEET: &str = "esi-fleets.read_fleet.v1";

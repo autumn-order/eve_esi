@@ -1,16 +1,6 @@
 //! # EVE ESI Contracts Scopes
 //!
 //! This module provides a type-safe way to add contract-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                          | Description                                                           |
-//! | ----------------------------------------------- | --------------------------------------------------------------------- |
-//! | [`ContractsScopes::new`]                        | Creates a new instance of [`ContractsScopes`]                         |
-//! | [`ContractsScopes::all`]                        | Creates a new instance of [`ContractsScopes`] with all scopes applied |
-//! | [`ContractsScopes::read_character_contracts`]   | Read access to character contracts                                    |
-//! | [`ContractsScopes::read_corporation_contracts`] | Read access to corporation contracts                                  |
 
 /// Read access to character contracts
 pub const READ_CHARACTER_CONTRACTS: &str = "esi-contracts.read_character_contracts.v1";

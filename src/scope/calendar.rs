@@ -1,16 +1,6 @@
 //! # EVE ESI Calendar Scopes
 //!
 //! This module provides a type-safe way to add calendar-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                      | Description                                                          |
-//! | ------------------------------------------- | -------------------------------------------------------------------- |
-//! | [`CalendarScopes::new`]                     | Creates a new instance of [`CalendarScopes`]                         |
-//! | [`CalendarScopes::all`]                     | Creates a new instance of [`CalendarScopes`] with all scopes applied |
-//! | [`CalendarScopes::read_calendar_events`]    | Read access to calendar events                                       |
-//! | [`CalendarScopes::respond_calendar_events`] | Access to respond to calendar events on behalf of the character      |
 
 /// Read access to calendar events
 pub const READ_CALENDAR_EVENTS: &str = "esi-calendar.read_calendar_events.v1";

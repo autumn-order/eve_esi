@@ -2,36 +2,6 @@
 //!
 //! This module provides a type-safe way to define and manage EVE Online ESI OAuth2 scopes
 //! using the [`ScopeBuilder`].
-//!
-//! For an overview & usage, see the [module-level documentation](super).
-//!
-//! ## Methods
-//! | Method                         | Description                                          |
-//! | ------------------------------ | ---------------------------------------------------- |
-//! | [`ScopeBuilder::new`]          | Creates a new [`ScopeBuilder`] instance              |
-//! | [`ScopeBuilder::build`]        | Builds the list of scopes into a `Vec<`[`String`]`>` |
-//! | [`ScopeBuilder::custom`]       | Adds a custom scope                                  |
-//! | [`ScopeBuilder::public_data`]  | Access to retrieve public information on a character |
-//! | [`ScopeBuilder::alliances`]    | Adds scopes from [`AlliancesScopes`]                 |
-//! | [`ScopeBuilder::assets`]       | Adds scopes from [`AssetsScopes`]                    |
-//! | [`ScopeBuilder::calendar` ]    | Adds scopes from [`CalendarScopes`]                  |
-//! | [`ScopeBuilder::characters`]   | Adds scopes from [`CharactersScopes`]                |
-//! | [`ScopeBuilder::clones`]       | Adds scopes from [`ClonesScopes`]                    |
-//! | [`ScopeBuilder::contracts`]    | Adds scopes from [`ContractsScopes`]                 |
-//! | [`ScopeBuilder::corporations`] | Adds scopes from [`CorporationsScopes`]              |
-//! | [`ScopeBuilder::fittings`]     | Adds scopes from [`FittingsScopes`]                  |
-//! | [`ScopeBuilder::fleets`]       | Adds scopes from [`FleetsScopes`]                    |
-//! | [`ScopeBuilder::industry`]     | Adds scopes from [`IndustryScopes`]                  |
-//! | [`ScopeBuilder::killmails`]    | Adds scopes from [`KillmailsScopes`]                 |
-//! | [`ScopeBuilder::location`]     | Adds scopes from [`LocationScopes`]                  |
-//! | [`ScopeBuilder::mail`]         | Adds scopes from [`MailScopes`]                      |
-//! | [`ScopeBuilder::markets`]      | Adds scopes from [`MarketsScopes`]                   |
-//! | [`ScopeBuilder::planets`]      | Adds scopes from [`PlanetsScopes`]                   |
-//! | [`ScopeBuilder::search`]       | Adds scopes from [`SearchScopes`]                    |
-//! | [`ScopeBuilder::skills`]       | Adds scopes from [`SkillsScopes`]                    |
-//! | [`ScopeBuilder::ui`]           | Adds scopes from [`UiScopes`]                        |
-//! | [`ScopeBuilder::universe`]     | Adds scopes from [`UniverseScopes`]                  |
-//! | [`ScopeBuilder::wallet`]       | Adds scopes from [`WalletScopes`]                    |
 
 use crate::scope::{
     AlliancesScopes, AssetsScopes, CalendarScopes, CharactersScopes, ClonesScopes, ContractsScopes,
