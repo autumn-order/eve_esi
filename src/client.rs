@@ -25,6 +25,7 @@
 //! Example: `"MyApp/1.0 (contact@example.com; +https://github.com/your/repo)"`
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use crate::builder::ClientBuilder;
 use crate::oauth2::client::OAuth2Client;
@@ -56,6 +57,10 @@ pub(crate) struct ClientRef {
     pub(crate) esi_url: String,
     /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
     pub(crate) esi_validate_token_before_request: bool,
+    /// Maximum number of retries for ESI requests on 5xx errors
+    pub(crate) esi_max_retries: u32,
+    /// Backoff period between ESI request retries
+    pub(crate) esi_retry_backoff: Duration,
 
     // OAuth2 Settings
     /// OAuth2 client used for accessing EVE Online OAuth2 endpoints

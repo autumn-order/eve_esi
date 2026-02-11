@@ -8,3 +8,4 @@
 mod new_request;
 mod request;
 mod request_cached;
+mod retry_logic;

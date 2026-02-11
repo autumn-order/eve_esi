@@ -276,6 +276,7 @@ async fn test_500_server_error_response() -> Result<(), eve_esi::Error> {
 
     let mock = server
         .mock("GET", "/test/error")
+        .expect(3) // 1 initial + 2 retries
         .with_status(500)
         .with_body(r#"{"error": "Internal server error"}"#)
         .create_async()
