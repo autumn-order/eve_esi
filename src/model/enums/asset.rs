@@ -1,10 +1,6 @@
 //! # EVE ESI Asset Enums
 //!
 //! Provides enums related to assets in EVE Online
-//!
-//! ## Enums
-//! - [`LocationType`]: The type of location for an asset's location ID
-//! - [`LocationFlag`]: Indicates where an item, module, or ship in EVE Online is located
 
 use serde::{Deserialize, Serialize};
 
@@ -40,7 +36,6 @@ pub enum LocationType {
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdBlueprintsGet>
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum LocationFlag {
-    /// ???
     AutoFit,
     /// Ship's cargo bay
     Cargo,
@@ -52,7 +47,6 @@ pub enum LocationFlag {
     FleetHangar,
     /// Station deliveries hangar
     Deliveries,
-    /// ???
     HiddenModifiers,
     /// Station hangar
     Hangar,
@@ -108,9 +102,7 @@ pub enum LocationFlag {
     HiSlot7,
     /// Station asset safety storage
     AssetSafety,
-    /// ???
     Locked,
-    /// ???
     Unlocked,
     /// Implant slot on a character
     Implant,
@@ -190,6 +182,5 @@ pub enum LocationFlag {
     FighterTube3,
     /// Carrier or structure's fighter tube #5
     FighterTube4,
-    /// ???
     Module,
 }

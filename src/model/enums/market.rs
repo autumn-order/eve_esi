@@ -1,11 +1,6 @@
 //! # EVE ESI Market Enums
 //!
 //! Provides enums related to markets in EVE Online
-//!
-//! ## Enums
-//! - [`MarketOrderRange`]: Indicates the the range of a market order
-//! - [`HistoricalMarketOrderState`]: Indicates whether a historical market order expired or was cancelled
-//! - [`OrderType`]: Represents the type of order when requesting a list of orders within a region
 
 use std::fmt;
 

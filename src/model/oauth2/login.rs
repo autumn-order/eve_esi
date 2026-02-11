@@ -6,9 +6,6 @@
 //!
 //! For usage of OAuth2 in the `eve_esi` crate, please see the [`crate::oauth2`]
 //! module documentation.
-//!
-//! ## EVE Online OAuth2 Documentation
-//! - <https://developers.eveonline.com/docs/services/sso/>
 
 use serde::{Deserialize, Serialize};
 

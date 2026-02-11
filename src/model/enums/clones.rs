@@ -1,12 +1,6 @@
 //! # EVE ESI Clone Enums
 //!
 //! Provides clone-related enums for EVE Online
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer#>
-//!
-//! ## Enums
-//! - [`CharacterCloneLocationType`]: The location type of a character's clone
 
 use serde::{Deserialize, Serialize};
 

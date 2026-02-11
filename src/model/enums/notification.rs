@@ -1,10 +1,6 @@
 //! # EVE ESI Notification Enums
 //!
 //! Provides enums related to notifications in EVE Online
-//!
-//! ## Enums
-//! - [`NotificationSenderType`]: The type of sender for a notification
-//! - [`NotificationType`]: Indicates the type of notification
 
 use serde::{Deserialize, Serialize};
 
@@ -121,13 +117,11 @@ pub enum NotificationType {
     CloneRevokedMsg1,
     /// Character's clone has been revoked (lost access to station facilities)
     CloneRevokedMsg2,
-    /// ???
     CombatOperationFinished,
     /// Character notified they have been added as contact
     ContactAdd,
     /// Character notified their contact info has been edited
     ContactEdit,
-    /// ???
     ContainerPasswordMsg,
     /// Contract was moved to Pochven due to system falling under Triglavian control
     ContractRegionChangedToPochven,
@@ -161,7 +155,6 @@ pub enum NotificationType {
     CorpLiquidationMsg,
     /// Corporation has new CEO
     CorpNewCEOMsg,
-    /// ???
     CorpNewsMsg,
     /// Corporation is not longer war eligible
     CorpNoLongerWarEligible,
@@ -201,15 +194,11 @@ pub enum NotificationType {
     CorporationGoalNameChange,
     /// Corporation has left alliance
     CorporationLeft,
-    /// ???
     CustomsMsg,
     /// Daily reward item has been automatically claimed
     DailyItemRewardAutoClaimed,
-    /// ???
     DeclareWar,
-    /// ???
     DistrictAttacked,
-    /// ???
     DustAppAcceptedMsg,
     /// ESS main bank has been linked with
     ESSMainBankLink,
@@ -281,11 +270,8 @@ pub enum NotificationType {
     IHubDestroyedByBillFailure,
     /// Sansha incursion has completed
     IncursionCompletedMsg,
-    /// ???
     IndustryOperationFinished,
-    /// ???
     IndustryTeamAuctionLost,
-    /// ???
     IndustryTeamAuctionWon,
     /// Infrastructure hub bill is about to expire
     InfrastructureHubBillAboutToExpire,
@@ -337,7 +323,6 @@ pub enum NotificationType {
     MercOfferedNegotiationMsg,
     /// Merecenary den under attack
     MercenaryDenAttacked,
-    /// ???
     MercenaryDenNewMTO,
     /// Mercenary den has been reinforced
     MercenaryDenReinforced,
@@ -378,9 +363,7 @@ pub enum NotificationType {
     /// Corporation office leased cancelled due to insufficient standing with
     /// station owner.
     OfficeLeaseCanceledInsufficientStandings,
-    /// ???
     OldLscMessages,
-    /// ???
     OperationFinished,
     /// Customs office has been attacked
     OrbitalAttacked,
@@ -394,7 +377,6 @@ pub enum NotificationType {
     RaffleExpired,
     /// Raffle finished
     RaffleFinished,
-    /// ???
     ReimbursementMsg,
     /// Research agent mission now available
     ResearchMissionAvailableMsg,
@@ -442,7 +424,6 @@ pub enum NotificationType {
     SovStructureSelfDestructRequested,
     /// Sovreignty infrastructure has been damaged (old sov mechanics?)
     SovereigntyIHDamageMsg,
-    /// ???
     SovereigntySBUDamageMsg,
     /// Sovreignty territorial claim unit has been damaged (old sov mechanics?)
     SovereigntyTCUDamageMsg,
@@ -507,7 +488,6 @@ pub enum NotificationType {
     TowerAlertMsg,
     /// POS tower running low on resources
     TowerResourceAlertMsg,
-    /// ???
     TransactionReversalMsg,
     /// Starter tutorial message
     TutorialMsg,

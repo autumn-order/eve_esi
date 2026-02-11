@@ -1,9 +1,6 @@
 //! # EVE ESI Calendar Models
 //!
 //! Provides calendar-related structs for EVE Online
-//!
-//! # ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer#>
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

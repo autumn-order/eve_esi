@@ -1,14 +1,6 @@
 //! # EVE ESI Clone Models
 //!
 //! Provides clone-related structs for EVE Online
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer#>
-//!
-//! ## Models
-//! - [`CharacterCloneHomeLocation`]: A character's home station
-//! - [`CharacterJumpClone`]: An entry for a character's jump clones
-//! - [`CharacterClones`]: Character's home station, list of jump clones, and info on last home station change and last clone jump
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

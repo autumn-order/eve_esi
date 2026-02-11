@@ -1,9 +1,6 @@
 //! # EVE ESI Calendar Enums
 //!
 //! Provides enums related to calendars in EVE Online
-//!
-//! ## Enums
-//! - [`CalendarEventResponse`]: The type of location for an asset's location ID
 
 use serde::{Deserialize, Serialize};
 

@@ -1,16 +1,6 @@
 //! # EVE ESI Corporation Enums
 //!
 //! Provides enums related to corporations in EVE Online
-//!
-//! ## Enums
-//! - [`CorporationRoleType`]: Indicates the type & location of the corporation role
-//! - [`CorporationRole`]: Indicates the type of corporation role
-//! - [`CorporationSecureContainerAction`]: Indicates the type of action on an audit log secure container log entry
-//! - [`ShareholderType`]: Indicates whether shares are held by a character or corporation
-//! - [`CorporationStarbaseState`]: Indicates the current state of a corporation starbase (POS)
-//! - [`CorporationStarbasePermission`]: The permission required to perform an action on a corporation owned starbase (POS)
-//! - [`CorporationStructureServiceState`]: The possible states of a corporation's Upwell structure's service module
-//! - [`CorporationStructureState`]: The possible states of a corporation's Upwell structure
 
 use serde::{Deserialize, Serialize};
 
@@ -324,7 +314,6 @@ pub enum CorporationStructureServiceState {
     /// Structure service is currently offline
     #[serde(rename = "offline")]
     Offline,
-    /// ???
     #[serde(rename = "cleanup")]
     Cleanup,
 }
@@ -350,7 +339,6 @@ pub enum CorporationStructureState {
     /// Structure has started anchoring and is currently vulnerable
     #[serde(rename = "deploy_vulnerable")]
     DeployVulnerable,
-    /// ???
     #[serde(rename = "fitting_invulnerable")]
     FittingInvulnerable,
     /// Structure's armor has depleted and hull timer is upcoming
@@ -371,7 +359,6 @@ pub enum CorporationStructureState {
     /// Structure has been unanchored
     #[serde(rename = "unanchored")]
     Unanchored,
-    /// ???
     #[serde(rename = "unknown")]
     Unknown,
 }

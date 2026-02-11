@@ -3,7 +3,6 @@
 //! This module contains the core logic for executing ESI requests,
 //! including authentication, header management, and response handling.
 //!
-//!
 //! # Example
 //! ```no_run
 //! use eve_esi::Client;
