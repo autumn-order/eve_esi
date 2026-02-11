@@ -1,25 +1,6 @@
 //! # EVE ESI Corporations Scopes
 //!
 //! This module provides a type-safe way to add corporation-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                              | Description                                                               |
-//! | --------------------------------------------------- | ------------------------------------------------------------------------- |
-//! | [`CorporationsScopes::new`]                         | Creates a new instance of [`CorporationsScopes`]                          |
-//! | [`CorporationsScopes::all`]                         | Creates a new instance of [`CorporationsScopes`] with all scopes applied  |
-//! | [`CorporationsScopes::read_blueprints`]             | Access to retrieve information on corporation's blueprints                |
-//! | [`CorporationsScopes::read_container_logs`]         | Access to read information on corporation container logs                  |
-//! | [`CorporationsScopes::read_divisions`]              | Access to retrieve information on corporation's wallet & hangar divisions |
-//! | [`CorporationsScopes::read_facilities`]             | Access to retrieve information on corporation's industry facilities       |
-//! | [`CorporationsScopes::read_medals`]                 | Access to retrieve information on corporation's medals                    |
-//! | [`CorporationsScopes::track_members`]               | Access to member tracking-related information for a corporation           |
-//! | [`CorporationsScopes::read_titles`]                 | Access to retrieve information on a corporation's member titles           |
-//! | [`CorporationsScopes::read_corporation_membership`] | Access to read roles & membership for a corporation                       |
-//! | [`CorporationsScopes::read_standings`]              | Access to retrieve information on a corporation's NPC standings           |
-//! | [`CorporationsScopes::read_starbases`]              | Access to retrieve information on a corporation's starbases (POSes)       |
-//! | [`CorporationsScopes::read_structures`]             | Access to retrieve information on corporation's Upwell structures         |
 
 /// Access to retrieve information on corporation's blueprints
 pub const READ_BLUEPRINTS: &str = "esi-corporations.read_blueprints.v1";

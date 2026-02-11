@@ -1,9 +1,6 @@
 //! # EVE ESI Character Enums
 //!
 //! Provides enums related to characters in EVE Online
-//!
-//! ## Enums
-//! - [`CharacterMedalStatus`]: Represents the visbility status of a character's medal
 
 use serde::{Deserialize, Serialize};
 

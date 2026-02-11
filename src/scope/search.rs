@@ -1,15 +1,6 @@
 //! # EVE ESI Search Scopes
 //!
 //! This module provides a type-safe way to add search-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                    | Description                                                        |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`SearchScopes::new`]                     | Creates a new instance of [`SearchScopes`]                         |
-//! | [`SearchScopes::all`]                     | Creates a new instance of [`SearchScopes`] with all scopes applied |
-//! | [`SearchScopes::search_structures`]       | Access to search for structures character has access to            |
 
 /// Access to search for structures character has access to
 pub const SEARCH_STRUCTURES: &str = "esi-search.search_structures.v1";

@@ -2,19 +2,6 @@
 //!
 //! This module provides the [`UniverseEndpoints`] struct and associated methods for accessing
 //! universe-related ESI endpoints.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Endpoints (1)
-//!
-//! ### Public (1)
-//!
-//! | Endpoint                                 | Description                                                                   |
-//! | ---------------------------------------- | ----------------------------------------------------------------------------- |
-//! | [`UniverseEndpoints::get_factions`]      | Retrieves a list of information for all NPC factions in EVE Online            |
 
 use crate::{esi::EsiRequest, model::universe::Faction, Client};
 use reqwest::Method;

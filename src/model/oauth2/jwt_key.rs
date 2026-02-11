@@ -5,13 +5,6 @@
 //!
 //! For usage of OAuth2 in the `eve_esi` crate, please see the [`crate::oauth2`]
 //! module documentation.
-//!
-//! ## EVE Online OAuth2 Documentation
-//! - <https://developers.eveonline.com/docs/services/sso/>
-//!
-//! ## Models:
-//! - [`EveJwtKeys`]: Represents the EVE Online JSON Web Token (JWT) keys used for validating authentication tokens
-//! - [`EveJwtKey`]: Represents the types of EVE Online JSON Web Token (JWT) keys used for token validation
 
 use serde::{Deserialize, Serialize};
 

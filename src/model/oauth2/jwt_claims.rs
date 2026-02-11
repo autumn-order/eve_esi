@@ -7,14 +7,7 @@
 //!
 //! For usage of OAuth2 in the `eve_esi` crate, please see the [`crate::oauth2`]
 //! module documentation.
-//!
-//! ## Methods
-//! The [`EveJwtClaims`] struct has the following utility methods:
-//! - [`EveJwtClaims::character_id`]: Utility function to parse the [`EveJwtClaims::sub`] field into a character ID
-//! - [`EveJwtClaims::is_expired`]: Utility function to check token claims to see if it is expired
-//!
-/// ## EVE Online OAuth2 Documentation
-/// - <https://developers.eveonline.com/docs/services/sso/#validating-jwt-tokens>
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 

@@ -1,15 +1,6 @@
 //! # EVE ESI Clone Enums
 //!
 //! Provides clone-related enums for EVE Online
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer#>
-//!
-//! ## Enums
-//!
-//! | Enum            | Description                                       |
-//! | --------------- | ------------------------------------------------- |
-//! | [`ContactType`] | Represents the contact type for the contact entry |
 
 use serde::{Deserialize, Serialize};
 

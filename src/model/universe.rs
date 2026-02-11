@@ -1,15 +1,6 @@
 //! # EVE ESI Universe Models
 //!
 //! Provides universe-related structs for EVE Online
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer#>
-//!
-//! ## Models
-//!
-//! | Model                  | Description                                                                 |
-//! | ---------------------- | --------------------------------------------------------------------------- |
-//! | [`Faction`]            | Represents an NPC faction in EVE Online                                     |
 
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +16,6 @@ pub struct Faction {
     pub description: String,
     /// Unique ID of the faction
     pub faction_id: i64,
-    /// ???
     pub is_unique: bool,
     /// The faction warfare militia corporation if applicable
     pub militia_corporation_id: Option<i64>,

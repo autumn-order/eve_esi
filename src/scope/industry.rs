@@ -1,18 +1,6 @@
 //! # EVE ESI Industry Scopes
 //!
 //! This module provides a type-safe way to add industry-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                      | Description                                                          |
-//! | ------------------------------------------- | -------------------------------------------------------------------- |
-//! | [`IndustryScopes::new`]                     | Creates a new instance of [`IndustryScopes`]                         |
-//! | [`IndustryScopes::all`]                     | Creates a new instance of [`IndustryScopes`] with all scopes applied |
-//! | [`IndustryScopes::read_character_jobs`]     | Read access to character industry jobs                               |
-//! | [`IndustryScopes::read_character_mining`]   | Read access to character's mining ledger                             |
-//! | [`IndustryScopes::read_corporation_jobs`]   | Read access to corporation industry jobs                             |
-//! | [`IndustryScopes::read_corporation_mining`] | Read access to corporation mining ledger (moon mining structures)    |
 
 /// Read access to character industry jobs
 pub const READ_CHARACTER_JOBS: &str = "esi-industry.read_character_jobs.v1";

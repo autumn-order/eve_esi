@@ -2,24 +2,6 @@
 //!
 //! This module provides the [`AssetsEndpoints`] struct and associated methods for accessing
 //! asset-related ESI endpoints.
-//!
-//! For an overview & usage examples, see the [endpoints module documentation](super)
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Endpoints (6)
-//!
-//! ### Authenticated (6)
-//!
-//! | Endpoint                                             | Description                                                                                       |
-//! | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-//! | [`AssetsEndpoints::get_character_assets`]            | Get paginated list of assets for the provided character's ID                                      |
-//! | [`AssetsEndpoints::get_character_asset_locations`]   | Get list of coordinates for items' location in space using item IDs & character's ID              |
-//! | [`AssetsEndpoints::get_character_asset_names`]       | Get list of item names from list of item IDs & a character's ID                                   |
-//! | [`AssetsEndpoints::get_corporation_assets`]          | Get paginated list of assets for the provided corporation ID                                      |
-//! | [`AssetsEndpoints::get_corporation_asset_locations`] | Get list of coordinates for items' location in space using provided item IDs & a corporation's ID |
-//! | [`AssetsEndpoints::get_corporation_asset_names`]     | Get list of item names from list of item IDs & a corporation's ID                                 |
 
 use crate::{
     esi::EsiRequest,

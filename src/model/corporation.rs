@@ -1,31 +1,6 @@
 //! # EVE ESI Corporation Models
 //!
-//! This module defines the `Corporation` struct, which models the core properties of a corporation in EVE Online.
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Models
-//! - [`Corporation`]: Represents a corporation in EVE Online
-//! - [`CorporationAllianceHistory`]: Entry for a corporation's alliance history
-//! - [`CorporationSecureContainerLog`]: Log entry for an audit log secure container owned by a corporation
-//! - [`CorporationDivisionEntry`]: An entry for a corporation's hangar or wallet division
-//! - [`CorporationDivisions`]: Lists of a corporation wallet and hangar divisions
-//! - [`CorporationFacilities`]: Entry for corporation industry facilities
-//! - [`CorporationIcon`]: Icon URLs for a corporation
-//! - [`CorporationMedal`]: An entry for a corporation medal
-//! - [`CorporationIssuedMedal`]: An entry for an issued corporation medal
-//! - [`CorporationMemberTitles`]: An entry for a corporation member's titles
-//! - [`CorporationMemberTracking`]: An entry for a corporation member's tracking information
-//! - [`CorporationMemberRoles`]: An entry for a corporation member's assigned roles
-//! - [`CorporationMemberRolesHistory`]: An entry for a corporation member's role history
-//! - [`CorporationShareholder`]: An entry for a corporation shareholder
-//! - [`CorporationStarbase`]: Information regarding a starbase (POS) owned by a corporation
-//! - [`CorporationStarbaseFuel`]: Entry on the fuel types stored within a corporation starbase (POS)
-//! - [`CorporationStarbaseDetails`]: Information regarding a starbase's (POS) details owned by a corporation
-//! - [`CorporationStructureService`]: An entry for a corporation's Upwell structure services
-//! - [`CorporationStructure`]: Details regarding a corporation's Upwell structure
-//! - [`CorporationTitle`]: An entry for a corporation's titles and its respective roles
+//! Provides models related to corporation endpoints for EVE Online's ESI API.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -113,9 +88,7 @@ pub struct CorporationSecureContainerLog {
     pub location_id: i64,
     /// Timestamp when this log was created
     pub logged_at: DateTime<Utc>,
-    /// ???
     pub new_config_bitmask: i64,
-    /// ???
     pub old_config_bitmask: i64,
     /// Quantity of item being acted upon
     pub quantity: i64,

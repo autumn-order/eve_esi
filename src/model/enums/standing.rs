@@ -1,9 +1,6 @@
 //! # EVE ESI Standing Enums
 //!
 //! Provides standing enum shared between characters & corporations
-//!
-//! ## Enums
-//! - [`StandingType`]: The type of character or corporation standing entry (Agent, NpcCorp, or Faction)
 
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +8,6 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Documentation
 /// - <https://developers.eveonline.com/api-explorer#/schemas/CharactersCharacterIdStandingsGet>
-///
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum StandingType {
     /// Standing type is with an NPC agent

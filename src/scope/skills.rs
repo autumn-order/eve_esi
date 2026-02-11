@@ -1,16 +1,6 @@
 //! # EVE ESI Skills Scopes
 //!
 //! This module provides a type-safe way to add skill-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                    | Description                                                        |
-//! | ----------------------------------------- | ------------------------------------------------------------------ |
-//! | [`SkillsScopes::new`]                     | Creates a new instance of [`SkillsScopes`]                         |
-//! | [`SkillsScopes::all`]                     | Creates a new instance of [`SkillsScopes`] with all scopes applied |
-//! | [`SkillsScopes::read_skillqueue`]         | Read access to character's skill queue                             |
-//! | [`SkillsScopes::read_skills`]             | Read access to character's skills                                  |
 
 /// Read access to character's skill queue
 pub const READ_SKILLQUEUE: &str = "esi-skills.read_skillqueue.v1";

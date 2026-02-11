@@ -1,9 +1,6 @@
 //! # EVE ESI Asset Models
 //!
 //! Provides structs representing assets within EVE Online such as blueprints
-//!
-//! # ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer#>
 
 use serde::{Deserialize, Serialize};
 

@@ -1,17 +1,6 @@
 //! # EVE ESI Mail Scopes
 //!
 //! This module provides a type-safe way to add mail-related scopes for OAuth2 to the [`super::ScopeBuilder`]
-//!
-//! See [module-level documentation](super) for an overview & usage of scopes for the esi_crate
-//!
-//! ## Methods
-//! | Method                                    | Description                                                      |
-//! | ----------------------------------------- | ---------------------------------------------------------------- |
-//! | [`MailScopes::new`]                       | Creates a new instance of [`MailScopes`]                         |
-//! | [`MailScopes::all`]                       | Creates a new instance of [`MailScopes`] with all scopes applied |
-//! | [`MailScopes::organize_mail`]             | Access to organize character's mail                              |
-//! | [`MailScopes::read_mail`]                 | Read access to character's eve mails                             |
-//! | [`MailScopes::send_mail`]                 | Write access to send eve mails on behalf of character            |
 
 /// Access to organize character's mail
 pub const ORGANIZE_MAIL: &str = "esi-mail.organize_mail.v1";

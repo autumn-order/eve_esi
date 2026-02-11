@@ -1,17 +1,6 @@
 //! # EVE ESI Market Models
 //!
 //! Provides models related to market endpoints for EVE Online's ESI API.
-//!
-//! ## ESI Documentation
-//! - <https://developers.eveonline.com/api-explorer>
-//!
-//! ## Models
-//! - [`CharacterMarketOrder`]: Details for a character's market order
-//! - [`CorporationMarketOrder`]: Details for a corporation's market order
-//! - [`MarketItemGroupInformation`]: Information regarding a specific market group
-//! - [`MarketItemPrices`]: The average & adjusted market prices of an item
-//! - [`StructureMarketOrder`]: Details for a market order placed within a structure
-//! - [`MarketItemRegionStatistics`]: An entry for the market statistics of an item within a specific region on a given date
 
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};

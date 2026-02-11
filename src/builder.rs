@@ -15,20 +15,10 @@
 //! - Override the default JWT key cache & refresh settings used to validate OAuth2 tokens & override
 //!   the default endpoint URLs with a custom [`Config`] using the [`ClientBuilder::config`] method.
 //!
-//! ## Builder Methods
-//! | Method           | Purpose                                 |
-//! | ---------------- | --------------------------------------- |
-//! | `new`            | Create a builder for the Client         |
-//! | `build`          | Build the Client                        |
-//! | `config`         | Override the default config             |
-//! | `reqwest_client` | Override default reqwest client         |
-//! | `user_agent`     | User agent to identify HTTP requests    |
-//! | `client_id`      | EVE OAuth2 client ID                    |
-//! | `client_secret`  | EVE OAuth2 client secret                |
-//! | `callback_url`   | EVE OAuth2 callback URL                 |
-//!
 //! ## Usage
+//!
 //! ### Building an ESI client for OAuth2
+//!
 //! **Prerequisites:**
 //! - **EVE Online Developer Application:** First, you will need to get a client ID & client
 //!   secret as well as set the callback URL where your user's will be redirected to after

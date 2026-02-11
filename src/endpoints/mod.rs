@@ -1,41 +1,24 @@
-//! # EVE ESI Endpoints
-//!
-//! This module provides access to the different categories of endpoints available for EVE Online's ESI API.
-//!
-//! ## Modules
-//! | Module          | Description           | Public Endpoints | Authenticated Endpoints |
-//! | --------------- | --------------------- | ---------------- | ----------------------- |
-//! | [`alliance`]    | Alliance endpoints    | 4                |                         |
-//! | [`assets`]      | Clone endpoints       |                  | 6                       |
-//! | [`calendar`]    | Calendar endpoints    |                  | 4                       |
-//! | [`character`]   | Character endpoints   | 3                | 9                       |
-//! | [`clones`]      | Clone endpoints       |                  | 2                       |
-//! | [`contacts`]    | Contact endpoints     |                  | 9                       |
-//! | [`corporation`] | Corporation endpoints | 4                | 18                      |
-//! | [`market`]      | Market endpoints      | 6                | 5                       |
-//! | [`universe`]    | Universe endpoints    | 1                |                         |
-//!
-//! The rest of the declared endpoints submodules have yet to have any endpoints implemented.
+//! # EVE Online ESI API Endpoint Categories
 //!
 //! ## ESI Documentation
+//!
 //! - ESI API Explorer: <https://developers.eveonline.com/api-explorer>
 //! - Error Rate Limits: <https://developers.eveonline.com/docs/services/esi/best-practices/#error-limit>
 //!
-//! ## ESI Error Rate Limits
-//! ESI imposes a rate limit if your application's requests return too many errors as documented
-//! [here](https://developers.eveonline.com/docs/services/esi/best-practices/#error-limit). This crate implements
-//! measures to reduce potential errors.
+//! ## Error Handling
 //!
-//! Authenticated ESI routes will return a relevant error should one of the following cases occur:
-//!
-//! - [`crate::OAuthError::ValidateTokenError`]: Access token fails validation, either improperly formatted or wasn't created by EVE Online
-//! - [`crate::OAuthError::AccessTokenExpired`]: Access token is expired
-//! - [`crate::OAuthError::AccessTokenMissingScopes`]: Access token is missing the scopes required by the ESI endpoint
+//! ESI imposes [error rate limits](https://developers.eveonline.com/docs/services/esi/best-practices/#error-limit).
+//! Authenticated endpoints return specific errors before making requests:
+//! - `ValidateTokenError`: Invalid or malformed access token
+//! - `AccessTokenExpired`: Expired access token
+//! - `AccessTokenMissingScopes`: Token lacks required scopes
 //!
 //! ## Usage
+//!
 //! ### Public ESI Endpoints
+//!
 //! **Prerequisites:**
-//! - **ESI Client:** Setup a basic ESI client as demonstrated in [`crate::client`] module docs
+//! - Basic ESI client (see [`crate::client`])
 //!
 //! ```no_run
 //! use eve_esi::Client;
@@ -53,14 +36,11 @@
 //! ```
 //!
 //! ### Authenticated ESI Endpoints
+//!
 //! **Prerequisites:**
-//! - **ESI Client:** Setup an ESI client for OAuth2 as demonstrated in [`crate::builder`] module docs
-//! - **User Login:** You will need the character to login first in order to retrieve an access token
-//!   using an authorization code. You will need a login route as demonstrated in the [`crate::oauth2::login`]
-//!   module docs. Make sure you request the scopes required for the endpoint!
-//! - **Access Token:** You will get this by getting a character's token in the callback route
-//!   using the authorization code provided after login as demonstrated in the [`crate::oauth2::token`]
-//!   module docs
+//! - ESI client configured for OAuth2 (see [`crate::builder`])
+//! - Access token from character login via authorization code (see [`crate::oauth2::login`] and [`crate::oauth2::token`])
+//! - Request required scopes during login
 //!
 //! ```no_run
 //! use eve_esi::Client;

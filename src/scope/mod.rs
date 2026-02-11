@@ -3,16 +3,6 @@
 //! This module provides the [`ScopeBuilder`] & related modules with methods to build a list of scopes to request during
 //! login in a type-safe manner.
 //!
-//! For an overview & usage examples of OAuth2 with the `eve_esi` crate, see the [module-level documentation](super)
-//!
-//! ## Modules
-//! | Module           | Description                                                                                          |
-//! | ---------------- | ---------------------------------------------------------------------------------------------------- |
-//! | [`builder`]      | Provides the [`ScopeBuilder`] to build a list of scopes                                              |
-//! | [`characters`]   | Provides the [`CharactersScopes`] struct to be used with the [`ScopeBuilder::characters`] method     |
-//! | [`corporations`] | Provides the [`CorporationsScopes`] struct to be used with the [`ScopeBuilder::corporations`] method |
-//! | [`wallet`]       | Provides the [`WalletScopes`] struct to be used with the [`ScopeBuilder::wallet`] method             |
-//!
 //! ## Usage Example
 //!
 //! ```rust
@@ -33,9 +23,6 @@
 //!
 //! // Use with `esi_client.oauth2().login_url(scopes)` method...
 //! ```
-//!
-//! See the [`crate::oauth2::login`] module documentation for an example of usage of the [`ScopeBuilder`] with the
-//! [`login_url`](crate::oauth2::OAuth2Endpoints::login_url) method.
 
 pub mod builder;
 
