@@ -4,12 +4,12 @@
 >
 > **This crate is still under development, APIs may change between versions**
 >
-> Currently the crate features OAuth2 login with EVE Online and we're now adding additional ESI endpoints as needed. If you wish to see specific endpoints added, please open a GitHub issue, submit a pull request, or simply reach out via the [Autumn Discord](https://discord.gg/HjaGsBBtFg).
+> Currently the crate features OAuth2 login with EVE Online and we're now adding additional ESI endpoints as needed. If you wish to see specific endpoints added, please open a GitHub issue, submit a pull request, or simply reach out via the [Autumn Discord](https://discord.gg/AcVY3rpsMM).
 
 [![Crates.io Version](https://img.shields.io/crates/v/eve_esi?logo=rust)](https://crates.io/crates/eve_esi/)
 [![codecov](https://codecov.io/gh/autumn-order/eve_esi/graph/badge.svg?token=OXD57P1UY6)](https://codecov.io/gh/autumn-order/eve_esi)
 [![wakatime](https://wakatime.com/badge/github/autumn-order/eve_esi.svg)](https://wakatime.com/badge/github/autumn-order/eve_esi)
-[![Discord](https://img.shields.io/discord/1414000815017824288?logo=Discord&color=%235865F2)](https://discord.gg/HjaGsBBtFg)
+[![Discord](https://img.shields.io/discord/1414000815017824288?logo=Discord&color=%235865F2)](https://discord.gg/AcVY3rpsMM)
 
 A thread-safe, asynchronous client which provides methods & types for interaction with [EVE Online's ESI](https://developers.eveonline.com/api-explorer) & [EVE Online's single sign-on (SSO)](https://developers.eveonline.com/docs/services/sso/).
 
@@ -19,15 +19,13 @@ A thread-safe, asynchronous client which provides methods & types for interactio
 
 For usage examples, ESI client configuration, and logging configuration, please see the [documentation](https://docs.rs/eve_esi/latest/eve_esi/)
 
-Have questions about this crate or EVE Online's ESI in general? Ask us in the [Autumn Discord](https://discord.gg/HjaGsBBtFg)!
+Have questions about this crate or EVE Online's ESI in general? Ask us in the [Autumn Discord](https://discord.gg/AcVY3rpsMM)!
 
 ## Features
 
 - **EVE Online ESI:** Ongoing implementation of every public & authenticated ESI endpoint at a goal pace of 10 endpoints/day (Should be completed by early October)
 - **EVE Online OAuth2:** Features full implementation of OAuth2 single sign-on with EVE Online including out of the box JWT token key caching and refreshing ahead of expiration to validate access tokens.
 - **Thread-safe:** Implements the usage of read/write locks, compare exchanges, atomic bools, & tokio notifiers to provide high concurrency performance in applications at scale.
-- **Configurable:** Allows for the creation of simple ESI clients only for public endpoints, to clients created with a builder method for OAuth2, to providing a custom config to fine-tune settings to your application's needs.
-- **Documentation:** The endpoints, models, & enums within this crate are all documented to help clarify what certain fields or enum variants are for, making it more accessible to developers unfamiliar with some areas of the game. 
 
 ## Usage Example
 
@@ -65,6 +63,7 @@ The following categories from the [ESI API Explorer](https://developers.eveonlin
 | `clones`      |                  | 2                       |
 | `contacts`    |                  | 9                       |
 | `corporation` | 4                | 18                      |
+| `contracts`   | 2                |                         |
 | `market`      | 6                | 5                       |
 | `universe`    | 1                |                         |
 
