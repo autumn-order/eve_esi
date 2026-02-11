@@ -49,9 +49,9 @@ macro_rules! public_esi_request_error_test {
 
                 let mock_endpoint = mock_server
                     .mock($request_type, $url)
-                    .with_status(500)
+                    .with_status(400)
                     .with_header("content-type", "application/json")
-                    .with_body(r#"{"error": "Internal server error"}"#)
+                    .with_body(r#"{"error": "Bad Request"}"#)
                     .create();
 
                 let endpoints = esi_client.$endpoint();
@@ -64,7 +64,7 @@ macro_rules! public_esi_request_error_test {
                 assert!(result.is_err());
 
                 assert!(
-                    matches!(result, Err(eve_esi::Error::EsiError(ref e)) if e.status == 500)
+                    matches!(result, Err(eve_esi::Error::EsiError(ref e)) if e.status == 400)
                 );
             }
         }
