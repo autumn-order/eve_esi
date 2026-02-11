@@ -2,8 +2,6 @@
 
 Contributions are always welcome, please read through the best practices section below to get an idea of the standards of code in this project and all projects under The Order of Autumn.
 
-For an overview of the project, please refer to the [README](https://github.com/hyziri/eve_esi)
-
 # Project Structure
 
 This crate utilizes the following EVE Online APIs:
@@ -16,7 +14,7 @@ This crate utilizes the following EVE Online APIs:
 
 ## Client
 
-The Client located in `client.rs` is the main client used to interact with the ESI API. It is configured using the `builder.rs` file which allows you to set up OAuth2 settings, base URLs, and other configurations.
+The Client located in `client.rs` is the main client used to interact with the ESI API. It is configured using the `builder.rs` & `config.rs` files which allow you to set up OAuth2 settings, base URLs, and other configurations.
 
 ## Errors
 
@@ -29,36 +27,6 @@ Default URLs and constants used throughout the crate are located in `constant.rs
 The defaults can be overridden using the `Config` located in `config.rs`
 
 `.env.example` is copied to `.env` and used with the `examples/sso` example to configure the EVE developer application values. It doesn't need to be set for the library itself.
-
-## File Structure
-
-The file structure of the `eve_esi` crate is as follows:
-
-```plaintext
-├── lib.rs       (The main entry point for the library)
-├── client.rs    (The main client used to interact with the ESI API)
-├── config.rs    (Advanced config to override client default settings)
-├── builder.rs   (The configuration for the client, including OAuth2 settings)
-├── constant.rs  (Default URLs & constants used throughout the crate)
-├── error.rs     (The error enum used throughout the crate)
-├── esi.rs       (Helper functions for making ESI requests)
-├── tests/       (Utilities for unit tests)
-│   └── util.rs      (Shared setup function for all HTTP based unit tests)
-├── model/       (All models used in the crate & ESI schemas)
-│   ├── oauth2.rs    (OAuth2 related models)
-│   ├── alliance.rs  (Alliance related models)
-│   └── ... additional ESI models
-├── oauth2/      (All OAuth2 related functionality)
-│   ├── client.rs  (The client used to interact with the EVE OAuth2 API)
-│   ├── error.rs   (The error enum for OAuth2 related errors)
-│   ├── scope.rs   (The scope builder for creating a list of OAuth2 scopes)
-│   ├── login.rs   (Method for initiating the login process)
-│   ├── token.rs   (Token fetching & refreshing functionality)
-│   └── jwk/       (Functionality for retrieving and caching jwt keys)
-└── endpoints/
-    ├── alliance.rs  (Alliance related endpoints)
-    └── ... additional ESI endpoints
-```
 
 # Submitting Issues/Bugs
 
@@ -88,7 +56,6 @@ To submit a pull request, do the following:
 5. Create a pull request on this repository with a summary of your feature & changes
 
 Please be aware, any code submitted to this repository must fall under the MIT license.
-
 
 ## Development Environment
 
@@ -129,74 +96,3 @@ Don't forget to include:
 Upon submitting your pull request, one of the core maintainers of the repository will view your request.
 - If there is any documentation, test coverage, or logging which is missing, we're happy to assist you with implementing it.
 - Upon acceptance, your pull request will be merged into the `dev` branch and merged into main upon next version bump.
-
-# Best Practices
-
-When writing code for this project, we are meticulous in that we always include:
-- Documentation & inline comments
-- Logging
-- Integration & unit testing
-
-Note: For logging, please use `#[cfg(not(tarpaulin_include))]` to exempt the log macros from code coverage as `cargo tarpaulin` will report the line as uncovered when they aren't necessary for test coverage. See examples below for usage.
-
-See `src/oauth2/jwk/refresh.rs` for an example of how these best practices are followed.
-See `tests/alliance/get_alliance_information.rs` for an example of how to write integration tests for the endpoints.
-
-Ultimately, these ensure that our code is maintainable, understandable, and reliable. It takes longer to write initially but saves a lot of headaches in the long run trying to walk through each step of a function just to figure out what it does or how it is implemented.
-
-For new programmers, especially to Rust, this can be daunting. You are encouraged to contribute and put your best effort forward on tackling these additional best practices but we'd much prefer progress over perfection. Be certain to ask questions and ask for help if you need a further explanation on how to do something. Once you've done the best you can, submit a pull request and we'll work with you to implement the additional best practices before merging it into a release.
-
-Additionally, you could consider using a tool such as [GitHub CoPilot](https://github.com/features/copilot) with your code editor which can help as a guide in writing documentation, unit tests, and explaining new concepts. You will just want to make absolute certain you double check everything it writes for correctness and consistency with the rest of the codebase.
-
-As of August 17th, 2025, `Claude Sonnet 3.7` is the recommended model to use.
-
-# Codebase Test Coverage Quirks
-
-## cargo-llvm-cov Code Coverage & Log Macros
-
-The tool we use for code coverage, [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov), has issues with
-determing code coverage for multi-line log crate macros. We've written wrapper macros contained in `src/logging.rs`
-which should be used instead as they resolve the issue with a workaround described in the module documentation.
-
-## cargo-llvm-cov Code Coverage & Test Assertions
-
-You should favor the usage of `assert!`, `assert_eq!`, and `matches!` macros in your tests rather than `match` and `if let Some(Error::ErrorType(err))`.
-
-**Avoid doing this:**
-
-```rust
-// Assert result is of type ConfigError::InvalidCallbackUrl
-match result {
-    Error::ConfigError(ConfigError::InvalidCallbackUrl) => {},
-    err => panic!("Expected ConfigError::InvalidCallbackUrl, instead got {:#?}", err)
-};
-```
-
-The problem with this is that [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) has trouble reading this.
-
-**Instead do**
-
-```rust
-// Assert result is err
-assert!(result.is_err());
-
-// Assert error is of type ConfigError::InvalidCallbackUrl
-assert!(matches!(
-    result,
-    Err(Error::ConfigError(ConfigError::InvalidCallbackUrl))
-));
-```
-
-If you need to check the error type of a request error, you may want go for a `match` statement or `if let Some(Error:ReqwestError(err)) = result`. These also have issues, the closing brace `}` will be marked as uncovered or the `panic!` macro in the match statement if got an unexpected error will also shows as uncovered.
-
-**Instead do:**
-
-```rust
-// Assert result is err
-assert!(result.is_err());
-
-// Assert error is due to reqwest internal server error
-assert!(
-    matches!(result, Err(Error::ReqwestError(ref e)) if e.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR))
-);
-```
