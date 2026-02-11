@@ -10,6 +10,12 @@ pub static DEFAULT_TOKEN_URL: &str = "https://login.eveonline.com/v2/oauth/token
 /// Default EVE Online OAuth2 JWK URL used for validating access tokens
 pub static DEFAULT_JWK_URL: &str = "https://login.eveonline.com/oauth/jwks";
 
+// Default ESI request settings
+/// Default maximum number of retries for ESI requests on 5xx errors (2 retries)
+pub static DEFAULT_ESI_MAX_RETRIES: u32 = 2;
+/// Default backoff period for ESI request retries (200 milliseconds)
+pub static DEFAULT_ESI_RETRY_BACKOFF: Duration = Duration::from_millis(200);
+
 // Default JWT key cache settings
 /// Default JWT key cache lifetime before expiration (3600 seconds representing 1 hour)
 pub static DEFAULT_JWK_CACHE_TTL: Duration = Duration::from_secs(3600);

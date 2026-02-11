@@ -17,7 +17,7 @@ impl<'a> EsiApi<'a> {
         required_scopes: Vec<String>,
     ) -> Result<(), Error> {
         if self.client.inner.esi_validate_token_before_request {
-            debug!("Validating token prior to expiration & scope checks");
+            trace!("Validating token prior to expiration & scope checks");
 
             let claims = self
                 .client

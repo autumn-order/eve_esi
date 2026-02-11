@@ -258,8 +258,6 @@ impl<'a> EsiApi<'a> {
             log::error!("Invalid URL for ESI request: {} - {}", endpoint, e);
         })?;
 
-        let start_time = std::time::Instant::now();
-
         // Validate token if this is an authenticated request
         if let Some(access_token) = request.access_token() {
             self.validate_token_before_request(access_token, request.required_scopes().clone())
@@ -267,52 +265,98 @@ impl<'a> EsiApi<'a> {
         }
 
         let reqwest_client = &self.client.inner.reqwest_client;
+        let max_retries = self.client.inner.esi_max_retries;
+        let base_backoff = self.client.inner.esi_retry_backoff;
 
-        // Build the request with the appropriate HTTP method
-        let mut req_builder = reqwest_client.request(method.clone(), &endpoint);
+        // Retry loop
+        for attempt in 0..=max_retries {
+            let start_time = std::time::Instant::now();
 
-        // Add authorization header if access token is present
-        if let Some(access_token) = request.access_token() {
-            let bearer = format!("Bearer {}", access_token);
-            req_builder = req_builder.header("Authorization", bearer);
-        }
+            // Build the request with the appropriate HTTP method
+            let mut req_builder = reqwest_client.request(method.clone(), &endpoint);
 
-        // Add all custom headers from the request
-        for (key, value) in request.headers() {
-            req_builder = req_builder.header(key, value);
-        }
-
-        // Add JSON body if present (for POST, PUT, PATCH requests)
-        if let Some(body) = request.body_json() {
-            req_builder = req_builder.json(body);
-        }
-
-        // Send the request
-        let response = req_builder.send().await;
-
-        let elapsed = start_time.elapsed();
-
-        match response {
-            Ok(r) => {
-                log::debug!(
-                    "ESI Request completed: {} {} ({}ms)",
-                    method,
-                    endpoint,
-                    elapsed.as_millis()
-                );
-                Ok(r)
+            // Add authorization header if access token is present
+            if let Some(access_token) = request.access_token() {
+                let bearer = format!("Bearer {}", access_token);
+                req_builder = req_builder.header("Authorization", bearer);
             }
-            Err(err) => {
-                log::debug!(
-                    "ESI Request failed: {} {} ({}ms) - {}",
-                    method,
-                    endpoint,
-                    elapsed.as_millis(),
-                    err
-                );
-                Err(err.into())
+
+            // Add all custom headers from the request
+            for (key, value) in request.headers() {
+                req_builder = req_builder.header(key, value);
+            }
+
+            // Add JSON body if present (for POST, PUT, PATCH requests)
+            if let Some(body) = request.body_json() {
+                req_builder = req_builder.json(body);
+            }
+
+            // Send the request
+            let response = req_builder.send().await;
+            let elapsed = start_time.elapsed();
+
+            match response {
+                Ok(r) => {
+                    // Check if we should retry on 5xx errors
+                    if r.status().is_server_error() && attempt < max_retries {
+                        let status = r.status();
+                        log::warn!(
+                            "ESI Request failed with {}: {} {} ({}ms) - Retrying (attempt {}/{})",
+                            status,
+                            method,
+                            endpoint,
+                            elapsed.as_millis(),
+                            attempt + 1,
+                            max_retries
+                        );
+
+                        // Calculate exponential backoff: base_backoff * 2^attempt
+                        let wait_time = base_backoff * 2_u32.pow(attempt);
+                        tokio::time::sleep(wait_time).await;
+                        continue;
+                    }
+
+                    log::debug!(
+                        "ESI Request completed: {} {} ({}ms)",
+                        method,
+                        endpoint,
+                        elapsed.as_millis()
+                    );
+                    return Ok(r);
+                }
+                Err(err) => {
+                    // For network errors, retry if we haven't exhausted attempts
+                    if attempt < max_retries {
+                        log::warn!(
+                            "ESI Request failed: {} {} ({}ms) - {} - Retrying (attempt {}/{})",
+                            method,
+                            endpoint,
+                            elapsed.as_millis(),
+                            err,
+                            attempt + 1,
+                            max_retries
+                        );
+
+                        // Calculate exponential backoff: base_backoff * 2^attempt
+                        let wait_time = base_backoff * 2_u32.pow(attempt);
+                        tokio::time::sleep(wait_time).await;
+                        continue;
+                    }
+
+                    log::debug!(
+                        "ESI Request failed: {} {} ({}ms) - {}",
+                        method,
+                        endpoint,
+                        elapsed.as_millis(),
+                        err
+                    );
+                    return Err(err.into());
+                }
             }
         }
+
+        // This should never be reached due to the loop logic, but just in case
+        unreachable!("Retry loop completed without returning a response")
     }
 
     /// Make a request to ESI using the provided [`EsiRequest`] configuration.

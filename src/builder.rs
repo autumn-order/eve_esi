@@ -165,6 +165,8 @@ impl ClientBuilder {
             reqwest_client,
             esi_url: config.esi_url,
             esi_validate_token_before_request: config.esi_validate_token_before_request,
+            esi_max_retries: config.esi_max_retries,
+            esi_retry_backoff: config.esi_retry_backoff,
 
             // OAuth2
             oauth2_client: oauth_client,

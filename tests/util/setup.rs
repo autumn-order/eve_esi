@@ -34,6 +34,8 @@ pub async fn integration_test_setup() -> (eve_esi::Client, ServerGuard) {
         // Set to milliseconds to ensure expiry calculations are precise
         .jwk_cache_ttl(Duration::from_millis(900))
         .jwk_background_refresh_threshold(50) // 50% expiry for background refresh, 450 milliseconds
+        // Disable retries for endpoint tests
+        .esi_max_retries(0)
         .build()
         .expect("Failed to build Config");
 

@@ -12,27 +12,6 @@
 //! - Adjust backoff period (wait time) beteween attempts and how many retries should be made to refresh JWT keys
 //! - Enable/disable the proactive background JWT key refresh
 //!
-//! ## Builder Methods
-//!
-//! | Method                              | Description                                                |
-//! | ----------------------------------- | ---------------------------------------------------------- |
-//! | `new`                               | Create a new [`ConfigBuilder`]                             |
-//! | `build`                             | Build the [`Config`]                                       |
-//! | `esi_url`                           | Base URL for ESI endpoints                                 |
-//! | `auth_url`                          | URL for sign in with EVE Online                            |
-//! | `token_url`                         | URL to retrieve access tokens for OAuth2                   |
-//! | `jwk_url`                           | URL for JWT keys to validate tokens                        |
-//! | `jwk_cache_ttl`                     | The time that JWT keys are cached for                      |
-//! | `jwk_refresh_backoff`               | How long to wait between retries                           |
-//! | `jwk_refresh_timeout`               | How long to wait for another thread to refresh             |
-//! | `jwk_refresh_cooldown`              | Cooldown between sets of JWT key refresh attempts          |
-//! | `jwk_refresh_max_retries`           | Amount of retries when a key fetch fails                   |
-//! | `jwk_background_refresh_enabled`    | Enable/disable background refresh                          |
-//! | `jwk_background_refresh_threshold`  | Percentage at which cache is refreshed proactively         |
-//! | `jwt_issuers`                       | Expected issuer(s) of JWT tokens                           |
-//! | `jwt_audience`                      | Intended audience JWT tokens are to be used with           |
-//! | `esi_validate_token_before_request` | Toggle validating tokens before authenticated ESI requests |
-//!
 //! ## Usage
 //!
 //! ```
@@ -62,8 +41,8 @@ use oauth2::{AuthUrl, TokenUrl};
 
 use crate::{
     constant::{
-        DEFAULT_AUTH_URL, DEFAULT_ESI_URL, DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUERS,
-        DEFAULT_TOKEN_URL,
+        DEFAULT_AUTH_URL, DEFAULT_ESI_MAX_RETRIES, DEFAULT_ESI_RETRY_BACKOFF, DEFAULT_ESI_URL,
+        DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUERS, DEFAULT_TOKEN_URL,
     },
     error::{ConfigError, Error},
     oauth2::jwk::cache::JwtKeyCacheConfig,
@@ -92,6 +71,10 @@ pub struct Config {
     // ESI Request Settings
     /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
     pub(crate) esi_validate_token_before_request: bool,
+    /// Maximum number of retries for ESI requests on 5xx errors
+    pub(crate) esi_max_retries: u32,
+    /// Backoff period between ESI request retries
+    pub(crate) esi_retry_backoff: Duration,
 }
 
 /// Builder struct for configuring & constructing an [`Config`] to override default [`Client`](crate::Client) settings
@@ -117,6 +100,10 @@ pub struct ConfigBuilder {
     // ESI Request Settings
     /// Enable/disable checking if access token is valid, not expired, and has required scopes before an ESI request
     pub(crate) esi_validate_token_before_request: bool,
+    /// Maximum number of retries for ESI requests on 5xx errors
+    pub(crate) esi_max_retries: u32,
+    /// Backoff period between ESI request retries
+    pub(crate) esi_retry_backoff: Duration,
 }
 
 impl Config {
@@ -182,6 +169,8 @@ impl ConfigBuilder {
 
             // ESI Request Settings
             esi_validate_token_before_request: true,
+            esi_max_retries: DEFAULT_ESI_MAX_RETRIES,
+            esi_retry_backoff: DEFAULT_ESI_RETRY_BACKOFF,
         }
     }
 
@@ -238,6 +227,8 @@ impl ConfigBuilder {
 
             // ESI Request Settings
             esi_validate_token_before_request: self.esi_validate_token_before_request,
+            esi_max_retries: self.esi_max_retries,
+            esi_retry_backoff: self.esi_retry_backoff,
         })
     }
 
@@ -497,6 +488,35 @@ impl ConfigBuilder {
         self.esi_validate_token_before_request = enabled;
         self
     }
+
+    /// Set the maximum number of retries for ESI requests on 5xx errors
+    ///
+    /// When an ESI request receives a 5xx server error, it will be retried up to this many times
+    /// with exponential backoff. Requests with 4xx errors or successful responses return immediately
+    /// without retrying. Default is 2 retries.
+    ///
+    /// # Arguments
+    /// - `max_retries` - Maximum number of retry attempts for 5xx errors
+    pub fn esi_max_retries(mut self, max_retries: u32) -> Self {
+        self.esi_max_retries = max_retries;
+        self
+    }
+
+    /// Set the base backoff period between ESI request retries
+    ///
+    /// This is the base wait time between retry attempts. The actual wait time increases
+    /// exponentially with each retry (backoff * 2^attempt). Default is 200 milliseconds.
+    ///
+    /// For example, with default 200ms backoff:
+    /// - 1st retry: wait 200ms
+    /// - 2nd retry: wait 400ms
+    ///
+    /// # Arguments
+    /// - `backoff` -  Base backoff period for retry attempts
+    pub fn esi_retry_backoff(mut self, backoff: Duration) -> Self {
+        self.esi_retry_backoff = backoff;
+        self
+    }
 }
 
 #[cfg(test)]
@@ -555,9 +575,7 @@ mod tests {
         assert_eq!(config.jwt_key_cache_config.refresh_max_retries, 0);
 
         // Assert JWT key background refresh settings were set
-        assert!(
-            !config.jwt_key_cache_config.background_refresh_enabled
-        );
+        assert!(!config.jwt_key_cache_config.background_refresh_enabled);
         assert_eq!(config.jwt_key_cache_config.background_refresh_threshold, 1);
 
         // Assert JWT settings were set
