@@ -158,7 +158,7 @@ impl JwtKeyCache {
     /// - [`None`] if the cache is empty (no keys have been fetched yet). This typically
     ///   triggers a fetch operation with retry logic when called from higher-level methods.
     pub(super) async fn get_keys(&self) -> Option<(EveJwtKeys, std::time::Instant)> {
-        trace!("Attempting to retrieve JWT keys from cache");
+        log::trace!("Attempting to retrieve JWT keys from cache");
 
         // Retrieve the cache
         let cache = self.cache.read().await;
@@ -167,7 +167,7 @@ impl JwtKeyCache {
         if let Some((keys, timestamp)) = &*cache {
             let elapsed = timestamp.elapsed().as_secs();
 
-            debug!(
+            log::debug!(
                 "Found JWT keys in cache: key_count={}, age={}s",
                 keys.keys.len(),
                 elapsed
@@ -177,7 +177,7 @@ impl JwtKeyCache {
             return Some((keys.clone(), *timestamp));
         }
 
-        debug!("JWT keys cache is empty, keys need to be fetched");
+        log::debug!("JWT keys cache is empty, keys need to be fetched");
 
         // Return None since no data was found in the cache
         None
@@ -212,7 +212,7 @@ impl JwtKeyCache {
             &key_count
         );
 
-        debug!("{}", message);
+        log::debug!("{}", message);
     }
 
     /// Clears the JWT key cache of any keys present
@@ -238,7 +238,7 @@ impl JwtKeyCache {
     pub(crate) async fn clear_cache(&self) -> bool {
         let message = "Attempting to clear JWT key cache";
 
-        debug!("{}", message);
+        log::debug!("{}", message);
 
         // Acquire write lock first to not accidentally overwrite any updates
         let mut cache = self.cache.write().await;
@@ -257,7 +257,7 @@ impl JwtKeyCache {
                     elapsed
                 );
 
-                info!("{}", message);
+                log::info!("{}", message);
 
                 *cache = None;
 
@@ -268,14 +268,14 @@ impl JwtKeyCache {
                     self.config.refresh_cooldown.as_secs()
                 );
 
-                debug!("{}", message);
+                log::debug!("{}", message);
 
                 false
             }
         } else {
             let message = "JWT key cache is currently empty, no need to clear it.";
 
-            debug!("{}", message);
+            log::debug!("{}", message);
 
             false
         }
@@ -315,14 +315,14 @@ impl JwtKeyCache {
         if lock_acquired.is_ok() {
             let message = "Successfully acquired JWT key refresh lock";
 
-            debug!("{}", message);
+            log::debug!("{}", message);
 
             // Lock successfully acquired
             true
         } else {
             let message = "Failed to acquire JWT key refresh lock (already held by another thread)";
 
-            trace!("{}", message);
+            log::trace!("{}", message);
 
             // Lock already in use
             false
@@ -356,7 +356,7 @@ impl JwtKeyCache {
 
         let message = "JWT key refresh lock released and waiters notified";
 
-        debug!("{}", message);
+        log::debug!("{}", message);
     }
 
     /// Sets the last JWT key cache refresh failure time
@@ -693,7 +693,8 @@ mod jwk_lock_release_and_notify_tests {
                 true,
                 std::sync::atomic::Ordering::Acquire,
                 std::sync::atomic::Ordering::Relaxed,
-            ).is_ok();
+            )
+            .is_ok();
 
         // Assert that lock is in place
         assert!(lock);
@@ -723,7 +724,8 @@ mod jwk_lock_release_and_notify_tests {
                 true,
                 std::sync::atomic::Ordering::Acquire,
                 std::sync::atomic::Ordering::Relaxed,
-            ).is_ok();
+            )
+            .is_ok();
 
         assert!(lock)
     }

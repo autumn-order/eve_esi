@@ -17,7 +17,7 @@ impl<'a> EsiApi<'a> {
         required_scopes: Vec<String>,
     ) -> Result<(), Error> {
         if self.client.inner.esi_validate_token_before_request {
-            trace!("Validating token prior to expiration & scope checks");
+            log::trace!("Validating token prior to expiration & scope checks");
 
             let claims = self
                 .client
@@ -29,7 +29,7 @@ impl<'a> EsiApi<'a> {
 
             check_token_scopes(&claims, required_scopes)?;
 
-            debug!("Access token passed validation, expiration, and scope checks successfully prior to authenticated ESI request.");
+            log::debug!("Access token passed validation, expiration, and scope checks successfully prior to authenticated ESI request.");
         };
 
         Ok(())
@@ -41,7 +41,7 @@ pub(super) fn check_token_expiration(access_token_claims: &EveJwtClaims) -> Resu
     if access_token_claims.is_expired() {
         let error = OAuthError::AccessTokenExpired();
 
-        error!(
+        log::error!(
             "Failed to make request to authenticated ESI route due to token being expired: {:?}",
             error
         );
@@ -49,7 +49,7 @@ pub(super) fn check_token_expiration(access_token_claims: &EveJwtClaims) -> Resu
         return Err(Error::OAuthError(error));
     }
 
-    trace!("Checked access token for expiration prior to authenticated ESI request, token is not expired.");
+    log::trace!("Checked access token for expiration prior to authenticated ESI request, token is not expired.");
 
     Ok(())
 }
@@ -62,12 +62,12 @@ pub(super) fn check_token_scopes(
     if !access_token_claims.has_scopes(&required_scopes) {
         let error = OAuthError::AccessTokenMissingScopes(required_scopes);
 
-        error!("Failed to make request to authenticated ESI route due to missing required scopes: {:?}", error);
+        log::error!("Failed to make request to authenticated ESI route due to missing required scopes: {:?}", error);
 
         return Err(Error::OAuthError(error));
     }
 
-    trace!("Checked access token for required scopes prior to authenticated ESI request, all required scopes are present: {:?}", required_scopes);
+    log::trace!("Checked access token for required scopes prior to authenticated ESI request, all required scopes are present: {:?}", required_scopes);
 
     Ok(())
 }
