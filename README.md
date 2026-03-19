@@ -2,9 +2,7 @@
 
 > [!WARNING]
 >
-> **This crate is still under development, APIs may change between versions**
->
-> Currently the crate features OAuth2 login with EVE Online and we're now adding additional ESI endpoints as needed. If you wish to see specific endpoints added, please open a GitHub issue, submit a pull request, or simply reach out via the [Autumn Discord](https://discord.gg/AcVY3rpsMM).
+> **No longer maintained, use https://github.com/celeo/rfesi**
 
 [![Crates.io Version](https://img.shields.io/crates/v/eve_esi?logo=rust)](https://crates.io/crates/eve_esi/)
 [![codecov](https://codecov.io/gh/autumn-order/eve_esi/graph/badge.svg?token=OXD57P1UY6)](https://codecov.io/gh/autumn-order/eve_esi)
